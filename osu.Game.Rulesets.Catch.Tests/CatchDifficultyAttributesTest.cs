@@ -12,9 +12,9 @@ namespace osu.Game.Rulesets.Catch.Tests
     [TestFixture]
     public class CatchDifficultyAttributesTest
     {
-        private const int ATTRIB_ID_AIM = 1;
-        private const int ATTRIB_ID_DIFFICULTY = 11;
-        private const int ATTRIB_ID_MAX_COMBO = 9;
+        private const int attrib_id_aim = 1;
+        private const int attrib_id_difficulty = 11;
+        private const int attrib_id_max_combo = 9;
 
         [Test]
         public void TestToDatabaseAttributes()
@@ -28,11 +28,11 @@ namespace osu.Game.Rulesets.Catch.Tests
             var databaseAttributes = attributes.ToDatabaseAttributes().ToDictionary(t => t.attributeId, t => t.value);
 
             // Should contain StarRating in DIFFICULTY attribute
-            Assert.That(databaseAttributes, Contains.Key(ATTRIB_ID_DIFFICULTY));
-            Assert.That(databaseAttributes[ATTRIB_ID_DIFFICULTY], Is.EqualTo(5.5));
+            Assert.That(databaseAttributes, Contains.Key(attrib_id_difficulty));
+            Assert.That(databaseAttributes[attrib_id_difficulty], Is.EqualTo(5.5));
 
             // Should NOT contain AIM attribute
-            Assert.That(databaseAttributes, Does.Not.ContainKey(ATTRIB_ID_AIM));
+            Assert.That(databaseAttributes, Does.Not.ContainKey(attrib_id_aim));
         }
 
         [Test]
@@ -41,8 +41,8 @@ namespace osu.Game.Rulesets.Catch.Tests
             var attributes = new CatchDifficultyAttributes();
             var values = new Dictionary<int, double>
             {
-                { ATTRIB_ID_DIFFICULTY, 6.6 },
-                { ATTRIB_ID_MAX_COMBO, 200 }
+                { attrib_id_difficulty, 6.6 },
+                { attrib_id_max_combo, 200 }
             };
             var onlineInfo = new TestBeatmapOnlineInfo();
 
@@ -58,8 +58,8 @@ namespace osu.Game.Rulesets.Catch.Tests
             var attributes = new CatchDifficultyAttributes();
             var values = new Dictionary<int, double>
             {
-                { ATTRIB_ID_AIM, 7.7 },
-                { ATTRIB_ID_MAX_COMBO, 300 }
+                { attrib_id_aim, 7.7 },
+                { attrib_id_max_combo, 300 }
             };
             var onlineInfo = new TestBeatmapOnlineInfo();
 
