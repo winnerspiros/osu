@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -43,7 +43,6 @@ namespace osu.Game.Rulesets.Catch.UI
         /// </summary>
         private int currentDirection;
 
-        // TODO: support replay rewind
         private bool lastHyperDashState;
 
         /// <remarks>
@@ -97,23 +96,18 @@ namespace osu.Game.Rulesets.Catch.UI
 
             comboDisplay.X = Catcher.X;
 
-            if ((Clock as IGameplayClock)?.IsRewinding == true)
+            if ((Clock as IGameplayClock)?.IsRewinding != true)
             {
-                // This is probably a wrong value, but currently the true value is not recorded.
-                // Setting `true` will prevent generation of false-positive after-images (with more false-negatives).
-                lastHyperDashState = true;
-                return;
-            }
+                if (!lastHyperDashState && Catcher.HyperDashing)
+                    displayCatcherTrail(CatcherTrailAnimation.HyperDashAfterImage);
 
-            if (!lastHyperDashState && Catcher.HyperDashing)
-                displayCatcherTrail(CatcherTrailAnimation.HyperDashAfterImage);
+                if (Catcher.Dashing || Catcher.HyperDashing)
+                {
+                    const double trail_generation_interval = 16;
 
-            if (Catcher.Dashing || Catcher.HyperDashing)
-            {
-                const double trail_generation_interval = 16;
-
-                if (Time.Current - CatcherTrails.LastDashTrailTime >= trail_generation_interval)
-                    displayCatcherTrail(Catcher.HyperDashing ? CatcherTrailAnimation.HyperDashing : CatcherTrailAnimation.Dashing);
+                    if (Time.Current - CatcherTrails.LastDashTrailTime >= trail_generation_interval)
+                        displayCatcherTrail(Catcher.HyperDashing ? CatcherTrailAnimation.HyperDashing : CatcherTrailAnimation.Dashing);
+                }
             }
 
             lastHyperDashState = Catcher.HyperDashing;
