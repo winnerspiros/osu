@@ -65,9 +65,6 @@ namespace osu.Game.Rulesets.Mania
                 {
                     Caption = RulesetSettingsStrings.MobileLayout,
                     Current = config.GetBindable<ManiaMobileLayout>(ManiaRulesetSetting.MobileLayout),
-#pragma warning disable CS0618 // Type or member is obsolete
-                    Items = Enum.GetValues<ManiaMobileLayout>().Where(l => l != ManiaMobileLayout.LandscapeWithOverlay),
-#pragma warning restore CS0618 // Type or member is obsolete
                 }));
             }
         }

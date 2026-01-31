@@ -18,8 +18,5 @@ namespace osu.Game.Rulesets.Mania
 
         [LocalisableDescription(typeof(RulesetSettingsStrings), nameof(RulesetSettingsStrings.LandscapeExpandedColumns))]
         LandscapeExpandedColumns,
-
-        [Obsolete($"Use {nameof(ManiaRulesetSetting.TouchOverlay)} instead.")] // todo: can be removed 20260211
-        LandscapeWithOverlay,
     }
 }
