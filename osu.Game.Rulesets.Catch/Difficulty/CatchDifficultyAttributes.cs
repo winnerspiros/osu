@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
@@ -14,15 +14,17 @@ namespace osu.Game.Rulesets.Catch.Difficulty
             foreach (var v in base.ToDatabaseAttributes())
                 yield return v;
 
-            // Todo: osu!catch should not output star rating in the 'aim' attribute.
-            yield return (ATTRIB_ID_AIM, StarRating);
+            yield return (ATTRIB_ID_DIFFICULTY, StarRating);
         }
 
         public override void FromDatabaseAttributes(IReadOnlyDictionary<int, double> values, IBeatmapOnlineInfo onlineInfo)
         {
             base.FromDatabaseAttributes(values, onlineInfo);
 
-            StarRating = values[ATTRIB_ID_AIM];
+            if (values.TryGetValue(ATTRIB_ID_DIFFICULTY, out double starRating))
+                StarRating = starRating;
+            else if (values.TryGetValue(ATTRIB_ID_AIM, out starRating))
+                StarRating = starRating;
         }
     }
 }
