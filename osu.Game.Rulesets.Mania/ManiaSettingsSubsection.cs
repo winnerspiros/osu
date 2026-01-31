@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
@@ -58,7 +57,7 @@ namespace osu.Game.Rulesets.Mania
                 Current = config.GetBindable<bool>(ManiaRulesetSetting.TouchOverlay)
             }));
 
-            if (RuntimeInfo.IsMobile)
+            if (osu.Framework.RuntimeInfo.IsMobile)
             {
                 Add(new SettingsItemV2(new FormEnumDropdown<ManiaMobileLayout>
                 {
