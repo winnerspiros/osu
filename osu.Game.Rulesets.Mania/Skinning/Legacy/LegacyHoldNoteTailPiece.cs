@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.UI.Scrolling;
@@ -20,10 +21,21 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 
         protected override Drawable? GetAnimation(ISkinSource skin)
         {
-            // TODO: Should fallback to the head from default legacy skin instead of note.
-            return GetAnimationFromLookup(skin, LegacyManiaSkinConfigurationLookups.HoldNoteTailImage)
-                   ?? GetAnimationFromLookup(skin, LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage)
-                   ?? GetAnimationFromLookup(skin, LegacyManiaSkinConfigurationLookups.NoteImage);
+            var defaultSkin = skin.AllSources.OfType<DefaultLegacySkin>().FirstOrDefault();
+
+            var animation = GetAnimationFromLookup(skin, LegacyManiaSkinConfigurationLookups.HoldNoteTailImage)
+                            ?? GetAnimationFromLookup(skin, LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage);
+
+            if (animation != null)
+                return animation;
+
+            if (defaultSkin != null)
+            {
+                animation = GetAnimationFromLookup(defaultSkin, LegacyManiaSkinConfigurationLookups.HoldNoteHeadImage)
+                            ?? GetAnimationFromLookup(defaultSkin, LegacyManiaSkinConfigurationLookups.NoteImage);
+            }
+
+            return animation;
         }
     }
 }
