@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -94,6 +94,12 @@ namespace osu.Android
             IsTablet = smallestWidthDp >= 600f;
 
             RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
+            {
+                // Request unbuffered dispatch for lower input latency
+                Window.DecorView.RequestUnbufferedDispatch(MotionEventActions.Move);
+            }
 
             // Currently (SDK 6.0.200), BundleAssemblies is not runnable for net6-android.
             // The assembly files are not available as files either after native AOT.
