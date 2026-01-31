@@ -36,7 +36,7 @@ namespace osu.Game.Rulesets.Taiko.UI
         private Container<HitExplosion> hitExplosionContainer = null!;
         private Container<KiaiHitExplosion> kiaiExplosionContainer = null!;
         private JudgementContainer<DrawableTaikoJudgement> judgementContainer = null!;
-        private ScrollingHitObjectContainer drumRollHitContainer = null!;
+        private DrumRollHitContainer drumRollHitContainer = null!;
         internal Drawable HitTarget = null!;
 
         private JudgementPooler<DrawableTaikoJudgement> judgementPooler = null!;
