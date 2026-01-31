@@ -213,7 +213,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             {
                 // TODO: consider islands to be of similar polarity only if they're having the same average delta (we don't want to consider 3 singletaps similar to a triple)
                 //       naively adding delta check here breaks _a lot_ of maps because of the flawed ratio calculation
-                return DeltaCount % 2 == other.DeltaCount % 2;
+                return DeltaCount % 2 == other.DeltaCount % 2
+                       && Math.Abs(Delta - other.Delta) < deltaDifferenceEpsilon;
             }
 
             public bool Equals(Island? other)
