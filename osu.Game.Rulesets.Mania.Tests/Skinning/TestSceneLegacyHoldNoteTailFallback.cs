@@ -5,17 +5,12 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Testing;
-using osu.Game.Beatmaps;
 using osu.Game.IO;
 using osu.Game.Rulesets.Mania.Skinning.Legacy;
-using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
@@ -69,7 +64,9 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
             AddAssert("tail IS NOT user note (fix verified)", () =>
             {
                 var sprite = piece?.ChildrenOfType<Sprite>().FirstOrDefault();
-                if (sprite == null) return false;
+
+                if (sprite == null)
+                    return false;
 
                 return sprite.Texture != userNoteTexture;
             });
