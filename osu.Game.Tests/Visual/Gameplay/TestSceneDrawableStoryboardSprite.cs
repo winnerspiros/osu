@@ -17,6 +17,7 @@ using osu.Framework.Testing;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
+using osu.Game.Beatmaps;
 using osu.Game.Storyboards;
 using osu.Game.Storyboards.Drawables;
 using osu.Game.Tests.Resources;
@@ -74,6 +75,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             }));
 
             AddUntilStep("sprite reached high opacity once", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
+            AddStep("seek to end", () => Beatmap.Value.Track.Seek(Beatmap.Value.Track.Length));
             AddUntilStep("sprite reset to low opacity", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha < 0.2f)));
             AddUntilStep("sprite reached high opacity twice", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
         }
