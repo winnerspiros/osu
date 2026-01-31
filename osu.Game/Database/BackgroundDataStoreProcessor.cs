@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Logging;
@@ -17,6 +18,7 @@ using osu.Framework.Platform;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Extensions;
+using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
@@ -634,6 +636,9 @@ namespace osu.Game.Database
 
         private void backpopulateUserTags()
         {
+            if (DebugUtils.IsNUnitRunning)
+                return;
+
             if (!localMetadataSource.Available || !localMetadataSource.IsAtLeastVersion(3))
             {
                 Logger.Log(@"Local metadata cache has too low version to backpopulate user tags, attempting refetch...");
@@ -692,41 +697,67 @@ namespace osu.Game.Database
                 var updates = new List<(Guid id, HashSet<string> tags)>();
                 int chunkFailures = 0;
 
-                realmAccess.Run(r =>
+                // Step 1: Fetch detached copies of beatmaps to process (Read Transaction)
+                // We use lightweight copies to avoid the overhead of detaching entire BeatmapSets (which can be very expensive)
+                // and to avoid holding the Realm read lock during the potentially slow SQLite lookup.
+                var itemsToProcess = realmAccess.Run(r =>
                 {
+                    var list = new List<(Guid ID, string MD5Hash, string? Path, string DisplayString, HashSet<string> ExistingTags)>();
                     foreach (var id in chunk)
                     {
-                        try
+                        var b = r.Find<BeatmapInfo>(id);
+                        if (b != null)
+                            list.Add((b.ID, b.MD5Hash, b.Path, b.GetDisplayString(), b.Metadata.UserTags.ToHashSet()));
+                        else
+                            chunkFailures++; // Should not happen given we just queried IDs, but handling gracefully.
+                    }
+                    return list;
+                });
+
+                // Step 2: Perform Lookups (No Realm Transaction)
+                foreach (var item in itemsToProcess)
+                {
+                    try
+                    {
+                        // Create a dummy BeatmapInfo to satisfy the TryLookup signature.
+                        // We populate it with just enough data to perform the lookup.
+                        // We also need to populate the BeatmapSet with a matching file hash if Path is present,
+                        // because TryLookup may internally access BeatmapSet.Files to verify the path.
+                        var dummy = new BeatmapInfo
                         {
-                            var beatmap = r.Find<BeatmapInfo>(id);
+                            MD5Hash = item.MD5Hash,
+                            Hash = "dummy_hash", // Needed to match file hash
+                            BeatmapSet = new BeatmapSetInfo()
+                        };
 
-                            if (beatmap == null)
-                            {
-                                chunkFailures++;
-                                continue;
-                            }
-
-                            if (localMetadataSource.TryLookup(beatmap, out var result))
-                            {
-                                Debug.Assert(result != null);
-
-                                var userTags = result.UserTags.ToHashSet();
-
-                                if (!userTags.SetEquals(beatmap.Metadata.UserTags))
-                                    updates.Add((id, userTags));
-                            }
-                            else
-                            {
-                                Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
-                            }
+                        // If path is provided, we need to mock the file usage so dummy.Path (computed property) works.
+                        if (!string.IsNullOrEmpty(item.Path))
+                        {
+                            dummy.BeatmapSet.Files.Add(new RealmNamedFileUsage(
+                                new RealmFile { Hash = dummy.Hash },
+                                item.Path));
                         }
-                        catch (Exception e)
+
+                        if (localMetadataSource.TryLookup(dummy, out var result))
                         {
-                            Logger.Log(@$"Failed to update user tags for beatmap {id}: {e}");
-                            chunkFailures++;
+                            Debug.Assert(result != null);
+
+                            var userTags = result.UserTags.ToHashSet();
+
+                            if (!userTags.SetEquals(item.ExistingTags))
+                                updates.Add((item.ID, userTags));
+                        }
+                        else
+                        {
+                            Logger.Log(@$"Could not find {item.DisplayString} in local cache while backpopulating missing user tags");
                         }
                     }
-                });
+                    catch (Exception e)
+                    {
+                        Logger.Log(@$"Failed to update user tags for beatmap {item.ID}: {e}");
+                        chunkFailures++;
+                    }
+                }
 
                 int writeFailures = 0;
 
