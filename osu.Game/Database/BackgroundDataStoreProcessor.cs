@@ -580,7 +580,7 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var chunk in beatmapSetIds.Chunk(100))
+            foreach (var chunk in beatmapSetIds.Chunk(10))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
@@ -705,7 +705,7 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var chunk in beatmapIds.Chunk(100))
+            foreach (var chunk in beatmapIds.Chunk(10))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;

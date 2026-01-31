@@ -274,21 +274,21 @@ namespace osu.Game.Tests.Database
             {
                 Realm.Write(r =>
                 {
-                    string fileHash = "mock_hash";
+                    const string file_hash = "mock_hash";
                     beatmapSet = new BeatmapSetInfo
                     {
                         DateSubmitted = null,
                         DateRanked = null,
                         Status = BeatmapOnlineStatus.Ranked,
                     };
-                    var realmFile = new RealmFile { Hash = fileHash };
+                    var realmFile = new RealmFile { Hash = file_hash };
                     beatmapSet.Files.Add(new RealmNamedFileUsage(realmFile, "mock_filename"));
 
                     var beatmap = new BeatmapInfo
                     {
                         BeatmapSet = beatmapSet,
                         MD5Hash = "mock_checksum",
-                        Hash = fileHash,
+                        Hash = file_hash,
                         Status = BeatmapOnlineStatus.Ranked,
                         Ruleset = r.All<RulesetInfo>().First(rs => rs.ShortName == "osu"),
                         Metadata = new BeatmapMetadata(),
