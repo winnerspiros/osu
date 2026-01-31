@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -10,6 +11,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Models;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
@@ -211,6 +213,102 @@ namespace osu.Game.Tests.Database
 
             AddAssert("Score not marked as failed", () => Realm.Run(r => r.Find<ScoreInfo>(scoreInfo.ID)!.BackgroundReprocessingFailed), () => Is.False);
             AddAssert("Score version not upgraded", () => Realm.Run(r => r.Find<ScoreInfo>(scoreInfo.ID)!.TotalScoreVersion), () => Is.EqualTo(30000001));
+        }
+
+        [Test]
+        public void TestBackpopulateMissingSubmissionAndRankDates()
+        {
+            BeatmapSetInfo beatmapSet = null!;
+            TestBackgroundDataStoreProcessor processor = null!;
+            DateTimeOffset dateSubmitted = new DateTimeOffset(2023, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            DateTimeOffset dateRanked = new DateTimeOffset(2023, 2, 1, 0, 0, 0, TimeSpan.Zero);
+
+            AddStep("Setup online.db", () =>
+            {
+                using (var connection = new SqliteConnection($"Data Source={LocalStorage.GetFullPath("online.db")}"))
+                {
+                    connection.Open();
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            CREATE TABLE IF NOT EXISTS schema_version (number INTEGER);
+                            DELETE FROM schema_version;
+                            INSERT INTO schema_version VALUES (3);
+
+                            CREATE TABLE IF NOT EXISTS osu_beatmapsets (
+                                beatmapset_id INTEGER PRIMARY KEY,
+                                submit_date TEXT,
+                                approved_date TEXT
+                            );
+                            DELETE FROM osu_beatmapsets;
+
+                            CREATE TABLE IF NOT EXISTS osu_beatmaps (
+                                beatmap_id INTEGER PRIMARY KEY,
+                                beatmapset_id INTEGER,
+                                approved INTEGER,
+                                user_id INTEGER,
+                                checksum TEXT,
+                                last_update TEXT,
+                                filename TEXT
+                            );
+                            DELETE FROM osu_beatmaps;
+
+                            CREATE TABLE IF NOT EXISTS tags (id INTEGER PRIMARY KEY, name TEXT);
+                            CREATE TABLE IF NOT EXISTS beatmap_tags (tag_id INTEGER, beatmap_id INTEGER);
+
+                            INSERT INTO osu_beatmapsets (beatmapset_id, submit_date, approved_date)
+                            VALUES (1234, @submit_date, @approved_date);
+
+                            INSERT INTO osu_beatmaps (beatmap_id, beatmapset_id, approved, user_id, checksum, last_update, filename)
+                            VALUES (5678, 1234, 1, 100, 'mock_checksum', @last_update, 'mock_filename');
+                        ";
+                        cmd.Parameters.AddWithValue("@submit_date", dateSubmitted);
+                        cmd.Parameters.AddWithValue("@approved_date", dateRanked);
+                        cmd.Parameters.AddWithValue("@last_update", dateRanked); // just use rank date
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            });
+
+            AddStep("Add beatmap set with missing dates", () =>
+            {
+                Realm.Write(r =>
+                {
+                    string fileHash = "mock_hash";
+                    beatmapSet = new BeatmapSetInfo
+                    {
+                        DateSubmitted = null,
+                        DateRanked = null,
+                        Status = BeatmapOnlineStatus.Ranked,
+                    };
+                    var realmFile = new RealmFile { Hash = fileHash };
+                    beatmapSet.Files.Add(new RealmNamedFileUsage(realmFile, "mock_filename"));
+
+                    var beatmap = new BeatmapInfo
+                    {
+                        BeatmapSet = beatmapSet,
+                        MD5Hash = "mock_checksum",
+                        Hash = fileHash,
+                        Status = BeatmapOnlineStatus.Ranked,
+                        Ruleset = r.All<RulesetInfo>().First(rs => rs.ShortName == "osu"),
+                        Metadata = new BeatmapMetadata(),
+                    };
+                    beatmapSet.Beatmaps.Add(beatmap);
+                    r.Add(beatmapSet);
+                });
+            });
+
+            AddStep("Run background processor", () => Add(processor = new TestBackgroundDataStoreProcessor()));
+            AddUntilStep("Wait for completion", () => processor.Completed);
+
+            AddAssert("Dates populated", () =>
+            {
+                return Realm.Run(r =>
+                {
+                    var set = r.Find<BeatmapSetInfo>(beatmapSet.ID)!;
+                    return set.DateSubmitted == dateSubmitted && set.DateRanked == dateRanked;
+                });
+            });
         }
 
         public partial class TestBackgroundDataStoreProcessor : BackgroundDataStoreProcessor

@@ -580,43 +580,67 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in beatmapSetIds)
+            foreach (var chunk in beatmapSetIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
 
-                updateNotificationProgress(notification, processedCount, beatmapSetIds.Count);
-
                 sleepIfRequired();
+
+                int batchProcessed = 0;
+                int batchFailed = 0;
 
                 try
                 {
                     // Can't use async overload because we're not on the update thread.
                     // ReSharper disable once MethodHasAsyncOverload
-                    bool succeeded = realmAccess.Write(r =>
+                    realmAccess.Write(r =>
                     {
-                        BeatmapSetInfo beatmapSet = r.Find<BeatmapSetInfo>(id)!;
-
-                        var beatmap = beatmapSet.Beatmaps.First(b => b.Status >= BeatmapOnlineStatus.Ranked);
-
-                        bool lookupSucceeded = localMetadataSource.TryLookup(beatmap, out var result);
-
-                        if (lookupSucceeded)
+                        foreach (var id in chunk)
                         {
-                            Debug.Assert(result != null);
-                            beatmapSet.DateRanked = result.DateRanked;
-                            beatmapSet.DateSubmitted = result.DateSubmitted;
-                            return true;
-                        }
+                            try
+                            {
+                                BeatmapSetInfo? beatmapSet = r.Find<BeatmapSetInfo>(id);
 
-                        Logger.Log($"Could not find {beatmapSet.GetDisplayString()} in local cache while backpopulating missing submission/rank date");
-                        return false;
+                                if (beatmapSet == null)
+                                {
+                                    batchFailed++;
+                                    continue;
+                                }
+
+                                var beatmap = beatmapSet.Beatmaps.FirstOrDefault(b => b.Status >= BeatmapOnlineStatus.Ranked);
+
+                                if (beatmap == null)
+                                {
+                                    batchFailed++;
+                                    continue;
+                                }
+
+                                bool lookupSucceeded = localMetadataSource.TryLookup(beatmap, out var result);
+
+                                if (lookupSucceeded)
+                                {
+                                    Debug.Assert(result != null);
+                                    beatmapSet.DateRanked = result.DateRanked;
+                                    beatmapSet.DateSubmitted = result.DateSubmitted;
+                                    batchProcessed++;
+                                }
+                                else
+                                {
+                                    Logger.Log($"Could not find {beatmapSet.GetDisplayString()} in local cache while backpopulating missing submission/rank date");
+                                    batchFailed++;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Log($"Failed to update ranked/submitted dates for beatmap set {id}: {e}");
+                                batchFailed++;
+                            }
+                        }
                     });
 
-                    if (succeeded)
-                        ++processedCount;
-                    else
-                        ++failedCount;
+                    processedCount += batchProcessed;
+                    failedCount += batchFailed;
                 }
                 catch (ObjectDisposedException)
                 {
@@ -624,9 +648,10 @@ namespace osu.Game.Database
                 }
                 catch (Exception e)
                 {
-                    Logger.Log($"Failed to update ranked/submitted dates for beatmap set {id}: {e}");
-                    ++failedCount;
+                    Logger.Log($"Failed to process batch of missing dates: {e}");
                 }
+
+                updateNotificationProgress(notification, processedCount, beatmapSetIds.Count);
             }
 
             completeNotification(notification, processedCount, beatmapSetIds.Count, failedCount);
@@ -680,14 +705,15 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in beatmapIds)
+            foreach (var chunk in beatmapIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
 
-                updateNotificationProgress(notification, processedCount, beatmapIds.Count);
-
                 sleepIfRequired();
+
+                int batchProcessed = 0;
+                int batchFailed = 0;
 
                 try
                 {
@@ -695,31 +721,49 @@ namespace osu.Game.Database
                     // ReSharper disable once MethodHasAsyncOverload
                     realmAccess.Write(r =>
                     {
-                        BeatmapInfo beatmap = r.Find<BeatmapInfo>(id)!;
-
-                        bool lookupSucceeded = localMetadataSource.TryLookup(beatmap, out var result);
-
-                        if (lookupSucceeded)
+                        foreach (var id in chunk)
                         {
-                            Debug.Assert(result != null);
-
-                            var userTags = result.UserTags.ToHashSet();
-
-                            if (!userTags.SetEquals(beatmap.Metadata.UserTags))
+                            try
                             {
-                                beatmap.Metadata.UserTags.Clear();
-                                beatmap.Metadata.UserTags.AddRange(userTags);
-                                return true;
+                                BeatmapInfo? beatmap = r.Find<BeatmapInfo>(id);
+
+                                if (beatmap == null)
+                                {
+                                    batchFailed++;
+                                    continue;
+                                }
+
+                                bool lookupSucceeded = localMetadataSource.TryLookup(beatmap, out var result);
+
+                                if (lookupSucceeded)
+                                {
+                                    Debug.Assert(result != null);
+
+                                    var userTags = result.UserTags.ToHashSet();
+
+                                    if (!userTags.SetEquals(beatmap.Metadata.UserTags))
+                                    {
+                                        beatmap.Metadata.UserTags.Clear();
+                                        beatmap.Metadata.UserTags.AddRange(userTags);
+                                    }
+                                }
+                                else
+                                {
+                                    Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
+                                }
+
+                                batchProcessed++;
                             }
-
-                            return false;
+                            catch (Exception e)
+                            {
+                                Logger.Log(@$"Failed to update user tags for beatmap {id}: {e}");
+                                batchFailed++;
+                            }
                         }
-
-                        Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
-                        return false;
                     });
 
-                    ++processedCount;
+                    processedCount += batchProcessed;
+                    failedCount += batchFailed;
                 }
                 catch (ObjectDisposedException)
                 {
@@ -727,9 +771,10 @@ namespace osu.Game.Database
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(@$"Failed to update user tags for beatmap {id}: {e}");
-                    ++failedCount;
+                    Logger.Log(@$"Failed to process batch of user tags: {e}");
                 }
+
+                updateNotificationProgress(notification, processedCount, beatmapIds.Count);
             }
 
             completeNotification(notification, processedCount, beatmapIds.Count, failedCount);
