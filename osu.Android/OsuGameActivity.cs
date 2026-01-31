@@ -95,12 +95,6 @@ namespace osu.Android
 
             RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
-            {
-                // Request unbuffered dispatch for lower input latency
-                Window.DecorView.RequestUnbufferedDispatch(MotionEventActions.Move);
-            }
-
             // Currently (SDK 6.0.200), BundleAssemblies is not runnable for net6-android.
             // The assembly files are not available as files either after native AOT.
             // Manually load them so that they can be loaded by RulesetStore.loadFromAppDomain.
