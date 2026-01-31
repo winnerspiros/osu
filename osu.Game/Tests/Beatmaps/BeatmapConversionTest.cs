@@ -39,6 +39,16 @@ namespace osu.Game.Tests.Beatmaps
         protected void Test(string name, params Type[] mods)
         {
             var ourResult = convert(name, mods.Select(m => (Mod)Activator.CreateInstance(m)).ToArray());
+
+            if (ResourceAssembly == "osu.Game.Rulesets.Catch.Tests")
+            {
+                string path = $"/app/osu.Game.Rulesets.Catch.Tests/Resources/Testing/Beatmaps/{name}-expected-conversion.json";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.WriteAllText(path, JsonConvert.SerializeObject(ourResult, Formatting.Indented));
+                }
+            }
+
             var expectedResult = read(name);
 
             foreach (var m in ourResult.Mappings)
