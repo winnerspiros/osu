@@ -680,7 +680,7 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in beatmapIds)
+            foreach (var chunk in beatmapIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
@@ -689,47 +689,80 @@ namespace osu.Game.Database
 
                 sleepIfRequired();
 
-                try
+                var updates = new List<(Guid id, HashSet<string> tags)>();
+                int chunkFailures = 0;
+
+                realmAccess.Run(r =>
                 {
-                    // Can't use async overload because we're not on the update thread.
-                    // ReSharper disable once MethodHasAsyncOverload
-                    realmAccess.Write(r =>
+                    foreach (var id in chunk)
                     {
-                        BeatmapInfo beatmap = r.Find<BeatmapInfo>(id)!;
-
-                        bool lookupSucceeded = localMetadataSource.TryLookup(beatmap, out var result);
-
-                        if (lookupSucceeded)
+                        try
                         {
-                            Debug.Assert(result != null);
+                            var beatmap = r.Find<BeatmapInfo>(id);
 
-                            var userTags = result.UserTags.ToHashSet();
-
-                            if (!userTags.SetEquals(beatmap.Metadata.UserTags))
+                            if (beatmap == null)
                             {
-                                beatmap.Metadata.UserTags.Clear();
-                                beatmap.Metadata.UserTags.AddRange(userTags);
-                                return true;
+                                chunkFailures++;
+                                continue;
                             }
 
-                            return false;
+                            if (localMetadataSource.TryLookup(beatmap, out var result))
+                            {
+                                Debug.Assert(result != null);
+
+                                var userTags = result.UserTags.ToHashSet();
+
+                                if (!userTags.SetEquals(beatmap.Metadata.UserTags))
+                                    updates.Add((id, userTags));
+                            }
+                            else
+                            {
+                                Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
+                            }
                         }
+                        catch (Exception e)
+                        {
+                            Logger.Log(@$"Failed to update user tags for beatmap {id}: {e}");
+                            chunkFailures++;
+                        }
+                    }
+                });
 
-                        Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
-                        return false;
-                    });
+                int writeFailures = 0;
 
-                    ++processedCount;
-                }
-                catch (ObjectDisposedException)
+                if (updates.Count > 0)
                 {
-                    throw;
+                    try
+                    {
+                        // Can't use async overload because we're not on the update thread.
+                        // ReSharper disable once MethodHasAsyncOverload
+                        realmAccess.Write(r =>
+                        {
+                            foreach (var (id, tags) in updates)
+                            {
+                                var beatmap = r.Find<BeatmapInfo>(id);
+
+                                if (beatmap != null)
+                                {
+                                    beatmap.Metadata.UserTags.Clear();
+                                    beatmap.Metadata.UserTags.AddRange(tags);
+                                }
+                            }
+                        });
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(@$"Failed to update user tags for batch: {e}");
+                        writeFailures = updates.Count;
+                    }
                 }
-                catch (Exception e)
-                {
-                    Logger.Log(@$"Failed to update user tags for beatmap {id}: {e}");
-                    ++failedCount;
-                }
+
+                failedCount += chunkFailures + writeFailures;
+                processedCount += chunk.Length - chunkFailures - writeFailures;
             }
 
             completeNotification(notification, processedCount, beatmapIds.Count, failedCount);
