@@ -722,7 +722,7 @@ namespace osu.Game.Database
 
         protected virtual void backpopulateUserTags()
         {
-            if (DebugUtils.IsNUnitRunning || api is DummyAPIAccess)
+            if (api is DummyAPIAccess)
                 return;
 
             if (!localMetadataSource.Available || !localMetadataSource.IsAtLeastVersion(3))
