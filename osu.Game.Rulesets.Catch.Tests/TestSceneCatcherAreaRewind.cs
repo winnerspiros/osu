@@ -1,13 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Rulesets.Catch.UI;
@@ -97,7 +94,7 @@ namespace osu.Game.Rulesets.Catch.Tests
                 Add(droppedObjectContainer);
                 Catcher = new Catcher(droppedObjectContainer)
                 {
-                     X = CatchPlayfield.CENTER_X
+                    X = CatchPlayfield.CENTER_X
                 };
             }
         }
@@ -106,7 +103,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         {
             public double StartTime => 0;
             public double GameplayStartTime => 0;
-            public IAdjustableAudioComponent? AdjustmentsFromMods => null;
+            public IAdjustableAudioComponent AdjustmentsFromMods => null!;
             public IBindable<bool> IsPaused { get; } = new Bindable<bool>();
             public bool IsRewinding { get; set; }
 
