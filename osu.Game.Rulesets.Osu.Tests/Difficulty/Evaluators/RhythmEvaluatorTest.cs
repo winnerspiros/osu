@@ -23,49 +23,49 @@ namespace osu.Game.Rulesets.Osu.Tests.Difficulty.Evaluators
 
             double time = 0;
             // Note 0
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             // Super Slow (600ms) x3
             // 1
             time += 600;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 2
             time += 600;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 3
             time += 600;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             // Singletaps (300ms) x3. Speed up -> Island A (Count 3)
             // 4
             time += 300;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 5
             time += 300;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 6
             time += 300;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             // Triple (100ms) x3. Speed up -> Island B (Count 3). PreviousIsland = A.
             // 7
             time += 100;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 8
             time += 100;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
             // 9
             time += 100;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             // Slow down (300ms). Ends Island B. Compare B to A.
             // 10
             time += 300;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             // Note 11. Needed to push Note 10 into history so the transition 9->10 is evaluated.
             time += 300;
-            AddHitObject(time, hitObjects, objects);
+            addHitObject(time, hitObjects, objects);
 
             double difficulty = RhythmEvaluator.EvaluateDifficultyOf(objects[11]);
 
@@ -76,7 +76,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Difficulty.Evaluators
             Assert.That(difficulty, Is.GreaterThan(1.1));
         }
 
-        private void AddHitObject(double time, List<OsuDifficultyHitObject> hitObjects, List<DifficultyHitObject> objects)
+        private void addHitObject(double time, List<OsuDifficultyHitObject> hitObjects, List<DifficultyHitObject> objects)
         {
             var hitObject = new HitCircle { StartTime = time, Position = Vector2.Zero };
             hitObject.HitWindows = new OsuHitWindows();
