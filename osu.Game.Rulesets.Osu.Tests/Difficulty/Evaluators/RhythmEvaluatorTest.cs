@@ -78,11 +78,16 @@ namespace osu.Game.Rulesets.Osu.Tests.Difficulty.Evaluators
 
         private void addHitObject(double time, List<OsuDifficultyHitObject> hitObjects, List<DifficultyHitObject> objects)
         {
-            var hitObject = new HitCircle { StartTime = time, Position = Vector2.Zero };
-            hitObject.HitWindows = new OsuHitWindows();
+            var hitObject = new HitCircle
+            {
+                StartTime = time,
+                Position = Vector2.Zero,
+                HitWindows = new OsuHitWindows()
+            };
+
             hitObject.HitWindows.SetDifficulty(5); // OD 5
 
-            var lastObject = hitObjects.Count > 0 ? hitObjects[hitObjects.Count - 1].BaseObject : hitObject;
+            var lastObject = hitObjects.Count > 0 ? hitObjects[^1].BaseObject : hitObject;
 
             var diffObj = new OsuDifficultyHitObject(hitObject, lastObject, 1.0, objects, objects.Count);
             objects.Add(diffObj);
