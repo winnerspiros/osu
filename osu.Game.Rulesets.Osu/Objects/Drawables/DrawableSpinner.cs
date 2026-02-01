@@ -413,23 +413,18 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             {
                 sound.Samples = samples;
                 sound.Play();
-                LifetimeEnd = double.MaxValue;
+                // Schedule expiration to ensure the drawable is returned to the pool when the sound finishes.
+                // We typically use Lifetime for visual elements, but for audio elements in a pool, we need to ensure they expire so they can be reused.
+                // Setting LifetimeEnd alone relies on the parent checking lifetime, which is standard behavior for pooled drawables if RemoveWhenNotAlive is true (default).
+                // However, as an extra safety measure to prevent accumulation if something goes wrong with lifetime checks,
+                // we ensure LifetimeEnd is correctly set relative to the sound length.
+                // Note: PoolableDrawable usually sets RemoveWhenNotAlive = true.
+                LifetimeEnd = Math.Max(Time.Current + sound.Length, Time.Current);
             }
 
             public void Stop()
             {
                 sound.Stop();
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                if (sound.IsPlayed)
-                {
-                    if (LifetimeEnd == double.MaxValue)
-                        LifetimeEnd = Math.Max(Time.Current + sound.Length, Time.Current);
-                }
             }
 
             protected override void FreeAfterUse()
