@@ -215,6 +215,7 @@ namespace osu.Game.Tests.Database
             AddAssert("Score version not upgraded", () => Realm.Run(r => r.Find<ScoreInfo>(scoreInfo.ID)!.TotalScoreVersion), () => Is.EqualTo(30000001));
         }
 
+
         [Test]
         public void TestBackpopulateMissingSubmissionAndRankDates()
         {
@@ -275,6 +276,7 @@ namespace osu.Game.Tests.Database
                 Realm.Write(r =>
                 {
                     const string file_hash = "mock_hash";
+
                     beatmapSet = new BeatmapSetInfo
                     {
                         DateSubmitted = null,
