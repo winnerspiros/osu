@@ -5,7 +5,6 @@ using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Screens.Play;
