@@ -77,7 +77,6 @@ namespace osu.Game.Tests.Visual.SongSelectV2
         }
 
         [Test]
-        [FlakyTest]
         public void TestBeatmapTraversal()
         {
             AddBeatmaps(3, splitApart: true);
@@ -137,6 +136,10 @@ namespace osu.Game.Tests.Visual.SongSelectV2
                 for (int j = 0; j < beatmapSet.Beatmaps.Count; j++)
                 {
                     beatmapSet.Beatmaps[j].Length = splitApart ? 30_000 * (j + 1) : 180_000;
+
+                    // ensure difficulties are sorted in a known order.
+                    // see TestResources.CreateTestBeatmapSetInfo.
+                    beatmapSet.Beatmaps[j].StarRating = (float)j / beatmapSet.Beatmaps.Count * 10;
                 }
 
                 beatmapSets.Add(beatmapSet);
