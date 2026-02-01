@@ -6,7 +6,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
-using osu.Game.Rulesets.Taiko.Objects.Drawables;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Rulesets.UI.Scrolling.Algorithms;
@@ -21,6 +20,11 @@ namespace osu.Game.Rulesets.Taiko.UI
         private readonly IBindable<double> timeRange = new BindableDouble();
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
         private readonly IBindable<IScrollAlgorithm> algorithm = new Bindable<IScrollAlgorithm>();
+
+        public DrumRollHitContainer()
+        {
+            RelativeSizeAxes = Axes.Both;
+        }
 
         protected override bool RemoveRewoundEntry => true;
 
