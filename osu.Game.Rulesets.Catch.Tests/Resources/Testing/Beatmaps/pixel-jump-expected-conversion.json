@@ -1,10 +1,34 @@
 {
   "Mappings": [
     {
-      "StartTime": 23143.0
+      "StartTime": 23143.0,
+      "Objects": [
+        {
+          "StartTime": 23143.0,
+          "Position": 307.0,
+          "HyperDash": false
+        },
+        {
+          "StartTime": 23226.333333333332,
+          "Position": 354.6333,
+          "HyperDash": false
+        }
+      ]
     },
     {
-      "StartTime": 23310.0
+      "StartTime": 23310.0,
+      "Objects": [
+        {
+          "StartTime": 23310.0,
+          "Position": 214.0,
+          "HyperDash": false
+        },
+        {
+          "StartTime": 23393.333333333332,
+          "Position": 154.84116,
+          "HyperDash": false
+        }
+      ]
     }
   ]
 }

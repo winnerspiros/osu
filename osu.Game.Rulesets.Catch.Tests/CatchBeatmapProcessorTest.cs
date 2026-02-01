@@ -1,5 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using NUnit.Framework;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -22,8 +23,8 @@ namespace osu.Game.Rulesets.Catch.Tests
                 StartTime = 1000,
                 Path = new SliderPath(new[]
                 {
-                new PathControlPoint(Vector2.Zero, PathType.LINEAR),
-                new PathControlPoint(new Vector2(0, 200), PathType.LINEAR) // Reasonable length
+                    new PathControlPoint(Vector2.Zero, PathType.LINEAR),
+                    new PathControlPoint(new Vector2(0, 200), PathType.LINEAR) // Reasonable length
                 }),
                 OriginalX = 256
             };
