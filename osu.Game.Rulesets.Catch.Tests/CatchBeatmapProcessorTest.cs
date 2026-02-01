@@ -1,14 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Game.Beatmaps;
-using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Catch.Beatmaps;
 using osu.Game.Rulesets.Catch.Objects;
-using osu.Game.Rulesets.Objects;
-using osu.Game.Rulesets.Objects.Types;
-using osuTK;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {
@@ -77,36 +74,46 @@ namespace osu.Game.Rulesets.Catch.Tests
             beatmap.HitObjects.Add(juiceStream);
             beatmap.HitObjects.Add(fruit);
 
+        public void TestHardRockOffsetDoublePrecision()
+        {
+            // Setup a beatmap with two fruits that will trigger the logic difference.
+            // We need a time difference that has a fractional part.
+            // And we need HardRock enabled.
+
+            // lastPosition = 100, lastStartTime = 1000.
+            // offsetPosition = 133.2, startTime = 1100.5.
+
+            // positionDiff = 33.2.
+            // timeDiff (int) = 100.
+            // timeDiff (double) = 100.5.
+
+            // positionDiff < timeDiff / 3
+            // 33.2 < 33 (False)
+            // 33.2 < 33.5 (True)
+
+            var beatmap = new Beatmap<CatchHitObject>
+            {
+                HitObjects = new List<CatchHitObject>
+                {
+                    new Fruit { StartTime = 1000, X = 100 },
+                    new Fruit { StartTime = 1000 + 100.5, X = 100 + 33.2f }
+                }
+            };
+
             var processor = new CatchBeatmapProcessor(beatmap)
             {
                 HardRockOffsets = true
             };
 
-            processor.PostProcess();
+            processor.ApplyPositionOffsets(beatmap);
 
-            // Analysis:
-            // Bug:
-            // lastPosition = 200. lastStartTime = 1000.
-            // Fruit: pos = 150, time = 1600.
-            // posDiff = 150 - 200 = -50.
-            // timeDiff = 1600 - 1000 = 600.
-            // |posDiff| < timeDiff / 3 => 50 < 200. TRUE.
-            // applyOffset called with -50.
-            // Fruit XOffset = -50. (Final X = 100)
+            var secondObj = beatmap.HitObjects[1];
 
-            // Fix:
-            // lastPosition = 150. lastStartTime = 1500.
-            // Fruit: pos = 150, time = 1600.
-            // posDiff = 0.
-            // timeDiff = 100.
-            // posDiff == 0 => applyRandomOffset.
-            // With fixed behavior, offset is random but non-zero (unless RNG rolls 0).
+            // If bug is present (int truncation), condition is false, XOffset is 0.
+            // If fixed (double), condition is true, XOffset is 33.2 (approx).
 
-            Assert.That(fruit.XOffset, Is.Not.EqualTo(-50f).Within(0.001), "Fruit XOffset matches bugged behavior");
-
-            // Additionally, verify that some offset WAS applied (confirming posDiff was 0 and we entered random offset logic).
-            // This implicitly confirms lastPosition was correct (150).
-            Assert.That(fruit.XOffset, Is.Not.Zero, "Fruit XOffset should be random (non-zero) when aligned with previous object end");
+            Assert.That(secondObj.XOffset, Is.Not.EqualTo(0).Within(0.001));
+            Assert.That(secondObj.XOffset, Is.EqualTo(33.2f).Within(0.001));
         }
     }
 }
