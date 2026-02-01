@@ -34,7 +34,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Skinning
                 var lookup = new TaikoSkinComponentLookup(component);
                 try
                 {
-                    var drawable = transformer.GetDrawableComponent(lookup);
+                    transformer.GetDrawableComponent(lookup);
                 }
                 catch (UnsupportedSkinComponentException)
                 {
