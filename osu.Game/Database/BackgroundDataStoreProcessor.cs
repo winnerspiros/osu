@@ -703,16 +703,19 @@ namespace osu.Game.Database
                 var itemsToProcess = realmAccess.Run(r =>
                 {
                     var list = new List<(Guid ID, string MD5Hash, string? Path, string DisplayString, HashSet<string> ExistingTags)>();
+
                     foreach (var id in chunk)
                     {
                         var b = r.Find<BeatmapInfo>(id);
+
                         if (b != null)
                             list.Add((b.ID, b.MD5Hash, b.Path, b.GetDisplayString(), b.Metadata.UserTags.ToHashSet()));
-                        else
-                            chunkFailures++; // Should not happen given we just queried IDs, but handling gracefully.
                     }
+
                     return list;
                 });
+
+                chunkFailures += chunk.Length - itemsToProcess.Count;
 
                 // Step 2: Perform Lookups (No Realm Transaction)
                 foreach (var item in itemsToProcess)
@@ -726,7 +729,7 @@ namespace osu.Game.Database
                         var dummy = new BeatmapInfo
                         {
                             MD5Hash = item.MD5Hash,
-                            Hash = "dummy_hash", // Needed to match file hash
+                            Hash = item.MD5Hash,
                             BeatmapSet = new BeatmapSetInfo()
                         };
 
