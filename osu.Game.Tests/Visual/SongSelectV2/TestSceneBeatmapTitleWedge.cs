@@ -245,7 +245,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
                                                    .ChildrenOfType<LoadingSpinner>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
             AddStep("allow request to complete", resetEvent.Set);
             AddUntilStep("spinner hidden", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single()
-                                                  .ChildrenOfType<LoadingSpinner>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+                                                     .ChildrenOfType<LoadingSpinner>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
         }
 
         [TestCase(120, 125, null, "120-125 (mostly 120)")]
