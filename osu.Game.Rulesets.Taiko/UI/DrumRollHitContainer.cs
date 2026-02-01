@@ -49,6 +49,9 @@ namespace osu.Game.Rulesets.Taiko.UI
         {
             base.Update();
 
+            if (algorithm.Value == null)
+                return;
+
             double currentTime = Time.Current;
 
             // Manual positioning of hits to avoid using ScrollingHitObjectContainer,
