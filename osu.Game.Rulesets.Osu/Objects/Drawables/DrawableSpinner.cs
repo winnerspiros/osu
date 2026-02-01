@@ -135,6 +135,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.OnFree();
 
             spinningSample.ClearSamples();
+
+            foreach (var sound in InternalChildren.OfType<SpinnerBonusSound>())
+            {
+                sound.Stop();
+                sound.Expire();
+            }
         }
 
         protected override void LoadSamples()
