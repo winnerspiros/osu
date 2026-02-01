@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
 using osu.Game.Audio;
+using osu.Game.Rulesets.Taiko;
 using osu.Game.Rulesets.Taiko.Skinning.Argon;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
@@ -32,6 +33,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Skinning
             foreach (TaikoSkinComponents component in Enum.GetValues(typeof(TaikoSkinComponents)))
             {
                 var lookup = new TaikoSkinComponentLookup(component);
+
                 try
                 {
                     transformer.GetDrawableComponent(lookup);
