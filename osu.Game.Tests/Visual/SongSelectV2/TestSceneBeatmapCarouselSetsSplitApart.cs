@@ -102,9 +102,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             SelectPrevPanel(); // header of group 0
             SelectPrevPanel(); // header of group 2
             Select();
-            SelectNextPanel(); // header of set 0 in group 2
-            Select();
-            WaitForSetSelection(set: 0, diff: 4);
+            WaitForSetSelection(set: 0, diff: 0);
         }
 
         [Test]
