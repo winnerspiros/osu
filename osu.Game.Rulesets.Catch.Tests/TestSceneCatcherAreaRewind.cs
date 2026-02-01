@@ -106,8 +106,8 @@ namespace osu.Game.Rulesets.Catch.Tests
             public IBindable<bool> IsPaused { get; } = new Bindable<bool>();
             public bool IsRewinding { get; set; }
 
-            public double ElapsedFrameTime { get; set; }
-            public double FramesPerSecond { get; set; }
+            public double ElapsedFrameTime => 0;
+            public double FramesPerSecond => 0;
 
             public void ProcessFrame()
             {
