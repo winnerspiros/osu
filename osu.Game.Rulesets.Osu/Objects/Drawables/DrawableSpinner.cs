@@ -346,6 +346,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 return;
             }
 
+            bool soundPlayed = false;
+
             while (completedFullSpins.Value != spins)
             {
                 var tick = ticks.FirstOrDefault(t => !t.Result.HasResult);
@@ -354,10 +356,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 if (tick == null)
                 {
                     // we still want to play a sound. this will probably be a new sound in the future, but for now let's continue playing the bonus sound.
-                    if (maxBonusSamples != null)
+                    if (maxBonusSamples != null && !soundPlayed)
                     {
                         var sound = bonusSoundPool.Get(s => s.Play(maxBonusSamples));
                         AddInternal(sound);
+                        soundPlayed = true;
                     }
                 }
                 else
@@ -404,6 +407,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             {
                 sound.Samples = samples;
                 sound.Play();
+                LifetimeEnd = double.MaxValue;
             }
 
             public void Stop()
@@ -415,8 +419,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             {
                 base.Update();
 
-                if (sound.IsPlayed && !sound.IsPlaying)
-                    Expire();
+                if (sound.IsPlayed)
+                {
+                    if (LifetimeEnd == double.MaxValue)
+                        LifetimeEnd = Math.Max(Time.Current + sound.Length, Time.Current);
+                }
             }
 
             protected override void FreeAfterUse()
