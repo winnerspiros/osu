@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -89,11 +89,8 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
                         break;
 
                     case JuiceStream juiceStream:
-                        // Todo: BUG!! Stable used the last control point as the final position of the path, but it should use the computed path instead.
-                        lastPosition = juiceStream.OriginalX + juiceStream.Path.ControlPoints[^1].Position.X;
-
-                        // Todo: BUG!! Stable attempted to use the end time of the stream, but referenced it too early in execution and used the start time instead.
-                        lastStartTime = juiceStream.StartTime;
+                        lastPosition = juiceStream.EndX;
+                        lastStartTime = juiceStream.EndTime;
 
                         foreach (var nested in juiceStream.NestedHitObjects)
                         {
@@ -132,8 +129,8 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
 
             float positionDiff = offsetPosition - lastPosition.Value;
 
-            // Stable calculated time deltas as ints, which affects randomisation. This has been changed to a double to fix the issue.
-            double timeDiff = startTime - lastStartTime;
+            // Todo: BUG!! Stable calculated time deltas as ints, which affects randomisation. This should be changed to a double.
+            int timeDiff = (int)(startTime - lastStartTime);
 
             if (timeDiff > 1000)
             {
