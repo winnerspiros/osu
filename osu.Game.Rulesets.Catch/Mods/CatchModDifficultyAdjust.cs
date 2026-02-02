@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Catch.Mods
 
                 return string.Empty;
 
-                static string format(string acronym, DifficultyBindable bindable)
+                string format(string acronym, DifficultyBindable bindable)
                     => $"{acronym}{bindable.Value!.Value.ToStandardFormattedString(1)}";
             }
         }
