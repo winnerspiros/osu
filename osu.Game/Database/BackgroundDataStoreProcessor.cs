@@ -128,13 +128,10 @@ namespace osu.Game.Database
 
                     realmAccess.Write(r =>
                     {
-                        foreach (var b in r.All<BeatmapInfo>())
+                        foreach (var b in r.All<BeatmapInfo>().Filter("Ruleset.ShortName == $0", ruleset.ShortName))
                         {
-                            if (b.Ruleset.ShortName == ruleset.ShortName)
-                            {
-                                b.StarRating = -1;
-                                countReset++;
-                            }
+                            b.StarRating = -1;
+                            countReset++;
                         }
 
                         r.Find<RulesetInfo>(ruleset.ShortName)!.LastAppliedDifficultyVersion = currentVersion;
