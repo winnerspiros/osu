@@ -74,7 +74,11 @@ namespace osu.Game.Tests.Visual.Gameplay
             }));
 
             AddUntilStep("sprite reached high opacity once", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
-            AddStep("restart track", () => Beatmap.Value.Track.Restart());
+            AddStep("restart track", () =>
+            {
+                Beatmap.Value.Track.Seek(0);
+                Beatmap.Value.Track.Start();
+            });
             AddUntilStep("sprite reset to low opacity", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha < 0.2f)));
             AddUntilStep("sprite reached high opacity twice", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
         }
