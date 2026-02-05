@@ -161,7 +161,7 @@ jobs:
         run: dotnet workload install ios
 
       - name: Build iOS
-        run: dotnet publish -c Release -r ios-arm64 osu.iOS/osu.iOS.csproj -p:ArchiveOnBuild=true -p:Version=${{ needs.prepare-release.outputs.version }}
+        run: dotnet publish -c Release -r ios-arm64 osu.iOS/osu.iOS.csproj -p:ArchiveOnBuild=true -p:Version=${{ needs.prepare-release.outputs.version }} -p:_SuppressXcodeVersionCheck=true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
