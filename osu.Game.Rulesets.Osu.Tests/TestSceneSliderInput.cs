@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Testing;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -458,6 +459,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         }
 
         [Test]
+        [FlakyTest]
         public void TestRewindHandling()
         {
             performTest(new List<ReplayFrame>

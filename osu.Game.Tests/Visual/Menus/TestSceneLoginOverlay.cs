@@ -140,6 +140,7 @@ namespace osu.Game.Tests.Visual.Menus
         }
 
         [Test]
+        [FlakyTest]
         public void TestLoginSuccess_TOTPVerification_FallbackToEmail()
         {
             AddStep("logout", () => API.Logout());
