@@ -65,7 +65,7 @@ namespace osu.Game.Storyboards
 
                 return EarliestTransformTime;
 
-                bool visibleAtStartOrEnd(StoryboardCommand<float> command) => command.StartValue > 0 || command.EndValue > 0;
+                static bool visibleAtStartOrEnd(StoryboardCommand<float> command) => command.StartValue > 0 || command.EndValue > 0;
             }
         }
 

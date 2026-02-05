@@ -8,9 +8,9 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Rulesets.Objects.Drawables;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Skinning.Default;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
@@ -189,7 +189,7 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
             else
                 UnproxyContent();
 
-            if ((Clock as IGameplayClock)?.IsRewinding == true)
+            if (Clock is IGameplayClock { IsRewinding: true })
                 lastPressHandleTime = null;
         }
 

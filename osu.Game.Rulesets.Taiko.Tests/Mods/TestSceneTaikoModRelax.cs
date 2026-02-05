@@ -34,7 +34,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Mods
                 PassCondition = () => Player.ScoreProcessor.HasCompleted.Value && Player.ScoreProcessor.Accuracy.Value == 1,
             });
 
-            TaikoBeatmap createBeatmap() => new TaikoBeatmap
+            static TaikoBeatmap createBeatmap() => new TaikoBeatmap
             {
                 HitObjects =
                 {

@@ -221,7 +221,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
         private partial class LegacyRotatingCursorTrail : LegacyCursorTrail
         {
-            public LegacyRotatingCursorTrail([NotNull] ISkin skin)
+            public LegacyRotatingCursorTrail(ISkin skin)
                 : base(skin)
             {
             }

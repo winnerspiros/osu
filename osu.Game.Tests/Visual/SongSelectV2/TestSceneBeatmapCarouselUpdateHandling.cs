@@ -250,7 +250,7 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             AddAssert("selection is updateable beatmap", () => Carousel.CurrentBeatmap, () => Is.EqualTo(baseTestBeatmap.Beatmaps[0]));
             AddAssert("visible panel is updateable beatmap", () => (GetSelectedPanel()?.Item?.Model as GroupedBeatmap)?.Beatmap, () => Is.EqualTo(baseTestBeatmap.Beatmaps[0]));
 
-            updateBeatmap(b => b.OnlineID = b.OnlineID + 1);
+            updateBeatmap(b => ++b.OnlineID);
             assertDidFilter();
             WaitForFiltering();
 

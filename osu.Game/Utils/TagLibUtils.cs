@@ -11,9 +11,9 @@ namespace osu.Game.Utils
     public class TagLibUtils
     {
         /// <summary>
-        /// Creates a <see cref="TagLib.File"/> with culture-invariant MIME type detection, based on stream data.
+        /// Creates a <see cref="File"/> with culture-invariant MIME type detection, based on stream data.
         /// </summary>
-        /// <returns>The <see cref="TagLib.File"/> created.</returns>
+        /// <returns>The <see cref="File"/> created.</returns>
         public static File GetTagLibFile(string filename, Stream stream)
         {
             var fileAbstraction = new StreamFileAbstraction(filename, stream);
@@ -22,10 +22,10 @@ namespace osu.Game.Utils
         }
 
         /// <summary>
-        /// Creates a <see cref="TagLib.File"/> with culture-invariant MIME type detection based on a file on disk.
+        /// Creates a <see cref="File"/> with culture-invariant MIME type detection based on a file on disk.
         /// </summary>
         /// <param name="filePath">The full path of the file to be created.</param>
-        /// <returns>The <see cref="TagLib.File"/> created.</returns>
+        /// <returns>The <see cref="File"/> created.</returns>
         public static File GetTagLibFile(string filePath) =>
             File.Create(filePath, getMimeType(filePath), ReadStyle.Average | ReadStyle.PictureLazy);
 

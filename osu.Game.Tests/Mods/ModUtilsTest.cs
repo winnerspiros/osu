@@ -301,9 +301,8 @@ namespace osu.Game.Tests.Mods
         [TestCaseSource(nameof(multiplayer_mod_test_scenarios))]
         public void TestMultiplayerModScenarios(MultiplayerTestScenario scenario)
         {
-            List<Mod>? invalidMods;
             bool isValid = scenario.IsRequired
-                ? ModUtils.CheckValidRequiredModsForMultiplayer(scenario.Mods, scenario.IsFreestyle, out invalidMods)
+                ? ModUtils.CheckValidRequiredModsForMultiplayer(scenario.Mods, scenario.IsFreestyle, out var invalidMods)
                 : ModUtils.CheckValidAllowedModsForMultiplayer(scenario.Mods, scenario.IsFreestyle, out invalidMods);
 
             Assert.That(isValid, Is.EqualTo(scenario.InvalidTypes.Length == 0));

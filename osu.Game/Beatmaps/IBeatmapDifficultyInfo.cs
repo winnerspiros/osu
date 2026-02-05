@@ -137,7 +137,7 @@ namespace osu.Game.Beatmaps
         }
 
         /// <summary>
-        /// Inverse function to <see cref="DifficultyRange(double,osu.Game.Beatmaps.DifficultyRange)"/>.
+        /// Inverse function to <see cref="DifficultyRange(double,Beatmaps.DifficultyRange)"/>.
         /// Maps a value returned by the function above back to the difficulty that produced it.
         /// </summary>
         /// <param name="difficultyValue">The difficulty-dependent value to be unmapped.</param>

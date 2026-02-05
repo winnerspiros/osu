@@ -128,11 +128,7 @@ namespace osu.Game.Beatmaps
             foreach (BeatmapInfo b in beatmapSet.Beatmaps)
                 b.BeatmapSet = beatmapSet;
 
-            var imported = beatmapImporter.ImportModel(beatmapSet);
-
-            if (imported == null)
-                throw new InvalidOperationException("Failed to import new beatmap");
-
+            var imported = beatmapImporter.ImportModel(beatmapSet) ?? throw new InvalidOperationException("Failed to import new beatmap");
             return imported.PerformRead(s => GetWorkingBeatmap(s.Beatmaps.First()));
         }
 
@@ -316,7 +312,7 @@ namespace osu.Game.Beatmaps
 
         /// <summary>
         /// Perform a lookup query on available <see cref="BeatmapInfo"/>s.
-        /// Use this overload instead of <see cref="QueryBeatmap(System.Linq.Expressions.Expression{System.Func{osu.Game.Beatmaps.BeatmapInfo,bool}})"/>
+        /// Use this overload instead of <see cref="QueryBeatmap(Expression{Func{BeatmapInfo,bool}})"/>
         /// when Realm is unable to transform an expression to the internal Realm query syntax.
         /// </summary>
         /// <param name="query">The query.</param>
