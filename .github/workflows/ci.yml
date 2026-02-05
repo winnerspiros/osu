@@ -15,10 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
           cache: false
 
       - name: Restore Tools
@@ -75,10 +75,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
           cache: false
 
       - name: Compile
@@ -125,10 +125,10 @@ jobs:
           distribution: microsoft
           java-version: 11
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
           cache: false
 
       - name: Install .NET workloads
@@ -146,10 +146,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
           cache: false
 
       - name: Install .NET Workloads
