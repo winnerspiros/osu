@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace osu.Game.Utils
 {
@@ -29,14 +29,16 @@ namespace osu.Game.Utils
         /// </remarks>
         public static string GetNextBestName(IEnumerable<string> existingNames, string desiredName)
         {
-            string pattern = $@"^{getBaselineNameDetectingPattern(desiredName)}$";
-            var regex = new Regex(pattern);
+            var takenNumbers = new HashSet<int>();
 
-            int bestNumber = findBestNumber(existingNames, regex);
+            foreach (string name in existingNames)
+            {
+                int? number = getNumber(name, desiredName);
+                if (number.HasValue)
+                    takenNumbers.Add(number.Value);
+            }
 
-            return bestNumber == 0
-                ? desiredName
-                : $"{desiredName} ({bestNumber.ToString()})";
+            return formatResult(takenNumbers, desiredName);
         }
 
         /// <summary>
@@ -48,58 +50,72 @@ namespace osu.Game.Utils
             string name = Path.GetFileNameWithoutExtension(desiredFilename);
             string extension = Path.GetExtension(desiredFilename);
 
-            string pattern = $@"^{getBaselineNameDetectingPattern(name)}(?i){Regex.Escape(extension)}(?-i)$";
-            var regex = new Regex(pattern);
-
-            int bestNumber = findBestNumber(existingFilenames, regex);
-
-            return bestNumber == 0
-                ? desiredFilename
-                : $"{name} ({bestNumber.ToString()}){extension}";
-        }
-
-        /// <summary>
-        /// Generates a basic regex pattern that will match all possible conflicting filenames when picking the best available name, given the <paramref name="desiredName"/>.
-        /// The generated pattern can be composed into more complicated regexes for particular uses, such as picking filenames, which need additional file extension handling.
-        /// </summary>
-        /// <remarks>
-        /// The regex shall detect:
-        /// <list type="bullet">
-        /// <item>all strings that are equal to <paramref name="desiredName"/>,</item>
-        /// <item>all strings of the format <c>desiredName (number)</c>, where <c>number</c> is a number written using Arabic numerals.</item>
-        /// </list>
-        /// All comparisons are made in a case-insensitive manner.
-        /// If a number is detected in the matches, it will be output to the <c>copyNumber</c> named group.
-        /// </remarks>
-        private static string getBaselineNameDetectingPattern(string desiredName)
-            => $@"(?i){Regex.Escape(desiredName)}(?-i)( \((?<copyNumber>[1-9][0-9]*)\))?";
-
-        private static int findBestNumber(IEnumerable<string> existingNames, Regex regex)
-        {
             var takenNumbers = new HashSet<int>();
 
-            foreach (string name in existingNames)
+            foreach (string filename in existingFilenames)
             {
-                var match = regex.Match(name);
-                if (!match.Success)
+                if (!filename.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                string copyNumberString = match.Groups[@"copyNumber"].Value;
+                string nameWithoutExtension = filename.Substring(0, filename.Length - extension.Length);
+                int? number = getNumber(nameWithoutExtension, name);
 
-                if (string.IsNullOrEmpty(copyNumberString))
-                {
-                    takenNumbers.Add(0);
-                    continue;
-                }
-
-                takenNumbers.Add(int.Parse(copyNumberString));
+                if (number.HasValue)
+                    takenNumbers.Add(number.Value);
             }
 
+            return formatResult(takenNumbers, name, extension);
+        }
+
+        private static string formatResult(HashSet<int> takenNumbers, string name, string extension = "")
+        {
             int bestNumber = 0;
             while (takenNumbers.Contains(bestNumber))
                 bestNumber += 1;
 
-            return bestNumber;
+            return bestNumber == 0
+                ? $"{name}{extension}"
+                : $"{name} ({bestNumber.ToString()}){extension}";
+        }
+
+        private static int? getNumber(string candidate, string desiredName)
+        {
+            if (candidate.Equals(desiredName, StringComparison.OrdinalIgnoreCase))
+                return 0;
+
+            if (candidate.Length > desiredName.Length && candidate.StartsWith(desiredName, StringComparison.OrdinalIgnoreCase))
+            {
+                string suffix = candidate.Substring(desiredName.Length);
+
+                // Check for " (N)" format
+                if (suffix.Length >= 4 && suffix.StartsWith(" (", StringComparison.Ordinal) && suffix.EndsWith(')'))
+                {
+                    string numberPart = suffix.Substring(2, suffix.Length - 3);
+
+                    // Must start with 1-9
+                    if (numberPart.Length > 0 && numberPart[0] != '0')
+                    {
+                        if (int.TryParse(numberPart, out int number))
+                        {
+                            // Ensure strictly digits
+                            bool allDigits = true;
+                            foreach (char c in numberPart)
+                            {
+                                if (!char.IsDigit(c))
+                                {
+                                    allDigits = false;
+                                    break;
+                                }
+                            }
+
+                            if (allDigits)
+                                return number;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
