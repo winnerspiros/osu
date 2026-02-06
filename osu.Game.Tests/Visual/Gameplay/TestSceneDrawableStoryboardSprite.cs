@@ -59,7 +59,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 var layer = storyboard.GetLayer("Background");
 
                 var sprite = new StoryboardSprite(lookup_name, Anchor.TopLeft, new Vector2(256, 192));
-                sprite.Commands.AddAlpha(Easing.None, Time.Current, Time.Current + 2000, 0, 2);
+                sprite.Commands.AddAlpha(Easing.None, 0, 2000, 0, 2);
 
                 layer.Elements.Clear();
                 layer.Add(sprite);
@@ -75,6 +75,11 @@ namespace osu.Game.Tests.Visual.Gameplay
             }));
 
             AddUntilStep("sprite reached high opacity once", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
+            AddStep("restart track", () =>
+            {
+                Beatmap.Value.Track.Seek(0);
+                Beatmap.Value.Track.Start();
+            });
             AddUntilStep("sprite reset to low opacity", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha < 0.2f)));
             AddUntilStep("sprite reached high opacity twice", () => sprites.All(sprite => sprite.ChildrenOfType<Sprite>().All(s => s.Alpha > 0.8f)));
         }

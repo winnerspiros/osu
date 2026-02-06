@@ -592,12 +592,10 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in scoreIds)
+            foreach (var chunk in scoreIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
-
-                updateNotificationProgress(notification, processedCount, scoreIds.Count);
 
                 sleepIfRequired();
 
@@ -607,12 +605,29 @@ namespace osu.Game.Database
                     // ReSharper disable once MethodHasAsyncOverload
                     realmAccess.Write(r =>
                     {
-                        ScoreInfo s = r.Find<ScoreInfo>(id)!;
-                        s.Rank = StandardisedScoreMigrationTools.ComputeRank(s);
-                        s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
-                    });
+                        foreach (var id in chunk)
+                        {
+                            try
+                            {
+                                ScoreInfo? s = r.Find<ScoreInfo>(id);
+                                if (s == null)
+                                    return;
 
-                    ++processedCount;
+                                s.Rank = StandardisedScoreMigrationTools.ComputeRank(s);
+                                s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
+                                ++processedCount;
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Log($"Failed to update rank score {id}: {e}");
+                                var s = r.Find<ScoreInfo>(id);
+                                if (s != null)
+                                    s.BackgroundReprocessingFailed = true;
+
+                                ++failedCount;
+                            }
+                        }
+                    });
                 }
                 catch (ObjectDisposedException)
                 {
@@ -620,10 +635,10 @@ namespace osu.Game.Database
                 }
                 catch (Exception e)
                 {
-                    Logger.Log($"Failed to update rank score {id}: {e}");
-                    realmAccess.Write(r => r.Find<ScoreInfo>(id)!.BackgroundReprocessingFailed = true);
-                    ++failedCount;
+                    Logger.Log($"Batch processing failed for scores: {e}");
                 }
+
+                updateNotificationProgress(notification, processedCount, scoreIds.Count);
             }
 
             completeNotification(notification, processedCount, scoreIds.Count, failedCount);
