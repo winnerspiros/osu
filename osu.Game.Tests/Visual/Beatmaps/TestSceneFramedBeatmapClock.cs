@@ -1,14 +1,16 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using NUnit.Framework;
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
-using osu.Game.Tests.Visual;
-using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets;
+using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Visual.Beatmaps
 {
@@ -54,11 +56,11 @@ namespace osu.Game.Tests.Visual.Beatmaps
                 Child = container = new TestClockContainer(beatmap1);
             });
 
-            AddAssert("Offset is 50", () => container!.FramedClock!.TotalAppliedOffset == 50);
+            AddAssert("Offset is 50", () => checkOffset(container, 50));
 
             AddStep("Change beatmap", () => container!.Beatmap.Value = beatmap2);
 
-            AddAssert("Offset is 100", () => container!.FramedClock!.TotalAppliedOffset == 100);
+            AddAssert("Offset is 100", () => checkOffset(container, 100));
 
             // Test updating offset on current beatmap
             AddStep("Update offset on current beatmap", () =>
@@ -71,7 +73,15 @@ namespace osu.Game.Tests.Visual.Beatmaps
                 });
             });
 
-            AddAssert("Offset is 200", () => container!.FramedClock!.TotalAppliedOffset == 200);
+            AddAssert("Offset is 200", () => checkOffset(container, 200));
+        }
+
+        private bool checkOffset(TestClockContainer? container, double expectedUserOffset)
+        {
+            if (container?.FramedClock == null) return false;
+
+            double platformOffset = RuntimeInfo.OS == RuntimeInfo.Platform.Windows ? 15 : 0;
+            return container.FramedClock.TotalAppliedOffset == expectedUserOffset + platformOffset;
         }
 
         private partial class TestClockContainer : DependencyProvidingContainer
