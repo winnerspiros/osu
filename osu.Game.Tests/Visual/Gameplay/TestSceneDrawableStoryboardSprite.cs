@@ -59,7 +59,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 var layer = storyboard.GetLayer("Background");
 
                 var sprite = new StoryboardSprite(lookup_name, Anchor.TopLeft, new Vector2(256, 192));
-                sprite.Commands.AddAlpha(Easing.None, Time.Current, Time.Current + 2000, 0, 2);
+                sprite.Commands.AddAlpha(Easing.None, Time.Current, Time.Current + 10000, 0, 2);
 
                 layer.Elements.Clear();
                 layer.Add(sprite);
