@@ -1,10 +1,11 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps.Legacy;
 using osu.Game.IO;
@@ -376,22 +377,37 @@ namespace osu.Game.Beatmaps.Formats
             variables[pair.Key] = pair.Value;
         }
 
-        /// <summary>
-        /// Decodes any beatmap variables present in a line into their real values.
-        /// </summary>
-        /// <param name="line">The line which may contains variables.</param>
         private void decodeVariables(ref string line)
         {
-            while (line.Contains('$'))
+            if (line.IndexOf('$') < 0)
+                return;
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < line.Length; )
             {
-                string origLine = line;
+                if (line[i] == '$')
+                {
+                    i++;
+                    var variableName = new StringBuilder();
+                    while (i < line.Length && !char.IsWhiteSpace(line[i]) && line[i] != ',')
+                    {
+                        variableName.Append(line[i]);
+                        i++;
+                    }
 
-                foreach (var v in variables)
-                    line = line.Replace(v.Key, v.Value);
-
-                if (line == origLine)
-                    break;
+                    if (variables.TryGetValue('$' + variableName.ToString(), out string value))
+                        sb.Append(value);
+                    else
+                        sb.Append('$' + variableName.ToString());
+                }
+                else
+                {
+                    sb.Append(line[i]);
+                    i++;
+                }
             }
+            line = sb.ToString();
         }
     }
 }
