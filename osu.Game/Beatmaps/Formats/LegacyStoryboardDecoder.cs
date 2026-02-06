@@ -384,7 +384,7 @@ namespace osu.Game.Beatmaps.Formats
 
             var sb = new StringBuilder();
 
-            for (int i = 0; i < line.Length; )
+            for (int i = 0; i < line.Length;)
             {
                 if (line[i] == '$')
                 {
@@ -404,7 +404,7 @@ namespace osu.Game.Beatmaps.Formats
                     {
                         string potentialKey = string.Concat("$", variableName.AsSpan(0, len));
 
-                        if (variables.TryGetValue(potentialKey, out var value))
+                        if (variables.TryGetValue(potentialKey, out string? value))
                         {
                             sb.Append(value);
                             sb.Append(variableName.AsSpan(len));
