@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Game.Database;
 using osu.Game.Online.API;
 
@@ -27,7 +25,7 @@ namespace osu.Game.Tests.Database
             cache = new TestLookupCache();
 
             var prop = typeof(OnlineLookupCache<int, TestModel, TestAPIRequest>).GetProperty("api", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (prop == null) throw new Exception("Could not find api property");
+            if (prop == null) throw new InvalidOperationException("Could not find api property");
             prop.SetValue(cache, mockApi.Object);
         }
 
@@ -39,7 +37,7 @@ namespace osu.Game.Tests.Database
                    .Returns(async (APIRequest req) =>
                    {
                        if (failureCount++ < 2)
-                           throw new Exception("API Failed");
+                           throw new InvalidOperationException("API Failed");
 
                        // Simulate success
                        // We need to populate the request results manually because PerformAsync is void
@@ -60,7 +58,7 @@ namespace osu.Game.Tests.Database
             var result = await task;
 
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.OnlineID, Is.EqualTo(1));
+            Assert.That(result!.OnlineID, Is.EqualTo(1));
             Assert.That(failureCount, Is.GreaterThan(2), "Should have failed at least 2 times (and retried).");
         }
 
@@ -69,7 +67,7 @@ namespace osu.Game.Tests.Database
         {
             // Fail more times than max retries (3)
             mockApi.Setup(api => api.PerformAsync(It.IsAny<APIRequest>()))
-                   .ThrowsAsync(new Exception("API Failed permanently"));
+                   .ThrowsAsync(new InvalidOperationException("API Failed permanently"));
 
             var task = cache.GetAsync(1);
 
