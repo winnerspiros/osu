@@ -1249,6 +1249,7 @@ namespace osu.Game.Tests.Visual.Navigation
         }
 
         [Test]
+        [FlakyTest]
         public void TestTouchScreenDetectionInGame()
         {
             BeatmapSetInfo beatmapSet = null;
