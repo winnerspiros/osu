@@ -99,6 +99,7 @@ namespace osu.Game.Utils
                         {
                             // Ensure strictly digits
                             bool allDigits = true;
+
                             foreach (char c in numberPart)
                             {
                                 if (!char.IsDigit(c))

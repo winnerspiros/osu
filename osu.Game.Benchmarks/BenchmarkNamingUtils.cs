@@ -23,7 +23,7 @@ namespace osu.Game.Benchmarks
         }
 
         private List<string> existingNames = null!;
-        private string desiredName = "My Beatmap";
+        private const string DesiredName = "My Beatmap";
 
         [GlobalSetup]
         public void GlobalSetUp()
@@ -51,7 +51,7 @@ namespace osu.Game.Benchmarks
         [Benchmark]
         public string GetNextBestName()
         {
-            return NamingUtils.GetNextBestName(existingNames, desiredName);
+            return NamingUtils.GetNextBestName(existingNames, DesiredName);
         }
     }
 }
