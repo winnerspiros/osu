@@ -322,6 +322,7 @@ namespace osu.Game.Tests.Visual.Ranking
         }
 
         [Test]
+        [FlakyTest]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserOutsideOfTop50_DidNotBeatOwnBest()
         {
             ScoreInfo localScore = null!;

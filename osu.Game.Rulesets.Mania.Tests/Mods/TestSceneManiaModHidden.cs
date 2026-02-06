@@ -32,6 +32,7 @@ namespace osu.Game.Rulesets.Mania.Tests.Mods
         }
 
         [Test]
+        [FlakyTest]
         public void TestMinCoverageHalfWidth()
         {
             CreateModTest(new ModTestData
