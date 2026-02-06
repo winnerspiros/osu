@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -12,6 +12,7 @@ using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Pooling;
 using osu.Game.Audio;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
@@ -47,7 +48,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         private const float spinning_sample_initial_frequency = 1.0f;
         private const float spinning_sample_modulated_base_frequency = 0.5f;
 
-        private PausableSkinnableSound maxBonusSample;
+        private DrawablePool<SpinnerBonusSound> bonusSoundPool;
+        private ISampleInfo[] maxBonusSamples;
 
         /// <summary>
         /// The amount of bonus score gained from spinning after the required number of spins, for display purposes.
@@ -114,10 +116,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     Looping = true,
                     Frequency = { Value = spinning_sample_initial_frequency }
                 },
-                maxBonusSample = new PausableSkinnableSound
-                {
-                    MinimumSampleVolume = MINIMUM_SAMPLE_VOLUME,
-                }
+                bonusSoundPool = new DrawablePool<SpinnerBonusSound>(20)
             });
 
             PositionBindable.BindValueChanged(pos => Position = pos.NewValue);
@@ -136,7 +135,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.OnFree();
 
             spinningSample.ClearSamples();
-            maxBonusSample.ClearSamples();
+
+            foreach (var sound in InternalChildren.OfType<SpinnerBonusSound>())
+            {
+                sound.Stop();
+                sound.Expire();
+            }
         }
 
         protected override void LoadSamples()
@@ -146,7 +150,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             spinningSample.Samples = HitObject.CreateSpinningSamples().Cast<ISampleInfo>().ToArray();
             spinningSample.Frequency.Value = spinning_sample_initial_frequency;
 
-            maxBonusSample.Samples = new ISampleInfo[] { new SpinnerBonusMaxSampleInfo(HitObject.CreateHitSampleInfo()) };
+            maxBonusSamples = new ISampleInfo[] { new SpinnerBonusMaxSampleInfo(HitObject.CreateHitSampleInfo()) };
         }
 
         private void updateSpinningSample(ValueChangedEvent<bool> tracking)
@@ -168,7 +172,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             base.StopAllSamples();
             spinningSample?.Stop();
-            maxBonusSample?.Stop();
+
+            foreach (var sound in InternalChildren.OfType<SpinnerBonusSound>())
+                sound.Stop();
         }
 
         protected override void AddNestedHitObject(DrawableHitObject hitObject)
@@ -346,6 +352,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 return;
             }
 
+            bool soundPlayed = false;
+
             while (completedFullSpins.Value != spins)
             {
                 var tick = ticks.FirstOrDefault(t => !t.Result.HasResult);
@@ -354,8 +362,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 if (tick == null)
                 {
                     // we still want to play a sound. this will probably be a new sound in the future, but for now let's continue playing the bonus sound.
-                    // TODO: this doesn't concurrency. i can't figure out how to make it concurrency. samples are bad and need a refactor.
-                    maxBonusSample.Play();
+                    if (maxBonusSamples != null && !soundPlayed)
+                    {
+                        var sound = bonusSoundPool.Get(s => s.Play(maxBonusSamples));
+                        AddInternal(sound);
+                        soundPlayed = true;
+                    }
                 }
                 else
                     tick.TriggerResult(true);
@@ -382,6 +394,44 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 : base("spinnerbonus-max", sampleInfo.Bank, sampleInfo.Suffix, sampleInfo.Volume)
 
             {
+            }
+        }
+
+        private partial class SpinnerBonusSound : PoolableDrawable
+        {
+            private readonly PausableSkinnableSound sound;
+
+            public SpinnerBonusSound()
+            {
+                InternalChild = sound = new PausableSkinnableSound
+                {
+                    MinimumSampleVolume = MINIMUM_SAMPLE_VOLUME
+                };
+            }
+
+            public void Play(ISampleInfo[] samples)
+            {
+                sound.Samples = samples;
+                sound.Play();
+                // Schedule expiration to ensure the drawable is returned to the pool when the sound finishes.
+                // We typically use Lifetime for visual elements, but for audio elements in a pool, we need to ensure they expire so they can be reused.
+                // Setting LifetimeEnd alone relies on the parent checking lifetime, which is standard behavior for pooled drawables if RemoveWhenNotAlive is true (default).
+                // However, as an extra safety measure to prevent accumulation if something goes wrong with lifetime checks,
+                // we ensure LifetimeEnd is correctly set relative to the sound length.
+                // Note: PoolableDrawable usually sets RemoveWhenNotAlive = true.
+                LifetimeEnd = Math.Max(Time.Current + sound.Length, Time.Current);
+            }
+
+            public void Stop()
+            {
+                sound.Stop();
+            }
+
+            protected override void FreeAfterUse()
+            {
+                base.FreeAfterUse();
+                sound.Stop();
+                sound.ClearSamples();
             }
         }
     }
