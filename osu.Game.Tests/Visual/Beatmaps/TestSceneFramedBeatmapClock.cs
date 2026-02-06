@@ -6,7 +6,6 @@ using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
-using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Rulesets;
 
@@ -15,9 +14,6 @@ namespace osu.Game.Tests.Visual.Beatmaps
     public partial class TestSceneFramedBeatmapClock : OsuTestScene
     {
         private RealmAccess? realm;
-
-        [Resolved]
-        private OsuConfigManager config { get; set; } = null!;
 
         [BackgroundDependencyLoader]
         private void load(RealmAccess realm)
@@ -85,7 +81,7 @@ namespace osu.Game.Tests.Visual.Beatmaps
         private partial class TestClockContainer : DependencyProvidingContainer
         {
             public Bindable<WorkingBeatmap> Beatmap = new Bindable<WorkingBeatmap>();
-            public FramedBeatmapClock? FramedClock;
+            public FramedBeatmapClock? FramedClock { get; private set; }
 
             public TestClockContainer(WorkingBeatmap initialBeatmap)
             {

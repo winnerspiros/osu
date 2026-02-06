@@ -103,9 +103,6 @@ namespace osu.Game.Beatmaps
             beatmapOffsetSubscription?.Dispose();
             beatmapOffsetSubscription = null;
 
-            if (workingBeatmap == null)
-                return;
-
             Debug.Assert(userBeatmapOffsetClock != null);
 
             beatmapOffsetSubscription = realm.SubscribeToPropertyChanged(
