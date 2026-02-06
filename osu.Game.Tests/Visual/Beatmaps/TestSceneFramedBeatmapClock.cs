@@ -5,12 +5,10 @@ using NUnit.Framework;
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Rulesets;
-using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Visual.Beatmaps
 {
@@ -99,6 +97,8 @@ namespace osu.Game.Tests.Visual.Beatmaps
             private void load()
             {
                 FramedClock = new FramedBeatmapClock(true, false);
+                // Ensure rate is 1 so that platform offsets (which are rate-adjusted) are applied correctly.
+                FramedClock.Rate = 1;
                 Add(FramedClock);
             }
         }
