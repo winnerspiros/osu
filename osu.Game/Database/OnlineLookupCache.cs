@@ -125,8 +125,30 @@ namespace osu.Game.Database
             var request = CreateRequest(nextTaskBatch.Keys.ToArray());
 
             // rather than queueing, we maintain our own single-threaded request stream.
-            // todo: we probably want retry logic here.
-            await api.PerformAsync(request).ConfigureAwait(false);
+            int retryCount = 0;
+
+            while (retryCount < 3)
+            {
+                try
+                {
+                    await api.PerformAsync(request).ConfigureAwait(false);
+                    break;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"Lookup failed: {e.Message}. Retrying...", LoggingTarget.Network);
+
+                    // Exponential backoff
+                    int retryDelay = 100 * (int)Math.Pow(2, retryCount);
+                    await Task.Delay(retryDelay).ConfigureAwait(false);
+
+                    retryCount++;
+                }
+            }
 
             finishPendingTask();
 
