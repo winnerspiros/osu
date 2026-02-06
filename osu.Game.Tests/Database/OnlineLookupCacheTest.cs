@@ -89,17 +89,15 @@ namespace osu.Game.Tests.Database
 
             protected override TestAPIRequest CreateRequest(IEnumerable<int> ids) => new TestAPIRequest(ids);
 
-            protected override IEnumerable<TestModel>? RetrieveResults(TestAPIRequest request) => request.Results;
+            protected override IEnumerable<TestModel> RetrieveResults(TestAPIRequest request) => request.Results;
         }
 
         public class TestAPIRequest : APIRequest
         {
-            private readonly IEnumerable<int> ids;
             public List<TestModel> Results { get; } = new List<TestModel>();
 
-            public TestAPIRequest(IEnumerable<int> ids)
+            public TestAPIRequest(IEnumerable<int> _)
             {
-                this.ids = ids;
             }
 
             protected override string Target => "test";
