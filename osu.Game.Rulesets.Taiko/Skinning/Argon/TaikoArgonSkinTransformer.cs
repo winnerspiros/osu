@@ -129,9 +129,16 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 
                         case TaikoSkinComponents.Swell:
                             return new ArgonSwell();
-                    }
 
-                    break;
+                        case TaikoSkinComponents.DrumRollHead:
+                        case TaikoSkinComponents.Scroller:
+                        case TaikoSkinComponents.Mascot:
+                        case TaikoSkinComponents.KiaiGlow:
+                            return Drawable.Empty();
+
+                        default:
+                            throw new UnsupportedSkinComponentException(lookup);
+                    }
             }
 
             return base.GetDrawableComponent(lookup);
