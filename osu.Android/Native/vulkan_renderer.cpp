@@ -11,6 +11,13 @@
 #define LOG_TAG "OsuVulkan"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
+static JavaVM* g_vm = nullptr;
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    g_vm = vm;
+    return JNI_VERSION_1_6;
+}
+
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 VulkanRenderer::VulkanRenderer() : instance(VK_NULL_HANDLE), window(nullptr), surface(VK_NULL_HANDLE),
@@ -371,10 +378,17 @@ extern "C" {
         if (rendererPtr) delete (VulkanRenderer*)rendererPtr;
     }
 
-    bool nVulkanInitialize(long rendererPtr, void* window) {
+    bool nVulkanInit(long rendererPtr, void* surfaceJni) {
         VulkanRenderer* renderer = (VulkanRenderer*)rendererPtr;
-        if (!renderer || !window) return false;
-        return renderer->initialize((ANativeWindow*)window);
+        if (!renderer || !surfaceJni) return false;
+
+        JNIEnv* env = nullptr;
+        if (g_vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+             return false;
+        }
+
+        ANativeWindow* window = ANativeWindow_fromSurface(env, (jobject)surfaceJni);
+        return renderer->initialize(window);
     }
 
     void nVulkanRender(long rendererPtr) {

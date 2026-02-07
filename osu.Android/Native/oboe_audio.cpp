@@ -82,6 +82,11 @@ extern "C" {
         if (audio) audio->start();
     }
 
+    void nOboeStop(long audioPtr) {
+        OboeAudio* audio = (OboeAudio*)audioPtr;
+        if (audio) audio->stop();
+    }
+
     double nGetTimestamp(long audioPtr) {
         OboeAudio* audio = (OboeAudio*)audioPtr;
         return audio ? audio->getTimestamp() : 0.0;
