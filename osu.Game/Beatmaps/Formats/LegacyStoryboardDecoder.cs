@@ -390,6 +390,7 @@ namespace osu.Game.Beatmaps.Formats
                 {
                     i++;
                     var variableNameBuilder = new StringBuilder();
+
                     while (i < line.Length && !char.IsWhiteSpace(line[i]) && line[i] != ',')
                     {
                         variableNameBuilder.Append(line[i]);
@@ -425,6 +426,7 @@ namespace osu.Game.Beatmaps.Formats
                     i++;
                 }
             }
+
             line = sb.ToString();
         }
     }
