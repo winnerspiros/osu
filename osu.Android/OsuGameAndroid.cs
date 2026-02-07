@@ -70,6 +70,9 @@ namespace osu.Android
             config.BindWith(OsuSetting.VulkanRenderer, UseVulkanRenderer);
             config.BindWith(OsuSetting.OboeAudio, UseOboeAudio);
             config.BindWith(OsuSetting.UseAngle, UseAngle);
+
+            PerformanceMode.Value = true;
+            UseVulkanRenderer.Value = true;
         }
 
         public readonly Bindable<bool> PerformanceMode = new Bindable<bool>();

@@ -1,10 +1,11 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps.Legacy;
 using osu.Game.IO;
@@ -376,22 +377,57 @@ namespace osu.Game.Beatmaps.Formats
             variables[pair.Key] = pair.Value;
         }
 
-        /// <summary>
-        /// Decodes any beatmap variables present in a line into their real values.
-        /// </summary>
-        /// <param name="line">The line which may contains variables.</param>
         private void decodeVariables(ref string line)
         {
-            while (line.Contains('$'))
+            if (line.IndexOf('$') < 0)
+                return;
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < line.Length;)
             {
-                string origLine = line;
+                if (line[i] == '$')
+                {
+                    i++;
+                    var variableNameBuilder = new StringBuilder();
 
-                foreach (var v in variables)
-                    line = line.Replace(v.Key, v.Value);
+                    while (i < line.Length && !char.IsWhiteSpace(line[i]) && line[i] != ',')
+                    {
+                        variableNameBuilder.Append(line[i]);
+                        i++;
+                    }
 
-                if (line == origLine)
-                    break;
+                    string variableName = variableNameBuilder.ToString();
+                    bool found = false;
+
+                    // Try to find the longest matching variable
+                    for (int len = variableName.Length; len > 0; len--)
+                    {
+                        string potentialKey = string.Concat("$", variableName.AsSpan(0, len));
+
+                        if (variables.TryGetValue(potentialKey, out string? value))
+                        {
+                            sb.Append(value);
+                            sb.Append(variableName.AsSpan(len));
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        sb.Append('$');
+                        sb.Append(variableName);
+                    }
+                }
+                else
+                {
+                    sb.Append(line[i]);
+                    i++;
+                }
             }
+
+            line = sb.ToString();
         }
     }
 }
