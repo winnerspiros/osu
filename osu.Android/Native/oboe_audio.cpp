@@ -105,6 +105,10 @@ extern "C" {
         nOboeStart((long)audioPtr);
     }
 
+    JNIEXPORT void JNICALL Java_osu_Android_Native_OboeAudio_nOboeStop(JNIEnv* env, jobject obj, jlong audioPtr) {
+        nOboeStop((long)audioPtr);
+    }
+
     JNIEXPORT jdouble JNICALL Java_osu_Android_Native_OboeAudio_nOboeGetTimestamp(JNIEnv* env, jobject obj, jlong audioPtr) {
         return (jdouble)nGetTimestamp((long)audioPtr);
     }
