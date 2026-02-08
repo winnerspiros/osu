@@ -36,6 +36,8 @@ VulkanRenderer::~VulkanRenderer() {
 bool VulkanRenderer::initialize(ANativeWindow* window) {
     this->window = window;
 
+    if (!window) return false;
+
     if (!createInstance()) return false;
     if (!createSurface()) return false;
     if (!pickPhysicalDevice()) return false;
@@ -57,6 +59,10 @@ void VulkanRenderer::cleanup() {
     if (instance != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
+    }
+    if (window != nullptr) {
+        ANativeWindow_release(window);
+        window = nullptr;
     }
     LOGI("VulkanRenderer cleanup");
 }

@@ -290,6 +290,18 @@ namespace osu.Android
             return findSurfaceView(rootView)?.Holder?.Surface;
         }
 
+        public IntPtr GetSurfaceHandleSafe()
+        {
+            var tcs = new TaskCompletionSource<IntPtr>();
+            RunOnUiThread(() =>
+            {
+                var surface = GetSurface();
+                tcs.SetResult(surface?.Handle ?? IntPtr.Zero);
+            });
+            tcs.Task.Wait();
+            return tcs.Task.Result;
+        }
+
         private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
         {
             if (view == null) return null;
