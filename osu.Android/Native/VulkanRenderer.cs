@@ -10,6 +10,7 @@ namespace osu.Android.Native
     public class VulkanRenderer : IDisposable
     {
         private long nativePtr;
+        private readonly object disposeLock = new object();
 
         public VulkanRenderer()
         {
@@ -18,7 +19,14 @@ namespace osu.Android.Native
 
         public void Initialize(IntPtr surface) => nVulkanInit(nativePtr, surface);
 
-        public void Render() => nVulkanRender(nativePtr);
+        public void Render()
+        {
+            lock (disposeLock)
+            {
+                if (nativePtr != 0)
+                    nVulkanRender(nativePtr);
+            }
+        }
 
         public void Dispose()
         {
@@ -28,10 +36,13 @@ namespace osu.Android.Native
 
         protected virtual void Dispose(bool disposing)
         {
-            if (nativePtr != 0)
+            lock (disposeLock)
             {
-                nVulkanDestroy(nativePtr);
-                nativePtr = 0;
+                if (nativePtr != 0)
+                {
+                    nVulkanDestroy(nativePtr);
+                    nativePtr = 0;
+                }
             }
         }
 
