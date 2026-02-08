@@ -226,7 +226,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
 
             OsuPopover? popover = null;
-            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
+            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault())?.IsPresent == true);
             AddStep("attempt preset creation", () =>
             {
                 InputManager.MoveMouseTo(popover.ChildrenOfType<ShearedButton>().Single());
@@ -254,7 +254,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
+            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault())?.IsPresent == true);
             AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
             AddUntilStep("popover closed", () => !this.ChildrenOfType<OsuPopover>().Any());
         }
@@ -331,7 +331,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
 
             OsuPopover? popover = null;
-            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
+            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault())?.IsPresent == true);
             AddStep("clear preset name", () => popover.ChildrenOfType<LabelledTextBox>().First().Current.Value = "");
             AddStep("attempt preset edit", () =>
             {
@@ -380,7 +380,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
 
             OsuPopover? popover = null;
-            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
+            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault())?.IsPresent == true);
             AddStep("click use current mods", () =>
             {
                 InputManager.MoveMouseTo(popover.ChildrenOfType<ShearedButton>().ElementAt(0));
@@ -411,7 +411,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
+            AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault())?.IsPresent == true);
             AddStep("click use current mods", () =>
             {
                 InputManager.MoveMouseTo(popover.ChildrenOfType<ShearedButton>().ElementAt(0));
