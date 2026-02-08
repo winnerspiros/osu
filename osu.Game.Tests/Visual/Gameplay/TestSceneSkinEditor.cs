@@ -497,7 +497,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Right);
             });
 
-            AddUntilStep("Wait for Anchor menu", () => getMenuItemByText("Anchor") != null);
+            AddUntilStep("Wait for Anchor menu", () => getMenuItemByTextOrNull("Anchor") != null);
 
             AddStep("Click on Anchor menu", () =>
             {
@@ -531,7 +531,10 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddAssert("Closest item checked", () => (getMenuItemByText("Closest").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
             AddAssert("Centre item unchecked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
 
-            Menu.DrawableMenuItem? getMenuItemByText(string text)
+            Menu.DrawableMenuItem getMenuItemByText(string text)
+                => getMenuItemByTextOrNull(text) ?? throw new System.InvalidOperationException($"Menu item {text} not found");
+
+            Menu.DrawableMenuItem? getMenuItemByTextOrNull(string text)
                 => this.ChildrenOfType<Menu.DrawableMenuItem>().FirstOrDefault(m => m.Item.Text.ToString() == text);
         }
 
