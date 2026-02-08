@@ -72,7 +72,6 @@ namespace osu.Android
             config.BindWith(OsuSetting.UseAngle, UseAngle);
 
             PerformanceMode.Value = true;
-            UseVulkanRenderer.Value = true;
         }
 
         public readonly Bindable<bool> PerformanceMode = new Bindable<bool>();
@@ -96,7 +95,7 @@ namespace osu.Android
                         try
                         {
                             vulkanRenderer = new Native.VulkanRenderer();
-                            vulkanRenderer.Initialize(gameActivity.GetSurface()?.Handle ?? IntPtr.Zero);
+                            vulkanRenderer.Initialize(gameActivity.GetSurfaceHandleSafe());
 
                             vulkanHook = new VulkanHook(() => vulkanRenderer?.Render());
                             Add(vulkanHook);

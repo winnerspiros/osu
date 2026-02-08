@@ -497,6 +497,8 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Right);
             });
 
+            AddUntilStep("Wait for Anchor menu", () => getMenuItemByTextOrNull("Anchor") != null);
+
             AddStep("Click on Anchor menu", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("Anchor"));
@@ -530,7 +532,10 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddAssert("Centre item unchecked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
 
             Menu.DrawableMenuItem getMenuItemByText(string text)
-                => this.ChildrenOfType<Menu.DrawableMenuItem>().First(m => m.Item.Text.ToString() == text);
+                => getMenuItemByTextOrNull(text) ?? throw new System.InvalidOperationException($"Menu item {text} not found");
+
+            Menu.DrawableMenuItem? getMenuItemByTextOrNull(string text)
+                => this.ChildrenOfType<Menu.DrawableMenuItem>().FirstOrDefault(m => m.Item.Text.ToString() == text);
         }
 
         private Skin importSkinFromArchives(string filename)
