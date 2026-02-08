@@ -138,8 +138,7 @@ namespace osu.Game.Screens.Edit
                         if (!index.HasValue)
                             continue;
 
-                        SampleSet? sampleSet;
-                        if (!sampleSets.TryGetValue(index.Value, out sampleSet))
+                        if (!sampleSets.TryGetValue(index.Value, out var sampleSet))
                             sampleSet = sampleSets[index.Value] = new SampleSet(index.Value);
 
                         sampleSet.Filenames.Add(sample);

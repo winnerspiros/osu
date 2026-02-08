@@ -206,7 +206,7 @@ namespace osu.Game.Beatmaps
                 $"decoupledTrack: {output(decoupledTrack)}\n" +
                 $"finalClockSource: {output(finalClockSource)}\n";
 
-            string output(IClock? clock)
+            static string output(IClock? clock)
             {
                 if (clock == null)
                     return "null";

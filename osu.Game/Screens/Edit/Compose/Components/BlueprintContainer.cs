@@ -25,7 +25,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 {
     /// <summary>
     /// A container which provides a "blueprint" display of items.
-    /// Includes selection and manipulation support via a <see cref="Components.SelectionHandler{T}"/>.
+    /// Includes selection and manipulation support via a <see cref="SelectionHandler{T}"/>.
     /// </summary>
     public abstract partial class BlueprintContainer<T> : CompositeDrawable, IKeyBindingHandler<PlatformAction>, IKeyBindingHandler<GlobalAction>
         where T : class
@@ -100,7 +100,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected virtual SelectionBlueprintContainer CreateSelectionBlueprintContainer() => new SelectionBlueprintContainer { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
-        /// Creates a <see cref="Components.SelectionHandler{T}"/> which outlines items and handles movement of selections.
+        /// Creates a <see cref="SelectionHandler{T}"/> which outlines items and handles movement of selections.
         /// </summary>
         protected abstract SelectionHandler<T> CreateSelectionHandler();
 

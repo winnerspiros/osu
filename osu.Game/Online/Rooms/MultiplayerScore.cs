@@ -85,10 +85,7 @@ namespace osu.Game.Online.Rooms
 
         public ScoreInfo CreateScoreInfo(ScoreManager scoreManager, RulesetStore rulesets, [NotNull] BeatmapInfo beatmap)
         {
-            var ruleset = rulesets.GetRuleset(RulesetId);
-            if (ruleset == null)
-                throw new InvalidOperationException($"Couldn't create score with unknown ruleset: {RulesetId}");
-
+            var ruleset = rulesets.GetRuleset(RulesetId) ?? throw new InvalidOperationException($"Couldn't create score with unknown ruleset: {RulesetId}");
             var rulesetInstance = ruleset.CreateInstance();
 
             var scoreInfo = new ScoreInfo

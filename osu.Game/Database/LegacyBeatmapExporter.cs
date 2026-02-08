@@ -209,11 +209,7 @@ namespace osu.Game.Database
                 beatmap.PerformRead(b =>
                 {
                     using var exportStream = ExportStorage.CreateFileSafely(filename);
-                    using var inputFile = GetFileContents(b.BeatmapSet!, b.File!);
-
-                    if (inputFile == null)
-                        throw new InvalidOperationException($"Beatmap file {b.File!.Filename} could not be opened!");
-
+                    using var inputFile = GetFileContents(b.BeatmapSet!, b.File!) ?? throw new InvalidOperationException($"Beatmap file {b.File!.Filename} could not be opened!");
                     inputFile.CopyTo(exportStream);
                 });
             }

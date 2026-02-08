@@ -180,21 +180,21 @@ namespace osu.Game.Screens.Edit
             addedIndices = new List<int>();
 
             // Find the start and end indices of the relevant section headers in both the old and the new beatmap file. Lines changed outside of the modified ranges are ignored.
-            int oldSectionStartIndex = Array.IndexOf(result.PiecesOld, $"[{section}]");
+            int oldSectionStartIndex = indexOf(result.PiecesOld, $"[{section}]");
             if (oldSectionStartIndex == -1)
                 return;
 
-            int oldSectionEndIndex = Array.FindIndex(result.PiecesOld, oldSectionStartIndex + 1, s => s.StartsWith('['));
+            int oldSectionEndIndex = findIndex(result.PiecesOld, oldSectionStartIndex + 1, s => s.StartsWith('['));
             if (oldSectionEndIndex == -1)
-                oldSectionEndIndex = result.PiecesOld.Length;
+                oldSectionEndIndex = result.PiecesOld.Count;
 
-            int newSectionStartIndex = Array.IndexOf(result.PiecesNew, $"[{section}]");
+            int newSectionStartIndex = indexOf(result.PiecesNew, $"[{section}]");
             if (newSectionStartIndex == -1)
                 return;
 
-            int newSectionEndIndex = Array.FindIndex(result.PiecesNew, newSectionStartIndex + 1, s => s.StartsWith('['));
+            int newSectionEndIndex = findIndex(result.PiecesNew, newSectionStartIndex + 1, s => s.StartsWith('['));
             if (newSectionEndIndex == -1)
-                newSectionEndIndex = result.PiecesNew.Length;
+                newSectionEndIndex = result.PiecesNew.Count;
 
             foreach (var block in result.DiffBlocks)
             {
@@ -259,6 +259,28 @@ namespace osu.Game.Screens.Edit
             protected internal override ISkin GetSkin() => throw new NotImplementedException();
 
             public override Stream GetStream(string storagePath) => throw new NotImplementedException();
+        }
+
+        private static int indexOf(IReadOnlyList<string> list, string item)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] == item)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private static int findIndex(IReadOnlyList<string> list, int startIndex, Predicate<string> match)
+        {
+            for (int i = startIndex; i < list.Count; i++)
+            {
+                if (match(list[i]))
+                    return i;
+            }
+
+            return -1;
         }
     }
 }

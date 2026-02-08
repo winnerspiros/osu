@@ -26,6 +26,7 @@ using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Localisation;
 using osu.Game.Online;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Rooms;
@@ -37,7 +38,6 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Users.Drawables;
 using osuTK;
 using osuTK.Graphics;
-using osu.Game.Localisation;
 
 namespace osu.Game.Screens.OnlinePlay
 {
@@ -354,7 +354,7 @@ namespace osu.Game.Screens.OnlinePlay
 
             if (explicitContent != null)
             {
-                bool hasExplicitContent = (beatmap?.BeatmapSet as IBeatmapSetOnlineInfo)?.HasExplicitContent == true;
+                bool hasExplicitContent = beatmap?.BeatmapSet is IBeatmapSetOnlineInfo { HasExplicitContent: true };
                 explicitContent.Alpha = hasExplicitContent ? 1 : 0;
             }
 

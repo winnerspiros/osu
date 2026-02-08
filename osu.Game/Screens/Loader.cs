@@ -10,12 +10,12 @@ using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Utils;
-using osu.Game.Screens.Menu;
 using osu.Framework.Screens;
 using osu.Framework.Threading;
+using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Screens.Menu;
 using osu.Game.Seasonal;
 using IntroSequence = osu.Game.Configuration.IntroSequence;
 
@@ -59,7 +59,7 @@ namespace osu.Game.Screens
                     return new IntroTriangles(createMainMenu);
             }
 
-            MainMenu createMainMenu() => new MainMenu();
+            static MainMenu createMainMenu() => new MainMenu();
         }
 
         protected virtual ShaderPrecompiler CreateShaderPrecompiler() => new ShaderPrecompiler();

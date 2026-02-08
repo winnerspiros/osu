@@ -60,7 +60,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                 };
             });
 
-            decimal getNecessaryPP(int? rulesetID)
+            static decimal getNecessaryPP(int? rulesetID)
             {
                 switch (rulesetID)
                 {

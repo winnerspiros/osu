@@ -77,7 +77,7 @@ namespace osu.Game.Tests.Visual.Navigation
             AddUntilStep("wait for dialog overlay", () => Game.ChildrenOfType<DialogOverlay>().SingleOrDefault() != null);
 
             PushAndConfirm(() => playlistScreen = new Screens.OnlinePlay.Playlists.Playlists());
-            AddUntilStep("wait for lounge", () => (playlistScreen.CurrentSubScreen as LoungeSubScreen)?.IsLoaded == true);
+            AddUntilStep("wait for lounge", () => playlistScreen.CurrentSubScreen is LoungeSubScreen { IsLoaded: true });
 
             AddStep("import beatmap", () => BeatmapImportHelper.LoadQuickOszIntoOsu(Game).WaitSafely());
 
@@ -1363,7 +1363,7 @@ namespace osu.Game.Tests.Visual.Navigation
         private Func<Player> playToResults()
         {
             var player = playToCompletion();
-            AddUntilStep("wait for results", () => (Game.ScreenStack.CurrentScreen as ResultsScreen)?.IsLoaded == true);
+            AddUntilStep("wait for results", () => Game.ScreenStack.CurrentScreen is ResultsScreen { IsLoaded: true });
             return player;
         }
 

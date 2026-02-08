@@ -358,7 +358,7 @@ namespace osu.Game.Screens.Play.PlayerSettings
                 ? LocalisableString.Interpolate($@"{formatOffset} ms")
                 : LocalisableString.Interpolate($@"{formatOffset} ms {getEarlyLateText(offset)}");
 
-            LocalisableString getEarlyLateText(double value)
+            static LocalisableString getEarlyLateText(double value)
             {
                 Debug.Assert(value != 0);
 

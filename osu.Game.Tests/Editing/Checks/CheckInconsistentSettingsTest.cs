@@ -4,12 +4,12 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osuTK;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Checks;
-using osu.Game.Tests.Beatmaps;
 using osu.Game.Storyboards;
+using osu.Game.Tests.Beatmaps;
+using osuTK;
 
 namespace osu.Game.Tests.Editing.Checks
 {

@@ -23,11 +23,8 @@ namespace osu.Game.Tests.Visual.Gameplay
         {
             AddStep("add new big graph", () =>
             {
-                if (graph != null)
-                {
-                    graph.Expire();
-                    graph = null;
-                }
+                graph?.Expire();
+                graph = null;
 
                 Add(graph = new TestSongProgressGraph
                 {

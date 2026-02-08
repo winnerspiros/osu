@@ -370,7 +370,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         /// <summary>
         /// Invoked for this <see cref="DrawableHitObject"/> to take on any values from a newly-applied <see cref="HitObject"/>.
-        /// This is also fired after any changes which occurred via an <see cref="osu.Game.Rulesets.Objects.HitObject.ApplyDefaults"/> call.
+        /// This is also fired after any changes which occurred via an <see cref="HitObject.ApplyDefaults"/> call.
         /// </summary>
         protected virtual void OnApply()
         {
@@ -378,7 +378,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         /// <summary>
         /// Invoked for this <see cref="DrawableHitObject"/> to revert any values previously taken on from the currently-applied <see cref="HitObject"/>.
-        /// This is also fired after any changes which occurred via an <see cref="osu.Game.Rulesets.Objects.HitObject.ApplyDefaults"/> call.
+        /// This is also fired after any changes which occurred via an <see cref="HitObject.ApplyDefaults"/> call.
         /// </summary>
         protected virtual void OnFree()
         {
@@ -753,7 +753,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         protected bool UpdateResult(bool userTriggered)
         {
             // It's possible for input to get into a bad state when rewinding gameplay, so results should not be processed
-            if ((Clock as IGameplayClock)?.IsRewinding == true)
+            if (Clock is IGameplayClock { IsRewinding: true })
                 return false;
 
             if (Judged)
