@@ -96,7 +96,7 @@ namespace osu.Android
                         try
                         {
                             vulkanRenderer = new Native.VulkanRenderer();
-                            vulkanRenderer.Initialize(gameActivity.Window!.Handle);
+                            vulkanRenderer.Initialize(gameActivity.GetSurface()?.Handle ?? IntPtr.Zero);
 
                             vulkanHook = new VulkanHook(() => vulkanRenderer?.Render());
                             Add(vulkanHook);

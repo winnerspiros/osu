@@ -282,5 +282,26 @@ namespace osu.Android
 
             await game.Import(tasks.ToArray()).ConfigureAwait(false);
         }, TaskCreationOptions.LongRunning);
+
+        public global::Android.Views.Surface? GetSurface()
+        {
+            var rootView = Window?.DecorView;
+            if (rootView == null) return null;
+            return findSurfaceView(rootView)?.Holder?.Surface;
+        }
+
+        private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View view)
+        {
+            if (view is global::Android.Views.SurfaceView sv) return sv;
+            if (view is global::Android.Views.ViewGroup vg)
+            {
+                for (int i = 0; i < vg.ChildCount; i++)
+                {
+                    var found = findSurfaceView(vg.GetChildAt(i));
+                    if (found != null) return found;
+                }
+            }
+            return null;
+        }
     }
 }
