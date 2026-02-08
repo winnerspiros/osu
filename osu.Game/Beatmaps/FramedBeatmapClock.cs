@@ -94,15 +94,21 @@ namespace osu.Game.Beatmaps
                 userAudioOffset = config.GetBindable<double>(OsuSetting.AudioOffset);
                 userAudioOffset.BindValueChanged(offset => userGlobalOffsetClock.Offset = offset.NewValue, true);
 
-                // TODO: this doesn't update when using ChangeSource() to change beatmap.
-                beatmapOffsetSubscription = realm.SubscribeToPropertyChanged(
-                    r => r.Find<BeatmapInfo>(beatmap.Value.BeatmapInfo.ID)?.UserSettings,
-                    settings => settings.Offset,
-                    val =>
-                    {
-                        userBeatmapOffsetClock.Offset = val;
-                    });
+                beatmap.BindValueChanged(b => updateBeatmapOffsetSubscription(b.NewValue), true);
             }
+        }
+
+        private void updateBeatmapOffsetSubscription(WorkingBeatmap workingBeatmap)
+        {
+            beatmapOffsetSubscription?.Dispose();
+            beatmapOffsetSubscription = null;
+
+            Debug.Assert(userBeatmapOffsetClock != null);
+
+            beatmapOffsetSubscription = realm.SubscribeToPropertyChanged(
+                r => r.Find<BeatmapInfo>(workingBeatmap.BeatmapInfo.ID)?.UserSettings,
+                settings => settings.Offset,
+                val => userBeatmapOffsetClock.Offset = val);
         }
 
         protected override void Update()
