@@ -290,8 +290,10 @@ namespace osu.Android
             return findSurfaceView(rootView)?.Holder?.Surface;
         }
 
-        private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View view)
+        private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
         {
+            if (view == null) return null;
+
             if (view is global::Android.Views.SurfaceView sv) return sv;
             if (view is global::Android.Views.ViewGroup vg)
             {
