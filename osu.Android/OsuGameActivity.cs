@@ -145,7 +145,7 @@ namespace osu.Android
         {
             base.OnCreate(savedInstanceState);
 
-            global::Java.Lang.System.LoadLibrary("osu.Android.Native");
+            global::Java.Lang.JavaSystem.LoadLibrary("osu.Android.Native");
 
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
             // on first launch we still have to fire manually.
