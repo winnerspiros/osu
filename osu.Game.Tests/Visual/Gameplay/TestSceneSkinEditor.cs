@@ -497,6 +497,8 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Right);
             });
 
+            AddUntilStep("Wait for Anchor menu", () => getMenuItemByText("Anchor") != null);
+
             AddStep("Click on Anchor menu", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("Anchor"));
@@ -529,8 +531,8 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddAssert("Closest item checked", () => (getMenuItemByText("Closest").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
             AddAssert("Centre item unchecked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
 
-            Menu.DrawableMenuItem getMenuItemByText(string text)
-                => this.ChildrenOfType<Menu.DrawableMenuItem>().First(m => m.Item.Text.ToString() == text);
+            Menu.DrawableMenuItem? getMenuItemByText(string text)
+                => this.ChildrenOfType<Menu.DrawableMenuItem>().FirstOrDefault(m => m.Item.Text.ToString() == text);
         }
 
         private Skin importSkinFromArchives(string filename)
