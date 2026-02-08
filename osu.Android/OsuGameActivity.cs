@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using osu.Framework.Android;
+using osu.Framework.Extensions;
 using osu.Game.Database;
 using Debug = System.Diagnostics.Debug;
 
@@ -298,8 +299,8 @@ namespace osu.Android
                 var surface = GetSurface();
                 tcs.SetResult(surface?.Handle ?? IntPtr.Zero);
             });
-            tcs.Task.Wait();
-            return tcs.Task.Result;
+            tcs.Task.WaitSafely();
+            return tcs.Task.GetResultSafely();
         }
 
         private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
