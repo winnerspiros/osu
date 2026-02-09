@@ -13,8 +13,9 @@
 
 static JavaVM* g_vm = nullptr;
 
-jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     g_vm = vm;
+    LOGI("JNI_OnLoad called, JVM initialized");
     return JNI_VERSION_1_6;
 }
 
@@ -358,9 +359,8 @@ VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capa
     if (capabilities.currentExtent.width != UINT32_MAX) {
         return capabilities.currentExtent;
     } else {
-        int width, height;
-        ANativeWindow_getWidth(window);
-        ANativeWindow_getHeight(window);
+        int width = ANativeWindow_getWidth(window);
+        int height = ANativeWindow_getHeight(window);
 
         VkExtent2D actualExtent = {
             static_cast<uint32_t>(width),
