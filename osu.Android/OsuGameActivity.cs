@@ -145,7 +145,14 @@ namespace osu.Android
         {
             base.OnCreate(savedInstanceState);
 
-            global::Java.Lang.JavaSystem.LoadLibrary("osu.Android.Native");
+            try
+            {
+                global::Java.Lang.JavaSystem.LoadLibrary("osu.Android.Native");
+            }
+            catch (Exception e)
+            {
+                global::Android.Util.Log.Error("OsuGameActivity", $"Failed to load native library: {e}");
+            }
 
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
             // on first launch we still have to fire manually.
