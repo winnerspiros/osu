@@ -56,6 +56,7 @@ namespace osu.Game.Rulesets.Edit
                 return false;
             }
 
+
             int.TryParse(match.Groups[@"minutes"].Value, out int timeMin);
             int.TryParse(match.Groups[@"seconds"].Value, out int timeSec);
             int.TryParse(match.Groups[@"milliseconds"].Value, out int timeMsec);
