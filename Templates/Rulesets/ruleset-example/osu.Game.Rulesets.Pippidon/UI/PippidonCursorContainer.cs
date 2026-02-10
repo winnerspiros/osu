@@ -27,7 +27,8 @@ namespace osu.Game.Rulesets.Pippidon.UI
         {
             cursorTexture = textures.Get("character");
 
-            cursorSprite?.Texture = cursorTexture;
+            if (cursorSprite != null)
+                cursorSprite.Texture = cursorTexture;
         }
     }
 }

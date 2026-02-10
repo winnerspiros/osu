@@ -231,7 +231,7 @@ namespace osu.Game.Beatmaps
                 return beatmapLoadTask ??= Task.Factory.StartNew(() =>
                 {
                     // Todo: Handle cancellation during beatmap parsing
-                    var b = GetBeatmap() ?? new Beatmap();
+                    var b = GetBeatmap();
 
                     // Copy across values of key properties for which the database-backed model has data that the decoded beatmap isn't going to.
                     b.BeatmapInfo.ID = BeatmapInfo.ID;

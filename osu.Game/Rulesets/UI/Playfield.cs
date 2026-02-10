@@ -424,7 +424,6 @@ namespace osu.Game.Rulesets.UI
                 }
 
                 dho.ParentHitObject = parent;
-                dho.Apply(entry);
             });
         }
 
