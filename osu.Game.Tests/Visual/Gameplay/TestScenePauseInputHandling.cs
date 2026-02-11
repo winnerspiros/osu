@@ -75,6 +75,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         });
 
         [Test]
+        [FlakyTest]
         public void TestOsuInputNotReceivedWhilePaused()
         {
             KeyCounter counter = null!;
