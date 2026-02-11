@@ -95,10 +95,20 @@ namespace osu.Android
                         try
                         {
                             vulkanRenderer = new Native.VulkanRenderer();
-                            vulkanRenderer.Initialize(gameActivity.GetSurfaceHandleSafe());
+                            var surfaceRef = gameActivity.GetSurfaceGlobalRef();
+                            bool success = vulkanRenderer.Initialize(surfaceRef);
+                            global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceRef);
 
-                            vulkanHook = new VulkanHook(() => vulkanRenderer?.Render());
-                            Add(vulkanHook);
+                            if (success)
+                            {
+                                vulkanHook = new VulkanHook(() => vulkanRenderer?.Render());
+                                Add(vulkanHook);
+                            }
+                            else
+                            {
+                                Debug.WriteLine("Failed to initialize Vulkan: Native initialization returned false.");
+                                cleanupVulkan();
+                            }
                         }
                         catch (Exception ex)
                         {

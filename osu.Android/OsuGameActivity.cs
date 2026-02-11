@@ -300,13 +300,16 @@ namespace osu.Android
             return findSurfaceView(rootView)?.Holder?.Surface;
         }
 
-        public IntPtr GetSurfaceHandleSafe()
+        public IntPtr GetSurfaceGlobalRef()
         {
             var tcs = new TaskCompletionSource<IntPtr>();
             RunOnUiThread(() =>
             {
                 var surface = GetSurface();
-                tcs.SetResult(surface?.Handle ?? IntPtr.Zero);
+                if (surface != null && surface.Handle != IntPtr.Zero)
+                    tcs.SetResult(global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle));
+                else
+                    tcs.SetResult(IntPtr.Zero);
             });
             tcs.Task.WaitSafely();
             return tcs.Task.GetResultSafely();
