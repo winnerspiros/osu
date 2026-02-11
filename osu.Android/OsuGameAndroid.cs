@@ -97,7 +97,8 @@ namespace osu.Android
                             vulkanRenderer = new Native.VulkanRenderer();
                             var surfaceRef = gameActivity.GetSurfaceGlobalRef();
                             bool success = vulkanRenderer.Initialize(surfaceRef);
-                            global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceRef);
+                            if (surfaceRef != IntPtr.Zero)
+                                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceRef);
 
                             if (success)
                             {
