@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -231,7 +231,7 @@ namespace osu.Game.Beatmaps
                 return beatmapLoadTask ??= Task.Factory.StartNew(() =>
                 {
                     // Todo: Handle cancellation during beatmap parsing
-                    var b = GetBeatmap() ?? new Beatmap();
+                    var b = GetBeatmap();
 
                     // Copy across values of key properties for which the database-backed model has data that the decoded beatmap isn't going to.
                     b.BeatmapInfo.ID = BeatmapInfo.ID;

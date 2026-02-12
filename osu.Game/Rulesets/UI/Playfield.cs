@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -424,15 +424,12 @@ namespace osu.Game.Rulesets.UI
                 }
 
                 dho.ParentHitObject = parent;
-                dho.Apply(entry);
             });
         }
 
         private IDrawablePool prepareDrawableHitObjectPool(HitObject hitObject)
         {
             var lookupType = hitObject.GetType();
-
-
             // Tests may add derived hitobject instances for which pools don't exist. Try to find any applicable pool and dynamically assign the type if the pool exists.
             if (!pools.TryGetValue(lookupType, out var pool))
             {
