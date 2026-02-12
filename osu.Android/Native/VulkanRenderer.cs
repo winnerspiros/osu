@@ -17,7 +17,7 @@ namespace osu.Android.Native
             nativePtr = nVulkanCreate();
         }
 
-        public void Initialize(IntPtr surface) => nVulkanInit(nativePtr, surface);
+        public bool Initialize(IntPtr surface) => nVulkanInit(nativePtr, surface);
 
         public void Render()
         {
@@ -58,7 +58,8 @@ namespace osu.Android.Native
         private static extern void nVulkanDestroy(long ptr);
 
         [DllImport("osu.Android.Native")]
-        private static extern void nVulkanInit(long ptr, IntPtr surface);
+        [return: MarshalAs(UnmanagedType.U1)]
+        private static extern bool nVulkanInit(long ptr, IntPtr surface);
 
         [DllImport("osu.Android.Native")]
         private static extern void nVulkanRender(long ptr);

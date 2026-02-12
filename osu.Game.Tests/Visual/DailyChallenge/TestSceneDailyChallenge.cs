@@ -82,6 +82,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));
             AddUntilStep("wait for pushed", () => screen.IsCurrentScreen());
+            AddUntilStep("wait for scores", () => this.ChildrenOfType<BeatmapLeaderboardScore>().Count() > 1);
             AddStep("force transforms to finish", () => FinishTransforms(true));
             AddStep("right click second score", () =>
             {
