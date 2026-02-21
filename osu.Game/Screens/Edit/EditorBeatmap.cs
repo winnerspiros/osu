@@ -515,13 +515,19 @@ namespace osu.Game.Screens.Edit
 
         private int findInsertionIndex(IReadOnlyList<HitObject> list, double startTime)
         {
-            for (int i = 0; i < list.Count; i++)
+            int min = 0;
+            int max = list.Count - 1;
+
+            while (min <= max)
             {
-                if (list[i].StartTime > startTime)
-                    return i - 1;
+                int mid = min + (max - min) / 2;
+                if (list[mid].StartTime <= startTime)
+                    min = mid + 1;
+                else
+                    max = mid - 1;
             }
 
-            return list.Count - 1;
+            return min - 1;
         }
 
         public double SnapTime(double time, double? referenceTime) => ControlPointInfo.GetClosestSnappedTime(time, BeatDivisor, referenceTime);
