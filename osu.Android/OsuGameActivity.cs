@@ -14,9 +14,9 @@ using Debug = System.Diagnostics.Debug;
 namespace osu.Android
 {
     [global::Android.App.Activity(ConfigurationChanges = global::Android.Content.PM.ConfigChanges.Orientation | global::Android.Content.PM.ConfigChanges.ScreenSize | global::Android.Content.PM.ConfigChanges.UiMode, Exported = true, LaunchMode = global::Android.Content.PM.LaunchMode.SingleInstance, MainLauncher = true)]
-    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\\\.osz", DataHost = "*", DataMimeType = "*/*")]
-    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\\\.osk", DataHost = "*", DataMimeType = "*/*")]
-    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\\\.osr", DataHost = "*", DataMimeType = "*/*")]
+    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
+    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
+    [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
     [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataMimeType = "application/x-osu-beatmap-archive")]
     [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataMimeType = "application/x-osu-skin-archive")]
     [global::Android.App.IntentFilter(new[] { "android.intent.action.VIEW" }, Categories = new[] { "android.intent.category.DEFAULT" }, DataScheme = "content", DataMimeType = "application/x-osu-replay")]
@@ -159,20 +159,29 @@ namespace osu.Android
             // reference: https://developer.android.com/reference/android/app/Activity#onNewIntent(android.content.Intent)
             handleIntent(Intent);
 
-            Debug.Assert(Window != null);
+            if (Window != null)
+            {
+                Window.AddFlags(global::Android.Views.WindowManagerFlags.Fullscreen);
+                Window.AddFlags(global::Android.Views.WindowManagerFlags.KeepScreenOn);
+            }
+            else
+            {
+                global::Android.Util.Log.Warn("OsuGameActivity", "Window is null in OnCreate, flags not set.");
+            }
 
-            Window.AddFlags(global::Android.Views.WindowManagerFlags.Fullscreen);
-            Window.AddFlags(global::Android.Views.WindowManagerFlags.KeepScreenOn);
-
-            Debug.Assert(WindowManager?.DefaultDisplay != null);
-            Debug.Assert(Resources?.DisplayMetrics != null);
-
-            global::Android.Graphics.Point displaySize = new global::Android.Graphics.Point();
+            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
+            {
+                global::Android.Graphics.Point displaySize = new global::Android.Graphics.Point();
 #pragma warning disable CA1422 // GetSize is deprecated
-            WindowManager.DefaultDisplay.GetSize(displaySize);
+                WindowManager.DefaultDisplay.GetSize(displaySize);
 #pragma warning restore CA1422
-            float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
-            IsTablet = smallestWidthDp >= 600f;
+                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
+                IsTablet = smallestWidthDp >= 600f;
+            }
+            else
+            {
+                global::Android.Util.Log.Warn("OsuGameActivity", "WindowManager.DefaultDisplay or Resources.DisplayMetrics is null in OnCreate.");
+            }
 
             RequestedOrientation = DefaultOrientation = IsTablet ? global::Android.Content.PM.ScreenOrientation.FullUser : global::Android.Content.PM.ScreenOrientation.SensorLandscape;
 
@@ -181,10 +190,18 @@ namespace osu.Android
             // Manually load them so that they can be loaded by RulesetStore.loadFromAppDomain.
             // REMEMBER to fully uninstall previous version every time when investigating this!
             // Don't forget osu.Game.Tests.Android too.
-            Assembly.Load("osu.Game.Rulesets.Osu");
-            Assembly.Load("osu.Game.Rulesets.Taiko");
-            Assembly.Load("osu.Game.Rulesets.Catch");
-            Assembly.Load("osu.Game.Rulesets.Mania");
+            try
+            {
+                // Using typeof() ensures the linker preserves the assemblies.
+                Assembly.Load(typeof(osu.Game.Rulesets.Osu.OsuRuleset).Assembly.FullName);
+                Assembly.Load(typeof(osu.Game.Rulesets.Taiko.TaikoRuleset).Assembly.FullName);
+                Assembly.Load(typeof(osu.Game.Rulesets.Catch.CatchRuleset).Assembly.FullName);
+                Assembly.Load(typeof(osu.Game.Rulesets.Mania.ManiaRuleset).Assembly.FullName);
+            }
+            catch (Exception e)
+            {
+                global::Android.Util.Log.Error("OsuGameActivity", $"Failed to load rulesets: {e}");
+            }
         }
 
         protected override void OnResume()
@@ -275,22 +292,30 @@ namespace osu.Android
 
         private void handleImportFromUris(params global::Android.Net.Uri[] uris) => Task.Factory.StartNew(async () =>
         {
-            var tasks = new List<ImportTask>();
-
-            await Task.WhenAll(uris.Select(async uri =>
+            try
             {
-                var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
+                var tasks = new List<ImportTask>();
 
-                if (task != null)
+                await Task.WhenAll(uris.Select(async uri =>
                 {
-                    lock (tasks)
-                    {
-                        tasks.Add(task);
-                    }
-                }
-            })).ConfigureAwait(false);
+                    if (ContentResolver == null) return;
+                    var task = await AndroidImportTask.Create(ContentResolver, uri).ConfigureAwait(false);
 
-            await game.Import(tasks.ToArray()).ConfigureAwait(false);
+                    if (task != null)
+                    {
+                        lock (tasks)
+                        {
+                            tasks.Add(task);
+                        }
+                    }
+                })).ConfigureAwait(false);
+
+                await game.Import(tasks.ToArray()).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                global::Android.Util.Log.Error("OsuGameActivity", $"Failed to handle imports: {ex}");
+            }
         }, TaskCreationOptions.LongRunning);
 
         public global::Android.Views.Surface? GetSurface()
