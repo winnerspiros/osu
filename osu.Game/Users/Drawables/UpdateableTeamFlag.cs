@@ -33,8 +33,11 @@ namespace osu.Game.Users.Drawables
 
         protected override double LoadDelay => 200;
 
-        public UpdateableTeamFlag(APITeam? team = null)
+        private readonly bool hideOnNull;
+
+        public UpdateableTeamFlag(APITeam? team = null, bool hideOnNull = true)
         {
+            this.hideOnNull = hideOnNull;
             Team = team;
 
             Masking = true;
@@ -50,7 +53,7 @@ namespace osu.Game.Users.Drawables
 
         // Generally we just want team flags to disappear if the user doesn't have one.
         // This also handles fill flow cases and avoids spacing being added for non-displaying flags.
-        public override bool IsPresent => base.IsPresent && Team != null;
+        public override bool IsPresent => base.IsPresent && (!hideOnNull || Team != null);
 
         protected override void Update()
         {
