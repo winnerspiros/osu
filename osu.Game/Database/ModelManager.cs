@@ -127,21 +127,18 @@ namespace osu.Game.Database
 
             int i = 0;
 
-            Realm.Write(realm =>
+            foreach (var b in items)
             {
-                foreach (var b in items)
-                {
-                    if (notification.State == ProgressNotificationState.Cancelled)
-                        // user requested abort
-                        return;
+                if (notification.State == ProgressNotificationState.Cancelled)
+                    // user requested abort
+                    return;
 
-                    notification.Text = $"Deleting {HumanisedModelName}s ({++i} of {items.Count})";
+                notification.Text = $"Deleting {HumanisedModelName}s ({++i} of {items.Count})";
 
-                    Delete(b, realm);
+                Delete(b);
 
-                    notification.Progress = (float)i / items.Count;
-                }
-            });
+                notification.Progress = (float)i / items.Count;
+            }
 
             notification.State = ProgressNotificationState.Completed;
         }
@@ -171,21 +168,18 @@ namespace osu.Game.Database
 
             int i = 0;
 
-            Realm.Write(realm =>
+            foreach (var item in items)
             {
-                foreach (var item in items)
-                {
-                    if (notification.State == ProgressNotificationState.Cancelled)
-                        // user requested abort
-                        return;
+                if (notification.State == ProgressNotificationState.Cancelled)
+                    // user requested abort
+                    return;
 
-                    notification.Text = $"Restoring ({++i} of {items.Count})";
+                notification.Text = $"Restoring ({++i} of {items.Count})";
 
-                    Undelete(item, realm);
+                Undelete(item);
 
-                    notification.Progress = (float)i / items.Count;
-                }
-            });
+                notification.Progress = (float)i / items.Count;
+            }
 
             notification.State = ProgressNotificationState.Completed;
         }
@@ -194,45 +188,35 @@ namespace osu.Game.Database
         {
             // Importantly, begin the realm write *before* re-fetching, else the update realm may not be in a consistent state
             // (ie. if an async import finished very recently).
-            return Realm.Write(realm => Delete(item, realm));
-        }
+            return Realm.Write(realm =>
+            {
+                TModel? processableItem = item;
+                if (!processableItem.IsManaged)
+                    processableItem = realm.Find<TModel>(item.ID);
 
-        /// <summary>
-        /// Delete an item from within an ongoing realm transaction.
-        /// </summary>
-        public bool Delete(TModel item, Realm realm)
-        {
-            TModel? processableItem = item;
-            if (!processableItem.IsManaged)
-                processableItem = realm.Find<TModel>(item.ID);
+                if (processableItem?.DeletePending != false)
+                    return false;
 
-            if (processableItem?.DeletePending != false)
-                return false;
-
-            processableItem.DeletePending = true;
-            return true;
+                processableItem.DeletePending = true;
+                return true;
+            });
         }
 
         public void Undelete(TModel item)
         {
             // Importantly, begin the realm write *before* re-fetching, else the update realm may not be in a consistent state
             // (ie. if an async import finished very recently).
-            Realm.Write(realm => Undelete(item, realm));
-        }
+            Realm.Write(realm =>
+            {
+                TModel? processableItem = item;
+                if (!processableItem.IsManaged)
+                    processableItem = realm.Find<TModel>(item.ID);
 
-        /// <summary>
-        /// Undelete an item from within an ongoing realm transaction.
-        /// </summary>
-        public void Undelete(TModel item, Realm realm)
-        {
-            TModel? processableItem = item;
-            if (!processableItem.IsManaged)
-                processableItem = realm.Find<TModel>(item.ID);
+                if (processableItem?.DeletePending != true)
+                    return;
 
-            if (processableItem?.DeletePending != true)
-                return;
-
-            processableItem.DeletePending = false;
+                processableItem.DeletePending = false;
+            });
         }
 
         public virtual bool IsAvailableLocally(TModel model) => true;

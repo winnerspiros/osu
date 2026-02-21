@@ -138,8 +138,6 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestDeleteViaRightClick()
         {
             ScoreInfo scoreBeingDeleted = null;
-
-            AddUntilStep("wait for top score", () => leaderboard.ChildrenOfType<LeaderboardScore>().Any());
             AddStep("open menu for top score", () =>
             {
                 var leaderboardScore = leaderboard.ChildrenOfType<LeaderboardScore>().First();

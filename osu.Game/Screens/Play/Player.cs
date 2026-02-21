@@ -559,9 +559,6 @@ namespace osu.Game.Screens.Play
 
         private void updatePauseOnFocusLostState()
         {
-            if (!IsLoaded || GameplayState.HasQuit)
-                return;
-
             if (!PauseOnFocusLost || !pausingSupportedByCurrentState || breakTracker.IsBreakTime.Value)
                 return;
 

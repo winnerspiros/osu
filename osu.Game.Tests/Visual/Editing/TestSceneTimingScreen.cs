@@ -86,7 +86,7 @@ namespace osu.Game.Tests.Visual.Editing
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddUntilStep("Selection changed", () => timingScreen.SelectedGroup.Value?.Time == 2170);
+            AddUntilStep("Selection changed", () => timingScreen.SelectedGroup.Value.Time == 2170);
             AddUntilStep("Ensure seeked to correct time", () => EditorClock.CurrentTimeAccurate == 2170);
 
             AddStep("Adjust offset", () =>
@@ -97,7 +97,7 @@ namespace osu.Game.Tests.Visual.Editing
 
             AddUntilStep("wait for offset changed", () =>
             {
-                return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value?.Time > 2170;
+                return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value.Time > 2170;
             });
 
             AddStep("undo", () => changeHandler?.RestoreState(-1));
@@ -114,7 +114,7 @@ namespace osu.Game.Tests.Visual.Editing
         //         InputManager.Click(MouseButton.Left);
         //     });
         //
-        //     AddUntilStep("Selection changed", () => timingScreen.SelectedGroup.Value?.Time == 2170);
+        //     AddUntilStep("Selection changed", () => timingScreen.SelectedGroup.Value.Time == 2170);
         //     AddUntilStep("Ensure seeked to correct time", () => EditorClock.CurrentTimeAccurate == 2170);
         //
         //     AddStep("Adjust offset", () =>
@@ -125,14 +125,14 @@ namespace osu.Game.Tests.Visual.Editing
         //
         //     AddUntilStep("wait for offset changed", () =>
         //     {
-        //         return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value?.Time > 2170;
+        //         return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value.Time > 2170;
         //     });
         //
         //     AddStep("undo", () => changeHandler?.RestoreState(-1));
         //
         //     AddUntilStep("selection retained", () =>
         //     {
-        //         return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value?.Time > 2170;
+        //         return timingScreen.SelectedGroup.Value.ControlPoints.Any(c => c is TimingControlPoint) && timingScreen.SelectedGroup.Value.Time > 2170;
         //     });
         //
         //     AddAssert("check group count", () => editorBeatmap.ControlPointInfo.Groups.Count, () => Is.EqualTo(10));

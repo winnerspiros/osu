@@ -1,6 +1,6 @@
 ﻿<Project>
   <PropertyGroup>
-    <SupportedOSPlatformVersion>31.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
@@ -10,7 +10,7 @@
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.129.0" />
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.209.0" />
   </ItemGroup>
   <PropertyGroup>
     <!-- Fody does not handle Android build well, and warns when unchanged.

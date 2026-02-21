@@ -652,7 +652,6 @@ namespace osu.Game.Tests.Visual.Navigation
         }
 
         [Test]
-        [FlakyTest]
         public void TestDeleteScoreAfterPlaying()
         {
             playToResults();
@@ -971,7 +970,6 @@ namespace osu.Game.Tests.Visual.Navigation
         }
 
         [Test]
-        [Ignore("Fails on CI with infinite loop/timeout")]
         public void TestMainOverlaysClosesSettingsOverlay()
         {
             ChangelogOverlay getChangelogOverlay() => Game.ChildrenOfType<ChangelogOverlay>().FirstOrDefault();
@@ -1329,7 +1327,7 @@ namespace osu.Game.Tests.Visual.Navigation
 
             AddUntilStep("nothing selected", () => Game.Beatmap.IsDefault);
             AddStep("present deleted beatmap", () => Game.PresentBeatmap(beatmap));
-            AddUntilStep("still nothing selected", () => Game.Beatmap.IsDefault);
+            AddAssert("still nothing selected", () => Game.Beatmap.IsDefault);
         }
 
         [Test]

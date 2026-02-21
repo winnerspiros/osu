@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -359,14 +359,9 @@ namespace osu.Game.Scoring
                 : string.Empty;
         }
 
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (HitResult result, LocalisableString displayName)[]> ruleset_hit_results_cache =
-            new System.Collections.Concurrent.ConcurrentDictionary<string, (HitResult result, LocalisableString displayName)[]>();
-
         public IEnumerable<HitResultDisplayStatistic> GetStatisticsForDisplay()
         {
-            var rulesetHitResults = ruleset_hit_results_cache.GetOrAdd(Ruleset.InstantiationInfo, _ => Ruleset.CreateInstance().GetHitResults().ToArray());
-
-            foreach (var r in rulesetHitResults)
+            foreach (var r in Ruleset.CreateInstance().GetHitResultsForDisplay())
             {
                 int value = Statistics.GetValueOrDefault(r.result);
 
