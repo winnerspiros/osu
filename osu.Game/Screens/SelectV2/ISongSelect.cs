@@ -48,21 +48,8 @@ namespace osu.Game.Screens.SelectV2
         IEnumerable<OsuMenuItem> GetForwardActions(BeatmapInfo beatmap);
 
         /// <summary>
-        /// Temporarily bypasses filters and shows all difficulties of the given beatmapset.
+        /// Set this to a non-<see langword="null"/> value in order to temporarily bypass filter and show all difficulties of the given beatmap set.
         /// </summary>
-        /// <param name="beatmapSet">The beatmapset.</param>
-        void ScopeToBeatmapSet(BeatmapSetInfo beatmapSet);
-
-        /// <summary>
-        /// Removes the beatmapset scope and reverts the previously selected filters.
-        /// </summary>
-        void UnscopeBeatmapSet();
-
-        /// <summary>
-        /// Contains the currently scoped beatmapset. Used by external consumers for displaying its state.
-        /// Cannot be used to change the value, any changes must be done through <see cref="ScopeToBeatmapSet"/>
-        /// or <see cref="UnscopeBeatmapSet"/>.
-        /// </summary>
-        IBindable<BeatmapSetInfo?> ScopedBeatmapSet { get; }
+        Bindable<BeatmapSetInfo?> ScopedBeatmapSet { get; }
     }
 }

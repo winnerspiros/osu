@@ -92,8 +92,7 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
                         // Todo: BUG!! Stable used the last control point as the final position of the path, but it should use the computed path instead.
                         lastPosition = juiceStream.OriginalX + juiceStream.Path.ControlPoints[^1].Position.X;
 
-                        // Todo: BUG!! Stable attempted to use the end time of the stream, but referenced it too early in execution and used the start time instead.
-                        lastStartTime = juiceStream.StartTime;
+                        lastStartTime = juiceStream.EndTime;
 
                         foreach (var nested in juiceStream.NestedHitObjects)
                         {
@@ -132,8 +131,8 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
 
             float positionDiff = offsetPosition - lastPosition.Value;
 
-            // Todo: BUG!! Stable calculated time deltas as ints, which affects randomisation. This should be changed to a double.
-            int timeDiff = (int)(startTime - lastStartTime);
+            // Stable calculated time deltas as ints, which affects randomisation. This has been changed to a double to fix the issue.
+            double timeDiff = startTime - lastStartTime;
 
             if (timeDiff > 1000)
             {

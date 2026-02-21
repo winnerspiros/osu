@@ -154,11 +154,7 @@ namespace osu.Game.Beatmaps
             {
                 DifficultyName = NamingUtils.GetNextBestName(targetBeatmapSet.Beatmaps.Select(b => b.DifficultyName), "New Difficulty")
             };
-            var newBeatmap = new Beatmap
-            {
-                BeatmapInfo = newBeatmapInfo,
-                Bookmarks = referenceWorkingBeatmap.Beatmap.Bookmarks.ToArray()
-            };
+            var newBeatmap = new Beatmap { BeatmapInfo = newBeatmapInfo };
 
             foreach (var timingPoint in referenceWorkingBeatmap.Beatmap.ControlPointInfo.TimingPoints)
                 newBeatmap.ControlPointInfo.Add(timingPoint.Time, timingPoint.DeepClone());

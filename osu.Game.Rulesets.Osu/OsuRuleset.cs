@@ -277,24 +277,19 @@ namespace osu.Game.Rulesets.Osu
 
         public override IRulesetConfigManager CreateConfig(SettingsStore? settings) => new OsuRulesetConfigManager(settings, RulesetInfo);
 
-        public override IEnumerable<HitResult> GetValidHitResults()
+        protected override IEnumerable<HitResult> GetValidHitResults()
         {
             return new[]
             {
                 HitResult.Great,
                 HitResult.Ok,
                 HitResult.Meh,
-                HitResult.Miss,
 
                 HitResult.LargeTickHit,
-                HitResult.LargeTickMiss,
                 HitResult.SmallTickHit,
-                HitResult.SmallTickMiss,
                 HitResult.SliderTailHit,
                 HitResult.SmallBonus,
                 HitResult.LargeBonus,
-                HitResult.IgnoreHit,
-                HitResult.IgnoreMiss,
             };
         }
 

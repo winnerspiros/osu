@@ -66,7 +66,7 @@ namespace osu.Game.Screens.Ranking
             [BackgroundDependencyLoader]
             private void load()
             {
-                CornerRadius = 10;
+                CornerRadius = 5;
                 Masking = true;
 
                 EdgeEffect = new EdgeEffectParameters

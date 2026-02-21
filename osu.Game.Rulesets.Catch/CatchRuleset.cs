@@ -176,20 +176,15 @@ namespace osu.Game.Rulesets.Catch
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.RulesetCatch };
 
-        public override IEnumerable<HitResult> GetValidHitResults()
+        protected override IEnumerable<HitResult> GetValidHitResults()
         {
             return new[]
             {
                 HitResult.Great,
-                HitResult.Miss,
 
                 HitResult.LargeTickHit,
-                HitResult.LargeTickMiss,
                 HitResult.SmallTickHit,
-                HitResult.SmallTickMiss,
                 HitResult.LargeBonus,
-                HitResult.IgnoreHit,
-                HitResult.IgnoreMiss,
             };
         }
 

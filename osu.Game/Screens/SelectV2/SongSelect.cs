@@ -94,15 +94,22 @@ namespace osu.Game.Screens.SelectV2
         protected bool ControlGlobalMusic { get; init; } = true;
 
         /// <summary>
-        /// Whether this song select instance should allow scoping down to a specific beatmap set,
-        /// exposing other difficulties that are otherwise hidden by filter criteria.
-        /// </summary>
-        protected bool SupportScoping { init => scopedBeatmapSet.Disabled = !value; }
-
-        /// <summary>
         /// Whether the osu! logo should be shown at the bottom-right of the screen.
         /// </summary>
         protected bool ShowOsuLogo { get; init; } = true;
+        private bool supportScoping = true;
+
+        protected bool SupportScoping
+        {
+            get => supportScoping;
+            set
+            {
+                supportScoping = value;
+                if (filterControl != null)
+                    filterControl.SupportScoping = value;
+            }
+        }
+
 
         protected MarginPadding LeftPadding { get; init; }
 
@@ -117,8 +124,8 @@ namespace osu.Game.Screens.SelectV2
 
         private BeatmapCarousel carousel = null!;
 
-        protected FilterControl FilterControl { get; private set; } = null!;
-
+        private FilterControl filterControl = null!;
+        protected FilterControl FilterControl => filterControl;
         private BeatmapTitleWedge titleWedge = null!;
         private BeatmapDetailsArea detailsArea = null!;
         private FillFlowContainer wedgesContainer = null!;
@@ -282,16 +289,16 @@ namespace osu.Game.Screens.SelectV2
                                                             },
                                                             noResultsPlaceholder = new NoResultsPlaceholder
                                                             {
-                                                                RequestClearFilterText = () => FilterControl.Search(string.Empty)
+                                                                RequestClearFilterText = () => filterControl.Search(string.Empty)
                                                             }
                                                         }
                                                     },
-                                                    FilterControl = new FilterControl
+                                                    filterControl = new FilterControl
                                                     {
                                                         Anchor = Anchor.TopRight,
                                                         Origin = Anchor.TopRight,
                                                         RelativeSizeAxes = Axes.X,
-                                                        ScopedBeatmapSet = { BindTarget = ScopedBeatmapSet },
+                                                        SupportScoping = supportScoping,
                                                     },
                                                 }
                                             },
@@ -386,7 +393,7 @@ namespace osu.Game.Screens.SelectV2
 
             inputManager = GetContainingInputManager()!;
 
-            FilterControl.CriteriaChanged += criteriaChanged;
+            filterControl.CriteriaChanged += criteriaChanged;
 
             modSelectOverlay.State.BindValueChanged(v =>
             {
@@ -828,13 +835,13 @@ namespace osu.Game.Screens.SelectV2
             {
                 titleWedge.Hide();
                 detailsArea.Hide();
-                FilterControl.Hide();
+                filterControl.Hide();
             }
             else
             {
                 titleWedge.Show();
                 detailsArea.Show();
-                FilterControl.Show();
+                filterControl.Show();
             }
         }
 
@@ -897,7 +904,7 @@ namespace osu.Game.Screens.SelectV2
 
             // Intentionally not localised until we have proper support for this (see https://github.com/ppy/osu-framework/pull/4918
             // but also in this case we want support for formatting a number within a string).
-            FilterControl.StatusText = count != 1 ? $"{count:#,0} matches" : $"{count:#,0} match";
+            filterControl.StatusText = count != 1 ? $"{count:#,0} matches" : $"{count:#,0} match";
 
             // If there's already a selection update in progress, let's not interrupt it.
             // Interrupting could cause the debounce interval to be reduced.
@@ -1155,7 +1162,7 @@ namespace osu.Game.Screens.SelectV2
 
         #region Implementation of ISongSelect
 
-        void ISongSelect.Search(string query) => FilterControl.Search(query);
+        void ISongSelect.Search(string query) => filterControl.Search(query);
 
         void ISongSelect.PresentScore(ScoreInfo score)
         {
@@ -1250,29 +1257,7 @@ namespace osu.Game.Screens.SelectV2
                 beatmaps.Restore(b);
         }
 
-        private GroupedBeatmap? beforeScopedSelection;
-
-        private readonly Bindable<BeatmapSetInfo?> scopedBeatmapSet = new Bindable<BeatmapSetInfo?>();
-        public IBindable<BeatmapSetInfo?> ScopedBeatmapSet => scopedBeatmapSet;
-
-        public void ScopeToBeatmapSet(BeatmapSetInfo beatmapSet)
-        {
-            beforeScopedSelection = carousel.CurrentGroupedBeatmap;
-
-            scopedBeatmapSet.Value = beatmapSet;
-        }
-
-        public void UnscopeBeatmapSet()
-        {
-            if (scopedBeatmapSet.Value == null)
-                return;
-
-            if (beforeScopedSelection != null)
-                queueBeatmapSelection(beforeScopedSelection);
-
-            scopedBeatmapSet.Value = null;
-            beforeScopedSelection = null;
-        }
+        public Bindable<BeatmapSetInfo?> ScopedBeatmapSet => filterControl.ScopedBeatmapSet;
 
         #endregion
 

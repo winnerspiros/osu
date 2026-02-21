@@ -24,10 +24,7 @@ namespace osu.Game.Overlays.Settings.Sections.UserInterface
                 {
                     Caption = UserInterfaceStrings.CursorRotation,
                     Current = config.GetBindable<bool>(OsuSetting.CursorRotation)
-                })
-                {
-                    Keywords = [@"spin"],
-                },
+                }),
                 new SettingsItemV2(new FormSliderBar<float>
                 {
                     Caption = UserInterfaceStrings.MenuCursorSize,
@@ -48,7 +45,7 @@ namespace osu.Game.Overlays.Settings.Sections.UserInterface
                     LabelFormat = v => $"{v:N0} ms",
                 })
                 {
-                    Keywords = [@"delay"],
+                    Keywords = new[] { @"delay" },
                     ApplyClassicDefault = c => ((IHasCurrentValue<double>)c).Current.Value = 0,
                 },
             };

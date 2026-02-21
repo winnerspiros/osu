@@ -185,6 +185,10 @@ namespace osu.Game.Tests.Visual.SongSelectV2
                             });
                             return true;
 
+                        case GetBeatmapSetRequest getSet:
+                            getSet.TriggerSuccess(new APIBeatmapSet());
+                            return true;
+
                         default:
                             return false;
                     }
@@ -234,6 +238,10 @@ namespace osu.Game.Tests.Visual.SongSelectV2
                             });
                             return true;
 
+                        case GetBeatmapSetRequest getSet:
+                            getSet.TriggerSuccess(new APIBeatmapSet());
+                            return true;
+
                         default:
                             return false;
                     }
@@ -241,11 +249,9 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             });
             AddStep("reset event", resetEvent.Reset);
             AddStep("click favourite button", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single().TriggerClick());
-            AddAssert("spinner visible", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single()
-                                                   .ChildrenOfType<LoadingSpinner>().Single().State.Value, () => Is.EqualTo(Visibility.Visible));
+            AddUntilStep("spinner visible", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single().ChildrenOfType<LoadingSpinner>().Single().State.Value == Visibility.Visible);
             AddStep("allow request to complete", resetEvent.Set);
-            AddAssert("spinner hidden", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single()
-                                                  .ChildrenOfType<LoadingSpinner>().Single().State.Value, () => Is.EqualTo(Visibility.Hidden));
+            AddUntilStep("spinner hidden", () => this.ChildrenOfType<BeatmapTitleWedge.FavouriteButton>().Single().ChildrenOfType<LoadingSpinner>().Single().State.Value == Visibility.Hidden);
         }
 
         [TestCase(120, 125, null, "120-125 (mostly 120)")]

@@ -59,9 +59,8 @@ namespace osu.Game.Overlays.Toolbar
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    spinner = new LoadingLayer(dimBackground: true, withBox: false)
+                    spinner = new LoadingLayer(dimBackground: true, withBox: false, blockInput: false)
                     {
-                        BlockPositionalInput = false,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,

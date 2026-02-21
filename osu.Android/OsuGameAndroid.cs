@@ -1,16 +1,19 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Linq;
-using Android.App;
-using Android.Content.PM;
+using System.Diagnostics;
 using Microsoft.Maui.Devices;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Platform;
 using osu.Game;
+using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
@@ -23,7 +26,11 @@ namespace osu.Android
         [Cached]
         private readonly OsuGameActivity gameActivity;
 
-        private readonly PackageInfo packageInfo;
+        private Native.VulkanRenderer? vulkanRenderer;
+        private Native.OboeAudio? oboeAudio;
+        private VulkanHook? vulkanHook;
+
+        private readonly global::Android.Content.PM.PackageInfo packageInfo;
 
         public override Vector2 ScalingContainerTargetDrawSize => new Vector2(1024, 1024 * DrawHeight / DrawWidth);
 
@@ -31,7 +38,16 @@ namespace osu.Android
             : base(null)
         {
             gameActivity = activity;
-            packageInfo = Application.Context.ApplicationContext!.PackageManager!.GetPackageInfo(Application.Context.ApplicationContext.PackageName!, 0).AsNonNull();
+            packageInfo = global::Android.App.Application.Context.ApplicationContext!.PackageManager!.GetPackageInfo(global::Android.App.Application.Context.ApplicationContext.PackageName!, 0).AsNonNull();
+        }
+
+        public void HandleStylusInput(float x, float y, long timestampNano)
+        {
+            // Late-input sampling and reprojection into audio timeline would happen here.
+            _ = x;
+            _ = y;
+            _ = timestampNano;
+            Debug.WriteLine($"Stylus: {x}, {y}, {timestampNano}");
         }
 
         public override string Version
@@ -47,10 +63,106 @@ namespace osu.Android
 
         public override Version AssemblyVersion => new Version(packageInfo.VersionName.AsNonNull().Split('-').First());
 
+        [BackgroundDependencyLoader]
+        private void load(OsuConfigManager config)
+        {
+            config.BindWith(OsuSetting.PerformanceMode, PerformanceMode);
+            config.BindWith(OsuSetting.VulkanRenderer, UseVulkanRenderer);
+            config.BindWith(OsuSetting.OboeAudio, UseOboeAudio);
+            config.BindWith(OsuSetting.UseAngle, UseAngle);
+
+            PerformanceMode.Value = true;
+        }
+
+        public readonly Bindable<bool> PerformanceMode = new Bindable<bool>();
+        public readonly Bindable<bool> UseVulkanRenderer = new Bindable<bool>();
+        public readonly Bindable<bool> UseOboeAudio = new Bindable<bool>();
+
+        public readonly Bindable<bool> UseAngle = new Bindable<bool>();
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
             UserPlayingState.BindValueChanged(_ => updateOrientation());
+            PerformanceMode.BindValueChanged(enabled => gameActivity.ApplyPerformanceOptimizations(enabled.NewValue), true);
+
+            UseVulkanRenderer.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    if (vulkanRenderer == null)
+                    {
+                        try
+                        {
+                            vulkanRenderer = new Native.VulkanRenderer();
+                            var surfaceRef = gameActivity.GetSurfaceGlobalRef();
+                            bool success = vulkanRenderer.Initialize(surfaceRef);
+                            if (surfaceRef != IntPtr.Zero)
+                                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceRef);
+
+                            if (success)
+                            {
+                                vulkanHook = new VulkanHook(() => vulkanRenderer?.Render());
+                                Add(vulkanHook);
+                            }
+                            else
+                            {
+                                Debug.WriteLine("Failed to initialize Vulkan: Native initialization returned false.");
+                                cleanupVulkan();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to initialize Vulkan: {ex}");
+                            cleanupVulkan();
+                        }
+                    }
+                }
+                else
+                {
+                    cleanupVulkan();
+                }
+            }, true);
+
+            UseOboeAudio.BindValueChanged(enabled =>
+            {
+                if (enabled.NewValue)
+                {
+                    if (oboeAudio == null)
+                    {
+                        try
+                        {
+                            oboeAudio = new Native.OboeAudio();
+                            oboeAudio.Start();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to initialize Oboe: {ex}");
+                            oboeAudio?.Dispose();
+                            oboeAudio = null;
+                        }
+                    }
+                }
+                else
+                {
+                    oboeAudio?.Dispose();
+                    oboeAudio = null;
+                }
+            }, true);
+
+            UseAngle.BindValueChanged(enabled => gameActivity.ApplyAngleOptimizations(enabled.NewValue), true);
+        }
+
+        private void cleanupVulkan()
+        {
+            if (vulkanHook != null)
+            {
+                Remove(vulkanHook, true);
+                vulkanHook.Dispose();
+                vulkanHook = null;
+            }
+            vulkanRenderer?.Dispose();
+            vulkanRenderer = null;
         }
 
         protected override void ScreenChanged(IOsuScreen? current, IOsuScreen? newScreen)
@@ -68,11 +180,11 @@ namespace osu.Android
             switch (orientation)
             {
                 case MobileUtils.Orientation.Locked:
-                    gameActivity.RequestedOrientation = ScreenOrientation.Locked;
+                    gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Locked;
                     break;
 
                 case MobileUtils.Orientation.Portrait:
-                    gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
+                    gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Portrait;
                     break;
 
                 case MobileUtils.Orientation.Default:
@@ -91,11 +203,46 @@ namespace osu.Android
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            cleanupVulkan();
+            oboeAudio?.Dispose();
+        }
+
         private class AndroidBatteryInfo : BatteryInfo
         {
             public override double? ChargeLevel => Battery.ChargeLevel;
 
             public override bool OnBattery => Battery.PowerSource == BatteryPowerSource.Battery;
+        }
+
+        private partial class VulkanHook : Drawable
+        {
+            private readonly Action renderAction;
+
+            public VulkanHook(Action renderAction)
+            {
+                this.renderAction = renderAction;
+                AlwaysPresent = true;
+            }
+
+            protected override DrawNode CreateDrawNode() => new VulkanHookDrawNode(this);
+
+            private class VulkanHookDrawNode : DrawNode
+            {
+                protected new VulkanHook Source => (VulkanHook)base.Source;
+
+                public VulkanHookDrawNode(VulkanHook source) : base(source)
+                {
+                }
+
+                protected override void Draw(IRenderer renderer)
+                {
+                    base.Draw(renderer);
+                    Source.renderAction?.Invoke();
+                }
+            }
         }
     }
 }

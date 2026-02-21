@@ -209,11 +209,13 @@ namespace osu.Game.Overlays.AccountCreation
                                 passwordDescription.AddErrors(errors.User.Password);
                             }
 
-                            if (!string.IsNullOrEmpty(errors.Message))
-                                passwordDescription.AddErrors(new[] { errors.Message });
-
                             if (!string.IsNullOrEmpty(errors.Redirect))
+                            {
+                                if (!string.IsNullOrEmpty(errors.Message))
+                                    passwordDescription.AddErrors(new[] { errors.Message });
+
                                 game?.OpenUrlExternally($"{errors.Redirect}?username={usernameTextBox.Text}&email={emailTextBox.Text}", LinkWarnMode.NeverWarn);
+                            }
                         }
                         else
                         {

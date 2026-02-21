@@ -132,7 +132,6 @@ namespace osu.Game.Tests.Visual.Editing
             AddStep("set unique difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName = firstDifficultyName);
             AddStep("add timing point", () => EditorBeatmap.ControlPointInfo.Add(0, new TimingControlPoint { BeatLength = 1000 }));
             AddStep("add effect point", () => EditorBeatmap.ControlPointInfo.Add(500, new EffectControlPoint { KiaiMode = true }));
-            AddStep("add bookmarks", () => EditorBeatmap.Bookmarks.AddRange([500, 1000]));
             AddStep("add hitobjects", () => EditorBeatmap.AddRange(new[]
             {
                 new HitCircle
@@ -186,7 +185,6 @@ namespace osu.Game.Tests.Visual.Editing
                 var effectPoint = EditorBeatmap.ControlPointInfo.EffectPoints.Single();
                 return effectPoint.Time == 500 && effectPoint.KiaiMode && effectPoint.ScrollSpeedBindable.IsDefault;
             });
-            AddAssert("created difficulty has bookmarks", () => EditorBeatmap.Bookmarks.Count == 2);
             AddAssert("created difficulty has no objects", () => EditorBeatmap.HitObjects.Count == 0);
 
             AddAssert("status is modified", () => EditorBeatmap.BeatmapInfo.Status == BeatmapOnlineStatus.LocallyModified);
@@ -225,7 +223,6 @@ namespace osu.Game.Tests.Visual.Editing
 
             AddStep("set unique difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName = previousDifficultyName = Guid.NewGuid().ToString());
             AddStep("add timing point", () => EditorBeatmap.ControlPointInfo.Add(0, new TimingControlPoint { BeatLength = 1000 }));
-            AddStep("add bookmarks", () => EditorBeatmap.Bookmarks.AddRange([500, 1000]));
             AddStep("add effect points", () =>
             {
                 EditorBeatmap.ControlPointInfo.Add(250, new EffectControlPoint { KiaiMode = false, ScrollSpeed = 0.05 });
@@ -255,8 +252,6 @@ namespace osu.Game.Tests.Visual.Editing
                 var timingPoint = EditorBeatmap.ControlPointInfo.TimingPoints.Single();
                 return timingPoint.Time == 0 && timingPoint.BeatLength == 1000;
             });
-
-            AddAssert("created difficulty has bookmarks", () => EditorBeatmap.Bookmarks.Count == 2);
 
             AddAssert("created difficulty has effect points", () =>
             {
@@ -289,7 +284,6 @@ namespace osu.Game.Tests.Visual.Editing
 
             AddStep("set unique difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName = firstDifficultyName);
             AddStep("add timing point", () => EditorBeatmap.ControlPointInfo.Add(0, new TimingControlPoint { BeatLength = 1000 }));
-            AddStep("add bookmarks", () => EditorBeatmap.Bookmarks.AddRange([500, 1000]));
             AddStep("add effect points", () =>
             {
                 EditorBeatmap.ControlPointInfo.Add(250, new EffectControlPoint { KiaiMode = false, ScrollSpeed = 0.05 });
@@ -316,8 +310,6 @@ namespace osu.Game.Tests.Visual.Editing
                 var timingPoint = EditorBeatmap.ControlPointInfo.TimingPoints.Single();
                 return timingPoint.Time == 0 && timingPoint.BeatLength == 1000;
             });
-
-            AddAssert("created difficulty has bookmarks", () => EditorBeatmap.Bookmarks.Count == 2);
 
             AddAssert("created difficulty has effect points", () =>
             {
@@ -352,7 +344,6 @@ namespace osu.Game.Tests.Visual.Editing
                     StartTime = 1000
                 }
             }));
-            AddStep("add bookmarks", () => EditorBeatmap.Bookmarks.AddRange([500, 1000]));
             AddStep("set approach rate", () => EditorBeatmap.Difficulty.ApproachRate = 4);
             AddStep("set combo colours", () =>
             {
@@ -403,7 +394,6 @@ namespace osu.Game.Tests.Visual.Editing
                 return timingPoint.Time == 0 && timingPoint.BeatLength == 1000;
             });
             AddAssert("created difficulty has objects", () => EditorBeatmap.HitObjects.Count == 2);
-            AddAssert("created difficulty has bookmarks", () => EditorBeatmap.Bookmarks.Count == 2);
             AddAssert("approach rate correctly copied", () => EditorBeatmap.Difficulty.ApproachRate == 4);
             AddAssert("combo colours correctly copied", () => EditorBeatmap.BeatmapSkin.AsNonNull().ComboColours.Count == 2);
 

@@ -145,13 +145,13 @@ namespace osu.Game.Screens.SelectV2
                 contentText.Text = text;
             }
 
-            private void setLink(LocalisableString text, Action action)
+            private void setLink(LocalisableString text, Action action) => Schedule(() =>
             {
                 clear();
 
                 contentLinkText.Text = text;
                 contentLink.Action = action;
-            }
+            });
 
             private void setDate(DateTimeOffset date)
             {

@@ -211,7 +211,7 @@ namespace osu.Game.Scoring.Legacy
             var scoreProcessor = rulesetInstance.CreateScoreProcessor();
 
             // Populate the maximum statistics.
-            HitResult maxBasicResult = rulesetInstance.GetHitResultsForDisplay()
+            HitResult maxBasicResult = rulesetInstance.GetHitResults()
                                                       .Select(h => h.result)
                                                       .Where(h => h.IsBasic()).MaxBy(scoreProcessor.GetBaseScoreForResult);
 

@@ -102,6 +102,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         }
 
         [Test]
+        [FlakyTest]
         public void TestSeekToKnownTime()
         {
             AddStep("seek to known time", () => gameplayClockContainer.Seek(60000));

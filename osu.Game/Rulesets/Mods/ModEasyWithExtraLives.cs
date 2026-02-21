@@ -3,18 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Humanizer;
 using osu.Framework.Bindables;
 using osu.Framework.Localisation;
+using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.Mods
 {
-    public abstract class ModEasyWithExtraLives : ModEasy, IApplicableFailOverride, IApplicableToPlayer, IApplicableToHealthProcessor
+    public abstract class ModEasyWithExtraLives : ModEasy, IApplicableFailOverride, IApplicableToHealthProcessor
     {
         [SettingSource("Extra Lives", "Number of extra lives")]
         public Bindable<int> Retries { get; } = new BindableInt(2)
@@ -34,26 +33,18 @@ namespace osu.Game.Rulesets.Mods
 
         public override Type[] IncompatibleMods => base.IncompatibleMods.Append(typeof(ModAccuracyChallenge)).ToArray();
 
-        private int? retries;
+        private int retries;
 
         private readonly BindableNumber<double> health = new BindableDouble();
 
-        public void ApplyToPlayer(Player player)
+        public override void ApplyToDifficulty(BeatmapDifficulty difficulty)
         {
-            // this throw works for two reasons:
-            // - every time `Player` loads, it deep-clones mods into itself, and the deep clone copies *only* `[SettingsSource]` properties
-            // - `Player` is the only consumer of `IApplicableToPlayer` and it calls `ApplyToPlayer()` exactly once per mod instance
-            // if either of the above assumptions no longer holds true for any reason, this will need to be reconsidered
-            if (retries != null)
-                throw new InvalidOperationException(@"Cannot apply this mod instance to a player twice.");
-
+            base.ApplyToDifficulty(difficulty);
             retries = Retries.Value;
         }
 
         public bool PerformFail()
         {
-            Debug.Assert(retries != null);
-
             if (retries == 0) return true;
 
             health.Value = health.MaxValue;

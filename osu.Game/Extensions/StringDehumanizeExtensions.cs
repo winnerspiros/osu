@@ -36,6 +36,11 @@ namespace osu.Game.Extensions
     /// </summary>
     public static class StringDehumanizeExtensions
     {
+        private static readonly Regex pascal_case_regex = new Regex(@"(?:^|_|-| +)(.)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex snake_case_step1_regex = new Regex(@"([\p{Lu}]+)([\p{Lu}][\p{Ll}])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex snake_case_step2_regex = new Regex(@"([\p{Ll}\d])([\p{Lu}])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex snake_case_step3_regex = new Regex(@"[-\s]", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         /// <summary>
         /// Converts the string to "Pascal case" (also known as "upper camel case").
         /// </summary>
@@ -46,7 +51,7 @@ namespace osu.Game.Extensions
         /// </example>
         public static string ToPascalCase(this string input)
         {
-            return Regex.Replace(input, "(?:^|_|-| +)(.)", match => match.Groups[1].Value.ToUpperInvariant());
+            return pascal_case_regex.Replace(input, match => match.Groups[1].Value.ToUpperInvariant());
         }
 
         /// <summary>
@@ -60,6 +65,7 @@ namespace osu.Game.Extensions
         public static string ToCamelCase(this string input)
         {
             string word = input.ToPascalCase();
+
             return word.Length > 0 ? char.ToLowerInvariant(word[0]) + word.Substring(1) : word;
         }
 
@@ -73,9 +79,9 @@ namespace osu.Game.Extensions
         /// </example>
         public static string ToSnakeCase(this string input)
         {
-            return Regex.Replace(
-                Regex.Replace(
-                    Regex.Replace(input, @"([\p{Lu}]+)([\p{Lu}][\p{Ll}])", "$1_$2"), @"([\p{Ll}\d])([\p{Lu}])", "$1_$2"), @"[-\s]", "_").ToLowerInvariant();
+            return snake_case_step3_regex.Replace(
+                snake_case_step2_regex.Replace(
+                    snake_case_step1_regex.Replace(input, "$1_$2"), "$1_$2"), "_").ToLowerInvariant();
         }
 
         /// <summary>
