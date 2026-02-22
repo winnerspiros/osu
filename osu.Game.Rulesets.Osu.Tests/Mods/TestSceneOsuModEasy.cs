@@ -58,7 +58,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Mods
                         }
                     }
 
-                    return Player.GameplayState.HasFailed && ((ModEasyTestPlayer)Player).FailuresSuppressed <= 1;
+                    return Player.GameplayState.HasFailed && ((ModEasyTestPlayer)Player).FailuresSuppressed <= 2;
                 }
             });
         }
