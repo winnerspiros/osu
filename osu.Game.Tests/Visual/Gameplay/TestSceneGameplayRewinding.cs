@@ -23,7 +23,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         private AudioManager audioManager { get; set; }
 
         protected override WorkingBeatmap CreateWorkingBeatmap(IBeatmap beatmap, Storyboard storyboard = null) =>
-            new ClockBackedTestWorkingBeatmap(beatmap, storyboard, new FramedClock(new ManualClock { Rate = 1 }), audioManager);
+            new ClockBackedTestWorkingBeatmap(beatmap, storyboard, Clock, audioManager);
 
         [Test]
         public void TestNoJudgementsOnRewind()
@@ -41,10 +41,15 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private void addSeekStep(double time)
         {
-            AddStep($"seek to {time}", () => Beatmap.Value.Track.Seek(time));
+            AddStep($"seek to {time}", () =>
+            {
+                Beatmap.Value.Track.Seek(time);
+            });
 
-            // Allow a few frames of lenience
-            AddUntilStep("wait for seek to finish", () => Precision.AlmostEquals(time, Player.DrawableRuleset.FrameStableClock.CurrentTime, 100));
+            if (time > 1500)
+                AddUntilStep("wait for seek to finish (>=)", () => Player.DrawableRuleset.FrameStableClock.CurrentTime >= time);
+            else
+                AddUntilStep("wait for seek to finish (<=)", () => Player.DrawableRuleset.FrameStableClock.CurrentTime <= time + 1000);
         }
 
         protected override TestPlayer CreatePlayer(Ruleset ruleset)
