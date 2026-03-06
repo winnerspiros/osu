@@ -193,10 +193,10 @@ namespace osu.Android
             try
             {
                 // Using typeof() ensures the linker preserves the assemblies.
-                Assembly.Load(typeof(osu.Game.Rulesets.Osu.OsuRuleset).Assembly.FullName);
-                Assembly.Load(typeof(osu.Game.Rulesets.Taiko.TaikoRuleset).Assembly.FullName);
-                Assembly.Load(typeof(osu.Game.Rulesets.Catch.CatchRuleset).Assembly.FullName);
-                Assembly.Load(typeof(osu.Game.Rulesets.Mania.ManiaRuleset).Assembly.FullName);
+                Assembly.Load(typeof(osu.Game.Rulesets.Osu.OsuRuleset).Assembly.FullName.AsNonNull());
+                Assembly.Load(typeof(osu.Game.Rulesets.Taiko.TaikoRuleset).Assembly.FullName.AsNonNull());
+                Assembly.Load(typeof(osu.Game.Rulesets.Catch.CatchRuleset).Assembly.FullName.AsNonNull());
+                Assembly.Load(typeof(osu.Game.Rulesets.Mania.ManiaRuleset).Assembly.FullName.AsNonNull());
             }
             catch (Exception e)
             {
