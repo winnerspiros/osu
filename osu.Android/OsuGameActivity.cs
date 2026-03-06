@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using osu.Framework.Android;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Extensions;
 using osu.Game.Database;
 using Debug = System.Diagnostics.Debug;
