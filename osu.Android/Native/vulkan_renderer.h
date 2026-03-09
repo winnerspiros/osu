@@ -57,6 +57,7 @@ private:
     void createImageViews();
 
     bool checkValidationLayerSupport(const std::vector<const char*>& validationLayers);
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     bool isDeviceSuitable(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
     SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device);
