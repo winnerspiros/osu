@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <set>
+#include <string>
 #include <android/log.h>
 
 #define LOG_TAG "OsuVulkan"
@@ -293,10 +295,39 @@ bool VulkanRenderer::checkValidationLayerSupport(const std::vector<const char*>&
 
     return true;
 }
+bool VulkanRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    const std::vector<const char*> deviceExtensions = {
+        "VK_KHR_swapchain"
+    };
+
+    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+}
+
 
 bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device) {
     QueueFamilyIndices indices = findQueueFamilies(device);
-    return indices.isComplete();
+
+    bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+    bool swapchainAdequate = false;
+    if (extensionsSupported) {
+        SwapchainSupportDetails swapchainSupport = querySwapchainSupport(device);
+        swapchainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
+    }
+
+    return indices.isComplete() && extensionsSupported && swapchainAdequate;
 }
 
 VulkanRenderer::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalDevice device) {
@@ -334,10 +365,31 @@ VulkanRenderer::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalD
 VulkanRenderer::SwapchainSupportDetails VulkanRenderer::querySwapchainSupport(VkPhysicalDevice device) {
     SwapchainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+    if (formatCount != 0) {
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+    }
+
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+    if (presentModeCount != 0) {
+        details.presentModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+    }
+
     return details;
 }
 
 VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+    if (availableFormats.empty()) {
+        return {VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+    }
+
     for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             return availableFormat;
@@ -389,12 +441,26 @@ extern "C" {
         if (!renderer || !surfaceJni) return false;
 
         JNIEnv* env = nullptr;
-        if (g_vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
-             return false;
+        bool shouldDetach = false;
+        int envStatus = g_vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+
+        if (envStatus == JNI_EDETACHED) {
+            if (g_vm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+                return false;
+            }
+            shouldDetach = true;
+        } else if (envStatus != JNI_OK) {
+            return false;
         }
 
         ANativeWindow* window = ANativeWindow_fromSurface(env, (jobject)surfaceJni);
-        return renderer->initialize(window);
+        bool result = renderer->initialize(window);
+
+        if (shouldDetach) {
+            g_vm->DetachCurrentThread();
+        }
+
+        return result;
     }
 
     void nVulkanRender(long rendererPtr) {

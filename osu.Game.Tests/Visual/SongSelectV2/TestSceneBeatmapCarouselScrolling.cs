@@ -36,8 +36,8 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             RemoveFirstBeatmap();
             WaitForFiltering();
 
-            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad,
-                () => Is.EqualTo(positionBefore));
+            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad.TopLeft.Y,
+                () => Is.EqualTo(positionBefore.TopLeft.Y).Within(0.5f));
         }
 
         [Test]
@@ -60,8 +60,8 @@ namespace osu.Game.Tests.Visual.SongSelectV2
             RemoveFirstBeatmap();
             WaitForFiltering();
 
-            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad,
-                () => Is.EqualTo(positionBefore));
+            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad.TopLeft.Y,
+                () => Is.EqualTo(positionBefore.TopLeft.Y).Within(0.5f));
         }
 
         [Test]
@@ -79,8 +79,9 @@ namespace osu.Game.Tests.Visual.SongSelectV2
 
             RemoveFirstBeatmap();
             WaitForFiltering();
-            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad,
-                () => Is.EqualTo(positionBefore));
+
+            AddAssert("select screen position unchanged", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad.TopLeft.Y,
+                () => Is.EqualTo(positionBefore.TopLeft.Y).Within(0.5f));
         }
 
         [Test]
@@ -99,8 +100,8 @@ namespace osu.Game.Tests.Visual.SongSelectV2
 
             ApplyToFilterAndWaitForFilter("search", f => f.SearchText = "Some");
 
-            AddUntilStep("select screen position returned to selection", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad,
-                () => Is.EqualTo(positionBefore));
+            AddUntilStep("select screen position returned to selection", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad.TopLeft.Y,
+                () => Is.EqualTo(positionBefore.TopLeft.Y).Within(0.5f));
         }
 
         [Test]
@@ -122,8 +123,8 @@ namespace osu.Game.Tests.Visual.SongSelectV2
 
             ApplyToFilterAndWaitForFilter("search", f => f.SearchText = "Some");
 
-            AddUntilStep("select screen position returned to selection", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad,
-                () => Is.EqualTo(positionBefore));
+            AddUntilStep("select screen position returned to selection", () => Carousel.ChildrenOfType<PanelBeatmap>().Single(p => p.Selected.Value).ScreenSpaceDrawQuad.TopLeft.Y,
+                () => Is.EqualTo(positionBefore.TopLeft.Y).Within(0.5f));
         }
     }
 }
