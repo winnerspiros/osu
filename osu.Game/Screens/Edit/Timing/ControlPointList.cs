@@ -187,10 +187,25 @@ namespace osu.Game.Screens.Edit.Timing
         {
             // Best effort. We have no tracking of control points through undo/redo changes.
             // If we don't deselect, things like offset changes could spawn groups to be added from previous states (see https://github.com/ppy/osu/issues/31098).
-            if (selectedGroup.Value == null)
-                return;
+            var lastSelected = selectedGroup.Value;
 
-            selectedGroup.Value = Beatmap.ControlPointInfo.GroupAt(selectedGroup.Value.Time);
+            if (lastSelected == null)
+            {
+                SelectClosestTimingPoint?.Invoke();
+
+                return;
+            }
+
+            // Always clear the old (potentially orphaned) reference.
+            selectedGroup.Value = null;
+
+            // Try and find a group at the exact same time.
+            var matchingGroup = Beatmap.ControlPointInfo.GroupAt(lastSelected.Time);
+
+            if (matchingGroup != null)
+                selectedGroup.Value = matchingGroup;
+            else
+                SelectClosestTimingPoint?.Invoke();
         }
 
         protected override void Dispose(bool isDisposing)
