@@ -187,8 +187,10 @@ namespace osu.Game.Screens.Edit.Timing
         {
             // Best effort. We have no tracking of control points through undo/redo changes.
             // If we don't deselect, things like offset changes could spawn groups to be added from previous states (see https://github.com/ppy/osu/issues/31098).
-            if (selectedGroup.Value != null && !Beatmap.ControlPointInfo.Groups.Contains(selectedGroup.Value))
-                selectedGroup.Value = null;
+            if (selectedGroup.Value == null)
+                return;
+
+            selectedGroup.Value = Beatmap.ControlPointInfo.GroupAt(selectedGroup.Value.Time);
         }
 
         protected override void Dispose(bool isDisposing)
