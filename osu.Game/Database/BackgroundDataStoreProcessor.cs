@@ -418,7 +418,7 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in scoreIds)
+            foreach (var chunk in scoreIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
@@ -427,33 +427,62 @@ namespace osu.Game.Database
 
                 sleepIfRequired();
 
-                try
+                var updates = new List<(Guid id, string json)>();
+                var failedIds = new List<Guid>();
+
+                foreach (var id in chunk)
                 {
-                    var score = scoreManager.Query(s => s.ID == id);
-
-                    if (score != null)
+                    try
                     {
-                        scoreManager.PopulateMaximumStatistics(score);
+                        var score = scoreManager.Query(s => s.ID == id);
 
+                        if (score != null)
+                        {
+                            scoreManager.PopulateMaximumStatistics(score);
+                            updates.Add((id, JsonConvert.SerializeObject(score.MaximumStatistics)));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(@$"Failed to populate maximum statistics for {id}: {e}");
+                        failedIds.Add(id);
+                    }
+                }
+
+                if (updates.Count > 0 || failedIds.Count > 0)
+                {
+                    try
+                    {
                         // Can't use async overload because we're not on the update thread.
                         // ReSharper disable once MethodHasAsyncOverload
                         realmAccess.Write(r =>
                         {
-                            r.Find<ScoreInfo>(id)!.MaximumStatisticsJson = JsonConvert.SerializeObject(score.MaximumStatistics);
-                        });
-                    }
+                            foreach (var update in updates)
+                            {
+                                var s = r.Find<ScoreInfo>(update.id);
+                                if (s != null)
+                                    s.MaximumStatisticsJson = update.json;
+                            }
 
-                    ++processedCount;
-                }
-                catch (ObjectDisposedException)
-                {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    Logger.Log(@$"Failed to populate maximum statistics for {id}: {e}");
-                    realmAccess.Write(r => r.Find<ScoreInfo>(id)!.BackgroundReprocessingFailed = true);
-                    ++failedCount;
+                            foreach (var id in failedIds)
+                            {
+                                var s = r.Find<ScoreInfo>(id);
+                                if (s != null)
+                                    s.BackgroundReprocessingFailed = true;
+                            }
+                        });
+
+                        processedCount += updates.Count;
+                        failedCount += failedIds.Count;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"Fatal error writing batch in score statistics population: {e}");
+                    }
                 }
             }
 
@@ -592,7 +621,7 @@ namespace osu.Game.Database
             int processedCount = 0;
             int failedCount = 0;
 
-            foreach (var id in scoreIds)
+            foreach (var chunk in scoreIds.Chunk(100))
             {
                 if (notification?.State == ProgressNotificationState.Cancelled)
                     break;
@@ -601,28 +630,74 @@ namespace osu.Game.Database
 
                 sleepIfRequired();
 
-                try
-                {
-                    // Can't use async overload because we're not on the update thread.
-                    // ReSharper disable once MethodHasAsyncOverload
-                    realmAccess.Write(r =>
-                    {
-                        ScoreInfo s = r.Find<ScoreInfo>(id)!;
-                        s.Rank = StandardisedScoreMigrationTools.ComputeRank(s);
-                        s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
-                    });
+                var updates = new List<(Guid id, ScoreRank rank)>();
+                var failedIds = new List<Guid>();
 
-                    ++processedCount;
-                }
-                catch (ObjectDisposedException)
+                var detachedScores = realmAccess.Run(r =>
                 {
-                    throw;
-                }
-                catch (Exception e)
+                    var scores = new List<ScoreInfo>();
+
+                    foreach (var id in chunk)
+                    {
+                        var s = r.Find<ScoreInfo>(id);
+
+                        if (s != null)
+                            scores.Add(s.Detach());
+                    }
+
+                    return scores;
+                });
+
+                foreach (var detachedScore in detachedScores)
                 {
-                    Logger.Log($"Failed to update rank score {id}: {e}");
-                    realmAccess.Write(r => r.Find<ScoreInfo>(id)!.BackgroundReprocessingFailed = true);
-                    ++failedCount;
+                    try
+                    {
+                        updates.Add((detachedScore.ID, StandardisedScoreMigrationTools.ComputeRank(detachedScore)));
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"Failed to update rank score {detachedScore.ID}: {e}");
+                        failedIds.Add(detachedScore.ID);
+                    }
+                }
+
+                if (updates.Count > 0 || failedIds.Count > 0)
+                {
+                    try
+                    {
+                        // Can't use async overload because we're not on the update thread.
+                        // ReSharper disable once MethodHasAsyncOverload
+                        realmAccess.Write(r =>
+                        {
+                            foreach (var update in updates)
+                            {
+                                var s = r.Find<ScoreInfo>(update.id);
+                                if (s != null)
+                                {
+                                    s.Rank = update.rank;
+                                    s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
+                                }
+                            }
+
+                            foreach (var id in failedIds)
+                            {
+                                var s = r.Find<ScoreInfo>(id);
+                                if (s != null)
+                                    s.BackgroundReprocessingFailed = true;
+                            }
+                        });
+
+                        processedCount += updates.Count;
+                        failedCount += failedIds.Count;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"Fatal error writing batch in score rank upgrade: {e}");
+                    }
                 }
             }
 
