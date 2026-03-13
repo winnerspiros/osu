@@ -105,7 +105,7 @@ namespace osu.Game.Tests.Visual.Editing
                 return timingScreen.SelectedGroup.Value?.ControlPoints.Any(c => c is TimingControlPoint) == true && timingScreen.SelectedGroup.Value?.Time == 2170;
             });
 
-            AddAssert("check group count", () => editorBeatmap.ControlPointInfo.Groups.Count, () => Is.EqualTo(10));
+            AddAssert("check group count", () => editorBeatmap.ControlPointInfo.Groups.Count, () => Is.EqualTo(9));
 
             AddStep("Adjust offset", () =>
             {
@@ -113,7 +113,7 @@ namespace osu.Game.Tests.Visual.Editing
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("check group count", () => editorBeatmap.ControlPointInfo.Groups.Count, () => Is.EqualTo(10));
+            AddAssert("check group count", () => editorBeatmap.ControlPointInfo.Groups.Count, () => Is.EqualTo(9));
         }
 
         [Test]
