@@ -90,6 +90,7 @@ namespace osu.Game.Database
                 clearOutdatedStarRatings();
                 populateMissingStarRatings();
                 processOnlineBeatmapSetsWithNoUpdate();
+
                 // Note that the previous method will also update these on a fresh run.
                 processBeatmapsWithMissingObjectCounts();
                 processScoresWithMissingStatistics();
@@ -102,6 +103,7 @@ namespace osu.Game.Database
                 if (t.Exception?.InnerException is ObjectDisposedException)
                 {
                     Logger.Log("Finished background aborted during shutdown");
+
                     return;
                 }
 
@@ -234,7 +236,7 @@ namespace osu.Game.Database
                 var beatmap = realmAccess.Run(r => r.Find<BeatmapInfo>(id)?.Detach());
 
                 if (beatmap == null)
-                    return;
+                    continue;
 
                 try
                 {
@@ -277,6 +279,7 @@ namespace osu.Game.Database
                 //
                 // We may eventually consider making the Process call more specific (or avoid this in any number
                 // of other possible ways), but for now avoid queueing if the user isn't logged in at startup.
+
                 if (api.IsLoggedIn)
                 {
                     foreach (var b in r.All<BeatmapInfo>().Where(b => b.OnlineID > 0 && b.LastOnlineUpdate == null && b.BeatmapSet != null))
@@ -424,28 +427,40 @@ namespace osu.Game.Database
                     break;
 
                 updateNotificationProgress(notification, processedCount, scoreIds.Count);
-
                 sleepIfRequired();
 
                 var updates = new List<(Guid id, string json)>();
                 var failedIds = new List<Guid>();
+                int missingCount = 0;
 
-                foreach (var id in chunk)
+                var detachedScores = realmAccess.Run(r =>
+                {
+                    var scores = new List<ScoreInfo>();
+
+                    foreach (var id in chunk)
+                    {
+                        var s = r.Find<ScoreInfo>(id);
+
+                        if (s != null)
+                            scores.Add(s.Detach());
+                        else
+                            missingCount++;
+                    }
+
+                    return scores;
+                });
+
+                foreach (var score in detachedScores)
                 {
                     try
                     {
-                        var score = scoreManager.Query(s => s.ID == id);
-
-                        if (score != null)
-                        {
-                            scoreManager.PopulateMaximumStatistics(score);
-                            updates.Add((id, JsonConvert.SerializeObject(score.MaximumStatistics)));
-                        }
+                        scoreManager.PopulateMaximumStatistics(score);
+                        updates.Add((score.ID, JsonConvert.SerializeObject(score.MaximumStatistics)));
                     }
                     catch (Exception e)
                     {
-                        Logger.Log(@$"Failed to populate maximum statistics for {id}: {e}");
-                        failedIds.Add(id);
+                        Logger.Log(@$"Failed to populate maximum statistics for {score.ID}: {e}");
+                        failedIds.Add(score.ID);
                     }
                 }
 
@@ -460,6 +475,7 @@ namespace osu.Game.Database
                             foreach (var update in updates)
                             {
                                 var s = r.Find<ScoreInfo>(update.id);
+
                                 if (s != null)
                                     s.MaximumStatisticsJson = update.json;
                             }
@@ -467,6 +483,7 @@ namespace osu.Game.Database
                             foreach (var id in failedIds)
                             {
                                 var s = r.Find<ScoreInfo>(id);
+
                                 if (s != null)
                                     s.BackgroundReprocessingFailed = true;
                             }
@@ -482,8 +499,11 @@ namespace osu.Game.Database
                     catch (Exception e)
                     {
                         Logger.Log($"Fatal error writing batch in score statistics population: {e}");
+                        failedCount += updates.Count + failedIds.Count;
                     }
                 }
+
+                processedCount += missingCount;
             }
 
             completeNotification(notification, processedCount, scoreIds.Count, failedCount);
@@ -497,15 +517,16 @@ namespace osu.Game.Database
                 r.All<ScoreInfo>()
                  .Filter($"{nameof(ScoreInfo.BackgroundReprocessingFailed)} == false && {nameof(ScoreInfo.BeatmapInfo)} != null && {nameof(ScoreInfo.IsLegacyScore)} == true && {nameof(ScoreInfo.TotalScoreVersion)} < $0", LegacyScoreEncoder.LATEST_VERSION)
                  .AsEnumerable()
+
                  // must be done after materialisation, as realm doesn't want to support
                  // nested property predicates
                  .Where(s => s.Ruleset.IsLegacyRuleset())
                  .Select(s => s.ID)));
 
-            Logger.Log($"Found {scoreIds.Count} scores which require total score conversion.");
-
             if (scoreIds.Count == 0)
                 return;
+
+            Logger.Log($"Found {scoreIds.Count} scores which require total score conversion.");
 
             var notification = showProgressNotification(scoreIds.Count, "Upgrading scores to new scoring algorithm", "scores have been upgraded to the new scoring algorithm");
 
@@ -518,11 +539,11 @@ namespace osu.Game.Database
                     break;
 
                 updateNotificationProgress(notification, processedCount, scoreIds.Count);
-
                 sleepIfRequired();
 
                 var updates = new List<(Guid id, long totalScore, long totalScoreWithoutMods, double accuracy, ScoreRank rank)>();
                 var failedIds = new List<Guid>();
+                int missingCount = 0;
 
                 var detachedScores = realmAccess.Run(r =>
                 {
@@ -534,6 +555,8 @@ namespace osu.Game.Database
 
                         if (score != null)
                             scores.Add(score.Detach());
+                        else
+                            missingCount++;
                     }
 
                     return scores;
@@ -564,7 +587,9 @@ namespace osu.Game.Database
                             foreach (var update in updates)
                             {
                                 var s = r.Find<ScoreInfo>(update.id);
-                                if (s == null) continue;
+
+                                if (s == null)
+                                    continue;
 
                                 s.TotalScore = update.totalScore;
                                 s.TotalScoreWithoutMods = update.totalScoreWithoutMods;
@@ -576,6 +601,7 @@ namespace osu.Game.Database
                             foreach (var id in failedIds)
                             {
                                 var s = r.Find<ScoreInfo>(id);
+
                                 if (s != null)
                                     s.BackgroundReprocessingFailed = true;
                             }
@@ -591,8 +617,11 @@ namespace osu.Game.Database
                     catch (Exception e)
                     {
                         Logger.Log($"Fatal error writing batch in score conversion: {e}");
+                        failedCount += updates.Count + failedIds.Count;
                     }
                 }
+
+                processedCount += missingCount;
             }
 
             completeNotification(notification, processedCount, scoreIds.Count, failedCount);
@@ -606,15 +635,16 @@ namespace osu.Game.Database
                 r.All<ScoreInfo>()
                  .Where(s => s.TotalScoreVersion < 30000013 && !s.BackgroundReprocessingFailed) // last total score version with a significant change to ranks
                  .AsEnumerable()
+
                  // must be done after materialisation, as realm doesn't support
                  // filtering on nested property predicates or projection via `.Select()`
                  .Where(s => s.Ruleset.IsLegacyRuleset())
                  .Select(s => s.ID)));
 
-            Logger.Log($"Found {scoreIds.Count} scores which require rank upgrades.");
-
             if (scoreIds.Count == 0)
                 return;
+
+            Logger.Log($"Found {scoreIds.Count} scores which require rank upgrades.");
 
             var notification = showProgressNotification(scoreIds.Count, "Adjusting ranks of scores", "scores now have more correct ranks.");
 
@@ -627,11 +657,11 @@ namespace osu.Game.Database
                     break;
 
                 updateNotificationProgress(notification, processedCount, scoreIds.Count);
-
                 sleepIfRequired();
 
                 var updates = new List<(Guid id, ScoreRank rank)>();
                 var failedIds = new List<Guid>();
+                int missingCount = 0;
 
                 var detachedScores = realmAccess.Run(r =>
                 {
@@ -643,6 +673,8 @@ namespace osu.Game.Database
 
                         if (s != null)
                             scores.Add(s.Detach());
+                        else
+                            missingCount++;
                     }
 
                     return scores;
@@ -672,6 +704,7 @@ namespace osu.Game.Database
                             foreach (var update in updates)
                             {
                                 var s = r.Find<ScoreInfo>(update.id);
+
                                 if (s != null)
                                 {
                                     s.Rank = update.rank;
@@ -682,6 +715,7 @@ namespace osu.Game.Database
                             foreach (var id in failedIds)
                             {
                                 var s = r.Find<ScoreInfo>(id);
+
                                 if (s != null)
                                     s.BackgroundReprocessingFailed = true;
                             }
@@ -697,8 +731,11 @@ namespace osu.Game.Database
                     catch (Exception e)
                     {
                         Logger.Log($"Fatal error writing batch in score rank upgrade: {e}");
+                        failedCount += updates.Count + failedIds.Count;
                     }
                 }
+
+                processedCount += missingCount;
             }
 
             completeNotification(notification, processedCount, scoreIds.Count, failedCount);
@@ -706,11 +743,13 @@ namespace osu.Game.Database
 
         private void backpopulateMissingSubmissionAndRankDates()
         {
-            if (DebugUtils.IsNUnitRunning) return;
+            if (DebugUtils.IsNUnitRunning)
+                return;
 
             if (!localMetadataSource.Available)
             {
                 Logger.Log("Cannot backpopulate missing submission/rank dates because the local metadata cache is missing.");
+
                 return;
             }
 
@@ -719,12 +758,14 @@ namespace osu.Game.Database
                 if (!localMetadataSource.IsAtLeastVersion(2))
                 {
                     Logger.Log("Cannot backpopulate missing submission/rank dates because the local metadata cache is too old.");
+
                     return;
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log($"Error when trying to query version of local metadata cache: {ex}");
+
                 return;
             }
 
@@ -778,10 +819,12 @@ namespace osu.Game.Database
                             Debug.Assert(result != null);
                             beatmapSet.DateRanked = result.DateRanked;
                             beatmapSet.DateSubmitted = result.DateSubmitted;
+
                             return true;
                         }
 
                         Logger.Log($"Could not find {beatmapSet.GetDisplayString()} in local cache while backpopulating missing submission/rank date");
+
                         return false;
                     });
 
@@ -813,7 +856,8 @@ namespace osu.Game.Database
 
             if (!localMetadataSource.Available || !localMetadataSource.IsAtLeastVersion(3))
             {
-                if (DebugUtils.IsNUnitRunning) return;
+                if (DebugUtils.IsNUnitRunning)
+                    return;
 
                 Logger.Log(@"Local metadata cache has too low version to backpopulate user tags, attempting refetch...");
                 localMetadataSource.FetchCache().WaitSafely();
@@ -821,11 +865,13 @@ namespace osu.Game.Database
                 if (!localMetadataSource.Available || !localMetadataSource.IsAtLeastVersion(3))
                 {
                     Logger.Log(@"Local metadata cache refetch failed. Aborting user tags backpopulation.");
+
                     return;
                 }
             }
 
             var lastPopulation = config.Get<DateTime?>(OsuSetting.LastOnlineTagsPopulation);
+
             // dropping time data here completely is intentional, because storing the date to config is a lossy operation
             // (truncates some ticks off of the date when it's being converted to string and back).
             // therefore, if precision isn't explicitly constrained, the condition below would always fail just because the date stored to config
@@ -835,6 +881,7 @@ namespace osu.Game.Database
             if (metadataSourceFetchDate <= lastPopulation)
             {
                 Logger.Log($@"Skipping user tag population because the local metadata source hasn't been updated since the last time user tags were checked ({lastPopulation.Value:d})");
+
                 return;
             }
 
@@ -888,6 +935,7 @@ namespace osu.Game.Database
                             {
                                 beatmap.Metadata.UserTags.Clear();
                                 beatmap.Metadata.UserTags.AddRange(userTags);
+
                                 return true;
                             }
 
@@ -895,6 +943,7 @@ namespace osu.Game.Database
                         }
 
                         Logger.Log(@$"Could not find {beatmap.GetDisplayString()} in local cache while backpopulating missing user tags");
+
                         return false;
                     });
 
