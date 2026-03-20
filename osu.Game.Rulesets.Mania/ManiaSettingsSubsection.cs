@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Linq;
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -65,9 +63,6 @@ namespace osu.Game.Rulesets.Mania
                 {
                     Caption = RulesetSettingsStrings.MobileLayout,
                     Current = config.GetBindable<ManiaMobileLayout>(ManiaRulesetSetting.MobileLayout),
-#pragma warning disable CS0618 // Type or member is obsolete
-                    Items = Enum.GetValues<ManiaMobileLayout>().Where(l => l != ManiaMobileLayout.LandscapeWithOverlay),
-#pragma warning restore CS0618 // Type or member is obsolete
                 }));
             }
         }
