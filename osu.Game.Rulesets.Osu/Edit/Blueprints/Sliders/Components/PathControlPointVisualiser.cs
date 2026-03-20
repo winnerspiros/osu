@@ -604,10 +604,11 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             if (curveTypeItems == null)
                 return;
 
+            int totalCount = Pieces.Count(p => p.IsSelected.Value);
+
             foreach (var item in curveTypeItems.OfType<CurveTypeMenuItem>())
             {
-                int totalCount = Pieces.Count(p => p.IsSelected.Value);
-                int countOfState = Pieces.Where(p => p.IsSelected.Value).Count(p => p.ControlPoint.Type == item.PathType);
+                int countOfState = Pieces.Count(p => p.IsSelected.Value && p.ControlPoint.Type == item.PathType);
 
                 if (countOfState == totalCount)
                     item.State.Value = TernaryState.True;
