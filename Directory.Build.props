@@ -1,4 +1,4 @@
-﻿<!-- Contains required properties for osu!framework projects. -->
+<!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
     <LangVersion>12.0</LangVersion>
@@ -7,6 +7,7 @@
     <GenerateAssemblyInfo Condition="'$(Configuration)'=='Debug'">false</GenerateAssemblyInfo>
     <!-- Required due to the above  -->
     <NoWarn Condition="'$(Configuration)'=='Debug'">$(NoWarn);CA1416</NoWarn>
+    <NoWarn>$(NoWarn);NU1903;CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>$(MSBuildThisFileDirectory)app.manifest</ApplicationManifest>
@@ -40,7 +41,6 @@
   </PropertyGroup>
   <PropertyGroup Label="Documentation">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <IsPackable>false</IsPackable>
