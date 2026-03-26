@@ -76,7 +76,9 @@ namespace osu.Android
             try
             {
                 // Request unbuffered touch dispatch for lower input latency during gameplay.
-                Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
+                // View.RequestUnbufferedDispatch(int) requires Android API 30+.
+                if (OperatingSystem.IsAndroidVersionAtLeast(30))
+                    Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
             }
             catch (Exception e)
             {
@@ -155,7 +157,9 @@ namespace osu.Android
             {
                 try
                 {
-                    Window?.SetSustainedPerformanceMode(enabled);
+                    // SetSustainedPerformanceMode requires Android API 24+.
+                    if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                        Window?.SetSustainedPerformanceMode(enabled);
 
                     if (enabled)
                         selectHighestRefreshRate();
@@ -169,6 +173,11 @@ namespace osu.Android
 
         private void selectHighestRefreshRate()
         {
+            // Display.GetSupportedModes(), Display.Mode.RefreshRate, Display.Mode.ModeId, and
+            // WindowManagerLayoutParams.PreferredDisplayModeId require Android API 23+.
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23))
+                return;
+
             try
             {
                 var display = WindowManager?.DefaultDisplay;
