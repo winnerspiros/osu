@@ -27,7 +27,13 @@ bool OboeBridge::open() {
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
            ->setChannelCount(oboe::ChannelCount::Stereo)
-           ->setSampleRate(48000)
+           // Let Oboe pick the device's native sample rate.
+           // Hardcoding (e.g. 48000) would force Android's SRC resampler when the
+           // device native rate differs, adding measurable latency.
+           ->setSampleRate(oboe::kUnspecified)
+           // Semantic hints help Android route through the optimal audio path.
+           ->setContentType(oboe::ContentType::Music)
+           ->setUsage(oboe::Usage::Game)
            ->setCallback(this)
            // Prefer AAudio for lowest latency (available on Android 8.1+).
            // Falls back to OpenSL ES automatically on older devices.

@@ -4,8 +4,8 @@ project(osu_native LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 # Release build optimizations for low-latency performance.
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "-O2 -flto -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
 
 find_package(oboe REQUIRED CONFIG)
 find_library(vulkan-lib vulkan)
