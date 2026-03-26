@@ -364,7 +364,7 @@ namespace osu.Game.Scoring
 
         public IEnumerable<HitResultDisplayStatistic> GetStatisticsForDisplay()
         {
-            var rulesetHitResults = ruleset_hit_results_cache.GetOrAdd(Ruleset.InstantiationInfo, _ => Ruleset.CreateInstance().GetHitResults().ToArray());
+            var rulesetHitResults = ruleset_hit_results_cache.GetOrAdd(Ruleset.InstantiationInfo, _ => Ruleset.CreateInstance().GetHitResultsForDisplay().ToArray());
 
             foreach (var r in rulesetHitResults)
             {

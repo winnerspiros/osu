@@ -6,7 +6,15 @@
 				 android:label="osu!"
 				 android:icon="@mipmap/ic_launcher"
 				 android:roundIcon="@mipmap/ic_launcher"
-				 android:largeHeap="true" />
+				 android:largeHeap="true">
+        <provider android:name="androidx.core.content.FileProvider"
+                  android:authorities="sh.ppy.osulazer.fileprovider"
+                  android:grantUriPermissions="true"
+                  android:exported="false">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                       android:resource="@xml/filepaths" />
+        </provider>
+    </application>
 	<!-- for editor usage -->
 	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 	<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />

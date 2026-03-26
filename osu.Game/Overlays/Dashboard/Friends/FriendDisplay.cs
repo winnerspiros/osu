@@ -173,10 +173,12 @@ namespace osu.Game.Overlays.Dashboard.Friends
             listLoadCancellation?.Cancel();
             var cancellationSource = listLoadCancellation = new CancellationTokenSource();
 
-            FriendsList? currentList = listContainer.LastOrDefault();
+            // There may be more than one active list in the container due to the delayed fade out.
+            FriendsList? currentList = listContainer.SingleOrDefault(d => d.LifetimeEnd == double.MaxValue);
+
             FriendsList newList = new FriendsList(userListToolbar.DisplayStyle.Value, apiFriends.Select(f => f.TargetUser!).ToArray())
             {
-                OnlineStream = { BindTarget = streamControl.Current },
+                StatusFilter = { BindTarget = streamControl.Current },
                 SortCriteria = { BindTarget = userListToolbar.SortCriteria },
                 SearchText = { BindTarget = searchTextBox.Current }
             };
