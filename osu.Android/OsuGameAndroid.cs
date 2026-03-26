@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Android.App;
 using Android.Content.PM;
 using Android.Views;
@@ -38,10 +39,15 @@ namespace osu.Android
         private readonly BindableDouble audioOffset = new BindableDouble();
 
         /// <summary>
-        /// Native bridge manager — kept as a separate type so OboeAudioBridge / VulkanProbe
-        /// types are never loaded during OsuGameAndroid class initialisation.
+        /// Boxed reference to the native bridge manager.
+        /// Declared as <c>object?</c> so that the runtime never resolves the concrete
+        /// AndroidNativeBridgeManager type (and its P/Invoke field types) during
+        /// OsuGameAndroid class initialisation — which would trigger
+        /// NativeLibrary.TryLoad before the framework is ready and crash on some
+        /// Samsung devices.
+        /// All access goes through [NoInlining] helpers below.
         /// </summary>
-        private AndroidNativeBridgeManager? nativeBridges;
+        private object? nativeBridges;
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -122,8 +128,7 @@ namespace osu.Android
                 {
                     if (e.NewValue)
                     {
-                        nativeBridges ??= new AndroidNativeBridgeManager();
-                        nativeBridges.StartOboeBridge(Scheduler, latency =>
+                        startOboeBridge(latency =>
                         {
                             // Only auto-suggest when the user hasn't already configured a manual offset.
                             if (Math.Abs(audioOffset.Value) >= 0.01)
@@ -136,7 +141,7 @@ namespace osu.Android
                     }
                     else
                     {
-                        nativeBridges?.StopOboeBridge();
+                        stopOboeBridge();
                     }
                 }
                 catch (Exception ex)
@@ -150,14 +155,9 @@ namespace osu.Android
                 try
                 {
                     if (e.NewValue)
-                    {
-                        nativeBridges ??= new AndroidNativeBridgeManager();
-                        nativeBridges.StartVulkanProbe();
-                    }
+                        startVulkanProbe();
                     else
-                    {
-                        nativeBridges?.StopVulkanProbe();
-                    }
+                        stopVulkanProbe();
                 }
                 catch (Exception ex)
                 {
@@ -244,7 +244,54 @@ namespace osu.Android
         /// </summary>
         public double GetMeasuredAudioLatencyMs()
         {
-            return nativeBridges?.GetMeasuredAudioLatencyMs() ?? -1;
+            return getMeasuredAudioLatencyFromBridge();
+        }
+
+        // ── Native bridge helpers ──────────────────────────────────────────
+        // Every method below is [NoInlining] so that AndroidNativeBridgeManager
+        // (and its P/Invoke field types) are never resolved until explicitly called.
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void startOboeBridge(Action<double> onLatencyMeasured)
+        {
+            nativeBridges ??= new AndroidNativeBridgeManager();
+
+            if (nativeBridges is AndroidNativeBridgeManager mgr)
+                mgr.StartOboeBridge(Scheduler, onLatencyMeasured);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void stopOboeBridge()
+        {
+            (nativeBridges as AndroidNativeBridgeManager)?.StopOboeBridge();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void startVulkanProbe()
+        {
+            nativeBridges ??= new AndroidNativeBridgeManager();
+
+            if (nativeBridges is AndroidNativeBridgeManager mgr)
+                mgr.StartVulkanProbe();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void stopVulkanProbe()
+        {
+            (nativeBridges as AndroidNativeBridgeManager)?.StopVulkanProbe();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private double getMeasuredAudioLatencyFromBridge()
+        {
+            return (nativeBridges as AndroidNativeBridgeManager)?.GetMeasuredAudioLatencyMs() ?? -1;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void disposeNativeBridges()
+        {
+            (nativeBridges as AndroidNativeBridgeManager)?.Dispose();
+            nativeBridges = null;
         }
 
         protected override void ScreenChanged(IOsuScreen? current, IOsuScreen? newScreen)
@@ -303,9 +350,7 @@ namespace osu.Android
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-
-            nativeBridges?.Dispose();
-            nativeBridges = null;
+            disposeNativeBridges();
         }
 
         private class AndroidBatteryInfo : BatteryInfo
