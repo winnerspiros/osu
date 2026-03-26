@@ -255,7 +255,9 @@ namespace osu.Android
         private void startOboeBridge(Action<double> onLatencyMeasured)
         {
             nativeBridges ??= new AndroidNativeBridgeManager();
-            ((AndroidNativeBridgeManager)nativeBridges).StartOboeBridge(Scheduler, onLatencyMeasured);
+
+            if (nativeBridges is AndroidNativeBridgeManager mgr)
+                mgr.StartOboeBridge(Scheduler, onLatencyMeasured);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -268,7 +270,9 @@ namespace osu.Android
         private void startVulkanProbe()
         {
             nativeBridges ??= new AndroidNativeBridgeManager();
-            ((AndroidNativeBridgeManager)nativeBridges).StartVulkanProbe();
+
+            if (nativeBridges is AndroidNativeBridgeManager mgr)
+                mgr.StartVulkanProbe();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
