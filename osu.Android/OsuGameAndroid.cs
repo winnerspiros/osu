@@ -28,7 +28,9 @@ namespace osu.Android
 
         private readonly PackageInfo? packageInfo;
 
-        public override Vector2 ScalingContainerTargetDrawSize => new Vector2(1024, 1024 * DrawHeight / DrawWidth);
+        public override Vector2 ScalingContainerTargetDrawSize => DrawWidth > 0
+            ? new Vector2(1024, 1024 * DrawHeight / DrawWidth)
+            : new Vector2(1024, 768);
 
         private readonly Bindable<bool> performanceMode = new Bindable<bool>();
         private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
@@ -305,7 +307,9 @@ namespace osu.Android
         public override void SetHost(GameHost host)
         {
             base.SetHost(host);
-            host.Window.CursorState |= CursorState.Hidden;
+
+            if (host.Window != null)
+                host.Window.CursorState |= CursorState.Hidden;
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

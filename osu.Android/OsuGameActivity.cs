@@ -117,10 +117,17 @@ namespace osu.Android
             // Manually load them so that they can be loaded by RulesetStore.loadFromAppDomain.
             // REMEMBER to fully uninstall previous version every time when investigating this!
             // Don't forget osu.Game.Tests.Android too.
-            Assembly.Load("osu.Game.Rulesets.Osu");
-            Assembly.Load("osu.Game.Rulesets.Taiko");
-            Assembly.Load("osu.Game.Rulesets.Catch");
-            Assembly.Load("osu.Game.Rulesets.Mania");
+            foreach (string asm in new[] { "osu.Game.Rulesets.Osu", "osu.Game.Rulesets.Taiko", "osu.Game.Rulesets.Catch", "osu.Game.Rulesets.Mania" })
+            {
+                try
+                {
+                    Assembly.Load(asm);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to load ruleset assembly {asm}: {e.Message}");
+                }
+            }
         }
 
         protected override void OnResume()
