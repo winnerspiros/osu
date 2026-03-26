@@ -69,6 +69,21 @@ namespace osu.Android
             game = new OsuGameAndroid(this);
         }
 
+        protected override void OnStart()
+        {
+            base.OnStart();
+
+            try
+            {
+                // Request unbuffered touch dispatch for lower input latency during gameplay.
+                Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+            }
+        }
+
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -78,20 +93,21 @@ namespace osu.Android
             // reference: https://developer.android.com/reference/android/app/Activity#onNewIntent(android.content.Intent)
             handleIntent(Intent);
 
-            Debug.Assert(Window != null);
+            if (Window != null)
+            {
+                Window.AddFlags(WindowManagerFlags.Fullscreen);
+                Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+            }
 
-            Window.AddFlags(WindowManagerFlags.Fullscreen);
-            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-
-            Debug.Assert(WindowManager?.DefaultDisplay != null);
-            Debug.Assert(Resources?.DisplayMetrics != null);
-
-            Point displaySize = new Point();
+            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
+            {
+                Point displaySize = new Point();
 #pragma warning disable CA1422 // GetSize is deprecated
-            WindowManager.DefaultDisplay.GetSize(displaySize);
+                WindowManager.DefaultDisplay.GetSize(displaySize);
 #pragma warning restore CA1422
-            float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
-            IsTablet = smallestWidthDp >= 600f;
+                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
+                IsTablet = smallestWidthDp >= 600f;
+            }
 
             RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
 
@@ -104,6 +120,82 @@ namespace osu.Android
             Assembly.Load("osu.Game.Rulesets.Taiko");
             Assembly.Load("osu.Game.Rulesets.Catch");
             Assembly.Load("osu.Game.Rulesets.Mania");
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            try
+            {
+                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                {
+                    var gameManager = (GameManager?)GetSystemService(GameService);
+
+                    if (gameManager != null)
+                    {
+                        bool isPerformanceMode = gameManager.GameMode == GameMode.Performance;
+                        ApplyPerformanceOptimizations(isPerformanceMode);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to query game mode: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Applies Android-level performance optimizations for low-latency gameplay.
+        /// </summary>
+        /// <param name="enabled">Whether to enable performance optimizations.</param>
+        public void ApplyPerformanceOptimizations(bool enabled)
+        {
+            RunOnUiThread(() =>
+            {
+                try
+                {
+                    Window?.SetSustainedPerformanceMode(enabled);
+
+                    if (enabled)
+                        selectHighestRefreshRate();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
+                }
+            });
+        }
+
+        private void selectHighestRefreshRate()
+        {
+            try
+            {
+                var display = WindowManager?.DefaultDisplay;
+
+                if (display == null || Window == null)
+                    return;
+
+#pragma warning disable CA1422
+                var modes = display.GetSupportedModes();
+#pragma warning restore CA1422
+
+                if (modes == null || modes.Length == 0)
+                    return;
+
+                var preferred = modes.OrderByDescending(m => m.RefreshRate).First();
+                var layoutParams = Window.Attributes;
+
+                if (layoutParams != null)
+                {
+                    layoutParams.PreferredDisplayModeId = preferred.ModeId;
+                    Window.Attributes = layoutParams;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to select highest refresh rate: {e.Message}");
+            }
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);

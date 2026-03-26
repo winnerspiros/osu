@@ -7,14 +7,17 @@ using Android.App;
 using Android.Content.PM;
 using Microsoft.Maui.Devices;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Platform;
 using osu.Game;
+using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
 using osuTK;
+using Debug = System.Diagnostics.Debug;
 
 namespace osu.Android
 {
@@ -26,6 +29,8 @@ namespace osu.Android
         private readonly PackageInfo packageInfo;
 
         public override Vector2 ScalingContainerTargetDrawSize => new Vector2(1024, 1024 * DrawHeight / DrawWidth);
+
+        private readonly Bindable<bool> performanceMode = new Bindable<bool>();
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -47,10 +52,28 @@ namespace osu.Android
 
         public override Version AssemblyVersion => new Version(packageInfo.VersionName.AsNonNull().Split('-').First());
 
+        [BackgroundDependencyLoader]
+        private void load(OsuConfigManager config)
+        {
+            config.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
             UserPlayingState.BindValueChanged(_ => updateOrientation());
+
+            performanceMode.BindValueChanged(e =>
+            {
+                try
+                {
+                    gameActivity.ApplyPerformanceOptimizations(e.NewValue);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Failed to toggle performance mode: {ex.Message}");
+                }
+            }, true);
         }
 
         protected override void ScreenChanged(IOsuScreen? current, IOsuScreen? newScreen)
