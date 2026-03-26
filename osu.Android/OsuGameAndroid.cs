@@ -120,10 +120,9 @@ namespace osu.Android
             {
                 try
                 {
-                    nativeBridges ??= new AndroidNativeBridgeManager();
-
                     if (e.NewValue)
                     {
+                        nativeBridges ??= new AndroidNativeBridgeManager();
                         nativeBridges.StartOboeBridge(Scheduler, latency =>
                         {
                             // Only auto-suggest when the user hasn't already configured a manual offset.
@@ -137,7 +136,7 @@ namespace osu.Android
                     }
                     else
                     {
-                        nativeBridges.StopOboeBridge();
+                        nativeBridges?.StopOboeBridge();
                     }
                 }
                 catch (Exception ex)
@@ -150,12 +149,15 @@ namespace osu.Android
             {
                 try
                 {
-                    nativeBridges ??= new AndroidNativeBridgeManager();
-
                     if (e.NewValue)
+                    {
+                        nativeBridges ??= new AndroidNativeBridgeManager();
                         nativeBridges.StartVulkanProbe();
+                    }
                     else
-                        nativeBridges.StopVulkanProbe();
+                    {
+                        nativeBridges?.StopVulkanProbe();
+                    }
                 }
                 catch (Exception ex)
                 {
