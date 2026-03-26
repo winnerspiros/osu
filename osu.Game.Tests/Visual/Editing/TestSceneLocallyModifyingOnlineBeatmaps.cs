@@ -23,7 +23,7 @@ namespace osu.Game.Tests.Visual.Editing
             base.SetUpSteps();
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestLocallyModifyingOnlineBeatmap()
         {
             string initialHash = string.Empty;

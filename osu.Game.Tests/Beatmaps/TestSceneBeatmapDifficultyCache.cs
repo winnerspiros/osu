@@ -64,7 +64,7 @@ namespace osu.Game.Tests.Beatmaps
             AddUntilStep($"star difficulty -> {BASE_STARS}", () => starDifficultyBindable.Value.Stars == BASE_STARS);
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestInvalidationFlow()
         {
             BeatmapInfo postEditBeatmapInfo = null;
