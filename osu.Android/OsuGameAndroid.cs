@@ -28,7 +28,7 @@ namespace osu.Android
 
         private readonly PackageInfo? packageInfo;
 
-        public override Vector2 ScalingContainerTargetDrawSize => DrawWidth > 0
+        public override Vector2 ScalingContainerTargetDrawSize => DrawWidth > 0 && DrawHeight > 0
             ? new Vector2(1024, 1024 * DrawHeight / DrawWidth)
             : new Vector2(1024, 768);
 
