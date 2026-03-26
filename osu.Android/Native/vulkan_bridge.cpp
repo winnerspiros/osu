@@ -3,9 +3,10 @@
 
 #include "vulkan_bridge.h"
 #include <android/log.h>
-#include <vector>
+#include <cstdint>
 #include <cstring>
 #include <set>
+#include <vector>
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -217,7 +218,6 @@ void VulkanProbe::cleanup() {
 // 32-bit (4 bytes) and 64-bit (8 bytes) platforms.  The previous use of
 // C++ `long` was 4 bytes on 32-bit ARM/x86 but C# `long` is always
 // 8 bytes, causing a calling-convention mismatch and crash.
-#include <cstdint>
 
 #define OSU_EXPORT __attribute__((visibility("default")))
 
