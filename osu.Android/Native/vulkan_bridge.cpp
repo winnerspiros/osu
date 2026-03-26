@@ -14,6 +14,10 @@
 VulkanProbe::VulkanProbe() {
     available_ = createInstance() && queryDevice();
 
+    if (!available_) {
+        cleanup();
+    }
+
     if (available_) {
         LOGI("Vulkan available: %s (API %u.%u.%u, driver %u)",
              deviceInfo_.deviceName.c_str(),
@@ -65,7 +69,11 @@ bool VulkanProbe::queryDevice() {
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data());
+
+    if (vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data()) != VK_SUCCESS || deviceCount == 0) {
+        LOGE("Failed to enumerate Vulkan physical devices");
+        return false;
+    }
 
     // Pick the first discrete GPU, or fall back to the first device.
     VkPhysicalDevice selected = devices[0];
@@ -90,10 +98,18 @@ bool VulkanProbe::queryDevice() {
 
     // Check for swapchain extension support.
     uint32_t extCount = 0;
-    vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, nullptr);
+
+    if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, nullptr) != VK_SUCCESS || extCount == 0) {
+        deviceInfo_.supportsSwapchain = false;
+        return true;
+    }
 
     std::vector<VkExtensionProperties> extensions(extCount);
-    vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, extensions.data());
+
+    if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, extensions.data()) != VK_SUCCESS) {
+        deviceInfo_.supportsSwapchain = false;
+        return true;
+    }
 
     deviceInfo_.supportsSwapchain = false;
 

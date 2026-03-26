@@ -87,7 +87,10 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
     // Output silence - the primary purpose of this stream is latency measurement.
     // Future: route game audio through this path for lowest possible latency.
-    memset(audioData, 0, numFrames * stream->getChannelCount() * sizeof(float));
+    size_t byteCount = static_cast<size_t>(numFrames)
+                     * static_cast<size_t>(stream->getChannelCount())
+                     * sizeof(float);
+    memset(audioData, 0, byteCount);
 
     updateLatency();
 

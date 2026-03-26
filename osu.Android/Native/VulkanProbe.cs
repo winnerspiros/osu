@@ -14,7 +14,7 @@ namespace osu.Android.Native
     public sealed class VulkanProbe : IDisposable
     {
         private long nativePtr;
-        private bool disposed;
+        private volatile bool disposed;
 
         /// <summary>
         /// Creates a Vulkan probe. Returns null if native library is unavailable.

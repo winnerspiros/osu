@@ -14,7 +14,7 @@ namespace osu.Android.Native
     public sealed class OboeAudioBridge : IDisposable
     {
         private long nativePtr;
-        private bool disposed;
+        private volatile bool disposed;
 
         /// <summary>
         /// Creates and opens a new low-latency Oboe audio stream.
