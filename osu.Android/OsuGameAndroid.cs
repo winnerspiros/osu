@@ -245,22 +245,28 @@ namespace osu.Android
 
         private void updateOrientation()
         {
-            var orientation = MobileUtils.GetOrientation(this, (IOsuScreen)ScreenStack.CurrentScreen, gameActivity.IsTablet);
-
-            switch (orientation)
+            gameActivity.RunOnUiThread(() =>
             {
-                case MobileUtils.Orientation.Locked:
-                    gameActivity.RequestedOrientation = ScreenOrientation.Locked;
-                    break;
+                if (ScreenStack.CurrentScreen is not IOsuScreen currentScreen)
+                    return;
 
-                case MobileUtils.Orientation.Portrait:
-                    gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
-                    break;
+                var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
 
-                case MobileUtils.Orientation.Default:
-                    gameActivity.RequestedOrientation = gameActivity.DefaultOrientation;
-                    break;
-            }
+                switch (orientation)
+                {
+                    case MobileUtils.Orientation.Locked:
+                        gameActivity.RequestedOrientation = ScreenOrientation.Locked;
+                        break;
+
+                    case MobileUtils.Orientation.Portrait:
+                        gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
+                        break;
+
+                    case MobileUtils.Orientation.Default:
+                        gameActivity.RequestedOrientation = gameActivity.DefaultOrientation;
+                        break;
+                }
+            });
         }
 
         public override void SetHost(GameHost host)

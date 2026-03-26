@@ -14,30 +14,40 @@ namespace osu.Android.Native
     /// </summary>
     public sealed class VulkanProbe : IDisposable
     {
-        private long nativePtr;
+        private const string lib_name = "osu_native";
+
+        private IntPtr nativePtr;
         private volatile bool disposed;
+
+        private static readonly bool native_loaded;
+
+        static VulkanProbe()
+        {
+            native_loaded = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _);
+
+            if (!native_loaded)
+                Debug.WriteLine("[osu!] Native library not found, Vulkan probe unavailable");
+        }
 
         /// <summary>
         /// Creates a Vulkan probe. Returns null if native library is unavailable.
         /// </summary>
         public static VulkanProbe? Create()
         {
+            if (!native_loaded)
+                return null;
+
             try
             {
-                long ptr = nVulkanProbeCreate();
+                IntPtr ptr = nVulkanProbeCreate();
 
-                if (ptr == 0)
+                if (ptr == IntPtr.Zero)
                 {
                     Debug.WriteLine("[osu!] Vulkan probe creation failed");
                     return null;
                 }
 
                 return new VulkanProbe(ptr);
-            }
-            catch (DllNotFoundException)
-            {
-                Debug.WriteLine("[osu!] Native library not found, Vulkan probe unavailable");
-                return null;
             }
             catch (Exception e)
             {
@@ -46,7 +56,7 @@ namespace osu.Android.Native
             }
         }
 
-        private VulkanProbe(long ptr)
+        private VulkanProbe(IntPtr ptr)
         {
             nativePtr = ptr;
         }
@@ -58,7 +68,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -78,7 +88,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -98,7 +108,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -118,7 +128,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -138,7 +148,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -159,7 +169,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -180,7 +190,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -202,7 +212,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -221,7 +231,7 @@ namespace osu.Android.Native
 
             disposed = true;
 
-            if (nativePtr != 0)
+            if (nativePtr != IntPtr.Zero)
             {
                 try
                 {
@@ -232,7 +242,7 @@ namespace osu.Android.Native
                     Debug.WriteLine($"[osu!] Vulkan probe dispose failed: {e.Message}");
                 }
 
-                nativePtr = 0;
+                nativePtr = IntPtr.Zero;
             }
 
             GC.SuppressFinalize(this);
@@ -243,34 +253,34 @@ namespace osu.Android.Native
             Dispose();
         }
 
-        [DllImport("osu_native")]
-        private static extern long nVulkanProbeCreate();
+        [DllImport(lib_name)]
+        private static extern IntPtr nVulkanProbeCreate();
 
-        [DllImport("osu_native")]
-        private static extern void nVulkanProbeDestroy(long ptr);
+        [DllImport(lib_name)]
+        private static extern void nVulkanProbeDestroy(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nVulkanIsAvailable(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nVulkanIsAvailable(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nVulkanGetApiVersion(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nVulkanGetApiVersion(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nVulkanSupportsSwapchain(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nVulkanSupportsSwapchain(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nVulkanGetDeviceLocalMemoryMB(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nVulkanGetDeviceLocalMemoryMB(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nVulkanGetQueueFamilyCount(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nVulkanGetQueueFamilyCount(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nVulkanHasDedicatedComputeQueue(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nVulkanHasDedicatedComputeQueue(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nVulkanHasDedicatedTransferQueue(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nVulkanHasDedicatedTransferQueue(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nVulkanSupportsMailboxPresentMode(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nVulkanSupportsMailboxPresentMode(IntPtr ptr);
     }
 }

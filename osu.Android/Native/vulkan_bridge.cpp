@@ -3,9 +3,10 @@
 
 #include "vulkan_bridge.h"
 #include <android/log.h>
-#include <vector>
+#include <cstdint>
 #include <cstring>
 #include <set>
+#include <vector>
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -212,53 +213,61 @@ void VulkanProbe::cleanup() {
 // ============================================================
 // C exports for P/Invoke from .NET
 // ============================================================
+
+// Use intptr_t for pointer handles so the size matches C# IntPtr on both
+// 32-bit (4 bytes) and 64-bit (8 bytes) platforms.  The previous use of
+// C++ `long` was 4 bytes on 32-bit ARM/x86 but C# `long` is always
+// 8 bytes, causing a calling-convention mismatch and crash.
+
+#define OSU_EXPORT __attribute__((visibility("default")))
+
 extern "C" {
 
-long nVulkanProbeCreate() {
+OSU_EXPORT intptr_t nVulkanProbeCreate() {
     auto* probe = new (std::nothrow) VulkanProbe();
-    return reinterpret_cast<long>(probe);
+    return reinterpret_cast<intptr_t>(probe);
 }
 
-void nVulkanProbeDestroy(long ptr) {
+OSU_EXPORT void nVulkanProbeDestroy(intptr_t ptr) {
     if (ptr) delete reinterpret_cast<VulkanProbe*>(ptr);
 }
 
-unsigned char nVulkanIsAvailable(long ptr) {
+OSU_EXPORT unsigned char nVulkanIsAvailable(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->isAvailable()) ? 1 : 0;
 }
 
-int nVulkanGetApiVersion(long ptr) {
+OSU_EXPORT int nVulkanGetApiVersion(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return probe ? static_cast<int>(probe->getDeviceInfo().apiVersion) : 0;
 }
 
-unsigned char nVulkanSupportsSwapchain(long ptr) {
+OSU_EXPORT unsigned char nVulkanSupportsSwapchain(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().supportsSwapchain) ? 1 : 0;
 }
 
-int nVulkanGetDeviceLocalMemoryMB(long ptr) {
+OSU_EXPORT int nVulkanGetDeviceLocalMemoryMB(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return probe ? static_cast<int>(probe->getDeviceInfo().deviceLocalMemoryMB) : 0;
 }
 
-int nVulkanGetQueueFamilyCount(long ptr) {
+OSU_EXPORT int nVulkanGetQueueFamilyCount(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return probe ? static_cast<int>(probe->getDeviceInfo().queueFamilyCount) : 0;
 }
 
-unsigned char nVulkanHasDedicatedComputeQueue(long ptr) {
+OSU_EXPORT unsigned char nVulkanHasDedicatedComputeQueue(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().hasDedicatedComputeQueue) ? 1 : 0;
 }
 
-unsigned char nVulkanHasDedicatedTransferQueue(long ptr) {
+OSU_EXPORT unsigned char nVulkanHasDedicatedTransferQueue(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().hasDedicatedTransferQueue) ? 1 : 0;
 }
 
-unsigned char nVulkanSupportsMailboxPresentMode(long ptr) {
+OSU_EXPORT unsigned char nVulkanSupportsMailboxPresentMode(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().supportsMailboxPresentMode) ? 1 : 0;
 }

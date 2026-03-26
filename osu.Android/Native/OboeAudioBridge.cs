@@ -14,8 +14,20 @@ namespace osu.Android.Native
     /// </summary>
     public sealed class OboeAudioBridge : IDisposable
     {
-        private long nativePtr;
+        private const string lib_name = "osu_native";
+
+        private IntPtr nativePtr;
         private volatile bool disposed;
+
+        private static readonly bool native_loaded;
+
+        static OboeAudioBridge()
+        {
+            native_loaded = NativeLibrary.TryLoad(lib_name, typeof(OboeAudioBridge).Assembly, null, out _);
+
+            if (!native_loaded)
+                Debug.WriteLine("[osu!] Native library not found, Oboe unavailable");
+        }
 
         /// <summary>
         /// Creates and opens a new low-latency Oboe audio stream.
@@ -23,22 +35,20 @@ namespace osu.Android.Native
         /// </summary>
         public static OboeAudioBridge? Create()
         {
+            if (!native_loaded)
+                return null;
+
             try
             {
-                long ptr = nOboeCreate();
+                IntPtr ptr = nOboeCreate();
 
-                if (ptr == 0)
+                if (ptr == IntPtr.Zero)
                 {
                     Debug.WriteLine("[osu!] Oboe stream creation failed (native returned null)");
                     return null;
                 }
 
                 return new OboeAudioBridge(ptr);
-            }
-            catch (DllNotFoundException)
-            {
-                Debug.WriteLine("[osu!] Native library not found, Oboe unavailable");
-                return null;
             }
             catch (Exception e)
             {
@@ -47,7 +57,7 @@ namespace osu.Android.Native
             }
         }
 
-        private OboeAudioBridge(long ptr)
+        private OboeAudioBridge(IntPtr ptr)
         {
             nativePtr = ptr;
         }
@@ -58,7 +68,7 @@ namespace osu.Android.Native
         /// <returns>True if the stream started successfully.</returns>
         public bool Start()
         {
-            if (disposed || nativePtr == 0) return false;
+            if (disposed || nativePtr == IntPtr.Zero) return false;
 
             try
             {
@@ -76,7 +86,7 @@ namespace osu.Android.Native
         /// </summary>
         public void Stop()
         {
-            if (disposed || nativePtr == 0) return;
+            if (disposed || nativePtr == IntPtr.Zero) return;
 
             try
             {
@@ -94,7 +104,7 @@ namespace osu.Android.Native
         /// </summary>
         public double GetOutputLatencyMs()
         {
-            if (disposed || nativePtr == 0) return -1;
+            if (disposed || nativePtr == IntPtr.Zero) return -1;
 
             try
             {
@@ -113,7 +123,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -133,7 +143,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -154,7 +164,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -175,7 +185,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return 0;
+                if (disposed || nativePtr == IntPtr.Zero) return 0;
 
                 try
                 {
@@ -196,7 +206,7 @@ namespace osu.Android.Native
         {
             get
             {
-                if (disposed || nativePtr == 0) return false;
+                if (disposed || nativePtr == IntPtr.Zero) return false;
 
                 try
                 {
@@ -215,7 +225,7 @@ namespace osu.Android.Native
 
             disposed = true;
 
-            if (nativePtr != 0)
+            if (nativePtr != IntPtr.Zero)
             {
                 try
                 {
@@ -226,7 +236,7 @@ namespace osu.Android.Native
                     Debug.WriteLine($"[osu!] Oboe dispose failed: {e.Message}");
                 }
 
-                nativePtr = 0;
+                nativePtr = IntPtr.Zero;
             }
 
             GC.SuppressFinalize(this);
@@ -237,34 +247,34 @@ namespace osu.Android.Native
             Dispose();
         }
 
-        [DllImport("osu_native")]
-        private static extern long nOboeCreate();
+        [DllImport(lib_name)]
+        private static extern IntPtr nOboeCreate();
 
-        [DllImport("osu_native")]
-        private static extern void nOboeDestroy(long ptr);
+        [DllImport(lib_name)]
+        private static extern void nOboeDestroy(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nOboeStart(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nOboeStart(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern void nOboeStop(long ptr);
+        [DllImport(lib_name)]
+        private static extern void nOboeStop(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern double nOboeGetLatencyMs(long ptr);
+        [DllImport(lib_name)]
+        private static extern double nOboeGetLatencyMs(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nOboeIsActive(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nOboeIsActive(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nOboeGetSampleRate(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nOboeGetSampleRate(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nOboeGetFramesPerBurst(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nOboeGetFramesPerBurst(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern int nOboeGetBufferSizeInFrames(long ptr);
+        [DllImport(lib_name)]
+        private static extern int nOboeGetBufferSizeInFrames(IntPtr ptr);
 
-        [DllImport("osu_native")]
-        private static extern byte nOboeIsAAudio(long ptr);
+        [DllImport(lib_name)]
+        private static extern byte nOboeIsAAudio(IntPtr ptr);
     }
 }

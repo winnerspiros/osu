@@ -3,6 +3,7 @@
 
 #include "oboe_bridge.h"
 #include <android/log.h>
+#include <cstdint>
 #include <cstring>
 
 #define LOG_TAG "osu!native"
@@ -229,9 +230,17 @@ void OboeBridge::updateLatency() {
 // ============================================================
 // C exports for P/Invoke from .NET
 // ============================================================
+
+// Use intptr_t for pointer handles so the size matches C# IntPtr on both
+// 32-bit (4 bytes) and 64-bit (8 bytes) platforms.  The previous use of
+// C++ `long` was 4 bytes on 32-bit ARM/x86 but C# `long` is always
+// 8 bytes, causing a calling-convention mismatch and crash.
+
+#define OSU_EXPORT __attribute__((visibility("default")))
+
 extern "C" {
 
-long nOboeCreate() {
+OSU_EXPORT intptr_t nOboeCreate() {
     auto* bridge = new (std::nothrow) OboeBridge();
 
     if (!bridge) return 0;
@@ -241,49 +250,49 @@ long nOboeCreate() {
         return 0;
     }
 
-    return reinterpret_cast<long>(bridge);
+    return reinterpret_cast<intptr_t>(bridge);
 }
 
-void nOboeDestroy(long ptr) {
+OSU_EXPORT void nOboeDestroy(intptr_t ptr) {
     if (ptr) delete reinterpret_cast<OboeBridge*>(ptr);
 }
 
-unsigned char nOboeStart(long ptr) {
+OSU_EXPORT unsigned char nOboeStart(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->start()) ? 1 : 0;
 }
 
-void nOboeStop(long ptr) {
+OSU_EXPORT void nOboeStop(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     if (bridge) bridge->stop();
 }
 
-double nOboeGetLatencyMs(long ptr) {
+OSU_EXPORT double nOboeGetLatencyMs(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return bridge ? bridge->getOutputLatencyMs() : -1.0;
 }
 
-unsigned char nOboeIsActive(long ptr) {
+OSU_EXPORT unsigned char nOboeIsActive(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isActive()) ? 1 : 0;
 }
 
-int nOboeGetSampleRate(long ptr) {
+OSU_EXPORT int nOboeGetSampleRate(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return bridge ? bridge->getSampleRate() : 0;
 }
 
-int nOboeGetFramesPerBurst(long ptr) {
+OSU_EXPORT int nOboeGetFramesPerBurst(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return bridge ? bridge->getFramesPerBurst() : 0;
 }
 
-int nOboeGetBufferSizeInFrames(long ptr) {
+OSU_EXPORT int nOboeGetBufferSizeInFrames(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return bridge ? bridge->getBufferSizeInFrames() : 0;
 }
 
-unsigned char nOboeIsAAudio(long ptr) {
+OSU_EXPORT unsigned char nOboeIsAAudio(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isAAudio()) ? 1 : 0;
 }
