@@ -10,7 +10,6 @@ using osu.Android.Native;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Platform;
 using osu.Game;
 using osu.Game.Configuration;
@@ -27,7 +26,7 @@ namespace osu.Android
         [Cached]
         private readonly OsuGameActivity gameActivity;
 
-        private readonly PackageInfo packageInfo;
+        private readonly PackageInfo? packageInfo;
 
         public override Vector2 ScalingContainerTargetDrawSize => new Vector2(1024, 1024 * DrawHeight / DrawWidth);
 
@@ -43,7 +42,16 @@ namespace osu.Android
             : base(null)
         {
             gameActivity = activity;
-            packageInfo = Application.Context.ApplicationContext!.PackageManager!.GetPackageInfo(Application.Context.ApplicationContext.PackageName!, 0).AsNonNull();
+
+            try
+            {
+                packageInfo = Application.Context.ApplicationContext!.PackageManager!.GetPackageInfo(Application.Context.ApplicationContext.PackageName!, 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
+                packageInfo = null;
+            }
         }
 
         public override string Version
@@ -53,11 +61,29 @@ namespace osu.Android
                 if (!IsDeployedBuild)
                     return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
-                return packageInfo.VersionName.AsNonNull();
+                return packageInfo?.VersionName ?? @"unknown";
             }
         }
 
-        public override Version AssemblyVersion => new Version(packageInfo.VersionName.AsNonNull().Split('-').First());
+        public override Version AssemblyVersion
+        {
+            get
+            {
+                try
+                {
+                    string? versionName = packageInfo?.VersionName;
+
+                    if (!string.IsNullOrEmpty(versionName))
+                        return new Version(versionName.Split('-').First());
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to parse assembly version: {e.Message}");
+                }
+
+                return new Version(@"0.0.0");
+            }
+        }
 
         [BackgroundDependencyLoader]
         private void load(OsuConfigManager config)
@@ -247,24 +273,31 @@ namespace osu.Android
         {
             gameActivity.RunOnUiThread(() =>
             {
-                if (ScreenStack.CurrentScreen is not IOsuScreen currentScreen)
-                    return;
-
-                var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
-
-                switch (orientation)
+                try
                 {
-                    case MobileUtils.Orientation.Locked:
-                        gameActivity.RequestedOrientation = ScreenOrientation.Locked;
-                        break;
+                    if (ScreenStack.CurrentScreen is not IOsuScreen currentScreen)
+                        return;
 
-                    case MobileUtils.Orientation.Portrait:
-                        gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
-                        break;
+                    var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
 
-                    case MobileUtils.Orientation.Default:
-                        gameActivity.RequestedOrientation = gameActivity.DefaultOrientation;
-                        break;
+                    switch (orientation)
+                    {
+                        case MobileUtils.Orientation.Locked:
+                            gameActivity.RequestedOrientation = ScreenOrientation.Locked;
+                            break;
+
+                        case MobileUtils.Orientation.Portrait:
+                            gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
+                            break;
+
+                        case MobileUtils.Orientation.Default:
+                            gameActivity.RequestedOrientation = gameActivity.DefaultOrientation;
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to update orientation: {e.Message}");
                 }
             });
         }
