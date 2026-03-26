@@ -238,7 +238,7 @@ namespace osu.Game.Configuration
 
             SetDefault(OsuSetting.DashboardSortMode, UserSortCriteria.LastVisit);
             SetDefault(OsuSetting.DashboardDisplayStyle, OverlayPanelDisplayStyle.Card);
-            SetDefault(OsuSetting.AndroidPerformanceMode, true);
+            SetDefault(OsuSetting.AndroidPerformanceMode, false);
             SetDefault(OsuSetting.AndroidLowLatencyAudio, false);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
         }

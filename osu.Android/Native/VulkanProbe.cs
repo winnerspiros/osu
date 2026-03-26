@@ -23,7 +23,15 @@ namespace osu.Android.Native
 
         static VulkanProbe()
         {
-            native_loaded = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _);
+            try
+            {
+                native_loaded = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to probe native library for Vulkan: {e.Message}");
+                native_loaded = false;
+            }
 
             if (!native_loaded)
                 Debug.WriteLine("[osu!] Native library not found, Vulkan probe unavailable");

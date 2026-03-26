@@ -75,8 +75,9 @@ namespace osu.Android
 
             try
             {
-                // Request unbuffered touch dispatch for lower input latency during gameplay.
-                Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
+                // RequestUnbufferedDispatch(int sourceClass) requires API 31+.
+                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                    Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
             }
             catch (Exception e)
             {
