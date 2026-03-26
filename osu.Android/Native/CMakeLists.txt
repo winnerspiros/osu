@@ -1,31 +1,25 @@
-# Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-# See the LICENCE file in the repository root for full licence text.
+cmake_minimum_required(VERSION 3.18)
+project(osu_native LANGUAGES CXX)
 
-cmake_minimum_required(VERSION 3.22.1)
-project(osu.Android.Native)
+set(CMAKE_CXX_STANDARD 17)
 
-include(FetchContent)
+# Release build optimizations for low-latency performance.
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
 
-FetchContent_Declare(
-    oboe
-    GIT_REPOSITORY https://github.com/google/oboe
-    GIT_TAG 1.10.0
-)
-
-FetchContent_MakeAvailable(oboe)
-
-add_library(osu.Android.Native SHARED
-            vulkan_renderer.cpp
-            oboe_audio.cpp)
-
+find_package(oboe REQUIRED CONFIG)
+find_library(vulkan-lib vulkan)
 find_library(log-lib log)
 find_library(android-lib android)
-find_library(vulkan-lib vulkan)
 
-target_include_directories(osu.Android.Native PRIVATE .)
+add_library(osu_native SHARED
+    oboe_bridge.cpp
+    vulkan_bridge.cpp
+)
 
-target_link_libraries(osu.Android.Native
-                      oboe
-                      ${log-lib}
-                      ${android-lib}
-                      ${vulkan-lib})
+target_link_libraries(osu_native
+    oboe::oboe
+    ${vulkan-lib}
+    ${log-lib}
+    ${android-lib}
+)

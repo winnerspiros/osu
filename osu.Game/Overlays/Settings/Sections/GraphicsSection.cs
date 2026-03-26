@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
@@ -25,10 +26,12 @@ namespace osu.Game.Overlays.Settings.Sections
             {
                 new LayoutSettings(),
                 new RendererSettings(),
-                new CalibrationSettings(),
                 new VideoSettings(),
                 new ScreenshotSettings(),
             };
+
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
+                Add(new AndroidPerformanceSettings());
         }
     }
 }

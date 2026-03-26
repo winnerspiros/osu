@@ -497,45 +497,40 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Right);
             });
 
-            AddUntilStep("Wait for Anchor menu", () => getMenuItemByTextOrNull("Anchor") != null);
-
             AddStep("Click on Anchor menu", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("Anchor"));
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("Right-click TopLeft anchor", () =>
+            AddStep("Click TopLeft anchor", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("TopLeft"));
-                InputManager.Click(MouseButton.Right);
+                InputManager.Click(MouseButton.Left);
             });
 
             AddAssert("TopLeft item checked", () => (getMenuItemByText("TopLeft").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
 
-            AddStep("Right-click Centre anchor", () =>
+            AddStep("Click Centre anchor", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("Centre"));
-                InputManager.Click(MouseButton.Right);
+                InputManager.Click(MouseButton.Left);
             });
 
             AddAssert("Centre item checked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
             AddAssert("TopLeft item unchecked", () => (getMenuItemByText("TopLeft").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
 
-            AddStep("Right-click Closest anchor", () =>
+            AddStep("Click Closest anchor", () =>
             {
                 InputManager.MoveMouseTo(getMenuItemByText("Closest"));
-                InputManager.Click(MouseButton.Right);
+                InputManager.Click(MouseButton.Left);
             });
 
             AddAssert("Closest item checked", () => (getMenuItemByText("Closest").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
             AddAssert("Centre item unchecked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
 
             Menu.DrawableMenuItem getMenuItemByText(string text)
-                => getMenuItemByTextOrNull(text) ?? throw new System.InvalidOperationException($"Menu item {text} not found");
-
-            Menu.DrawableMenuItem? getMenuItemByTextOrNull(string text)
-                => this.ChildrenOfType<Menu.DrawableMenuItem>().FirstOrDefault(m => m.Item.Text.ToString() == text);
+                => this.ChildrenOfType<Menu.DrawableMenuItem>().First(m => m.Item.Text.ToString() == text);
         }
 
         private Skin importSkinFromArchives(string filename)

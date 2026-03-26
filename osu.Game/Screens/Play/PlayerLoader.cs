@@ -34,8 +34,8 @@ using osu.Game.Performance;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.Menu;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Screens.Play.PlayerSettings;
-using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Skinning;
 using osu.Game.Users;
 using osu.Game.Utils;
@@ -119,13 +119,6 @@ namespace osu.Game.Screens.Play
                 ApplyToBackground(b => b.FadeColour(OsuColour.Gray(backgroundBrightnessReduction ? 0.8f : 1), 200));
             }
         }
-
-        private bool readyForPush =>
-            !playerConsumed
-            // don't push unless the player is completely loaded
-            && CurrentPlayer?.LoadState == LoadState.Ready
-            // don't push unless the player is ready to start gameplay
-            && ReadyForGameplay;
 
         protected virtual bool ReadyForGameplay =>
             // not ready if the user is hovering one of the panes (logo is excluded), unless they are idle.
@@ -490,6 +483,8 @@ namespace osu.Game.Screens.Play
             if (!this.IsCurrentScreen())
                 return;
 
+            MetadataInfo.UserBlocked = !ReadyForGameplay && CurrentPlayer?.LoadState == LoadState.Ready;
+
             // We need to perform this check here rather than in OnHover as any number of children of VisualSettings
             // may also be handling the hover events.
             if (inputManager.HoveredDrawables.Contains(VisualSettings) || QuickRestart)
@@ -653,6 +648,13 @@ namespace osu.Game.Screens.Play
             Debug.Assert(ThreadSafety.IsUpdateThread);
 
             if (!this.IsCurrentScreen()) return;
+
+            bool readyForPush =
+                !playerConsumed
+                // don't push unless the player is completely loaded
+                && CurrentPlayer?.LoadState == LoadState.Ready
+                // don't push unless the player is ready to start gameplay
+                && ReadyForGameplay;
 
             if (!readyForPush)
             {

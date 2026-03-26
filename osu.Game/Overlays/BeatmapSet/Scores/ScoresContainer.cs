@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -19,7 +19,7 @@ using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
-using osu.Game.Screens.Select.Leaderboards;
+using osu.Game.Screens.Play.Leaderboards;
 using osuTK;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 
@@ -74,14 +74,24 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
                 Debug.Assert(apiBeatmap != null);
 
-                var scores = value.Scores.OrderByTotalScore().Select(s => s.ToScoreInfo(rulesets, apiBeatmap)).ToArray();
+                // TODO: temporary. should be removed once `OrderByTotalScore` can accept `IScoreInfo`.
+                var beatmapInfo = new BeatmapInfo
+                {
+#pragma warning disable 618
+                    MaxCombo = apiBeatmap.MaxCombo,
+#pragma warning restore 618
+                    Status = apiBeatmap.Status,
+                    MD5Hash = apiBeatmap.MD5Hash
+                };
+
+                var scores = value.Scores.Select(s => s.ToScoreInfo(rulesets, beatmapInfo)).OrderByTotalScore().ToArray();
                 var topScore = scores.First();
 
                 scoreTable.DisplayScores(scores, apiBeatmap.Status.GrantsPerformancePoints());
                 scoreTable.Show();
 
                 var userScore = value.UserScore;
-                var userScoreInfo = userScore?.Score.ToScoreInfo(rulesets, apiBeatmap);
+                var userScoreInfo = userScore?.Score.ToScoreInfo(rulesets, beatmapInfo);
 
                 topScoresContainer.Add(new DrawableTopScore(topScore));
 

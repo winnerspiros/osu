@@ -7,8 +7,8 @@ using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Models;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Leaderboards;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Screens.Select.Leaderboards;
 using Realms;
 
 namespace osu.Game.Scoring
@@ -26,18 +26,6 @@ namespace osu.Game.Scoring
         /// <param name="scores">The array of <see cref="ScoreInfo"/>s to reorder.</param>
         /// <returns>The given <paramref name="scores"/> ordered by decreasing total score.</returns>
         public static IEnumerable<ScoreInfo> OrderByTotalScore(this IEnumerable<ScoreInfo> scores)
-            => scores.OrderByDescending(s => s.TotalScore)
-                     .ThenBy(s => s.OnlineID)
-                     // Local scores may not have an online ID. Fall back to date in these cases.
-                     .ThenBy(s => s.Date);
-
-        /// <summary>
-        /// Orders an array of <see cref="IScoreInfo"/>s by total score.
-        /// </summary>
-        /// <param name="scores">The array of <see cref="IScoreInfo"/>s to reorder.</param>
-        /// <returns>The given <paramref name="scores"/> ordered by decreasing total score.</returns>
-        public static IEnumerable<T> OrderByTotalScore<T>(this IEnumerable<T> scores)
-            where T : IScoreInfo
             => scores.OrderByDescending(s => s.TotalScore)
                      .ThenBy(s => s.OnlineID)
                      // Local scores may not have an online ID. Fall back to date in these cases.

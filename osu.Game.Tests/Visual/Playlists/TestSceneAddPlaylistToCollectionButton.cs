@@ -76,7 +76,6 @@ namespace osu.Game.Tests.Visual.Playlists
         }
 
         [Test]
-        [FlakyTest]
         public void TestButtonFlow()
         {
             AddStep("move mouse to button", () => InputManager.MoveMouseTo(button));

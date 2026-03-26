@@ -19,8 +19,8 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
+using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Screens.Ranking;
-using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Tests.Resources;
 
 namespace osu.Game.Tests.Visual.Ranking
@@ -172,7 +172,6 @@ namespace osu.Game.Tests.Visual.Ranking
         }
 
         [Test]
-        [FlakyTest]
         public void TestOnlineLeaderboardWithLessThan50Scores_UserWasInTop50()
         {
             ScoreInfo localScore = null!;
@@ -278,7 +277,7 @@ namespace osu.Game.Tests.Visual.Ranking
 
             AddStep("show results", () => LoadScreen(new SoloResultsScreen(scores[0])));
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local user best shown", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.UserID == API.LocalUser.Value.Id));
+            AddAssert("local user best shown", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.UserID == API.LocalUser.Value.Id));
         }
 
         [Test]
@@ -322,7 +321,6 @@ namespace osu.Game.Tests.Visual.Ranking
         }
 
         [Test]
-        [Ignore("Fails on CI due to position mismatch")]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserOutsideOfTop50_DidNotBeatOwnBest()
         {
             ScoreInfo localScore = null!;
@@ -377,7 +375,6 @@ namespace osu.Game.Tests.Visual.Ranking
         }
 
         [Test]
-        [Ignore("Fails on CI due to position mismatch")]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserOutsideOfTop50_BeatOwnBest()
         {
             ScoreInfo localScore = null!;
@@ -487,7 +484,6 @@ namespace osu.Game.Tests.Visual.Ranking
         }
 
         [Test]
-        [FlakyTest]
         public void TestOnlineLeaderboardDeduplication()
         {
             AddStep("set leaderboard to global", () => leaderboardManager.FetchWithCriteria(new LeaderboardCriteria(importedBeatmap, importedBeatmap.Ruleset, BeatmapLeaderboardScope.Global, null)));
@@ -536,7 +532,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("only one score with ID 12345", () => this.ChildrenOfType<ScorePanel>().Count(s => s.Score.OnlineID == 12345), () => Is.EqualTo(1));
+            AddAssert("only one score with ID 12345", () => this.ChildrenOfType<ScorePanel>().Count(s => s.Score.OnlineID == 12345), () => Is.EqualTo(1));
             AddUntilStep("user best position preserved", () => this.ChildrenOfType<ScorePanel>().Any(p => p.ScorePosition.Value == 133_337));
         }
 

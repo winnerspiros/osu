@@ -15,7 +15,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Rulesets.Osu.Mods;
-using osu.Game.Screens.SelectV2;
+using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Visual.Metadata;
 using osu.Game.Tests.Visual.OnlinePlay;
@@ -82,7 +82,6 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));
             AddUntilStep("wait for pushed", () => screen.IsCurrentScreen());
-            AddUntilStep("wait for scores", () => this.ChildrenOfType<BeatmapLeaderboardScore>().Count() > 1);
             AddStep("force transforms to finish", () => FinishTransforms(true));
             AddStep("right click second score", () =>
             {

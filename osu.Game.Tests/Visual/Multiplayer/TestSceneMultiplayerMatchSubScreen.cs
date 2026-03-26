@@ -17,6 +17,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
@@ -57,6 +58,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             Dependencies.Cache(beatmaps = new BeatmapManager(LocalStorage, Realm, null, audio, Resources, host, Beatmap.Default));
             Dependencies.Cache(Realm);
             Dependencies.CacheAs<BeatmapStore>(new RealmDetachedBeatmapStore());
+            Dependencies.Cache(new ChannelManager(API));
 
             beatmaps.Import(TestResources.GetQuickTestBeatmapForImport()).WaitSafely();
 
@@ -73,29 +75,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             base.SetUpSteps();
 
-            AddUntilStep("wait for mod select removed", () =>
-            {
-                if (this.ChildrenOfType<MultiplayerUserModSelectOverlay>().Any())
-                {
-                    // This overlay is a bit problematic as it can be present even if the screen that created it has exited.
-                    // If it is present, force close it.
-                    var modSelect = this.ChildrenOfType<MultiplayerUserModSelectOverlay>().First();
-                    modSelect.Hide();
-                    // If it's still visible after hide request (e.g. animation), we still wait.
-                    // But checking Count() implies checking presence in hierarchy or visual state?
-                    // ChildrenOfType checks hierarchy. If Hide() starts fade out, it might still be there.
-                    // But if hierarchy removal is tied to state, we might need to wait more.
-                    // However, base.SetUpSteps() calls ExitAllScreens.
-                    // If the screen is gone, the overlay should be gone unless it's attached to global overlay content?
-                    // MultiplayerMatchSubScreen uses IOverlayManager.RegisterBlockingOverlay. This attaches it to the overlay content.
-                    // So we must ensure it is Unregistered/Hidden.
-                    // MultiplayerMatchSubScreen.OnLeaving hides it.
-                    // If OnLeaving wasn't called, it stays.
-                    return false;
-                }
-
-                return true;
-            });
+            AddUntilStep("wait for mod select removed", () => this.ChildrenOfType<MultiplayerUserModSelectOverlay>().Count(), () => Is.Zero);
 
             AddStep("load match", () =>
             {
@@ -459,6 +439,27 @@ namespace osu.Game.Tests.Visual.Multiplayer
             });
 
             AddUntilStep("countdown started", () => MultiplayerClient.ServerRoom!.ActiveCountdowns.Any());
+        }
+
+        [Test]
+        public void TestRoll()
+        {
+            AddStep("set playlist", () =>
+            {
+                room.Playlist =
+                [
+                    new PlaylistItem(beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First()).BeatmapInfo)
+                    {
+                        RulesetID = new OsuRuleset().RulesetInfo.OnlineID
+                    }
+                ];
+            });
+            ClickButtonWhenEnabled<MultiplayerMatchSettingsOverlay.CreateOrUpdateButton>();
+            AddStep("set channel", () => room.ChannelId = 1);
+
+            AddUntilStep("wait for room join", () => RoomJoined);
+
+            AddStep("roll", () => MultiplayerClient.SendMatchRequest(new RollRequest()));
         }
 
         [Test]

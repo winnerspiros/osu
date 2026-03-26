@@ -1,9 +1,7 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
-using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -29,80 +27,43 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             var renderer = config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             automaticRendererInUse = renderer.Value == RendererType.Automatic;
 
-            IEnumerable<RendererType> renderers = host.GetPreferredRenderersForCurrentPlatform().Order();
-#pragma warning disable CS0612 // Type or member is obsolete
-            renderers = renderers.Where(t => t != RendererType.OpenGLLegacy);
-#pragma warning restore CS0612 // Type or member is obsolete
-
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
                 {
                     Caption = GraphicsSettingsStrings.Renderer,
                     Current = renderer,
-                    Items = renderers
+                    Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+#pragma warning disable CS0612 // Type or member is obsolete
+                                .Where(t => t != RendererType.Vulkan && t != RendererType.OpenGLLegacy),
+#pragma warning restore CS0612 // Type or member is obsolete
                 })
                 {
                     Keywords = new[] { @"compatibility", @"directx" },
-                }
+                },
+                // TODO: this needs to be a custom dropdown at some point
+                new SettingsItemV2(new FormEnumDropdown<FrameSync>
+                {
+                    Caption = GraphicsSettingsStrings.FrameLimiter,
+                    Current = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync),
+                })
+                {
+                    Keywords = new[] { @"fps", @"framerate" },
+                },
+                new SettingsItemV2(new FormEnumDropdown<ExecutionMode>
+                {
+                    Caption = GraphicsSettingsStrings.ThreadingMode,
+                    Current = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode)
+                }),
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = GraphicsSettingsStrings.ShowFPS,
+                    Current = osuConfig.GetBindable<bool>(OsuSetting.ShowFpsDisplay),
+                })
+                {
+                    Keywords = new[] { @"framerate", @"counter" },
+                },
             };
-
-            if (RuntimeInfo.IsMobile)
-            {
-                Add(new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Use Vulkan Renderer (Experimental)",
-                    Current = osuConfig.GetBindable<bool>(OsuSetting.VulkanRenderer),
-                })
-                {
-                    Keywords = new[] { @"android", @"vulkan", @"graphics" },
-                });
-
-                Add(new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Use ANGLE (GLES to Vulkan)",
-                    Current = osuConfig.GetBindable<bool>(OsuSetting.UseAngle),
-                })
-                {
-                    Keywords = new[] { @"android", @"vulkan", @"angle" },
-                });
-            }
-
-            Add(new SettingsItemV2(new FormEnumDropdown<FrameSync>
-            {
-                Caption = GraphicsSettingsStrings.FrameLimiter,
-                Current = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync),
-            })
-            {
-                Keywords = new[] { @"fps", @"framerate" },
-            });
-
-            Add(new SettingsItemV2(new FormEnumDropdown<ExecutionMode>
-            {
-                Caption = GraphicsSettingsStrings.ThreadingMode,
-                Current = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode)
-            }));
-
-            if (RuntimeInfo.IsMobile)
-            {
-                Add(new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Performance Mode",
-                    Current = osuConfig.GetBindable<bool>(OsuSetting.PerformanceMode),
-                })
-                {
-                    Keywords = new[] { @"android", @"vulkan", @"low latency" },
-                });
-            }
-
-            Add(new SettingsItemV2(new FormCheckBox
-            {
-                Caption = GraphicsSettingsStrings.ShowFPS,
-                Current = osuConfig.GetBindable<bool>(OsuSetting.ShowFpsDisplay),
-            })
-            {
-                Keywords = new[] { @"framerate", @"counter" },
-            });
 
             renderer.BindValueChanged(r =>
             {
@@ -144,9 +105,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             {
                 if (item == RendererType.Automatic && automaticRendererInUse)
                     return LocalisableString.Interpolate($"{base.GenerateItemText(item)} ({hostResolvedRenderer.GetDescription()})");
-
-                if (item == RendererType.Vulkan)
-                    return "Vulkan (Experimental)";
 
                 return base.GenerateItemText(item);
             }

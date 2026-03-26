@@ -117,7 +117,6 @@ namespace osu.Game.Tests.NonVisual
         /// User requests should start a new invocation and cancel the existing one.
         /// </summary>
         [Test]
-        [FlakyTest]
         public void TestUserRequestOverridesExistingCheck()
         {
             // This part covering double user input is not really possible because the settings button is disabled during the check,

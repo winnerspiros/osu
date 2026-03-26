@@ -6,6 +6,7 @@ concurrency:
 
 permissions:
   contents: read # to fetch code (actions/checkout)
+  security-events: write # for reporting InspectCode issues
 
 jobs:
   inspect-code:
@@ -13,13 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-          cache: false
 
       - name: Restore Tools
         run: dotnet tool restore
@@ -28,13 +28,13 @@ jobs:
         run: dotnet restore osu.Desktop.slnf
 
       - name: Restore inspectcode cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/inspectcode
           key: inspectcode-${{ hashFiles('.config/dotnet-tools.json', '.github/workflows/ci.yml', 'osu.sln*', 'osu*.slnf', '.editorconfig', '.globalconfig', 'CodeAnalysis/*', '**/*.csproj', '**/*.props') }}
 
       - name: Dotnet code style
-        run: dotnet build -c Debug -warnaserror osu.Desktop.slnf -p:EnforceCodeStyleInBuild=true --no-restore
+        run: dotnet build -c Debug -warnaserror osu.Desktop.slnf -p:EnforceCodeStyleInBuild=true
 
       - name: CodeFileSanity
         run: |
@@ -50,10 +50,14 @@ jobs:
           exit $exit_code
 
       - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu.Desktop.slnf --no-build --output="inspectcodereport.xml" --caches-home="inspectcode" --verbosity=WARN
-
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
+        uses: JetBrains/ReSharper-InspectCode@v0.11
+        with:
+          # this is WTF tier but if you don't specify *both* of these the defaults assume `build: true`
+          build: false
+          no-build: true
+          solution: ./osu.Desktop.slnf
+          caches-home: inspectcode
+          verbosity: WARN
 
   test:
     name: Test
@@ -69,47 +73,41 @@ jobs:
             # - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['SingleThread', 'MultiThreaded']
-          suite: ['Visual', 'NonVisual', 'Rulesets']
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-          cache: false
 
       - name: Compile
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
       - name: Test
-        shell: bash
-        run: |
-          if [ "${{ matrix.suite }}" == "Visual" ]; then
-            dotnet test osu.Game.Tests/bin/Debug/**/osu.Game.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.suite}}.trx" -- NUnit.ConsoleOut=0 --filter "FullyQualifiedName~osu.Game.Tests.Visual"
-          elif [ "${{ matrix.suite }}" == "NonVisual" ]; then
-             dotnet test osu.Game.Tests/bin/Debug/**/osu.Game.Tests.dll --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.suite}}.trx" -- NUnit.ConsoleOut=0 --filter "FullyQualifiedName!~osu.Game.Tests.Visual"
-          else
-             dotnet test osu.Game.Rulesets.Osu.Tests/bin/Debug/**/osu.Game.Rulesets.Osu.Tests.dll \
-                         osu.Game.Rulesets.Taiko.Tests/bin/Debug/**/osu.Game.Rulesets.Taiko.Tests.dll \
-                         osu.Game.Rulesets.Catch.Tests/bin/Debug/**/osu.Game.Rulesets.Catch.Tests.dll \
-                         osu.Game.Rulesets.Mania.Tests/bin/Debug/**/osu.Game.Rulesets.Mania.Tests.dll \
-                         osu.Game.Tournament.Tests/bin/Debug/**/osu.Game.Tournament.Tests.dll \
-                         Templates/**/*.Tests/bin/Debug/**/*.Tests.dll \
-                         --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.suite}}.trx" \
-                         -- NUnit.ConsoleOut=0
-          fi
+        run: >
+          dotnet test
+          osu.Game.Tests/bin/Debug/**/osu.Game.Tests.dll
+          osu.Game.Rulesets.Osu.Tests/bin/Debug/**/osu.Game.Rulesets.Osu.Tests.dll
+          osu.Game.Rulesets.Taiko.Tests/bin/Debug/**/osu.Game.Rulesets.Taiko.Tests.dll
+          osu.Game.Rulesets.Catch.Tests/bin/Debug/**/osu.Game.Rulesets.Catch.Tests.dll
+          osu.Game.Rulesets.Mania.Tests/bin/Debug/**/osu.Game.Rulesets.Mania.Tests.dll
+          osu.Game.Tournament.Tests/bin/Debug/**/osu.Game.Tournament.Tests.dll
+          Templates/**/*.Tests/bin/Debug/**/*.Tests.dll
+          --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+          --
+          NUnit.ConsoleOut=0
 
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.suite}}
-          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.suite}}.trx
+          name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
+          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
 
   build-only-android:
     name: Build only (Android)
@@ -117,22 +115,21 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup JDK 11
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: microsoft
           java-version: 11
 
       - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-          cache: false
 
       - name: Install .NET workloads
-        run: dotnet workload install android wasi-experimental
+        run: dotnet workload install android
 
       - name: Compile
         run: dotnet build -c Debug osu.Android.slnf
@@ -140,17 +137,15 @@ jobs:
   build-only-ios:
     name: Build only (iOS)
     runs-on: macos-15
-    continue-on-error: true
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install .NET 8.0.x
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
-          cache: false
 
       - name: Install .NET Workloads
         run: dotnet workload install ios
