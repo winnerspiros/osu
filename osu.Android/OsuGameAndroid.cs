@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Android.App;
 using Android.Content.PM;
+using Android.Views;
 using Microsoft.Maui.Devices;
 using osu.Android.Native;
 using osu.Framework.Allocation;
@@ -105,7 +106,7 @@ namespace osu.Android
             {
                 try
                 {
-                    gameActivity.ApplyPerformanceOptimizations(e.NewValue);
+                    applyPerformanceOptimizations(e.NewValue);
                 }
                 catch (Exception ex)
                 {
@@ -128,6 +129,78 @@ namespace osu.Android
                 else
                     stopVulkanProbe();
             }, true);
+
+            // Apply unbuffered touch dispatch (deferred from Activity lifecycle to avoid early crash).
+            try
+            {
+                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                {
+                    gameActivity.RunOnUiThread(() =>
+                    {
+                        try
+                        {
+                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to schedule unbuffered dispatch: {e.Message}");
+            }
+        }
+
+        private void applyPerformanceOptimizations(bool enabled)
+        {
+            gameActivity.RunOnUiThread(() =>
+            {
+                try
+                {
+                    gameActivity.Window?.SetSustainedPerformanceMode(enabled);
+
+                    if (enabled)
+                        selectHighestRefreshRate();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
+                }
+            });
+        }
+
+        private void selectHighestRefreshRate()
+        {
+            try
+            {
+                var display = gameActivity.WindowManager?.DefaultDisplay;
+
+                if (display == null || gameActivity.Window == null)
+                    return;
+
+#pragma warning disable CA1422
+                var modes = display.GetSupportedModes();
+#pragma warning restore CA1422
+
+                if (modes == null || modes.Length == 0)
+                    return;
+
+                var preferred = modes.OrderByDescending(m => m.RefreshRate).First();
+                var layoutParams = gameActivity.Window.Attributes;
+
+                if (layoutParams != null)
+                {
+                    layoutParams.PreferredDisplayModeId = preferred.ModeId;
+                    gameActivity.Window.Attributes = layoutParams;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to select highest refresh rate: {e.Message}");
+            }
         }
 
         private void startOboeBridge()

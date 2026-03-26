@@ -19,4 +19,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.3" />
   </ItemGroup>
+  <!-- Exclude native C++ source files from the build. They are compiled separately via CMake/NDK. -->
+  <ItemGroup>
+    <None Remove="Native\*.cpp" />
+    <None Remove="Native\*.h" />
+    <None Remove="Native\CMakeLists.txt" />
+  </ItemGroup>
 </Project>

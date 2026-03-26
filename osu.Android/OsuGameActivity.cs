@@ -69,22 +69,6 @@ namespace osu.Android
             game = new OsuGameAndroid(this);
         }
 
-        protected override void OnStart()
-        {
-            base.OnStart();
-
-            try
-            {
-                // RequestUnbufferedDispatch(int sourceClass) requires API 31+.
-                if (OperatingSystem.IsAndroidVersionAtLeast(31))
-                    Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
-            }
-        }
-
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -127,82 +111,6 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to load ruleset assembly {asm}: {e.Message}");
                 }
-            }
-        }
-
-        protected override void OnResume()
-        {
-            base.OnResume();
-
-            try
-            {
-                if (OperatingSystem.IsAndroidVersionAtLeast(31))
-                {
-                    var gameManager = (GameManager?)GetSystemService(GameService);
-
-                    if (gameManager != null)
-                    {
-                        bool isPerformanceMode = gameManager.GameMode == (int)GameMode.Performance;
-                        ApplyPerformanceOptimizations(isPerformanceMode);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to query game mode: {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Applies Android-level performance optimizations for low-latency gameplay.
-        /// </summary>
-        /// <param name="enabled">Whether to enable performance optimizations.</param>
-        public void ApplyPerformanceOptimizations(bool enabled)
-        {
-            RunOnUiThread(() =>
-            {
-                try
-                {
-                    Window?.SetSustainedPerformanceMode(enabled);
-
-                    if (enabled)
-                        selectHighestRefreshRate();
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
-                }
-            });
-        }
-
-        private void selectHighestRefreshRate()
-        {
-            try
-            {
-                var display = WindowManager?.DefaultDisplay;
-
-                if (display == null || Window == null)
-                    return;
-
-#pragma warning disable CA1422
-                var modes = display.GetSupportedModes();
-#pragma warning restore CA1422
-
-                if (modes == null || modes.Length == 0)
-                    return;
-
-                var preferred = modes.OrderByDescending(m => m.RefreshRate).First();
-                var layoutParams = Window.Attributes;
-
-                if (layoutParams != null)
-                {
-                    layoutParams.PreferredDisplayModeId = preferred.ModeId;
-                    Window.Attributes = layoutParams;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to select highest refresh rate: {e.Message}");
             }
         }
 
