@@ -34,6 +34,7 @@ namespace osu.Android
         private readonly Bindable<bool> performanceMode = new Bindable<bool>();
         private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
+        private readonly BindableDouble audioOffset = new BindableDouble();
 
         private OboeAudioBridge? oboeBridge;
         private VulkanProbe? vulkanProbe;
@@ -64,6 +65,7 @@ namespace osu.Android
             config.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
             config.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             config.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
+            config.BindWith(OsuSetting.AudioOffset, audioOffset);
         }
 
         protected override void LoadComplete()
@@ -114,7 +116,13 @@ namespace osu.Android
 
                     if (started)
                     {
+                        // Log basic stream info immediately.
                         logOboeInfo();
+
+                        // Latency is measured asynchronously by the audio callback.
+                        // Schedule a check after a short warm-up period to get a stable reading
+                        // and apply the auto-suggested audio offset if appropriate.
+                        Scheduler.AddDelayed(applyMeasuredLatencyOffset, 2000);
                     }
                     else
                     {
@@ -173,6 +181,7 @@ namespace osu.Android
             Debug.WriteLine($"[osu!] Vulkan GPU: available={vulkanProbe.IsAvailable}, "
                             + $"API={major}.{minor}.{patch}, "
                             + $"swapchain={vulkanProbe.SupportsSwapchain}, "
+                            + $"mailbox={vulkanProbe.SupportsMailboxPresentMode}, "
                             + $"VRAM={vulkanProbe.DeviceLocalMemoryMB}MB, "
                             + $"queueFamilies={vulkanProbe.QueueFamilyCount}, "
                             + $"dedicatedCompute={vulkanProbe.HasDedicatedComputeQueue}, "
@@ -187,8 +196,34 @@ namespace osu.Android
                             + $"api={(oboeBridge.IsAAudio ? "AAudio" : "OpenSLES")}, "
                             + $"sampleRate={oboeBridge.SampleRate}Hz, "
                             + $"burst={oboeBridge.FramesPerBurst}frames, "
-                            + $"bufferSize={oboeBridge.BufferSizeInFrames}frames, "
-                            + $"latency={oboeBridge.GetOutputLatencyMs():F1}ms");
+                            + $"bufferSize={oboeBridge.BufferSizeInFrames}frames");
+        }
+
+        /// <summary>
+        /// Called after a warm-up delay to read the stable measured latency and apply it
+        /// as an auto-suggested audio offset when the user hasn't set a manual value.
+        /// </summary>
+        private void applyMeasuredLatencyOffset()
+        {
+            if (oboeBridge == null) return;
+
+            double latency = oboeBridge.GetOutputLatencyMs();
+
+            Debug.WriteLine($"[osu!] Oboe measured latency after warm-up: {latency:F1}ms");
+
+            if (latency <= 0)
+                return;
+
+            // Only auto-suggest when the user hasn't already configured a manual offset.
+            // Use a small epsilon to safely compare against the default value of 0.
+            if (Math.Abs(audioOffset.Value) >= 0.01)
+                return;
+
+            // The audio offset compensates for hardware output delay: if audio arrives
+            // 20 ms late, we need to set the offset to -20 ms so osu! plays notes earlier.
+            double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
+            audioOffset.Value = suggested;
+            Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
         }
 
         /// <summary>

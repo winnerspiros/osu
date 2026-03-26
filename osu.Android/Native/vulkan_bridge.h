@@ -27,6 +27,10 @@ public:
         bool hasDedicatedComputeQueue;
         /// Whether the device has a dedicated transfer queue.
         bool hasDedicatedTransferQueue;
+        /// Whether the device likely supports VK_PRESENT_MODE_MAILBOX_KHR for low-latency rendering.
+        /// Detected via the VK_GOOGLE_display_timing device extension, which is present on
+        /// Android GPUs (Adreno, Mali) that also expose MAILBOX present mode.
+        bool supportsMailboxPresentMode;
     };
 
     VulkanProbe();
@@ -47,5 +51,6 @@ private:
     bool queryDevice();
     void queryMemory(VkPhysicalDevice device);
     void queryQueueFamilies(VkPhysicalDevice device);
+    void queryMailboxSupport(VkPhysicalDevice device);
     void cleanup();
 };

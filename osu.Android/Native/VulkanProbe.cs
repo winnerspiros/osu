@@ -193,6 +193,28 @@ namespace osu.Android.Native
             }
         }
 
+        /// <summary>
+        /// Whether the device likely supports MAILBOX present mode for low-latency triple-buffered rendering.
+        /// Detected via the <c>VK_GOOGLE_display_timing</c> extension, which is present on Android GPUs
+        /// (Adreno, Mali) that also expose MAILBOX present mode.
+        /// </summary>
+        public bool SupportsMailboxPresentMode
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return false;
+
+                try
+                {
+                    return nVulkanSupportsMailboxPresentMode(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Dispose()
         {
             if (disposed) return;
@@ -247,5 +269,8 @@ namespace osu.Android.Native
 
         [DllImport("osu_native")]
         private static extern byte nVulkanHasDedicatedTransferQueue(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern byte nVulkanSupportsMailboxPresentMode(long ptr);
     }
 }

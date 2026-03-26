@@ -20,7 +20,7 @@ VulkanProbe::VulkanProbe() {
 
     if (available_) {
         LOGI("Vulkan available: %s (API %u.%u.%u, driver %u, VRAM %u MB, "
-             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d)",
+             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d, mailbox=%d)",
              deviceInfo_.deviceName.c_str(),
              VK_VERSION_MAJOR(deviceInfo_.apiVersion),
              VK_VERSION_MINOR(deviceInfo_.apiVersion),
@@ -30,7 +30,8 @@ VulkanProbe::VulkanProbe() {
              deviceInfo_.queueFamilyCount,
              deviceInfo_.hasDedicatedComputeQueue ? 1 : 0,
              deviceInfo_.hasDedicatedTransferQueue ? 1 : 0,
-             deviceInfo_.supportsSwapchain ? 1 : 0);
+             deviceInfo_.supportsSwapchain ? 1 : 0,
+             deviceInfo_.supportsMailboxPresentMode ? 1 : 0);
     } else {
         LOGI("Vulkan not available on this device");
     }
@@ -127,6 +128,7 @@ bool VulkanProbe::queryDevice() {
     // Query additional performance-relevant capabilities.
     queryMemory(selected);
     queryQueueFamilies(selected);
+    queryMailboxSupport(selected);
 
     return true;
 }
@@ -171,6 +173,31 @@ void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
 
         if (hasTransfer && !hasGraphics && !hasCompute) {
             deviceInfo_.hasDedicatedTransferQueue = true;
+        }
+    }
+}
+
+void VulkanProbe::queryMailboxSupport(VkPhysicalDevice device) {
+    // MAILBOX present mode requires a VkSurface to query definitively, but we detect
+    // it using VK_GOOGLE_display_timing — a device extension that is present exclusively
+    // on Android GPUs (Adreno, Mali) that also expose MAILBOX present mode support.
+    // This gives us a reliable indication without needing an active surface.
+    deviceInfo_.supportsMailboxPresentMode = false;
+
+    uint32_t extCount = 0;
+
+    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, nullptr) != VK_SUCCESS || extCount == 0)
+        return;
+
+    std::vector<VkExtensionProperties> extensions(extCount);
+
+    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, extensions.data()) != VK_SUCCESS)
+        return;
+
+    for (const auto& ext : extensions) {
+        if (strcmp(ext.extensionName, "VK_GOOGLE_display_timing") == 0) {
+            deviceInfo_.supportsMailboxPresentMode = true;
+            return;
         }
     }
 }
@@ -229,6 +256,11 @@ unsigned char nVulkanHasDedicatedComputeQueue(long ptr) {
 unsigned char nVulkanHasDedicatedTransferQueue(long ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().hasDedicatedTransferQueue) ? 1 : 0;
+}
+
+unsigned char nVulkanSupportsMailboxPresentMode(long ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().supportsMailboxPresentMode) ? 1 : 0;
 }
 
 } // extern "C"
