@@ -134,7 +134,7 @@ namespace osu.Android
 
                     if (gameManager != null)
                     {
-                        bool isPerformanceMode = (GameMode)gameManager.GameMode == GameMode.Performance;
+                        bool isPerformanceMode = gameManager.GameMode == (int)GameMode.Performance;
                         ApplyPerformanceOptimizations(isPerformanceMode);
                     }
                 }
