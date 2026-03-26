@@ -36,7 +36,7 @@ namespace osu.Game.Tests.Database
                 });
 
                 var items = realm.Run(r => r.All<BeatmapSetInfo>().ToList());
-                Assert.AreEqual(count, items.Count);
+                Assert.That(items.Count, Is.EqualTo(count));
 
                 var sw = Stopwatch.StartNew();
                 manager.Delete(items);
@@ -46,7 +46,7 @@ namespace osu.Game.Tests.Database
 
                 // Verify deletion
                 int remaining = realm.Run(r => r.All<BeatmapSetInfo>().Count(s => !s.DeletePending));
-                Assert.AreEqual(0, remaining);
+                Assert.That(remaining, Is.EqualTo(0));
             });
         }
 
@@ -72,7 +72,7 @@ namespace osu.Game.Tests.Database
                 });
 
                 var items = realm.Run(r => r.All<BeatmapSetInfo>().ToList());
-                Assert.AreEqual(count, items.Count);
+                Assert.That(items.Count, Is.EqualTo(count));
 
                 var sw = Stopwatch.StartNew();
                 manager.Undelete(items);
@@ -82,7 +82,7 @@ namespace osu.Game.Tests.Database
 
                 // Verify undeletion
                 int remaining = realm.Run(r => r.All<BeatmapSetInfo>().Count(s => !s.DeletePending));
-                Assert.AreEqual(count, remaining);
+                Assert.That(remaining, Is.EqualTo(count));
             });
         }
 
