@@ -9,7 +9,8 @@ namespace osu.Android.Native
 {
     /// <summary>
     /// Probes Vulkan GPU capability on the current Android device.
-    /// Used to report hardware information and determine optimal rendering strategy.
+    /// Used to report hardware information and determine optimal rendering strategy
+    /// for low-latency gameplay.
     /// </summary>
     public sealed class VulkanProbe : IDisposable
     {
@@ -110,6 +111,88 @@ namespace osu.Android.Native
             }
         }
 
+        /// <summary>
+        /// Total device-local GPU memory in megabytes.
+        /// </summary>
+        public int DeviceLocalMemoryMB
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return 0;
+
+                try
+                {
+                    return nVulkanGetDeviceLocalMemoryMB(nativePtr);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of queue families available on the device.
+        /// </summary>
+        public int QueueFamilyCount
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return 0;
+
+                try
+                {
+                    return nVulkanGetQueueFamilyCount(nativePtr);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the device has a dedicated compute queue (separate from graphics).
+        /// Enables async compute for better frame pacing.
+        /// </summary>
+        public bool HasDedicatedComputeQueue
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return false;
+
+                try
+                {
+                    return nVulkanHasDedicatedComputeQueue(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the device has a dedicated transfer queue.
+        /// Enables async upload for reduced frame stalls.
+        /// </summary>
+        public bool HasDedicatedTransferQueue
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return false;
+
+                try
+                {
+                    return nVulkanHasDedicatedTransferQueue(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Dispose()
         {
             if (disposed) return;
@@ -152,5 +235,17 @@ namespace osu.Android.Native
 
         [DllImport("osu_native")]
         private static extern byte nVulkanSupportsSwapchain(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern int nVulkanGetDeviceLocalMemoryMB(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern int nVulkanGetQueueFamilyCount(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern byte nVulkanHasDedicatedComputeQueue(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern byte nVulkanHasDedicatedTransferQueue(long ptr);
     }
 }

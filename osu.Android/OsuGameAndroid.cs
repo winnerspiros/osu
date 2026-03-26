@@ -6,6 +6,7 @@ using System.Linq;
 using Android.App;
 using Android.Content.PM;
 using Microsoft.Maui.Devices;
+using osu.Android.Native;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -31,6 +32,11 @@ namespace osu.Android
         public override Vector2 ScalingContainerTargetDrawSize => new Vector2(1024, 1024 * DrawHeight / DrawWidth);
 
         private readonly Bindable<bool> performanceMode = new Bindable<bool>();
+        private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
+        private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
+
+        private OboeAudioBridge? oboeBridge;
+        private VulkanProbe? vulkanProbe;
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -56,6 +62,8 @@ namespace osu.Android
         private void load(OsuConfigManager config)
         {
             config.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
+            config.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
+            config.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
         }
 
         protected override void LoadComplete()
@@ -74,6 +82,122 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] Failed to toggle performance mode: {ex.Message}");
                 }
             }, true);
+
+            lowLatencyAudio.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    startOboeBridge();
+                else
+                    stopOboeBridge();
+            }, true);
+
+            vulkanProbeEnabled.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    startVulkanProbe();
+                else
+                    stopVulkanProbe();
+            }, true);
+        }
+
+        private void startOboeBridge()
+        {
+            if (oboeBridge != null) return;
+
+            try
+            {
+                oboeBridge = OboeAudioBridge.Create();
+
+                if (oboeBridge != null)
+                {
+                    bool started = oboeBridge.Start();
+
+                    if (started)
+                    {
+                        logOboeInfo();
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[osu!] Oboe bridge created but failed to start");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Oboe bridge init failed: {e.Message}");
+            }
+        }
+
+        private void stopOboeBridge()
+        {
+            oboeBridge?.Dispose();
+            oboeBridge = null;
+            Debug.WriteLine("[osu!] Oboe bridge stopped by user setting");
+        }
+
+        private void startVulkanProbe()
+        {
+            if (vulkanProbe != null) return;
+
+            try
+            {
+                vulkanProbe = VulkanProbe.Create();
+
+                if (vulkanProbe != null)
+                {
+                    logVulkanInfo();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Vulkan probe init failed: {e.Message}");
+            }
+        }
+
+        private void stopVulkanProbe()
+        {
+            vulkanProbe?.Dispose();
+            vulkanProbe = null;
+            Debug.WriteLine("[osu!] Vulkan probe stopped by user setting");
+        }
+
+        private void logVulkanInfo()
+        {
+            if (vulkanProbe == null) return;
+
+            int ver = vulkanProbe.ApiVersion;
+            int major = (ver >> 22) & 0x3FF;
+            int minor = (ver >> 12) & 0x3FF;
+            int patch = ver & 0xFFF;
+
+            Debug.WriteLine($"[osu!] Vulkan GPU: available={vulkanProbe.IsAvailable}, "
+                            + $"API={major}.{minor}.{patch}, "
+                            + $"swapchain={vulkanProbe.SupportsSwapchain}, "
+                            + $"VRAM={vulkanProbe.DeviceLocalMemoryMB}MB, "
+                            + $"queueFamilies={vulkanProbe.QueueFamilyCount}, "
+                            + $"dedicatedCompute={vulkanProbe.HasDedicatedComputeQueue}, "
+                            + $"dedicatedTransfer={vulkanProbe.HasDedicatedTransferQueue}");
+        }
+
+        private void logOboeInfo()
+        {
+            if (oboeBridge == null) return;
+
+            Debug.WriteLine($"[osu!] Oboe audio: active={oboeBridge.IsActive}, "
+                            + $"api={(oboeBridge.IsAAudio ? "AAudio" : "OpenSLES")}, "
+                            + $"sampleRate={oboeBridge.SampleRate}Hz, "
+                            + $"burst={oboeBridge.FramesPerBurst}frames, "
+                            + $"bufferSize={oboeBridge.BufferSizeInFrames}frames, "
+                            + $"latency={oboeBridge.GetOutputLatencyMs():F1}ms");
+        }
+
+        /// <summary>
+        /// Returns the measured audio output latency in milliseconds via the Oboe bridge,
+        /// or -1 if unavailable. Can be used to auto-suggest audio offset calibration.
+        /// </summary>
+        public double GetMeasuredAudioLatencyMs()
+        {
+            return oboeBridge?.GetOutputLatencyMs() ?? -1;
         }
 
         protected override void ScreenChanged(IOsuScreen? current, IOsuScreen? newScreen)
@@ -113,6 +237,17 @@ namespace osu.Android
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            oboeBridge?.Dispose();
+            oboeBridge = null;
+
+            vulkanProbe?.Dispose();
+            vulkanProbe = null;
+        }
 
         private class AndroidBatteryInfo : BatteryInfo
         {

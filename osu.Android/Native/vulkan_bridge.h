@@ -5,10 +5,12 @@
 
 #include <vulkan/vulkan.h>
 #include <string>
+#include <cstdint>
 
 /// Lightweight Vulkan capability probe for Android.
-/// Does NOT create a full rendering pipeline - it checks device support
-/// and reports GPU capabilities so the game can make informed decisions.
+/// Does NOT create a full rendering pipeline — it checks device support
+/// and reports GPU capabilities so the game can make informed decisions
+/// about rendering strategy and low-latency presentation.
 class VulkanProbe {
 public:
     struct DeviceInfo {
@@ -17,6 +19,14 @@ public:
         uint32_t driverVersion;
         uint32_t vendorId;
         bool supportsSwapchain;
+        /// Total device-local memory in megabytes.
+        uint32_t deviceLocalMemoryMB;
+        /// Number of queue families available.
+        uint32_t queueFamilyCount;
+        /// Whether the device has a dedicated compute queue (separate from graphics).
+        bool hasDedicatedComputeQueue;
+        /// Whether the device has a dedicated transfer queue.
+        bool hasDedicatedTransferQueue;
     };
 
     VulkanProbe();
@@ -35,5 +45,7 @@ private:
 
     bool createInstance();
     bool queryDevice();
+    void queryMemory(VkPhysicalDevice device);
+    void queryQueueFamilies(VkPhysicalDevice device);
     void cleanup();
 };

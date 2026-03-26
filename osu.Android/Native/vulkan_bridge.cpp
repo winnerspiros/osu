@@ -19,12 +19,18 @@ VulkanProbe::VulkanProbe() {
     }
 
     if (available_) {
-        LOGI("Vulkan available: %s (API %u.%u.%u, driver %u)",
+        LOGI("Vulkan available: %s (API %u.%u.%u, driver %u, VRAM %u MB, "
+             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d)",
              deviceInfo_.deviceName.c_str(),
              VK_VERSION_MAJOR(deviceInfo_.apiVersion),
              VK_VERSION_MINOR(deviceInfo_.apiVersion),
              VK_VERSION_PATCH(deviceInfo_.apiVersion),
-             deviceInfo_.driverVersion);
+             deviceInfo_.driverVersion,
+             deviceInfo_.deviceLocalMemoryMB,
+             deviceInfo_.queueFamilyCount,
+             deviceInfo_.hasDedicatedComputeQueue ? 1 : 0,
+             deviceInfo_.hasDedicatedTransferQueue ? 1 : 0,
+             deviceInfo_.supportsSwapchain ? 1 : 0);
     } else {
         LOGI("Vulkan not available on this device");
     }
@@ -101,26 +107,72 @@ bool VulkanProbe::queryDevice() {
 
     if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, nullptr) != VK_SUCCESS || extCount == 0) {
         deviceInfo_.supportsSwapchain = false;
-        return true;
-    }
+    } else {
+        std::vector<VkExtensionProperties> extensions(extCount);
 
-    std::vector<VkExtensionProperties> extensions(extCount);
+        if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, extensions.data()) != VK_SUCCESS) {
+            deviceInfo_.supportsSwapchain = false;
+        } else {
+            deviceInfo_.supportsSwapchain = false;
 
-    if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, extensions.data()) != VK_SUCCESS) {
-        deviceInfo_.supportsSwapchain = false;
-        return true;
-    }
-
-    deviceInfo_.supportsSwapchain = false;
-
-    for (const auto& ext : extensions) {
-        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-            deviceInfo_.supportsSwapchain = true;
-            break;
+            for (const auto& ext : extensions) {
+                if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+                    deviceInfo_.supportsSwapchain = true;
+                    break;
+                }
+            }
         }
     }
 
+    // Query additional performance-relevant capabilities.
+    queryMemory(selected);
+    queryQueueFamilies(selected);
+
     return true;
+}
+
+void VulkanProbe::queryMemory(VkPhysicalDevice device) {
+    VkPhysicalDeviceMemoryProperties memProps;
+    vkGetPhysicalDeviceMemoryProperties(device, &memProps);
+
+    uint64_t deviceLocalBytes = 0;
+
+    for (uint32_t i = 0; i < memProps.memoryHeapCount; i++) {
+        if (memProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+            deviceLocalBytes += memProps.memoryHeaps[i].size;
+        }
+    }
+
+    deviceInfo_.deviceLocalMemoryMB = static_cast<uint32_t>(deviceLocalBytes / (1024 * 1024));
+}
+
+void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    deviceInfo_.queueFamilyCount = queueFamilyCount;
+    deviceInfo_.hasDedicatedComputeQueue = false;
+    deviceInfo_.hasDedicatedTransferQueue = false;
+
+    if (queueFamilyCount == 0) return;
+
+    std::vector<VkQueueFamilyProperties> families(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, families.data());
+
+    for (const auto& family : families) {
+        // A dedicated compute queue has compute but NOT graphics.
+        bool hasGraphics = (family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0;
+        bool hasCompute = (family.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0;
+        bool hasTransfer = (family.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0;
+
+        if (hasCompute && !hasGraphics) {
+            deviceInfo_.hasDedicatedComputeQueue = true;
+        }
+
+        if (hasTransfer && !hasGraphics && !hasCompute) {
+            deviceInfo_.hasDedicatedTransferQueue = true;
+        }
+    }
 }
 
 void VulkanProbe::cleanup() {
@@ -157,6 +209,26 @@ int nVulkanGetApiVersion(long ptr) {
 unsigned char nVulkanSupportsSwapchain(long ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().supportsSwapchain) ? 1 : 0;
+}
+
+int nVulkanGetDeviceLocalMemoryMB(long ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return probe ? static_cast<int>(probe->getDeviceInfo().deviceLocalMemoryMB) : 0;
+}
+
+int nVulkanGetQueueFamilyCount(long ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return probe ? static_cast<int>(probe->getDeviceInfo().queueFamilyCount) : 0;
+}
+
+unsigned char nVulkanHasDedicatedComputeQueue(long ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().hasDedicatedComputeQueue) ? 1 : 0;
+}
+
+unsigned char nVulkanHasDedicatedTransferQueue(long ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().hasDedicatedTransferQueue) ? 1 : 0;
 }
 
 } // extern "C"

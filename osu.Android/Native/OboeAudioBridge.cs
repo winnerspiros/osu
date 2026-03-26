@@ -10,6 +10,7 @@ namespace osu.Android.Native
     /// <summary>
     /// Managed wrapper around the native Oboe low-latency audio bridge.
     /// Provides accurate audio output latency measurement for rhythm-game synchronisation.
+    /// Optimised for lowest possible latency: AAudio preferred, exclusive mode, 1× burst buffer.
     /// </summary>
     public sealed class OboeAudioBridge : IDisposable
     {
@@ -125,6 +126,89 @@ namespace osu.Android.Native
             }
         }
 
+        /// <summary>
+        /// The negotiated sample rate of the stream (e.g. 48000).
+        /// </summary>
+        public int SampleRate
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return 0;
+
+                try
+                {
+                    return nOboeGetSampleRate(nativePtr);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The burst size in frames — the optimal callback quantum.
+        /// Lower burst = lower latency. Typical Android values: 96–192 frames.
+        /// </summary>
+        public int FramesPerBurst
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return 0;
+
+                try
+                {
+                    return nOboeGetFramesPerBurst(nativePtr);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The actual buffer size in frames. When optimised, this equals <see cref="FramesPerBurst"/>
+        /// for minimum latency (1× burst).
+        /// </summary>
+        public int BufferSizeInFrames
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return 0;
+
+                try
+                {
+                    return nOboeGetBufferSizeInFrames(nativePtr);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the stream is using AAudio (true) or OpenSL ES (false).
+        /// AAudio provides the lowest latency path on Android 8.1+.
+        /// </summary>
+        public bool IsAAudio
+        {
+            get
+            {
+                if (disposed || nativePtr == 0) return false;
+
+                try
+                {
+                    return nOboeIsAAudio(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Dispose()
         {
             if (disposed) return;
@@ -170,5 +254,17 @@ namespace osu.Android.Native
 
         [DllImport("osu_native")]
         private static extern byte nOboeIsActive(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern int nOboeGetSampleRate(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern int nOboeGetFramesPerBurst(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern int nOboeGetBufferSizeInFrames(long ptr);
+
+        [DllImport("osu_native")]
+        private static extern byte nOboeIsAAudio(long ptr);
     }
 }
