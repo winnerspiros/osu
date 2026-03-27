@@ -25,7 +25,13 @@ namespace osu.Android.Native
         {
             try
             {
-                native_loaded = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _);
+                // Use DllImportSearchPath.ApplicationDirectory to avoid searching system paths
+                // which can crash on some Samsung devices with aggressive security policies.
+                native_loaded = NativeLibrary.TryLoad(
+                    lib_name,
+                    typeof(VulkanProbe).Assembly,
+                    DllImportSearchPath.ApplicationDirectory,
+                    out _);
             }
             catch (Exception e)
             {
