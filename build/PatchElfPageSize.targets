@@ -169,12 +169,77 @@ for (int i = 0; i < e_shnum; i++)
     WU64(newData, newSh + 24, translate(RU64(data, oldSh + 24))); // sh_offset
 }
 
-// ── Write patched file ──────────────────────────────────────────────
-System.IO.File.WriteAllBytes(FilePath, newData);
-WasPatched = true;
-Log.LogMessage(MessageImportance.High,
-    "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
-    System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
+// ── Write patched file (with lock to handle parallel builds) ────────
+string lockFile = FilePath + ".patch-lock";
+System.IO.FileStream lockStream = null;
+try
+{
+    // Acquire an exclusive lock file to prevent concurrent writes.
+    // Retry up to 30 times with 1-second delays (handles parallel MSBuild nodes).
+    for (int attempt = 0; attempt < 30; attempt++)
+    {
+        try
+        {
+            lockStream = new System.IO.FileStream(lockFile,
+                System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite,
+                System.IO.FileShare.None);
+            break;
+        }
+        catch (System.IO.IOException)
+        {
+            System.Threading.Thread.Sleep(1000);
+        }
+    }
+
+    if (lockStream == null)
+    {
+        Log.LogMessage(MessageImportance.High,
+            "PatchElfPageSize: could not acquire lock for {0}, skipping (another build node may be patching it)",
+            System.IO.Path.GetFileName(FilePath));
+        return true;
+    }
+
+    // Re-read and re-check: another node may have already patched while we waited.
+    byte[] freshData = System.IO.File.ReadAllBytes(FilePath);
+    bool stillNeeds = false;
+    if (freshData.Length >= 64 && freshData[0] == 0x7F && freshData[4] == 2 && freshData[5] == 1)
+    {
+        ulong freshPhoff = RU64(freshData, 32);
+        int freshPhentsz = (int)(freshData[54] | (freshData[55] << 8));
+        int freshPhnum   = (int)(freshData[56] | (freshData[57] << 8));
+        for (int i = 0; i < freshPhnum; i++)
+        {
+            int h = (int)freshPhoff + i * freshPhentsz;
+            if (RU32(freshData, h) == PT_LOAD && RU64(freshData, h + 48) < (ulong)pageSize)
+            {
+                stillNeeds = true;
+                break;
+            }
+        }
+    }
+
+    if (!stillNeeds)
+    {
+        Log.LogMessage(MessageImportance.Low,
+            "PatchElfPageSize: {0} was already patched by another build node",
+            System.IO.Path.GetFileName(FilePath));
+        return true;
+    }
+
+    System.IO.File.WriteAllBytes(FilePath, newData);
+    WasPatched = true;
+    Log.LogMessage(MessageImportance.High,
+        "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
+        System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
+}
+finally
+{
+    if (lockStream != null)
+    {
+        lockStream.Dispose();
+        try { System.IO.File.Delete(lockFile); } catch { }
+    }
+}
 ]]></Code>
     </Task>
   </UsingTask>

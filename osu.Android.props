@@ -8,9 +8,13 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <!-- Suppress XA0141 page-size warnings during build. The actual .so files are patched
+         to 16 KB alignment by build/PatchElfPageSize.targets, but the SDK check runs before
+         the patch in some build orderings. This suppression is harmless since we do fix them. -->
+    <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
   </PropertyGroup>
-  <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB
-       before the Android SDK validates page sizes. See build/PatchElfPageSize.targets.
+  <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB.
+       See build/PatchElfPageSize.targets for details.
        TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
   <Import Project="$(MSBuildThisFileDirectory)build\PatchElfPageSize.targets" />
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
