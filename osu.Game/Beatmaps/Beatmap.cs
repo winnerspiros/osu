@@ -146,7 +146,7 @@ namespace osu.Game.Beatmaps
 
         public int CountdownOffset { get; set; }
 
-        public int[] Bookmarks { get; set; } = Array.Empty<int>();
+        public int[] Bookmarks { get; set; } = [];
 
         public int BeatmapVersion { get; set; } = LegacyBeatmapEncoder.FIRST_LAZER_VERSION;
 

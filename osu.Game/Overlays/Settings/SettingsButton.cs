@@ -24,7 +24,7 @@ namespace osu.Game.Overlays.Settings
             };
         }
 
-        public IEnumerable<string> Keywords { get; set; } = Array.Empty<string>();
+        public IEnumerable<string> Keywords { get; set; } = [];
 
         public BindableBool CanBeShown { get; } = new BindableBool(true);
         IBindable<bool> IConditionalFilterable.CanBeShown => CanBeShown;

@@ -47,7 +47,7 @@ namespace osu.Game.Tests.Visual
         protected Bindable<RulesetInfo> Ruleset { get; } = new Bindable<RulesetInfo>();
 
         [Cached]
-        protected Bindable<IReadOnlyList<Mod>> SelectedMods { get; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        protected Bindable<IReadOnlyList<Mod>> SelectedMods { get; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         protected new DependencyContainer Dependencies { get; private set; }
 
@@ -256,7 +256,7 @@ namespace osu.Game.Tests.Visual
 
             // Avoid circular reference.
             var beatmap = beatmapSet.Beatmaps.First();
-            beatmapSet.Beatmaps = Array.Empty<APIBeatmap>();
+            beatmapSet.Beatmaps = [];
 
             // Populate the set as that's generally what we expect from the API.
             beatmap.BeatmapSet = beatmapSet;

@@ -164,7 +164,7 @@ namespace osu.Game.Rulesets.Catch
                     };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

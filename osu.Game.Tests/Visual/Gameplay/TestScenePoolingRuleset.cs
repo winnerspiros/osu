@@ -474,7 +474,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private class TestHitObjectWithNested : TestHitObject
         {
-            public IEnumerable<HitObject> NestedObjects { get; init; } = Array.Empty<HitObject>();
+            public IEnumerable<HitObject> NestedObjects { get; init; } = [];
 
             protected override void CreateNestedHitObjects(CancellationToken cancellationToken)
             {

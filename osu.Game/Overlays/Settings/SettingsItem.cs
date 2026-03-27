@@ -121,7 +121,7 @@ namespace osu.Game.Overlays.Settings
         {
             get
             {
-                var keywords = new List<LocalisableString>(Keywords?.Select(k => (LocalisableString)k) ?? Array.Empty<LocalisableString>())
+                var keywords = new List<LocalisableString>(Keywords?.Select(k => (LocalisableString)k) ?? [])
                 {
                     LabelText
                 };

@@ -205,7 +205,7 @@ namespace osu.Game.Tests.Mods
         [Test]
         public void TestModBelongsToRuleset()
         {
-            Assert.That(ModUtils.CheckModsBelongToRuleset(new OsuRuleset(), Array.Empty<Mod>()));
+            Assert.That(ModUtils.CheckModsBelongToRuleset(new OsuRuleset(), []));
             Assert.That(ModUtils.CheckModsBelongToRuleset(new OsuRuleset(), new Mod[] { new OsuModDoubleTime() }));
             Assert.That(ModUtils.CheckModsBelongToRuleset(new OsuRuleset(), new Mod[] { new OsuModDoubleTime(), new OsuModAccuracyChallenge() }));
             Assert.That(ModUtils.CheckModsBelongToRuleset(new OsuRuleset(), new Mod[] { new OsuModDoubleTime(), new ModAccuracyChallenge() }), Is.False);

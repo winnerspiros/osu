@@ -358,7 +358,7 @@ namespace osu.Game.Screens.Select
             if (!string.IsNullOrEmpty(metadata.Tags))
                 mapperTags.Tags = (metadata.Tags.Split(' '), t => songSelect?.Search(t));
             else
-                mapperTags.Tags = (Array.Empty<string>(), _ => { });
+                mapperTags.Tags = ([], _ => { });
 
             submitted.Date = beatmapSetInfo.DateSubmitted;
             ranked.Date = beatmapSetInfo.DateRanked;

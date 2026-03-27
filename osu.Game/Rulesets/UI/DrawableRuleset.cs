@@ -130,7 +130,7 @@ namespace osu.Game.Rulesets.UI
                 throw new ArgumentException($"{GetType()} expected the beatmap to contain hitobjects of type {typeof(TObject)}.", nameof(beatmap));
 
             Beatmap = tBeatmap;
-            Mods = mods?.ToArray() ?? Array.Empty<Mod>();
+            Mods = mods?.ToArray() ?? [];
 
             RelativeSizeAxes = Axes.Both;
 

@@ -69,7 +69,7 @@ namespace osu.Game.Screens.Edit
             // will be restored via lease, see `DisallowExternalBeatmapRulesetChanges`.
             if (!(Beatmap.Value is DummyWorkingBeatmap))
                 Ruleset.Value = Beatmap.Value.BeatmapInfo.Ruleset;
-            Mods.Value = Array.Empty<Mod>();
+            Mods.Value = [];
         }
 
         protected virtual Editor CreateEditor() => new Editor(this);

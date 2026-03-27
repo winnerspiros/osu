@@ -134,7 +134,7 @@ namespace osu.Game.Screens.Select
                 contentText.Text = string.Empty;
                 contentLinkText.Text = string.Empty;
                 contentDate.Hide();
-                contentTags.Tags = Array.Empty<string>();
+                contentTags.Tags = [];
                 contentLoading.Hide();
             }
 

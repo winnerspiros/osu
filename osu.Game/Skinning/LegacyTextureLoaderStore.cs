@@ -85,7 +85,7 @@ namespace osu.Game.Skinning
 
         public Stream? GetStream(string name) => wrappedStore?.GetStream(name);
 
-        public IEnumerable<string> GetAvailableResources() => wrappedStore?.GetAvailableResources() ?? Array.Empty<string>();
+        public IEnumerable<string> GetAvailableResources() => wrappedStore?.GetAvailableResources() ?? [];
 
         public void Dispose()
         {

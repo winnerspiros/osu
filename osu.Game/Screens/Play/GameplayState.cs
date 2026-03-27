@@ -96,7 +96,7 @@ namespace osu.Game.Screens.Play
                     Ruleset = ruleset.RulesetInfo
                 }
             };
-            Mods = mods ?? Array.Empty<Mod>();
+            Mods = mods ?? [];
             ScoreProcessor = scoreProcessor ?? ruleset.CreateScoreProcessor();
             HealthProcessor = healthProcessor ?? ruleset.CreateHealthProcessor(beatmap.HitObjects[0].StartTime);
             Storyboard = storyboard ?? new Storyboard();

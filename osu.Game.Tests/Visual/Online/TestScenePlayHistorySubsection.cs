@@ -110,7 +110,7 @@ namespace osu.Game.Tests.Visual.Online
         private static readonly APIUser user_with_empty_values = new APIUser
         {
             Id = 2,
-            MonthlyPlayCounts = Array.Empty<APIUserHistoryCount>()
+            MonthlyPlayCounts = []
         };
 
         private static readonly APIUser user_with_one_value = new APIUser

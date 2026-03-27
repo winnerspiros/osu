@@ -28,7 +28,7 @@ namespace osu.Game.Scoring.Legacy
         public long OnlineID { get; set; } = -1;
 
         [JsonProperty("mods")]
-        public APIMod[] Mods { get; set; } = Array.Empty<APIMod>();
+        public APIMod[] Mods { get; set; } = [];
 
         [JsonProperty("statistics")]
         public Dictionary<HitResult, int> Statistics { get; set; } = new Dictionary<HitResult, int>();

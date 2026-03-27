@@ -210,7 +210,7 @@ namespace osu.Game.Tests.NonVisual
 
         private class TestDifficultyAttributes : DifficultyAttributes
         {
-            public HitObject[] Objects = Array.Empty<HitObject>();
+            public HitObject[] Objects = [];
         }
     }
 }

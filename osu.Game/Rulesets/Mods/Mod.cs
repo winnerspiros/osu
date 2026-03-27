@@ -119,7 +119,7 @@ namespace osu.Game.Rulesets.Mods
         /// The mods this mod cannot be enabled with.
         /// </summary>
         [JsonIgnore]
-        public virtual Type[] IncompatibleMods => Array.Empty<Type>();
+        public virtual Type[] IncompatibleMods => [];
 
         private IReadOnlyDictionary<string, IBindable>? settingsBacking;
 

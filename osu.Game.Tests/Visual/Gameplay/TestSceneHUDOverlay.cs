@@ -270,7 +270,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         {
             AddStep("create overlay", () =>
             {
-                hudOverlay = new HUDOverlay(null, Array.Empty<Mod>(), new PlayerConfiguration());
+                hudOverlay = new HUDOverlay(null, [], new PlayerConfiguration());
 
                 // Add any key just to display the key counter visually.
                 hudOverlay.InputCountController.Add(new KeyCounterKeyboardTrigger(Key.Space));

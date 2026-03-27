@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.EmptyScrolling
                     return new[] { new EmptyScrollingModAutoplay() };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

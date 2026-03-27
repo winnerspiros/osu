@@ -20,7 +20,7 @@ namespace osu.Game.Database
     ///</remarks>
     public class RealmResetEmptySet<T> : IRealmCollection<T>
     {
-        private IList<T> emptySet => Array.Empty<T>();
+        private IList<T> emptySet => [];
 
         [MustDisposeResource]
         public IEnumerator<T> GetEnumerator() => emptySet.GetEnumerator();

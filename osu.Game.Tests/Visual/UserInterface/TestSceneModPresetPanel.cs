@@ -108,7 +108,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             assertSelectedModsEquivalentTo(new Mod[] { new OsuModHardRock(), new OsuModDoubleTime() });
 
             AddStep("deactivate panel", () => panel.AsNonNull().TriggerClick());
-            assertSelectedModsEquivalentTo(Array.Empty<Mod>());
+            assertSelectedModsEquivalentTo([]);
 
             AddStep("set different mod", () => SelectedMods.Value = new[] { new OsuModHidden() });
             AddStep("activate panel", () => panel.AsNonNull().TriggerClick());
@@ -151,7 +151,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             assertSelectedModsEquivalentTo(new Mod[] { new OsuModAutopilot() });
 
             AddStep("deactivate panel", () => panel.AsNonNull().TriggerClick());
-            assertSelectedModsEquivalentTo(Array.Empty<Mod>());
+            assertSelectedModsEquivalentTo([]);
 
             // just for test purposes, can't/shouldn't happen in reality
             AddStep("Add score v2 to selected mod", () => SelectedMods.Value = new Mod[] { new ModScoreV2() });

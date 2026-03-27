@@ -36,7 +36,7 @@ namespace osu.Game.Rulesets.Pippidon
                     return new[] { new PippidonModAutoplay() };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

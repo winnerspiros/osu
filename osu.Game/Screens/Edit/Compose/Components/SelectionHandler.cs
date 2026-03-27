@@ -400,7 +400,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             get
             {
                 if (!SelectedBlueprints.Any(b => b.IsHovered))
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 var items = new List<MenuItem>();
 

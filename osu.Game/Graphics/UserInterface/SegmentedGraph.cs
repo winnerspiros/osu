@@ -22,7 +22,7 @@ namespace osu.Game.Graphics.UserInterface
         private bool graphNeedsUpdate;
 
         private T[]? values;
-        private int[] tiers = Array.Empty<int>();
+        private int[] tiers = [];
         private readonly SegmentManager segments;
 
         private int tierCount;
@@ -39,7 +39,7 @@ namespace osu.Game.Graphics.UserInterface
 
         public T[] Values
         {
-            get => values ?? Array.Empty<T>();
+            get => values ?? [];
             set
             {
                 if (value == values) return;
@@ -90,7 +90,7 @@ namespace osu.Game.Graphics.UserInterface
         {
             if (arr == null || arr.Length == 0)
             {
-                tiers = Array.Empty<int>();
+                tiers = [];
                 return;
             }
 

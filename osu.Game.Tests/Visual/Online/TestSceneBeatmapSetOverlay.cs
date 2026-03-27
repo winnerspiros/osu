@@ -41,7 +41,7 @@ namespace osu.Game.Tests.Visual.Online
         private IRulesetStore rulesets { get; set; } = null!;
 
         [SetUp]
-        public void SetUp() => Schedule(() => SelectedMods.Value = Array.Empty<Mod>());
+        public void SetUp() => Schedule(() => SelectedMods.Value = []);
 
         [Test]
         public void TestLoading()

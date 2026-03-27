@@ -186,7 +186,7 @@ namespace osu.Game.Tests.Visual.SongSelect
         public void TestSpeedChange()
         {
             LoadSongSelect();
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
 
             decreaseModSpeed();
             AddAssert("half time activated at 0.95x", () => SelectedMods.Value.OfType<ModHalfTime>().Single().SpeedChange.Value, () => Is.EqualTo(0.95).Within(0.005));
@@ -454,11 +454,11 @@ namespace osu.Game.Tests.Visual.SongSelect
                 () => SelectedMods.Value = new List<Mod>
                     { new OsuModHidden(), new OsuModHardRock(), new OsuModClassic(), new OsuModDifficultyAdjust(), new OsuModDoubleTime { SpeedChange = { Value = 1.2 } } });
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddWaitStep("wait", 3);
             AddStep("one mod", () => SelectedMods.Value = new List<Mod> { new OsuModHidden() });
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddWaitStep("wait", 3);
             AddStep("five mods", () => SelectedMods.Value = new List<Mod> { new OsuModHidden(), new OsuModHardRock(), new OsuModDoubleTime(), new OsuModClassic(), new OsuModDifficultyAdjust() });
         }

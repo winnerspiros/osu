@@ -163,7 +163,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestSoftDeleteSupport()
         {
             AddStep("set osu! ruleset", () => Ruleset.Value = rulesets.GetRuleset(0));
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddStep("create content", () => Child = new ModPresetColumn
             {
                 Anchor = Anchor.Centre,
@@ -200,7 +200,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         {
             ModPresetColumn modPresetColumn = null!;
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddStep("create content", () => Child = modPresetColumn = new ModPresetColumn
             {
                 Anchor = Anchor.Centre,
@@ -255,7 +255,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
 
             AddUntilStep("wait for popover", () => (popover = this.ChildrenOfType<OsuPopover>().FirstOrDefault()) != null);
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddUntilStep("popover closed", () => !this.ChildrenOfType<OsuPopover>().Any());
         }
 
@@ -306,7 +306,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             string presetName = null!;
             ModPresetPanel panel = null!;
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddStep("create content", () => Child = modPresetColumn = new ModPresetColumn
             {
                 Anchor = Anchor.Centre,
@@ -355,7 +355,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             var mods = new Mod[] { new OsuModHidden(), new OsuModHardRock() };
             List<Mod> previousMod = null!;
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddStep("create content", () => Child = modPresetColumn = new ModPresetColumn
             {
                 Anchor = Anchor.Centre,
@@ -432,7 +432,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         {
             ModPresetColumn modPresetColumn = null!;
 
-            AddStep("clear mods", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("clear mods", () => SelectedMods.Value = []);
             AddStep("create content", () => Child = modPresetColumn = new ModPresetColumn
             {
                 Anchor = Anchor.Centre,

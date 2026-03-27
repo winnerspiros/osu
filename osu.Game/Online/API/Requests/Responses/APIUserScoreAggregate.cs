@@ -50,7 +50,7 @@ namespace osu.Game.Online.API.Requests.Responses
                 TotalScore = TotalScore,
                 User = User,
                 Position = Position,
-                Mods = Array.Empty<Mod>()
+                Mods = []
             };
     }
 }

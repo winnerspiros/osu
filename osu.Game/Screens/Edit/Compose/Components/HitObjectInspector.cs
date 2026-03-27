@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             else if (EditorBeatmap.PlacementObject.Value != null)
                 objects = new[] { EditorBeatmap.PlacementObject.Value };
             else
-                objects = Array.Empty<HitObject>();
+                objects = [];
 
             AddInspectorValues(objects);
 

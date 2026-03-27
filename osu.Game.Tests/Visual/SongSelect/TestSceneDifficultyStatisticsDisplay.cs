@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.SongSelect
         [Test]
         public void TestEmpty()
         {
-            AddStep("set empty", () => display.Statistics = Array.Empty<BeatmapTitleWedge.StatisticDifficulty.Data>());
+            AddStep("set empty", () => display.Statistics = []);
             AddAssert("no statistics", () => !display.ChildrenOfType<BeatmapTitleWedge.StatisticDifficulty>().Any());
             AddAssert("no tiny statistics", () => !display.ChildrenOfType<GridContainer>().Single().Content.Any());
         }

@@ -122,7 +122,7 @@ namespace osu.Game.Overlays
                     new BeatmapsSection(),
                     new KudosuSection()
                 }
-                : Array.Empty<ProfileSection>();
+                : [];
 
             if (!sameUser)
                 changeOverlayColours(OverlayColourScheme.Pink.GetHue());

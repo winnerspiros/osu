@@ -62,7 +62,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 panel.Active.BindValueChanged(active =>
                 {
                     SelectedMods.Value = active.NewValue
-                        ? Array.Empty<Mod>()
+                        ? []
                         : new[] { panel.Mod };
                 });
             });

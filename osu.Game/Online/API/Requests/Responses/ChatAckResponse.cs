@@ -10,6 +10,6 @@ namespace osu.Game.Online.API.Requests.Responses
     public class ChatAckResponse
     {
         [JsonProperty("silences")]
-        public ChatSilence[] Silences { get; set; } = Array.Empty<ChatSilence>();
+        public ChatSilence[] Silences { get; set; } = [];
     }
 }

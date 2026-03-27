@@ -29,7 +29,7 @@ namespace osu.Game.Tests.Mods
                 };
             }
 
-            return Array.Empty<Mod>();
+            return [];
         }
 
         public override DrawableRuleset CreateDrawableRulesetWith(IBeatmap beatmap, IReadOnlyList<Mod>? mods = null) => throw new NotImplementedException();

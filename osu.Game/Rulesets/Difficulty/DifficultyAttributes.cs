@@ -37,7 +37,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// <summary>
         /// The mods which were applied to the beatmap.
         /// </summary>
-        public Mod[] Mods { get; set; } = Array.Empty<Mod>();
+        public Mod[] Mods { get; set; } = [];
 
         /// <summary>
         /// The combined star rating of all skills.

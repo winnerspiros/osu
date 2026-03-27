@@ -363,7 +363,7 @@ namespace osu.Game.Online.Multiplayer
         public override Task<MatchmakingPool[]> GetMatchmakingPoolsOfType(MatchmakingPoolType type)
         {
             if (!IsConnected.Value)
-                return Task.FromResult(Array.Empty<MatchmakingPool>());
+                return Task.FromResult<MatchmakingPool[]>([]);
 
             Debug.Assert(connection != null);
             return connection.InvokeAsync<MatchmakingPool[]>(nameof(IMatchmakingServer.GetMatchmakingPoolsOfType), type);

@@ -335,7 +335,7 @@ namespace osu.Game.Scoring
                 if (mods != null)
                     apiMods ??= mods.Select(m => new APIMod(m)).ToArray();
 
-                return apiMods ?? Array.Empty<APIMod>();
+                return apiMods ?? [];
             }
             set
             {

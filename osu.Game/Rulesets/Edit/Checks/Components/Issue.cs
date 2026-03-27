@@ -40,7 +40,7 @@ namespace osu.Game.Rulesets.Edit.Checks.Components
         public Issue(IssueTemplate template, params object[] args)
         {
             Time = null;
-            HitObjects = Array.Empty<HitObject>();
+            HitObjects = [];
             Template = template;
             Arguments = args;
         }

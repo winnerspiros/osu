@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         public void Setup() => Schedule(() =>
         {
             manualClock = null;
-            SelectedMods.Value = Array.Empty<Mod>();
+            SelectedMods.Value = [];
         });
 
         /// <summary>

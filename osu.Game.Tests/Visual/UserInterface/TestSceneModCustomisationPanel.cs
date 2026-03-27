@@ -31,7 +31,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
-            SelectedMods.Value = Array.Empty<Mod>();
+            SelectedMods.Value = [];
             InputManager.MoveMouseTo(Vector2.One);
 
             Child = new Container
@@ -75,7 +75,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
             AddStep("set empty", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
                 panel.Enabled.Value = false;
                 panel.ExpandedState.Value = ModCustomisationPanel.ModCustomisationPanelState.Collapsed;
             });

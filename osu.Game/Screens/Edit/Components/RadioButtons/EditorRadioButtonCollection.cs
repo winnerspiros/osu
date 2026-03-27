@@ -12,7 +12,7 @@ namespace osu.Game.Screens.Edit.Components.RadioButtons
 {
     public partial class EditorRadioButtonCollection : CompositeDrawable
     {
-        private IReadOnlyList<RadioButton> items = Array.Empty<RadioButton>();
+        private IReadOnlyList<RadioButton> items = [];
 
         public IReadOnlyList<RadioButton> Items
         {

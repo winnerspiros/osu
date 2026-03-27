@@ -27,7 +27,7 @@ namespace osu.Game.Rulesets.Mania.Tests.Editor
         private readonly Column column;
 
         [Cached(typeof(IReadOnlyList<Mod>))]
-        private IReadOnlyList<Mod> mods { get; set; } = Array.Empty<Mod>();
+        private IReadOnlyList<Mod> mods { get; set; } = [];
 
         [Cached(typeof(IScrollingInfo))]
         private IScrollingInfo scrollingInfo;

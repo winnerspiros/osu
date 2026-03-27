@@ -9,6 +9,6 @@ namespace osu.Game.Online.API.Requests.Responses
     public class APITagCollection
     {
         [JsonProperty("tags")]
-        public APITag[] Tags { get; set; } = Array.Empty<APITag>();
+        public APITag[] Tags { get; set; } = [];
     }
 }

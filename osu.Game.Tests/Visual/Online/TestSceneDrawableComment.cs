@@ -46,7 +46,7 @@ namespace osu.Game.Tests.Visual.Online
 
                     return new[]
                     {
-                        new DrawableComment(comment, Array.Empty<CommentableMeta>()),
+                        new DrawableComment(comment, []),
                         new DrawableComment(comment, new[]
                         {
                             new CommentableMeta

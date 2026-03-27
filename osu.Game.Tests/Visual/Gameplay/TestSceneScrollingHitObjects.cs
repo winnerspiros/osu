@@ -32,7 +32,7 @@ namespace osu.Game.Tests.Visual.Gameplay
     public partial class TestSceneScrollingHitObjects : OsuTestScene
     {
         [Cached(typeof(IReadOnlyList<Mod>))]
-        private IReadOnlyList<Mod> mods { get; set; } = Array.Empty<Mod>();
+        private IReadOnlyList<Mod> mods { get; set; } = [];
 
         private const int time_range = 5000;
         private const int spawn_rate = time_range / 10;

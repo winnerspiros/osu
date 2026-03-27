@@ -202,7 +202,7 @@ namespace osu.Game.Graphics.UserInterface
             private readonly List<float> initialLengths = new List<float>();
             private readonly List<float> finalLengths = new List<float>();
 
-            public void Clear() => SetLengths(Array.Empty<float>());
+            public void Clear() => SetLengths([]);
 
             public void SetLengths(float[] newLengths)
             {

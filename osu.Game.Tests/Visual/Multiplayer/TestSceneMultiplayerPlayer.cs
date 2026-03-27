@@ -59,7 +59,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("set beatmap", () =>
             {
                 Beatmap.Value = CreateWorkingBeatmap(new OsuRuleset().RulesetInfo);
-                SelectedMods.Value = mods?.Invoke() ?? Array.Empty<Mod>();
+                SelectedMods.Value = mods?.Invoke() ?? [];
             });
 
             AddStep("Start track playing", () =>

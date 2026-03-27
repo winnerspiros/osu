@@ -76,7 +76,7 @@ namespace osu.Game.Skinning
         {
         }
 
-        private ISampleInfo[] samples = Array.Empty<ISampleInfo>();
+        private ISampleInfo[] samples = [];
 
         /// <summary>
         /// The samples that should be played.
@@ -96,7 +96,7 @@ namespace osu.Game.Skinning
             }
         }
 
-        public void ClearSamples() => Samples = Array.Empty<ISampleInfo>();
+        public void ClearSamples() => Samples = [];
 
         private bool looping;
 

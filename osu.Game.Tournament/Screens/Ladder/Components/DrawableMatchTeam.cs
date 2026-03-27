@@ -191,7 +191,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
             get
             {
                 if (editorInfo == null)
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 return new MenuItem[]
                 {

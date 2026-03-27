@@ -45,7 +45,7 @@ namespace osu.Game.Tests.Editing.Checks
         {
             // While this is a problem, it is out of scope for this check and is caught by a different one.
             beatmap.Metadata.BackgroundFile = string.Empty;
-            var context = getContext(null!, new MemoryStream(Array.Empty<byte>()));
+            var context = getContext(null!, new MemoryStream([]));
 
             Assert.That(check.Run(context), Is.Empty);
         }

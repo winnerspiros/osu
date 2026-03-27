@@ -113,7 +113,7 @@ namespace osu.Game.Overlays.BeatmapSet
 
             BeatmapSet.BindValueChanged(b =>
             {
-                nominators.Metadata = (b.NewValue?.CurrentNominations ?? Array.Empty<BeatmapSetOnlineNomination>(), b.NewValue?.RelatedUsers ?? Array.Empty<APIUser>());
+                nominators.Metadata = (b.NewValue?.CurrentNominations ?? [], b.NewValue?.RelatedUsers ?? []);
                 source.Metadata = b.NewValue?.Source ?? string.Empty;
                 mapperTags.Metadata = b.NewValue?.Tags ?? string.Empty;
                 updateUserTags();

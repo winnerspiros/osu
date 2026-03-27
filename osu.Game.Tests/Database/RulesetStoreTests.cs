@@ -201,7 +201,7 @@ namespace osu.Game.Tests.Database
                 if (!HasImplementations)
                     throw new NotImplementedException();
 
-                return Array.Empty<Mod>();
+                return [];
             }
 
             public override DrawableRuleset CreateDrawableRulesetWith(IBeatmap beatmap, IReadOnlyList<Mod>? mods = null)

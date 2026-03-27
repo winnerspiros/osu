@@ -357,7 +357,7 @@ namespace osu.Game.Screens.Select
                     if (modSelectOverlay.State.Value == Visibility.Visible)
                         modSelectOverlay.DeselectAll();
                     else
-                        Mods.Value = Array.Empty<Mod>();
+                        Mods.Value = [];
                 }
             },
             new FooterButtonRandom

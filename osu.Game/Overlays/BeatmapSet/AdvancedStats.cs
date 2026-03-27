@@ -75,7 +75,7 @@ namespace osu.Game.Overlays.BeatmapSet
         /// <remarks>
         /// No checks are done as to whether the mods specified are valid for the current <see cref="Ruleset"/>.
         /// </remarks>
-        public Bindable<IReadOnlyList<Mod>> Mods { get; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public Bindable<IReadOnlyList<Mod>> Mods { get; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         public AdvancedStats(int columns = 1)
         {

@@ -40,13 +40,13 @@ namespace osu.Game.Online.API
             public class UserErrors
             {
                 [JsonProperty("username")]
-                public string[] Username = Array.Empty<string>();
+                public string[] Username = [];
 
                 [JsonProperty("user_email")]
-                public string[] Email = Array.Empty<string>();
+                public string[] Email = [];
 
                 [JsonProperty("password")]
-                public string[] Password = Array.Empty<string>();
+                public string[] Password = [];
             }
         }
     }

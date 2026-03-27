@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 snakingOut.Value = !v;
             });
 
-            AddToggleStep("toggle hidden", hiddenActive => SelectedMods.Value = hiddenActive ? new[] { new OsuModHidden() } : Array.Empty<Mod>());
+            AddToggleStep("toggle hidden", hiddenActive => SelectedMods.Value = hiddenActive ? new[] { new OsuModHidden() } : []);
 
             AddSliderStep("hit at", 0f, 1f, 0f, v =>
             {

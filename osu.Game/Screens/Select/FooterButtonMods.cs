@@ -40,7 +40,7 @@ namespace osu.Game.Screens.Select
 
         private const float mod_display_portion = 0.65f;
 
-        private readonly BindableWithCurrent<IReadOnlyList<Mod>> current = new BindableWithCurrent<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        private readonly BindableWithCurrent<IReadOnlyList<Mod>> current = new BindableWithCurrent<IReadOnlyList<Mod>>([]);
 
         public Bindable<IReadOnlyList<Mod>> Current
         {

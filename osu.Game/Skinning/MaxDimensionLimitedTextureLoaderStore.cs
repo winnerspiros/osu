@@ -79,6 +79,6 @@ namespace osu.Game.Skinning
 
         public Stream? GetStream(string name) => textureStore?.GetStream(name);
 
-        public IEnumerable<string> GetAvailableResources() => textureStore?.GetAvailableResources() ?? Array.Empty<string>();
+        public IEnumerable<string> GetAvailableResources() => textureStore?.GetAvailableResources() ?? [];
     }
 }

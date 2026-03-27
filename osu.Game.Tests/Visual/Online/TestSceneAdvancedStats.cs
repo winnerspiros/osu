@@ -61,7 +61,7 @@ namespace osu.Game.Tests.Visual.Online
                 advancedStats.Ruleset.Value = exampleBeatmapInfo.Ruleset;
             });
 
-            AddStep("no mods selected", () => SelectedMods.Value = Array.Empty<Mod>());
+            AddStep("no mods selected", () => SelectedMods.Value = []);
 
             AddAssert("first bar text is correct", () => advancedStats.GetStatistic(SongSelectStrings.CircleSize), () => Is.Not.Null);
             AddAssert("circle size bar is white", () => barIsWhite(advancedStats.GetStatistic(SongSelectStrings.CircleSize)));

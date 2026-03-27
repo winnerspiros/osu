@@ -61,7 +61,7 @@ namespace osu.Game.Storyboards.Drawables
         public DrawableStoryboard(Storyboard storyboard, IReadOnlyList<Mod>? mods = null)
         {
             Storyboard = storyboard;
-            Mods = mods ?? Array.Empty<Mod>();
+            Mods = mods ?? [];
 
             Size = new Vector2(640, 480);
 

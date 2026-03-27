@@ -52,7 +52,7 @@ namespace osu.Game.Online.Spectator
         /// <summary>
         /// The applied <see cref="Mod"/>s.
         /// </summary>
-        public IReadOnlyList<Mod> Mods => scoreInfo?.Mods ?? Array.Empty<Mod>();
+        public IReadOnlyList<Mod> Mods => scoreInfo?.Mods ?? [];
 
         public Func<ScoringMode, long> GetDisplayScore => mode => scoreInfo?.GetDisplayScore(mode) ?? 0;
 

@@ -59,7 +59,7 @@ namespace osu.Game.Rulesets.Objects
         private double calculatedLength;
 
         private readonly List<int> segmentEnds = new List<int>();
-        private double[] segmentEndDistances = Array.Empty<double>();
+        private double[] segmentEndDistances = [];
 
         /// <summary>
         /// Creates a new <see cref="SliderPath"/>.

@@ -38,7 +38,7 @@ namespace osu.Game.Online.API.Requests
             this.beatmapInfo = beatmapInfo;
             this.scope = scope;
             this.ruleset = ruleset ?? throw new ArgumentNullException(nameof(ruleset));
-            this.mods = mods ?? Array.Empty<IMod>();
+            this.mods = mods ?? [];
 
             ScoresRequested = this.scope.RequiresSupporter(this.mods.Any()) ? MAX_SCORES_PER_REQUEST : DEFAULT_SCORES_PER_REQUEST;
         }

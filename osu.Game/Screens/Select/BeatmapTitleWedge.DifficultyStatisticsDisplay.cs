@@ -27,7 +27,7 @@ namespace osu.Game.Screens.Select
             private readonly FillFlowContainer<StatisticDifficulty> statisticsFlow;
             private readonly GridContainer tinyStatisticsGrid;
 
-            private IReadOnlyList<StatisticDifficulty.Data> statistics = Array.Empty<StatisticDifficulty.Data>();
+            private IReadOnlyList<StatisticDifficulty.Data> statistics = [];
 
             public IReadOnlyList<StatisticDifficulty.Data> Statistics
             {

@@ -53,7 +53,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
                             StarRating = i / 10.0,
                         },
                         CreateAPIBeatmap(beatmap),
-                        Array.Empty<Mod>()
+                        []
                     );
                 });
             }
@@ -67,7 +67,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
                         StarRating = i / 10.0,
                     },
                     CreateAPIBeatmap(),
-                    Array.Empty<Mod>()
+                    []
                 ));
             }
 

@@ -52,7 +52,7 @@ SliderTickRate:0.5
             using (var reader = new LineBufferedReader(stream))
             {
                 var beatmap = Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
-                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>());
+                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []);
 
                 var objects = converted.HitObjects.ToList();
 
@@ -97,7 +97,7 @@ SliderTickRate:1
             using (var reader = new LineBufferedReader(stream))
             {
                 var beatmap = Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
-                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>());
+                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []);
 
                 var objects = converted.HitObjects.ToList();
 

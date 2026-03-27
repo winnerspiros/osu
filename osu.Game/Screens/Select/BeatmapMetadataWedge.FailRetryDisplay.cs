@@ -30,8 +30,8 @@ namespace osu.Game.Screens.Select
             {
                 set
                 {
-                    int[] retries = value.Retries ?? Array.Empty<int>();
-                    int[] fails = value.Fails ?? Array.Empty<int>();
+                    int[] retries = value.Retries ?? [];
+                    int[] fails = value.Fails ?? [];
                     int[] total = retries.Zip(fails, (r, f) => r + f).ToArray();
 
                     int maximum = total.DefaultIfEmpty(0).Max();

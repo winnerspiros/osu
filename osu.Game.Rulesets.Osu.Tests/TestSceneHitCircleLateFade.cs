@@ -86,7 +86,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         {
             AddStep("Create hit circle", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
                 createCircle();
             });
 
@@ -99,7 +99,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         {
             AddStep("Create hit circle", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
                 createCircle(true);
             });
         }
@@ -122,7 +122,7 @@ namespace osu.Game.Rulesets.Osu.Tests
         {
             AddStep("Create slider", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
                 createSlider();
             });
 

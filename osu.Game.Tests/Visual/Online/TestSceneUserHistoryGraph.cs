@@ -50,7 +50,7 @@ namespace osu.Game.Tests.Visual.Online
             AddStep("Set fake values", () => graph.Values = values);
             AddStep("Set more values", () => graph.Values = moreValues);
             AddStep("Set null values", () => graph.Values = null);
-            AddStep("Set empty values", () => graph.Values = Array.Empty<APIUserHistoryCount>());
+            AddStep("Set empty values", () => graph.Values = []);
         }
     }
 }

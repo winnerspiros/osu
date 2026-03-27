@@ -29,7 +29,7 @@ namespace osu.Game.Overlays.Mods
     {
         public readonly ModType ModType;
 
-        private IReadOnlyList<ModState> availableMods = Array.Empty<ModState>();
+        private IReadOnlyList<ModState> availableMods = [];
 
         /// <summary>
         /// Sets the list of mods to show in this column.

@@ -184,7 +184,7 @@ namespace osu.Game.Rulesets.Taiko
                     };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

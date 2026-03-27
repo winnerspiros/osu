@@ -95,7 +95,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("set some freemods", () => songSelect.FreeMods.Value = new OsuRuleset().GetModsFor(ModType.Fun).ToArray());
             AddStep("set all freemods", () => songSelect.FreeMods.Value = new OsuRuleset().CreateAllMods().ToArray());
-            AddStep("set no freemods", () => songSelect.FreeMods.Value = Array.Empty<Mod>());
+            AddStep("set no freemods", () => songSelect.FreeMods.Value = []);
         }
 
         [Test]

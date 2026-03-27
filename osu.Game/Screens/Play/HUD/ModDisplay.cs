@@ -41,7 +41,7 @@ namespace osu.Game.Screens.Play.HUD
             }
         }
 
-        private readonly BindableWithCurrent<IReadOnlyList<Mod>> current = new BindableWithCurrent<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        private readonly BindableWithCurrent<IReadOnlyList<Mod>> current = new BindableWithCurrent<IReadOnlyList<Mod>>([]);
 
         public Bindable<IReadOnlyList<Mod>> Current
         {

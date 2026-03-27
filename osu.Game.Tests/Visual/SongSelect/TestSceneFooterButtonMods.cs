@@ -51,11 +51,11 @@ namespace osu.Game.Tests.Visual.SongSelect
             AddStep("modified + five", () => changeMods(new List<Mod> { new OsuModHidden(), new OsuModHardRock(), new OsuModDoubleTime { SpeedChange = { Value = 1.2 } }, new OsuModClassic(), new OsuModDifficultyAdjust(), new OsuModRandom() }));
             AddStep("modified + six", () => changeMods(new List<Mod> { new OsuModHidden(), new OsuModHardRock(), new OsuModDoubleTime { SpeedChange = { Value = 1.2 } }, new OsuModClassic(), new OsuModDifficultyAdjust(), new OsuModRandom(), new OsuModAlternate() }));
 
-            AddStep("clear mods", () => changeMods(Array.Empty<Mod>()));
+            AddStep("clear mods", () => changeMods([]));
             AddWaitStep("wait", 3);
             AddStep("one mod", () => changeMods(new List<Mod> { new OsuModHidden() }));
 
-            AddStep("clear mods", () => changeMods(Array.Empty<Mod>()));
+            AddStep("clear mods", () => changeMods([]));
             AddWaitStep("wait", 3);
             AddStep("five mods", () => changeMods(new List<Mod> { new OsuModHidden(), new OsuModHardRock(), new OsuModDoubleTime(), new OsuModClassic(), new OsuModDifficultyAdjust() }));
         }
@@ -101,7 +101,7 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             AddStep(@"Add unranked mod", () => changeMods(new[] { new OsuModDeflate() }));
             AddUntilStep("Unranked badge shown", () => footerButtonMods.ChildrenOfType<FooterButtonMods.UnrankedBadge>().Single().Alpha == 1);
-            AddStep(@"Clear selected mod", () => changeMods(Array.Empty<Mod>()));
+            AddStep(@"Clear selected mod", () => changeMods([]));
             AddUntilStep("Unranked badge not shown", () => footerButtonMods.ChildrenOfType<FooterButtonMods.UnrankedBadge>().Single().Alpha == 0);
         }
 

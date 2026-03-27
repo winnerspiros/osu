@@ -15,7 +15,7 @@ namespace osu.Game.Tests.Visual.Gameplay
     {
         protected override Player CreatePlayer(Ruleset ruleset)
         {
-            SelectedMods.Value = Array.Empty<Mod>();
+            SelectedMods.Value = [];
             return new FailPlayer();
         }
 

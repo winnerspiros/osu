@@ -13,10 +13,10 @@ namespace osu.Game.Online.API.Requests.Responses
         public uint BeatmapSetId { get; set; }
 
         [JsonProperty("beatmap_ids")]
-        public ICollection<uint> BeatmapIds { get; set; } = Array.Empty<uint>();
+        public ICollection<uint> BeatmapIds { get; set; } = [];
 
         [JsonProperty("files")]
-        public ICollection<BeatmapSetFile> Files { get; set; } = Array.Empty<BeatmapSetFile>();
+        public ICollection<BeatmapSetFile> Files { get; set; } = [];
     }
 
     public struct BeatmapSetFile

@@ -132,7 +132,7 @@ namespace osu.Game.Overlays.FirstRunSetup
 
             [Cached]
             [Cached(typeof(IBindable<IReadOnlyList<Mod>>))]
-            protected Bindable<IReadOnlyList<Mod>> SelectedMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+            protected Bindable<IReadOnlyList<Mod>> SelectedMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>([]);
 
             public override bool HandlePositionalInput => false;
             public override bool HandleNonPositionalInput => false;

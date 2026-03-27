@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -48,7 +49,7 @@ namespace osu.Game.Screens.Play
         [CanBeNull]
         private UserStatisticsWatcher userStatisticsWatcher { get; set; }
 
-        private readonly object scoreSubmissionLock = new object();
+        private readonly Lock scoreSubmissionLock = new Lock();
         private TaskCompletionSource<bool> scoreSubmissionSource;
 
         protected SubmittingPlayer(PlayerConfiguration configuration = null)

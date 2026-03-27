@@ -96,7 +96,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             {
                 SetContents(_ =>
                 {
-                    hudOverlay = new HUDOverlay(new DrawableOsuRuleset(new OsuRuleset(), new OsuBeatmap()), Array.Empty<Mod>(), new PlayerConfiguration());
+                    hudOverlay = new HUDOverlay(new DrawableOsuRuleset(new OsuRuleset(), new OsuBeatmap()), [], new PlayerConfiguration());
 
                     action?.Invoke(hudOverlay);
 

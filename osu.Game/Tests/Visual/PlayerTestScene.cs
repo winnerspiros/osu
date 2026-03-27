@@ -78,7 +78,7 @@ namespace osu.Game.Tests.Visual
 
         protected virtual bool Autoplay => false;
 
-        protected void LoadPlayer() => LoadPlayer(Array.Empty<Mod>());
+        protected void LoadPlayer() => LoadPlayer([]);
 
         protected void LoadPlayer(Mod[] mods)
         {

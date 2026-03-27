@@ -41,7 +41,7 @@ namespace osu.Game.Screens.Play
             }
         }
 
-        private float[] calculatedValues = Array.Empty<float>(); // values but adjusted to fit the amount of columns
+        private float[] calculatedValues = []; // values but adjusted to fit the amount of columns
 
         private int[] values;
 

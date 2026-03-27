@@ -98,7 +98,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 p.AccentColour = path?.AccentColour ?? Color4.White;
                 p.BorderColour = path?.BorderColour ?? Color4.White;
                 p.BorderSize = path?.BorderSize ?? 1;
-                p.Vertices = path?.Vertices ?? Array.Empty<Vector2>();
+                p.Vertices = path?.Vertices ?? [];
             });
         }
 

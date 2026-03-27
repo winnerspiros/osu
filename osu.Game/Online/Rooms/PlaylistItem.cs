@@ -47,13 +47,13 @@ namespace osu.Game.Online.Rooms
         /// provided the mod is <see cref="ModUtils.CheckCompatibleSet(IEnumerable{Mod})">compatible</see> with the rest of the user's selection.
         /// </remarks>
         [JsonProperty("allowed_mods")]
-        public APIMod[] AllowedMods { get; set; } = Array.Empty<APIMod>();
+        public APIMod[] AllowedMods { get; set; } = [];
 
         /// <summary>
         /// Mods that should be applied for every participant in the room.
         /// </summary>
         [JsonProperty("required_mods")]
-        public APIMod[] RequiredMods { get; set; } = Array.Empty<APIMod>();
+        public APIMod[] RequiredMods { get; set; } = [];
 
         /// <summary>
         /// Used for deserialising from the API.

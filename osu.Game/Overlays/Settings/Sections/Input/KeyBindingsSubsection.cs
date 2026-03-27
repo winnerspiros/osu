@@ -24,7 +24,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         /// </summary>
         protected virtual bool AutoAdvanceTarget => false;
 
-        protected IEnumerable<KeyBinding> Defaults { get; init; } = Array.Empty<KeyBinding>();
+        protected IEnumerable<KeyBinding> Defaults { get; init; } = [];
 
         [Resolved]
         private RealmAccess realm { get; set; } = null!;

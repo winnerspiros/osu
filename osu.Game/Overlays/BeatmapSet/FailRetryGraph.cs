@@ -29,8 +29,8 @@ namespace osu.Game.Overlays.BeatmapSet
 
                 failTimes = value;
 
-                int[] retries = FailTimes?.Retries ?? Array.Empty<int>();
-                int[] fails = FailTimes?.Fails ?? Array.Empty<int>();
+                int[] retries = FailTimes?.Retries ?? [];
+                int[] fails = FailTimes?.Fails ?? [];
                 int[] retriesAndFails = sumRetriesAndFails(retries, fails);
 
                 float maxValue = retriesAndFails.Any() ? retriesAndFails.Max() : 0;

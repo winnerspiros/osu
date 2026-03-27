@@ -27,7 +27,7 @@ namespace osu.Game.Tests.Editing.Checks
         {
             // single difficulty with no preview time
             var current = createBeatmapWithPreviewPoint(-1, "Current");
-            var context = createContext(current, Array.Empty<IBeatmap>());
+            var context = createContext(current, []);
 
             var issues = check.Run(context).ToList();
 

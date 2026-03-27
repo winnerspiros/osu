@@ -19,7 +19,7 @@ namespace osu.Game.Overlays.Profile.Sections.Historical
 {
     public partial class ProfileLineChart : CompositeDrawable
     {
-        private APIUserHistoryCount[] values = Array.Empty<APIUserHistoryCount>();
+        private APIUserHistoryCount[] values = [];
 
         public APIUserHistoryCount[] Values
         {

@@ -212,7 +212,7 @@ namespace osu.Game.Screens.Select
             get
             {
                 if (Item == null)
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 return new MenuItem[]
                 {

@@ -45,7 +45,7 @@ namespace osu.Game.Tests.Beatmaps
             Task.Factory.StartNew(() =>
             {
                 loadStarted.Set();
-                Assert.Throws<OperationCanceledException>(() => working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>(), cts.Token));
+                Assert.Throws<OperationCanceledException>(() => working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, [], cts.Token));
                 loadCompleted.Set();
             }, TaskCreationOptions.LongRunning);
 

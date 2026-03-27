@@ -80,7 +80,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         private IBeatmapInfo? beatmap;
         private IRulesetInfo? ruleset;
-        private Mod[] requiredMods = Array.Empty<Mod>();
+        private Mod[] requiredMods = [];
 
         private Container? borderContainer;
         private FillFlowContainer? difficultyIconContainer;
