@@ -5,7 +5,11 @@
     <!-- MT7091 occurs when referencing a .framework bundle that consists of a static library.
          It only warns about not copying the library to the app bundle to save space,
          so there's nothing to be worried about. -->
-    <NoWarn>$(NoWarn);MT7091;CS8767</NoWarn>
+    <NoWarn>$(NoWarn);MT7091;CS8767;IL2026;IL2067</NoWarn>
+    <!-- Disable Roslyn-based ILLink trim analyzer: the codebase uses extensive reflection
+         (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder) that cannot be statically analysed.
+         SuppressTrimAnalysisWarnings only suppresses ILLink tool warnings, not the Roslyn analyzer. -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
