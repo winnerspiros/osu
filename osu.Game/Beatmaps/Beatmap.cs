@@ -17,18 +17,16 @@ namespace osu.Game.Beatmaps
     public class Beatmap<T> : IBeatmap<T>
         where T : HitObject
     {
-        private BeatmapDifficulty difficulty = new BeatmapDifficulty();
-
         public BeatmapDifficulty Difficulty
         {
-            get => difficulty;
+            get;
             set
             {
-                difficulty = value;
+                field = value;
 
-                beatmapInfo.Difficulty = difficulty.Clone();
+                beatmapInfo.Difficulty = field.Clone();
             }
-        }
+        } = new BeatmapDifficulty();
 
         private BeatmapInfo beatmapInfo;
 

@@ -22,27 +22,23 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 
         private readonly BeatmapDownloadTracker downloadTracker;
 
-        private float buttonsExpandedWidth;
-
         public float ButtonsExpandedWidth
         {
-            get => buttonsExpandedWidth;
+            get;
             set
             {
-                buttonsExpandedWidth = value;
+                field = value;
                 if (IsLoaded)
                     updateState();
             }
         }
 
-        private float buttonsCollapsedWidth;
-
         public float ButtonsCollapsedWidth
         {
-            get => buttonsCollapsedWidth;
+            get;
             set
             {
-                buttonsCollapsedWidth = value;
+                field = value;
                 if (IsLoaded)
                     updateState();
             }
@@ -165,7 +161,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 
         private void updateState()
         {
-            buttonArea.Width = buttonsExpandedWidth;
+            buttonArea.Width = ButtonsExpandedWidth;
 
             float buttonAreaWidth = ShowDetails.Value ? ButtonsExpandedWidth : ButtonsCollapsedWidth;
             float mainAreaWidth = Width - buttonAreaWidth;

@@ -28,11 +28,9 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
         private void onSelectedRoomChanged(ValueChangedEvent<Room?> room)
         {
-            if (room.OldValue != null)
-                room.OldValue.PropertyChanged -= onRoomPropertyChanged;
+            room.OldValue?.PropertyChanged -= onRoomPropertyChanged;
 
-            if (room.NewValue != null)
-                room.NewValue.PropertyChanged += onRoomPropertyChanged;
+            room.NewValue?.PropertyChanged += onRoomPropertyChanged;
 
             updateCurrentItem();
         }
@@ -56,8 +54,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
         {
             base.Dispose(isDisposing);
 
-            if (SelectedRoom.Value != null)
-                SelectedRoom.Value.PropertyChanged -= onRoomPropertyChanged;
+            SelectedRoom.Value?.PropertyChanged -= onRoomPropertyChanged;
         }
     }
 }

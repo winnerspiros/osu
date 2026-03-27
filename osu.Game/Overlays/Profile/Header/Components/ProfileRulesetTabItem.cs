@@ -14,19 +14,17 @@ namespace osu.Game.Overlays.Profile.Header.Components
 {
     public partial class ProfileRulesetTabItem : OverlayRulesetTabItem
     {
-        private bool isDefault;
-
         public bool IsDefault
         {
-            get => isDefault;
+            get;
             set
             {
-                if (isDefault == value)
+                if (field == value)
                     return;
 
-                isDefault = value;
+                field = value;
 
-                icon.Alpha = isDefault ? 1 : 0;
+                icon.Alpha = field ? 1 : 0;
             }
         }
 

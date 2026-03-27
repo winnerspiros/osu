@@ -83,8 +83,7 @@ namespace osu.Game.Overlays.BeatmapListing
             {
                 base.LoadComplete();
 
-                if (recommender != null)
-                    recommender.StarRatingUpdated += updateText;
+                recommender?.StarRatingUpdated += updateText;
 
                 Ruleset.BindValueChanged(_ => updateText(), true);
             }
@@ -109,8 +108,7 @@ namespace osu.Game.Overlays.BeatmapListing
             {
                 base.Dispose(isDisposing);
 
-                if (recommender != null)
-                    recommender.StarRatingUpdated -= updateText;
+                recommender?.StarRatingUpdated -= updateText;
             }
         }
 

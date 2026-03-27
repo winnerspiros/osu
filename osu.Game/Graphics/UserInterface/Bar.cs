@@ -19,17 +19,15 @@ namespace osu.Game.Graphics.UserInterface
 
         private const Easing easing = Easing.InOutCubic;
 
-        private float length;
-
         /// <summary>
         /// Length of the bar, ranges from 0 to 1
         /// </summary>
         public float Length
         {
-            get => length;
+            get;
             set
             {
-                length = Math.Clamp(value, 0, 1);
+                field = Math.Clamp(value, 0, 1);
                 updateBarLength();
             }
         }
@@ -46,17 +44,15 @@ namespace osu.Game.Graphics.UserInterface
             set => bar.Colour = value;
         }
 
-        private BarDirection direction = BarDirection.LeftToRight;
-
         public BarDirection Direction
         {
-            get => direction;
+            get;
             set
             {
-                direction = value;
+                field = value;
                 updateBarLength();
             }
-        }
+        } = BarDirection.LeftToRight;
 
         public Bar()
         {
@@ -77,20 +73,20 @@ namespace osu.Game.Graphics.UserInterface
 
         private void updateBarLength()
         {
-            switch (direction)
+            switch (Direction)
             {
                 case BarDirection.LeftToRight:
                 case BarDirection.RightToLeft:
-                    bar.ResizeTo(new Vector2(length, 1), resize_duration, easing);
+                    bar.ResizeTo(new Vector2(Length, 1), resize_duration, easing);
                     break;
 
                 case BarDirection.TopToBottom:
                 case BarDirection.BottomToTop:
-                    bar.ResizeTo(new Vector2(1, length), resize_duration, easing);
+                    bar.ResizeTo(new Vector2(1, Length), resize_duration, easing);
                     break;
             }
 
-            switch (direction)
+            switch (Direction)
             {
                 case BarDirection.LeftToRight:
                 case BarDirection.TopToBottom:

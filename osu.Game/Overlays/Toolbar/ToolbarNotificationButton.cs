@@ -60,23 +60,21 @@ namespace osu.Game.Overlays.Toolbar
             private readonly OsuSpriteText countText;
             private readonly Circle circle;
 
-            private int count;
-
             public int Count
             {
-                get => count;
+                get;
                 set
                 {
-                    if (count == value)
+                    if (field == value)
                         return;
 
-                    if (value > count)
+                    if (value > field)
                     {
                         circle.FlashColour(Color4.White, 600, Easing.OutQuint);
                         this.ScaleTo(1.1f).Then().ScaleTo(1, 600, Easing.OutElastic);
                     }
 
-                    count = value;
+                    field = value;
                     countText.Text = value.ToString("#,0");
                 }
             }

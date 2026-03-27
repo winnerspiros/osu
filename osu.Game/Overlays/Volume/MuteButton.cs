@@ -19,19 +19,17 @@ namespace osu.Game.Overlays.Volume
 {
     public partial class MuteButton : OsuButton, IHasCurrentValue<bool>
     {
-        private readonly Bindable<bool> current = new Bindable<bool>();
-
         public Bindable<bool> Current
         {
-            get => current;
+            get;
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                field.UnbindBindings();
+                field.BindTo(value);
             }
-        }
+        } = new Bindable<bool>();
 
         private ColourInfo hoveredBorderColour;
         private ColourInfo unhoveredBorderColour;

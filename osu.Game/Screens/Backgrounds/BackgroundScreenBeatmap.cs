@@ -26,8 +26,6 @@ namespace osu.Game.Screens.Backgrounds
 
         protected Background Background;
 
-        private WorkingBeatmap beatmap;
-
         /// <summary>
         /// Whether or not user-configured settings relating to brightness of elements should be ignored.
         /// </summary>
@@ -73,7 +71,7 @@ namespace osu.Game.Screens.Backgrounds
         [BackgroundDependencyLoader]
         private void load()
         {
-            var background = new BeatmapBackground(beatmap);
+            var background = new BeatmapBackground(Beatmap);
             LoadComponent(background);
             switchBackground(background);
         }
@@ -82,21 +80,21 @@ namespace osu.Game.Screens.Backgrounds
 
         public WorkingBeatmap Beatmap
         {
-            get => beatmap;
+            get;
             set
             {
-                if (beatmap == value && beatmap != null)
+                if (field == value && field != null)
                     return;
 
-                beatmap = value;
+                field = value;
 
                 Schedule(() =>
                 {
-                    if ((Background as BeatmapBackground)?.Beatmap.BeatmapInfo.BackgroundEquals(beatmap?.BeatmapInfo) ?? false)
+                    if ((Background as BeatmapBackground)?.Beatmap.BeatmapInfo.BackgroundEquals(field?.BeatmapInfo) ?? false)
                         return;
 
                     cancellationSource?.Cancel();
-                    LoadComponentAsync(new BeatmapBackground(beatmap), switchBackground, (cancellationSource = new CancellationTokenSource()).Token);
+                    LoadComponentAsync(new BeatmapBackground(field), switchBackground, (cancellationSource = new CancellationTokenSource()).Token);
                 });
             }
         }
@@ -121,7 +119,7 @@ namespace osu.Game.Screens.Backgrounds
         {
             if (!(other is BackgroundScreenBeatmap otherBeatmapBackground)) return false;
 
-            return base.Equals(other) && beatmap == otherBeatmapBackground.Beatmap;
+            return base.Equals(other) && Beatmap == otherBeatmapBackground.Beatmap;
         }
 
         public partial class DimmableBackground : UserDimContainer
@@ -138,19 +136,17 @@ namespace osu.Game.Screens.Backgrounds
 
             public Background Background
             {
-                get => background;
+                get;
                 set
                 {
-                    background?.Expire();
+                    field?.Expire();
 
-                    base.Add(background = value);
-                    background.BlurTo(blurTarget, 0, Easing.OutQuint);
+                    base.Add(field = value);
+                    field.BlurTo(blurTarget, 0, Easing.OutQuint);
                 }
             }
 
             private Bindable<double> userBlurLevel { get; set; }
-
-            private Background background;
 
             public override void Add(Drawable drawable)
             {

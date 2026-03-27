@@ -31,12 +31,6 @@ namespace osu.Game.Graphics.Containers
         private readonly UserTrackingScrollContainer scrollContainer;
         private readonly Container headerBackgroundContainer;
         private readonly MarginPadding originalSectionsMargin;
-
-        private Drawable? fixedHeader;
-
-        private Drawable? footer;
-        private Drawable? headerBackground;
-
         private FlowContainer<T> scrollContentContainer = null!;
 
         private float? headerHeight, footerHeight;
@@ -48,23 +42,21 @@ namespace osu.Game.Graphics.Containers
         /// </summary>
         private const float scroll_y_centre = 0.1f;
 
-        private Drawable? expandableHeader;
-
         public Drawable? ExpandableHeader
         {
-            get => expandableHeader;
+            get;
             set
             {
-                if (value == expandableHeader) return;
+                if (value == field) return;
 
-                if (expandableHeader != null)
-                    RemoveInternal(expandableHeader, false);
+                if (field != null)
+                    RemoveInternal(field, false);
 
-                expandableHeader = value;
+                field = value;
 
                 if (value == null) return;
 
-                AddInternal(expandableHeader);
+                AddInternal(field);
 
                 lastKnownScroll = null;
             }
@@ -72,56 +64,56 @@ namespace osu.Game.Graphics.Containers
 
         public Drawable? FixedHeader
         {
-            get => fixedHeader;
+            get;
             set
             {
-                if (value == fixedHeader) return;
+                if (value == field) return;
 
-                fixedHeader?.Expire();
-                fixedHeader = value;
+                field?.Expire();
+                field = value;
 
                 if (value == null) return;
 
-                AddInternal(fixedHeader);
+                AddInternal(field);
                 lastKnownScroll = null;
             }
         }
 
         public Drawable? Footer
         {
-            get => footer;
+            get;
             set
             {
-                if (value == footer) return;
+                if (value == field) return;
 
-                if (footer != null)
-                    scrollContainer.Remove(footer, false);
+                if (field != null)
+                    scrollContainer.Remove(field, false);
 
-                footer = value;
+                field = value;
 
-                if (footer == null) return;
+                if (field == null) return;
 
-                footer.Anchor |= Anchor.y2;
-                footer.Origin |= Anchor.y2;
+                field.Anchor |= Anchor.y2;
+                field.Origin |= Anchor.y2;
 
-                scrollContainer.Add(footer);
+                scrollContainer.Add(field);
                 lastKnownScroll = null;
             }
         }
 
         public Drawable? HeaderBackground
         {
-            get => headerBackground;
+            get;
             set
             {
-                if (value == headerBackground) return;
+                if (value == field) return;
 
                 headerBackgroundContainer.Clear();
-                headerBackground = value;
+                field = value;
 
-                if (headerBackground != null)
+                if (field != null)
                 {
-                    headerBackgroundContainer.Add(headerBackground);
+                    headerBackgroundContainer.Add(field);
                     lastKnownScroll = null;
                 }
             }

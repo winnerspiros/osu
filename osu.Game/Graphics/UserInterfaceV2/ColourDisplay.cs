@@ -42,19 +42,17 @@ namespace osu.Game.Graphics.UserInterfaceV2
             set => current.Current = value;
         }
 
-        private LocalisableString name;
-
         public LocalisableString ColourName
         {
-            get => name;
+            get;
             set
             {
-                if (name == value)
+                if (field == value)
                     return;
 
-                name = value;
+                field = value;
 
-                colourName.Text = name;
+                colourName.Text = field;
             }
         }
 

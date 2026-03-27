@@ -38,21 +38,19 @@ namespace osu.Game.Screens.OnlinePlay.Components
             updateText();
         }
 
-        private float textSize = OsuFont.DEFAULT_FONT_SIZE;
-
         public float TextSize
         {
-            get => textSize;
+            get;
             set
             {
-                if (textSize == value)
+                if (field == value)
                     return;
 
-                textSize = value;
+                field = value;
 
                 updateText();
             }
-        }
+        } = OsuFont.DEFAULT_FONT_SIZE;
 
         private void onRoomPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

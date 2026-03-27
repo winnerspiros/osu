@@ -41,8 +41,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
         {
             base.LoadComplete();
 
-            if (healthProcessor != null)
-                healthProcessor.NewJudgement += onNewJudgement;
+            healthProcessor?.NewJudgement += onNewJudgement;
         }
 
         protected override void Update()
@@ -73,8 +72,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
         {
             base.Dispose(isDisposing);
 
-            if (healthProcessor != null)
-                healthProcessor.NewJudgement -= onNewJudgement;
+            healthProcessor?.NewJudgement -= onNewJudgement;
         }
     }
 }

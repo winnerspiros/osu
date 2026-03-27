@@ -198,17 +198,15 @@ namespace osu.Game.Screens.Ranking
             middleLayerBackground.FinishTransforms(false, nameof(Colour));
         }
 
-        private PanelState state = PanelState.Contracted;
-
         public PanelState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value)
+                if (field == value)
                     return;
 
-                state = value;
+                field = value;
 
                 if (IsLoaded)
                 {
@@ -220,7 +218,7 @@ namespace osu.Game.Screens.Ranking
 
                 StateChanged?.Invoke(value);
             }
-        }
+        } = PanelState.Contracted;
 
         protected override void Update()
         {
@@ -242,7 +240,7 @@ namespace osu.Game.Screens.Ranking
             topLayerContent?.FadeOut(content_fade_duration).Expire();
             middleLayerContent?.FadeOut(content_fade_duration).Expire();
 
-            switch (state)
+            switch (State)
             {
                 case PanelState.Expanded:
                     Size = new Vector2(EXPANDED_WIDTH, expanded_height);
@@ -283,7 +281,7 @@ namespace osu.Game.Screens.Ranking
             {
                 topLayerContainer.FadeIn();
 
-                switch (state)
+                switch (State)
                 {
                     case PanelState.Expanded:
                         topLayerContainer.MoveToY(-expanded_top_layer_height / 2, top_layer_expand_duration, Easing.OutQuint);
@@ -309,8 +307,7 @@ namespace osu.Game.Screens.Ranking
                 base.Size = value;
 
                 // Auto-size isn't used to avoid 1-frame issues and because the score panel is removed/re-added to the container.
-                if (trackingContainer != null)
-                    trackingContainer.Size = value;
+                trackingContainer?.Size = value;
             }
         }
 

@@ -15,14 +15,12 @@ namespace osu.Game.Users.Drawables
 {
     public partial class UpdateableFlag : ModelBackedDrawable<CountryCode>
     {
-        private CountryCode countryCode;
-
         public CountryCode CountryCode
         {
-            get => countryCode;
+            get;
             set
             {
-                countryCode = value;
+                field = value;
                 updateModel();
             }
         }
@@ -73,6 +71,6 @@ namespace osu.Game.Users.Drawables
             return true;
         }
 
-        private void updateModel() => Model = hideFlags.Value ? CountryCode.Unknown : countryCode;
+        private void updateModel() => Model = hideFlags.Value ? CountryCode.Unknown : CountryCode;
     }
 }

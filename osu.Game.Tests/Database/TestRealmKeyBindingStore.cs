@@ -11,7 +11,6 @@ using osu.Framework.Input.Bindings;
 using osu.Game.Database;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
-using osu.Game.Rulesets;
 using Realms;
 
 namespace osu.Game.Tests.Database

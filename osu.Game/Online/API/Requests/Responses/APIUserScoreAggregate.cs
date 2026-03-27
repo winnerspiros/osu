@@ -3,9 +3,7 @@
 
 #nullable disable
 
-using System;
 using Newtonsoft.Json;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 
 namespace osu.Game.Online.API.Requests.Responses

@@ -113,17 +113,15 @@ namespace osu.Game.Overlays.FirstRunSetup
                 [Resolved]
                 private OverlayColourProvider colourProvider { get; set; } = null!;
 
-                private bool selected;
-
                 public bool Selected
                 {
-                    get => selected;
+                    get;
                     set
                     {
-                        if (selected == value)
+                        if (field == value)
                             return;
 
-                        selected = value;
+                        field = value;
 
                         if (IsLoaded)
                             updateState();
@@ -168,21 +166,21 @@ namespace osu.Game.Overlays.FirstRunSetup
 
                 protected override bool OnHover(HoverEvent e)
                 {
-                    if (!selected)
+                    if (!Selected)
                         updateState();
                     return base.OnHover(e);
                 }
 
                 protected override void OnHoverLost(HoverLostEvent e)
                 {
-                    if (!selected)
+                    if (!Selected)
                         updateState();
                     base.OnHoverLost(e);
                 }
 
                 private void updateState()
                 {
-                    if (selected)
+                    if (Selected)
                     {
                         const double selected_duration = 1000;
 

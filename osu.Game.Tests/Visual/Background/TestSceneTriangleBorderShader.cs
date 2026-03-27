@@ -45,26 +45,22 @@ namespace osu.Game.Tests.Visual.Background
 
         private partial class TestTriangle : Sprite
         {
-            private float thickness = 0.15f;
-
             public float Thickness
             {
-                get => thickness;
+                get;
                 set
                 {
-                    thickness = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
-            }
-
-            private float texelSize;
+            } = 0.15f;
 
             public float TexelSize
             {
-                get => texelSize;
+                get;
                 set
                 {
-                    texelSize = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
             }
@@ -94,8 +90,8 @@ namespace osu.Game.Tests.Visual.Background
                 {
                     base.ApplyState();
 
-                    thickness = Source.thickness;
-                    texelSize = Source.texelSize;
+                    thickness = Source.Thickness;
+                    texelSize = Source.TexelSize;
                 }
 
                 private IUniformBuffer<TriangleBorderData>? borderDataBuffer;

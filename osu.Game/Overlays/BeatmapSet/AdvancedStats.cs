@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -45,16 +44,14 @@ namespace osu.Game.Overlays.BeatmapSet
         protected FillFlowContainer Flow { get; private set; }
         private readonly StatisticRow starDifficulty;
 
-        private IBeatmapInfo beatmapInfo;
-
         public IBeatmapInfo BeatmapInfo
         {
-            get => beatmapInfo;
+            get;
             set
             {
-                if (value == beatmapInfo) return;
+                if (value == field) return;
 
-                beatmapInfo = value;
+                field = value;
 
                 updateStatistics();
             }

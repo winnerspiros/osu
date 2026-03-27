@@ -20,14 +20,12 @@ namespace osu.Game.Screens.Select
 {
     public partial class PanelLocalRankDisplay : CompositeDrawable
     {
-        private BeatmapInfo? beatmap;
-
         public BeatmapInfo? Beatmap
         {
-            get => beatmap;
+            get;
             set
             {
-                beatmap = value;
+                field = value;
 
                 if (IsLoaded)
                     updateSubscription();
@@ -73,13 +71,13 @@ namespace osu.Game.Screens.Select
         {
             scoreSubscription?.Dispose();
 
-            if (beatmap == null)
+            if (Beatmap == null)
                 return;
 
             scoreSubscription = realm.RegisterForNotifications(r =>
                     r.GetAllLocalScoresForUser(api.LocalUser.Value.Id)
                      .Filter($@"{nameof(ScoreInfo.BeatmapInfo)}.{nameof(BeatmapInfo.ID)} == $0"
-                             + $" && {nameof(ScoreInfo.Ruleset)}.{nameof(RulesetInfo.ShortName)} == $1", beatmap.ID, ruleset.Value.ShortName),
+                             + $" && {nameof(ScoreInfo.Ruleset)}.{nameof(RulesetInfo.ShortName)} == $1", Beatmap.ID, ruleset.Value.ShortName),
                 localScoresChanged);
         }
 

@@ -225,8 +225,6 @@ namespace osu.Game.Online.API.Requests.Responses
             public int Available;
         }
 
-        private UserStatistics statistics;
-
         /// <summary>
         /// User statistics for the requested ruleset (in the case of a <see cref="GetUserRequest"/> or <see cref="GetFriendsRequest"/> response).
         /// </summary>
@@ -236,14 +234,14 @@ namespace osu.Game.Online.API.Requests.Responses
         [JsonProperty(@"statistics")]
         public UserStatistics Statistics
         {
-            get => statistics ??= new UserStatistics();
+            get => field ??= new UserStatistics();
             set
             {
-                if (statistics != null)
+                if (field != null)
                     // we may already have rank history populated
-                    value.RankHistory = statistics.RankHistory;
+                    value.RankHistory = field.RankHistory;
 
-                statistics = value;
+                field = value;
             }
         }
 

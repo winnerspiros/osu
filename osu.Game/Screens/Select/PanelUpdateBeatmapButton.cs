@@ -26,14 +26,12 @@ namespace osu.Game.Screens.Select
 {
     public partial class PanelUpdateBeatmapButton : OsuAnimatedButton
     {
-        private BeatmapSetInfo? beatmapSet;
-
         public BeatmapSetInfo? BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                beatmapSet = value;
+                field = value;
 
                 if (IsLoaded)
                     beatmapChanged();
@@ -129,7 +127,7 @@ namespace osu.Game.Screens.Select
 
         private void beatmapChanged()
         {
-            Alpha = beatmapSet?.AllBeatmapsUpToDate == false ? 1 : 0;
+            Alpha = BeatmapSet?.AllBeatmapsUpToDate == false ? 1 : 0;
             icon.Spin(4000, RotationDirection.Clockwise);
         }
 
@@ -151,7 +149,7 @@ namespace osu.Game.Screens.Select
 
         private void performUpdate()
         {
-            Debug.Assert(beatmapSet != null);
+            Debug.Assert(BeatmapSet != null);
 
             if (!api.IsLoggedIn)
             {
@@ -159,7 +157,7 @@ namespace osu.Game.Screens.Select
                 return;
             }
 
-            if (dialogOverlay != null && beatmapSet.Status == BeatmapOnlineStatus.LocallyModified && !updateConfirmed)
+            if (dialogOverlay != null && BeatmapSet.Status == BeatmapOnlineStatus.LocallyModified && !updateConfirmed)
             {
                 dialogOverlay.Push(new UpdateLocalConfirmationDialog(() =>
                 {
@@ -172,14 +170,14 @@ namespace osu.Game.Screens.Select
 
             updateConfirmed = false;
 
-            beatmapDownloader.DownloadAsUpdate(beatmapSet, preferNoVideo.Value);
+            beatmapDownloader.DownloadAsUpdate(BeatmapSet, preferNoVideo.Value);
             attachExistingDownload();
         }
 
         private void attachExistingDownload()
         {
-            Debug.Assert(beatmapSet != null);
-            var download = beatmapDownloader.GetExistingDownload(beatmapSet);
+            Debug.Assert(BeatmapSet != null);
+            var download = beatmapDownloader.GetExistingDownload(BeatmapSet);
 
             if (download != null)
             {

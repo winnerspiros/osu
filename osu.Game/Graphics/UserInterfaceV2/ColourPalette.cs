@@ -27,22 +27,20 @@ namespace osu.Game.Graphics.UserInterfaceV2
     {
         public BindableList<Colour4> Colours { get; } = new BindableList<Colour4>();
 
-        private LocalisableString colourNamePrefix = "Colour";
-
         public LocalisableString ColourNamePrefix
         {
-            get => colourNamePrefix;
+            get;
             set
             {
-                if (colourNamePrefix == value)
+                if (field == value)
                     return;
 
-                colourNamePrefix = value;
+                field = value;
 
                 if (IsLoaded)
                     reindexItems();
             }
-        }
+        } = "Colour";
 
         private FillFlowContainer palette;
 
@@ -114,7 +112,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
             foreach (var colourDisplay in colourDisplays)
             {
-                colourDisplay.ColourName = $"{colourNamePrefix} {index}";
+                colourDisplay.ColourName = $"{ColourNamePrefix} {index}";
                 index += 1;
             }
         }

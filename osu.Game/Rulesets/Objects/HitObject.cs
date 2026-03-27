@@ -171,9 +171,7 @@ namespace osu.Game.Rulesets.Objects
         /// The <see cref="Judgement"/> that represents the scoring information for this <see cref="HitObject"/>.
         /// </summary>
         [JsonIgnore]
-        public Judgement Judgement => judgement ??= CreateJudgement();
-
-        private Judgement judgement;
+        public Judgement Judgement => field ??= CreateJudgement();
 
         /// <summary>
         /// Should be overridden to create a <see cref="Judgement"/> that represents the scoring information for this <see cref="HitObject"/>.

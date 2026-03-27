@@ -29,21 +29,19 @@ namespace osu.Game.Overlays.Mods
     {
         public readonly ModType ModType;
 
-        private IReadOnlyList<ModState> availableMods = [];
-
         /// <summary>
         /// Sets the list of mods to show in this column.
         /// </summary>
         public IReadOnlyList<ModState> AvailableMods
         {
-            get => availableMods;
+            get;
             set
             {
                 Debug.Assert(value.All(mod => mod.Mod.Type == ModType));
 
-                availableMods = value;
+                field = value;
 
-                foreach (var mod in availableMods)
+                foreach (var mod in field)
                 {
                     mod.Active.BindValueChanged(_ => updateState());
                     mod.MatchingTextFilter.BindValueChanged(_ => updateState());
@@ -55,7 +53,7 @@ namespace osu.Game.Overlays.Mods
                 if (IsLoaded)
                     asyncLoadPanels();
             }
-        }
+        } = [];
 
         protected virtual ModPanel CreateModPanel(ModState mod) => new ModPanel(mod);
 
@@ -152,7 +150,7 @@ namespace osu.Game.Overlays.Mods
         {
             cancellationTokenSource?.Cancel();
 
-            var panels = availableMods.Select(mod => CreateModPanel(mod).With(panel => panel.Shear = Vector2.Zero)).ToArray();
+            var panels = AvailableMods.Select(mod => CreateModPanel(mod).With(panel => panel.Shear = Vector2.Zero)).ToArray();
             latestLoadedPanels = panels;
 
             latestLoadTask = LoadComponentsAsync(panels, loaded =>
@@ -164,17 +162,17 @@ namespace osu.Game.Overlays.Mods
 
         private void updateState()
         {
-            Alpha = availableMods.All(mod => !mod.Visible) ? 0 : 1;
+            Alpha = AvailableMods.All(mod => !mod.Visible) ? 0 : 1;
 
             if (toggleAllCheckbox != null && !SelectionAnimationRunning)
             {
-                bool anyPanelsVisible = availableMods.Any(panel => panel.Visible);
+                bool anyPanelsVisible = AvailableMods.Any(panel => panel.Visible);
 
                 toggleAllCheckbox.Alpha = anyPanelsVisible ? 1 : 0;
 
                 // checking `anyPanelsVisible` is important since `.All()` returns `true` for empty enumerables.
                 if (anyPanelsVisible)
-                    toggleAllCheckbox.Current.Value = availableMods.Where(panel => panel.Visible).All(panel => panel.Active.Value);
+                    toggleAllCheckbox.Current.Value = AvailableMods.Where(panel => panel.Visible).All(panel => panel.Active.Value);
             }
         }
 
@@ -228,7 +226,7 @@ namespace osu.Game.Overlays.Mods
         {
             pendingSelectionOperations.Clear();
 
-            foreach (var button in availableMods.Where(b => !b.Active.Value && b.Visible))
+            foreach (var button in AvailableMods.Where(b => !b.Active.Value && b.Visible))
                 pendingSelectionOperations.Enqueue(() => button.Active.Value = true);
         }
 
@@ -239,7 +237,7 @@ namespace osu.Game.Overlays.Mods
         {
             pendingSelectionOperations.Clear();
 
-            foreach (var button in availableMods.Where(b => b.Active.Value))
+            foreach (var button in AvailableMods.Where(b => b.Active.Value))
             {
                 if (!button.Visible)
                     button.Active.Value = false;
@@ -348,7 +346,7 @@ namespace osu.Game.Overlays.Mods
             if (e.ControlPressed || e.AltPressed || e.SuperPressed || e.Repeat)
                 return false;
 
-            return hotkeyHandler.HandleModHotkeyPressed(e, availableMods);
+            return hotkeyHandler.HandleModHotkeyPressed(e, AvailableMods);
         }
 
         #endregion

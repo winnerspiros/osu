@@ -114,9 +114,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         private Box downloadProgressBar = null!;
 
-        private PlayerPanelDisplayMode displayMode = PlayerPanelDisplayMode.Horizontal;
-        private bool hasQuit;
-
         private enum InteractionSampleType
         {
             PlayerJump,
@@ -302,33 +299,33 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         public PlayerPanelDisplayMode DisplayMode
         {
-            get => displayMode;
+            get;
             set
             {
-                displayMode = value;
+                field = value;
                 if (IsLoaded)
                     updateLayout(false);
             }
-        }
+        } = PlayerPanelDisplayMode.Horizontal;
 
         public bool HasQuit
         {
-            get => hasQuit;
+            get;
             set
             {
-                hasQuit = value;
+                field = value;
                 if (IsLoaded)
                     updateLayout(false);
             }
         }
 
-        private bool horizontal => displayMode == PlayerPanelDisplayMode.Horizontal;
+        private bool horizontal => DisplayMode == PlayerPanelDisplayMode.Horizontal;
 
         private Vector2 avatarPosition
         {
             get
             {
-                switch (displayMode)
+                switch (DisplayMode)
                 {
                     case PlayerPanelDisplayMode.AvatarOnly:
                         return avatar_size / 2;
@@ -351,7 +348,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
             avatarPositionTarget.MoveTo(avatarPosition, duration, Easing.OutPow10);
 
-            switch (displayMode)
+            switch (DisplayMode)
             {
                 case PlayerPanelDisplayMode.AvatarOnly:
                     rankText.Hide();
@@ -397,7 +394,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
             }
 
             // quit text doesn't fit on avataronly mode.
-            if (HasQuit && displayMode != PlayerPanelDisplayMode.AvatarOnly)
+            if (HasQuit && DisplayMode != PlayerPanelDisplayMode.AvatarOnly)
                 quitText.FadeIn(duration, Easing.OutPow10);
             else
                 quitText.FadeOut(duration, Easing.OutPow10);

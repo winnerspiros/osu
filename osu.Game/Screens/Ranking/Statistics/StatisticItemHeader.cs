@@ -18,18 +18,17 @@ namespace osu.Game.Screens.Ranking.Statistics
     {
         public LocalisableString Text
         {
-            get => text;
+            get;
             set
             {
-                if (text == value) return;
+                if (field == value) return;
 
-                text = value;
+                field = value;
                 if (IsLoaded)
                     spriteText.Text = value;
             }
         }
 
-        private LocalisableString text;
         private OsuSpriteText spriteText = null!;
 
         [BackgroundDependencyLoader]
@@ -58,7 +57,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                     {
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
-                        Text = text,
+                        Text = Text,
                         Font = OsuFont.GetFont(size: StatisticItem.FONT_SIZE, weight: FontWeight.SemiBold),
                     }
                 }

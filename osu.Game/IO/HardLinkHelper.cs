@@ -88,9 +88,8 @@ namespace osu.Game.IO
                 case RuntimeInfo.Platform.Windows:
                     SafeFileHandle handle = CreateFile(filePath, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Archive, IntPtr.Zero);
 
-                    ByHandleFileInformation fileInfo;
 
-                    if (GetFileInformationByHandle(handle, out fileInfo))
+                    if (GetFileInformationByHandle(handle, out var fileInfo))
                         result = (int)fileInfo.NumberOfLinks;
                     CloseHandle(handle);
                     break;

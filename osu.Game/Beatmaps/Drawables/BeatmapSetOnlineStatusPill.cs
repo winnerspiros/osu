@@ -31,20 +31,18 @@ namespace osu.Game.Beatmaps.Drawables
 
         public BeatmapOnlineStatus Status
         {
-            get => status;
+            get;
             set
             {
-                if (status == value)
+                if (field == value)
                     return;
 
-                status = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();
             }
         }
-
-        private BeatmapOnlineStatus status;
 
         public float TextSize
         {
@@ -130,9 +128,9 @@ namespace osu.Game.Beatmaps.Drawables
             Color4 statusTextColour;
 
             if (colourProvider != null)
-                statusTextColour = status == BeatmapOnlineStatus.Graveyard ? colourProvider.Background1 : colourProvider.Background3;
+                statusTextColour = Status == BeatmapOnlineStatus.Graveyard ? colourProvider.Background1 : colourProvider.Background3;
             else
-                statusTextColour = status == BeatmapOnlineStatus.Graveyard ? colours.GreySeaFoamLight : Color4.Black;
+                statusTextColour = Status == BeatmapOnlineStatus.Graveyard ? colours.GreySeaFoamLight : Color4.Black;
 
             statusText.FadeColour(statusTextColour, duration, Easing.OutQuint);
             background.FadeColour(OsuColour.ForBeatmapSetOnlineStatus(Status) ?? colourProvider?.Light1 ?? colours.GreySeaFoamLighter, duration, Easing.OutQuint);

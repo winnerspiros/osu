@@ -48,8 +48,7 @@ namespace osu.Game.Screens.Edit.Setup
                 tagsTextBox = createTextBox<FormTextBox>(BeatmapsetsStrings.ShowInfoMapperTags)
             };
 
-            if (setupScreen != null)
-                setupScreen.MetadataChanged += reloadMetadata;
+            setupScreen?.MetadataChanged += reloadMetadata;
 
             reloadMetadata();
         }
@@ -84,8 +83,7 @@ namespace osu.Game.Screens.Edit.Setup
                 };
             }
 
-            if (editor != null)
-                editor.Saved += () => dirty = false;
+            editor?.Saved += () => dirty = false;
 
             updateReadOnlyState();
         }

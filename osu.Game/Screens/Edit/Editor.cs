@@ -133,7 +133,7 @@ namespace osu.Game.Screens.Edit
         {
             get
             {
-                if (!workingBeatmapUpdated)
+                if (!field)
                     return false;
 
                 if (currentScreen?.IsLoaded != true)
@@ -144,9 +144,9 @@ namespace osu.Game.Screens.Edit
 
                 return true;
             }
-        }
 
-        private bool workingBeatmapUpdated;
+            private set;
+        }
 
         private readonly Bindable<bool> samplePlaybackDisabled = new Bindable<bool>();
 
@@ -320,7 +320,7 @@ namespace osu.Game.Screens.Edit
                 // this assumes that nothing during the rest of this load() method is accessing Beatmap.Value (loadableBeatmap should be preferred).
                 // generally this is quite safe, as the actual load of editor content comes after menuBar.Mode.ValueChanged is fired in its own LoadComplete.
                 Beatmap.Value = loadableBeatmap;
-                workingBeatmapUpdated = true;
+                ReadyForUse = true;
             });
 
             var bookmarkController = new BookmarkController();
@@ -883,8 +883,7 @@ namespace osu.Game.Screens.Edit
             realm.Write(r =>
             {
                 var beatmap = r.Find<BeatmapInfo>(editorBeatmap.BeatmapInfo.ID);
-                if (beatmap != null)
-                    beatmap.EditorTimestamp = clock.CurrentTime;
+                beatmap?.EditorTimestamp = clock.CurrentTime;
             });
 
             // `resetTrack()` MUST happen before `refetchBeatmap()`, because along other things, `refetchBeatmap()` causes a global working beatmap change,
@@ -1508,8 +1507,7 @@ namespace osu.Game.Screens.Edit
                 foreach (var beatmapInfo in Beatmap.Value.BeatmapSetInfo.Beatmaps)
                 {
                     var menuItem = difficultyItems.OfType<DifficultyMenuItem>().FirstOrDefault(i => i.BeatmapInfo.Equals(beatmapInfo));
-                    if (menuItem != null)
-                        menuItem.Text.Value = string.IsNullOrEmpty(beatmapInfo.DifficultyName) ? "(unnamed)" : beatmapInfo.DifficultyName;
+                    menuItem?.Text.Value = string.IsNullOrEmpty(beatmapInfo.DifficultyName) ? "(unnamed)" : beatmapInfo.DifficultyName;
                 }
             };
 

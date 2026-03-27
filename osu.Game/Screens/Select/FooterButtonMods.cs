@@ -262,17 +262,15 @@ namespace osu.Game.Screens.Select
         {
             public readonly Bindable<IReadOnlyList<Mod>> Mods = new Bindable<IReadOnlyList<Mod>>();
 
-            private LocalisableString? customText;
-
             /// <summary>
             /// When set, this will be shown instead of a mod count.
             /// </summary>
             public LocalisableString? CustomText
             {
-                get => customText;
+                get;
                 set
                 {
-                    customText = value;
+                    field = value;
                     if (IsLoaded)
                         updateText();
                 }

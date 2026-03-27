@@ -209,33 +209,29 @@ namespace osu.Game.Rulesets.Mods
                 }
             }
 
-            private float flashlightDim;
-
             public float FlashlightDim
             {
-                get => flashlightDim;
+                get;
                 set
                 {
-                    if (flashlightDim == value) return;
+                    if (field == value) return;
 
-                    flashlightDim = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
             }
-
-            private float flashlightSmoothness = 1.1f;
 
             public float FlashlightSmoothness
             {
-                get => flashlightSmoothness;
+                get;
                 set
                 {
-                    if (flashlightSmoothness == value) return;
+                    if (field == value) return;
 
-                    flashlightSmoothness = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
-            }
+            } = 1.1f;
 
             private class FlashlightDrawNode : DrawNode
             {
@@ -269,7 +265,7 @@ namespace osu.Game.Rulesets.Mods
                     flashlightSize = Source.FlashlightSize * drawInfoScale;
 
                     flashlightDim = Source.FlashlightDim;
-                    flashlightSmoothness = Source.flashlightSmoothness;
+                    flashlightSmoothness = Source.FlashlightSmoothness;
                 }
 
                 private IUniformBuffer<FlashlightParameters>? flashlightParametersBuffer;

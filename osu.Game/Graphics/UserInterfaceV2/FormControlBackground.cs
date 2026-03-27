@@ -19,14 +19,12 @@ namespace osu.Game.Graphics.UserInterfaceV2
         public const float CORNER_EXPONENT = 2.5f;
         public const float BORDER_THICKNESS = 2.5f;
 
-        private VisualStyle visualStyle;
-
         public VisualStyle VisualStyle
         {
-            get => visualStyle;
+            get;
             set
             {
-                visualStyle = value;
+                field = value;
                 updateStyle();
             }
         }
@@ -74,14 +72,14 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         private void updateStyle()
         {
-            sounds.Enabled.Value = visualStyle != VisualStyle.Disabled;
+            sounds.Enabled.Value = VisualStyle != VisualStyle.Disabled;
 
             ColourInfo colour;
             ColourInfo borderColour;
 
             bool border = false;
 
-            switch (visualStyle)
+            switch (VisualStyle)
             {
                 case VisualStyle.Normal:
                     colour = colourProvider.Background4.Darken(0.1f);

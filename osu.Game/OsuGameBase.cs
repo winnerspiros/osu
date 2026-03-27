@@ -787,8 +787,7 @@ namespace osu.Game
 
             realm?.Dispose();
 
-            if (Host != null)
-                Host.ExceptionThrown -= onExceptionThrown;
+            Host?.ExceptionThrown -= onExceptionThrown;
 
             RestartOnExitAction?.Invoke();
         }

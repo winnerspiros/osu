@@ -56,15 +56,13 @@ namespace osu.Game.Online.Spectator
 
         public Func<ScoringMode, long> GetDisplayScore => mode => scoreInfo?.GetDisplayScore(mode) ?? 0;
 
-        private IClock? referenceClock;
-
         /// <summary>
         /// The clock used to determine the current score.
         /// </summary>
         public IClock ReferenceClock
         {
-            get => referenceClock ?? Clock;
-            set => referenceClock = value;
+            get => field ?? Clock;
+            set;
         }
 
         [Resolved]

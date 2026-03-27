@@ -38,17 +38,15 @@ namespace osu.Game.Graphics.UserInterfaceV2
         /// </summary>
         public IconUsage ButtonIcon { get; init; } = FontAwesome.Solid.ChevronRight;
 
-        private readonly Color4? backgroundColour;
-
         /// <summary>
         /// Sets a custom background colour for the button.
         /// </summary>
         public Color4? BackgroundColour
         {
-            get => backgroundColour;
+            get;
             init
             {
-                backgroundColour = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();

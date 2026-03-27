@@ -99,45 +99,36 @@ namespace osu.Game.Overlays
             SelectedItem.BindValueChanged(_ => updateState(), true);
         }
 
-        private LocalisableString mainText;
-
         protected LocalisableString MainText
         {
-            get => mainText;
+            get;
             set
             {
-                mainText = value;
+                field = value;
 
-                if (mainTextPiece != null)
-                    mainTextPiece.Text = value;
+                mainTextPiece?.Text = value;
             }
         }
-
-        private LocalisableString additionalText;
 
         protected LocalisableString AdditionalText
         {
-            get => additionalText;
+            get;
             set
             {
-                additionalText = value;
+                field = value;
 
-                if (additionalTextPiece != null)
-                    additionalTextPiece.Text = value;
+                additionalTextPiece?.Text = value;
             }
         }
 
-        private LocalisableString infoText;
-
         protected LocalisableString InfoText
         {
-            get => infoText;
+            get;
             set
             {
-                infoText = value;
+                field = value;
 
-                if (infoTextPiece != null)
-                    infoTextPiece.Text = value;
+                infoTextPiece?.Text = value;
             }
         }
 

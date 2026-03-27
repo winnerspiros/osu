@@ -44,29 +44,25 @@ namespace osu.Game.Tournament.Components
             }
         }
 
-        private LegacyMods mods;
-
         public LegacyMods Mods
         {
-            get => mods;
+            get;
             set
             {
-                mods = value;
+                field = value;
                 refreshContent();
             }
         }
 
         private FillFlowContainer flow = null!;
 
-        private bool expanded;
-
         public bool Expanded
         {
-            get => expanded;
+            get;
             set
             {
-                expanded = value;
-                flow.Direction = expanded ? FillDirection.Full : FillDirection.Vertical;
+                field = value;
+                flow.Direction = field ? FillDirection.Full : FillDirection.Vertical;
             }
         }
 
@@ -127,7 +123,7 @@ namespace osu.Game.Tournament.Components
 
             var rulesetInstance = ruleset.Value.CreateInstance();
 
-            var convertedMods = rulesetInstance.ConvertFromLegacyMods(mods).ToList();
+            var convertedMods = rulesetInstance.ConvertFromLegacyMods(Mods).ToList();
             var adjustedDifficulty = rulesetInstance.GetAdjustedDisplayDifficulty(beatmap, convertedMods);
 
             double rate = ModUtils.CalculateRateWithMods(convertedMods);

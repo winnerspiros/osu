@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.ComponentModel;
 using System.Linq;
 using osu.Game.Rulesets;

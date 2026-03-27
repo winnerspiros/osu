@@ -12,16 +12,14 @@ namespace osu.Game.Graphics.UserInterface
 {
     public abstract partial class LoadingButton : OsuHoverContainer
     {
-        private bool isLoading;
-
         public bool IsLoading
         {
-            get => isLoading;
+            get;
             set
             {
-                isLoading = value;
+                field = value;
 
-                Enabled.Value = !isLoading;
+                Enabled.Value = !field;
 
                 if (value)
                     loading.Show();

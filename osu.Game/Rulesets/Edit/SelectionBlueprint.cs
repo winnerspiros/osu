@@ -50,31 +50,29 @@ namespace osu.Game.Rulesets.Edit
             updateState();
         }
 
-        private SelectionState state;
-
         [CanBeNull]
         public event Action<SelectionState> StateChanged;
 
         public SelectionState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value)
+                if (field == value)
                     return;
 
-                state = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();
 
-                StateChanged?.Invoke(state);
+                StateChanged?.Invoke(field);
             }
         }
 
         private void updateState()
         {
-            switch (state)
+            switch (State)
             {
                 case SelectionState.Selected:
                     OnSelected();

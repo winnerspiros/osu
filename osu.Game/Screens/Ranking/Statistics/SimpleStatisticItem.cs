@@ -75,20 +75,18 @@ namespace osu.Game.Screens.Ranking.Statistics
     /// </summary>
     public partial class SimpleStatisticItem<TValue> : SimpleStatisticItem
     {
-        private TValue value = default!;
-
         /// <summary>
         /// The statistic's value to be displayed.
         /// </summary>
         public new TValue Value
         {
-            get => value;
+            get;
             set
             {
-                this.value = value;
+                field = value;
                 base.Value = DisplayValue(value);
             }
-        }
+        } = default!;
 
         /// <summary>
         /// Used to convert <see cref="Value"/> to a text representation.

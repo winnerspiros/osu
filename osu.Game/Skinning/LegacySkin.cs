@@ -572,8 +572,7 @@ namespace osu.Game.Skinning
 
             texture ??= Textures?.Get(componentName, wrapModeS, wrapModeT);
 
-            if (texture != null)
-                texture.ScaleAdjust = ratio;
+            texture?.ScaleAdjust = ratio;
 
             return texture;
         }

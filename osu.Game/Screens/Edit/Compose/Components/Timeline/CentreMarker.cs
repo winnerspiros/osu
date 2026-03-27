@@ -60,17 +60,15 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         /// </remarks>
         private partial class VerticalTriangles : Sprite
         {
-            private float triangleHeightRatio = 1f;
-
             public float TriangleHeightRatio
             {
-                get => triangleHeightRatio;
+                get;
                 set
                 {
-                    triangleHeightRatio = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
-            }
+            } = 1f;
 
             [BackgroundDependencyLoader]
             private void load(IRenderer renderer)

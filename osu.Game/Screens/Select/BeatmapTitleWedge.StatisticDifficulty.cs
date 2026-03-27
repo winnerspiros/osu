@@ -25,19 +25,17 @@ namespace osu.Game.Screens.Select
     {
         public partial class StatisticDifficulty : CompositeDrawable, IHasAccentColour, IHasCustomTooltip<RulesetBeatmapAttribute?>
         {
-            private Data value = new Data(string.Empty, 0, 0, 0);
-
             public Data Value
             {
-                get => value;
+                get;
                 set
                 {
-                    this.value = value;
+                    field = value;
 
                     if (IsLoaded)
                         updateDisplay();
                 }
-            }
+            } = new Data(string.Empty, 0, 0, 0);
 
             public float LabelWidth => labelText.DrawWidth;
 
@@ -151,13 +149,13 @@ namespace osu.Game.Screens.Select
 
             private void updateDisplay()
             {
-                bar.ResizeWidthTo(value.Maximum == 0 ? 0 : Math.Clamp(value.Value / value.Maximum, 0, 1), 300, Easing.OutQuint);
-                adjustedBar.ResizeWidthTo(value.Maximum == 0 ? 0 : Math.Clamp(value.AdjustedValue / value.Maximum, 0, 1), 300, Easing.OutQuint);
+                bar.ResizeWidthTo(Value.Maximum == 0 ? 0 : Math.Clamp(Value.Value / Value.Maximum, 0, 1), 300, Easing.OutQuint);
+                adjustedBar.ResizeWidthTo(Value.Maximum == 0 ? 0 : Math.Clamp(Value.AdjustedValue / Value.Maximum, 0, 1), 300, Easing.OutQuint);
 
-                labelText.Text = value.Label;
-                valueText.Text = value.Content ?? value.AdjustedValue.ToLocalisableString("0.##");
+                labelText.Text = Value.Label;
+                valueText.Text = Value.Content ?? Value.AdjustedValue.ToLocalisableString("0.##");
 
-                if (value.Value == value.AdjustedValue)
+                if (Value.Value == Value.AdjustedValue)
                 {
                     adjustedBar.FadeColour(Color4.Transparent, 300, Easing.OutQuint);
                     bar.FadeIn(300, Easing.OutQuint);
@@ -167,7 +165,7 @@ namespace osu.Game.Screens.Select
                 }
                 else
                 {
-                    bool difficultyIncrease = value.Value < value.AdjustedValue;
+                    bool difficultyIncrease = Value.Value < Value.AdjustedValue;
 
                     if (difficultyIncrease)
                     {
@@ -203,7 +201,7 @@ namespace osu.Game.Screens.Select
             }
 
             public ITooltip<RulesetBeatmapAttribute?> GetCustomTooltip() => new BeatmapAttributeTooltip();
-            public RulesetBeatmapAttribute? TooltipContent => value.BeatmapAttribute;
+            public RulesetBeatmapAttribute? TooltipContent => Value.BeatmapAttribute;
         }
     }
 }

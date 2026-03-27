@@ -432,10 +432,9 @@ namespace osu.Game.Rulesets.UI
         {
             var lookupType = hitObject.GetType();
 
-            IDrawablePool pool;
 
             // Tests may add derived hitobject instances for which pools don't exist. Try to find any applicable pool and dynamically assign the type if the pool exists.
-            if (!pools.TryGetValue(lookupType, out pool))
+            if (!pools.TryGetValue(lookupType, out var pool))
             {
                 foreach (var (t, p) in pools)
                 {

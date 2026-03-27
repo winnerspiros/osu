@@ -51,8 +51,7 @@ namespace osu.Game.Overlays.SkinEditor
         {
             base.LoadComplete();
 
-            if (ChangeHandler != null)
-                ChangeHandler.OnStateChange += updateTernaryStates;
+            ChangeHandler?.OnStateChange += updateTernaryStates;
             SelectedItems.BindCollectionChanged((_, _) => updateTernaryStates());
         }
 
@@ -60,8 +59,7 @@ namespace osu.Game.Overlays.SkinEditor
         {
             var usingClosestAnchor = GetStateFromSelection(SelectedBlueprints, c => !c.Item.UsesFixedAnchor);
 
-            if (closestAnchor != null)
-                closestAnchor.State.Value = usingClosestAnchor;
+            closestAnchor?.State.Value = usingClosestAnchor;
 
             if (fixedAnchors != null)
             {

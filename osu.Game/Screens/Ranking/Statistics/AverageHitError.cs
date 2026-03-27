@@ -28,7 +28,7 @@ namespace osu.Game.Screens.Ranking.Statistics
         {
             return value == null ? RankingStatisticsStrings.NotAvailable : getEarlyLateText(value.Value);
 
-            LocalisableString getEarlyLateText(double offset) =>
+            static LocalisableString getEarlyLateText(double offset) =>
                 offset < 0
                     ? RankingStatisticsStrings.Early(Math.Abs(offset))
                     : RankingStatisticsStrings.Late(Math.Abs(offset));

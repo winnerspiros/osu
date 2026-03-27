@@ -300,21 +300,19 @@ namespace osu.Game.Tournament
                 return base.OnKeyDown(e);
             }
 
-            private bool isSelected;
-
             public Action<Type>? RequestSelection;
 
             public bool IsSelected
             {
-                get => isSelected;
+                get;
                 set
                 {
-                    if (value == isSelected)
+                    if (value == field)
                         return;
 
-                    isSelected = value;
-                    BackgroundColour = isSelected ? Color4.SkyBlue : OsuColour.Gray(0.2f);
-                    SpriteText.Colour = isSelected ? Color4.Black : Color4.White;
+                    field = value;
+                    BackgroundColour = field ? Color4.SkyBlue : OsuColour.Gray(0.2f);
+                    SpriteText.Colour = field ? Color4.Black : Color4.White;
                 }
             }
         }

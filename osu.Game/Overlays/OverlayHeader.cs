@@ -13,17 +13,15 @@ namespace osu.Game.Overlays
     {
         public OverlayTitle Title { get; }
 
-        private float contentSidePadding;
-
         /// <summary>
         /// Horizontal padding of the header content.
         /// </summary>
         protected float ContentSidePadding
         {
-            get => contentSidePadding;
+            get;
             set
             {
-                contentSidePadding = value;
+                field = value;
                 content.Padding = new MarginPadding
                 {
                     Horizontal = value

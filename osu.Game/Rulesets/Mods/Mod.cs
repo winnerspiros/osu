@@ -121,8 +121,6 @@ namespace osu.Game.Rulesets.Mods
         [JsonIgnore]
         public virtual Type[] IncompatibleMods => [];
 
-        private IReadOnlyDictionary<string, IBindable>? settingsBacking;
-
         /// <summary>
         /// All <see cref="IBindable"/> settings within this mod.
         /// </summary>
@@ -136,7 +134,7 @@ namespace osu.Game.Rulesets.Mods
         /// Provides mapping of names to <see cref="IBindable"/>s of all settings within this mod.
         /// </summary>
         internal IReadOnlyDictionary<string, IBindable> SettingsMap =>
-            settingsBacking ??= this.GetSettingsSourceProperties()
+            field ??= this.GetSettingsSourceProperties()
                                     .Select(p => p.Item2)
                                     .ToDictionary(property => property.Name.ToSnakeCase(), property => (IBindable)property.GetValue(this)!);
 

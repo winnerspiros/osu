@@ -29,20 +29,17 @@ namespace osu.Game.Screens.Select
         private partial class TagsLine : FillFlowContainer
         {
             private readonly LayoutValue drawSizeLayout = new LayoutValue(Invalidation.DrawSize);
-
-            private string[] tags = [];
-
             private TagsOverflowButton? overflowButton;
 
             public string[] Tags
             {
-                get => tags;
+                get;
                 set
                 {
-                    tags = value;
+                    field = value;
                     updateTags();
                 }
-            }
+            } = [];
 
             public Action<string>? PerformSearch { get; set; }
 
@@ -72,7 +69,7 @@ namespace osu.Game.Screens.Select
 
             private void updateLayout()
             {
-                if (tags.Length == 0)
+                if (Tags.Length == 0)
                     return;
 
                 Debug.Assert(overflowButton != null);
@@ -100,7 +97,7 @@ namespace osu.Game.Screens.Select
 
             private void updateTags()
             {
-                ChildrenEnumerable = tags.Select(t => new OsuHoverContainer
+                ChildrenEnumerable = Tags.Select(t => new OsuHoverContainer
                 {
                     AutoSizeAxes = Axes.Both,
                     Action = () => PerformSearch?.Invoke(t),
@@ -114,7 +111,7 @@ namespace osu.Game.Screens.Select
                     },
                 });
 
-                Add(overflowButton = new TagsOverflowButton(tags)
+                Add(overflowButton = new TagsOverflowButton(Tags)
                 {
                     Alpha = 0f,
                     PerformSearch = s => PerformSearch?.Invoke(s),

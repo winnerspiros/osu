@@ -93,19 +93,17 @@ namespace osu.Game.Overlays.Notifications
 
         public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && !WasClosed;
 
-        private bool isInToastTray;
-
         /// <summary>
         /// Whether this notification is in the <see cref="NotificationOverlayToastTray"/>.
         /// </summary>
         public bool IsInToastTray
         {
-            get => isInToastTray;
+            get;
             set
             {
-                isInToastTray = value;
+                field = value;
 
-                if (!isInToastTray)
+                if (!field)
                 {
                     dragContainer.ResetPosition();
                     if (!Read)
@@ -454,22 +452,21 @@ namespace osu.Game.Overlays.Notifications
 
         public partial class NotificationLight : Container
         {
-            private bool pulsate;
             private Container pulsateLayer = null!;
 
             public bool Pulsate
             {
-                get => pulsate;
+                get;
                 set
                 {
-                    if (pulsate == value) return;
+                    if (field == value) return;
 
-                    pulsate = value;
+                    field = value;
 
                     pulsateLayer.ClearTransforms();
                     pulsateLayer.Alpha = 1;
 
-                    if (pulsate)
+                    if (field)
                     {
                         const float length = 1000;
                         pulsateLayer.Loop(length / 2,

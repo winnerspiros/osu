@@ -17,27 +17,23 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
     public abstract partial class BeatmapCardIconButton : OsuClickableContainer
     {
-        private Colour4 idleColour;
-
         public Colour4 IdleColour
         {
-            get => idleColour;
+            get;
             set
             {
-                idleColour = value;
+                field = value;
                 if (IsLoaded)
                     updateState();
             }
         }
 
-        private Colour4 hoverColour;
-
         public Colour4 HoverColour
         {
-            get => hoverColour;
+            get;
             set
             {
-                hoverColour = value;
+                field = value;
                 if (IsLoaded)
                     updateState();
             }

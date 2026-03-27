@@ -797,8 +797,7 @@ namespace osu.Game.Overlays.SkinEditor
             // Let's track the one that was used when beginning the change so we can call EndChange on it specifically.
             (beginChangeHandler = changeHandler)?.BeginChange();
 
-            if (beginChangeHandler != null)
-                beginChangeHandler.OnStateChange += OnStateChange;
+            beginChangeHandler?.OnStateChange += OnStateChange;
         }
 
         public void EndChange() => beginChangeHandler?.EndChange();

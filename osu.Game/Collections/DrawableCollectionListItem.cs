@@ -263,21 +263,19 @@ namespace osu.Game.Collections
 
         public IEnumerable<LocalisableString> FilterTerms => Model.PerformRead(m => m.IsValid ? new[] { (LocalisableString)m.Name } : []);
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
-                matchingFilter = value;
+                field = value;
 
-                if (matchingFilter)
+                if (field)
                     this.FadeIn(200);
                 else
                     Hide();
             }
-        }
+        } = true;
 
         public bool FilteringActive { get; set; }
     }

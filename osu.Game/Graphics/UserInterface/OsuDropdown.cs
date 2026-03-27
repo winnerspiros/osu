@@ -282,19 +282,17 @@ namespace osu.Game.Graphics.UserInterface
                         Chevron.Colour = colourProvider?.Background5 ?? Color4.Black;
                     }
 
-                    private bool hovering;
-
                     public bool Hovering
                     {
-                        get => hovering;
+                        get;
                         set
                         {
-                            if (value == hovering)
+                            if (value == field)
                                 return;
 
-                            hovering = value;
+                            field = value;
 
-                            if (hovering)
+                            if (field)
                             {
                                 Chevron.FadeIn(400, Easing.OutQuint);
                                 Chevron.MoveToX(0, 400, Easing.OutQuint);
@@ -385,8 +383,7 @@ namespace osu.Game.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                if (Dropdown != null)
-                    Dropdown.Menu.StateChanged += _ => updateChevron();
+                Dropdown?.Menu.StateChanged += _ => updateChevron();
 
                 SearchBar.State.ValueChanged += _ => updateColour();
                 Enabled.BindValueChanged(_ => updateColour());

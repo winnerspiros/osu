@@ -171,35 +171,29 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             };
         }
 
-        private LocalisableString heading;
-
         /// <summary>
         /// Heading text to be displayed indicating the purpose of the current stage.
         /// </summary>
         public LocalisableString Heading
         {
-            get => heading;
+            get;
             set
             {
-                heading = value;
-                if (headingText != null)
-                    headingText.Text = value;
+                field = value;
+                headingText?.Text = value;
             }
         }
-
-        private LocalisableString caption;
 
         /// <summary>
         /// Subtitle text to be displayed indicating the action a user should take in the current stage.
         /// </summary>
         public LocalisableString Caption
         {
-            get => caption;
+            get;
             set
             {
-                caption = value;
-                if (captionText != null)
-                    captionText.Text = value;
+                field = value;
+                captionText?.Text = value;
             }
         }
 
@@ -214,8 +208,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             set
             {
                 captionColour = value;
-                if (captionText != null)
-                    captionText.Colour = value ?? colourScheme.Primary;
+                captionText?.Colour = value ?? colourScheme.Primary;
             }
         }
 

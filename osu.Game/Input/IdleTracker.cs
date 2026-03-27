@@ -19,9 +19,7 @@ namespace osu.Game.Input
     {
         private readonly double timeToIdle;
 
-        private double lastInteractionTime;
-
-        protected double TimeSpentIdle => Clock.CurrentTime - lastInteractionTime;
+        protected double TimeSpentIdle { get => Clock.CurrentTime - field; private set; }
 
         /// <summary>
         /// Whether the user is currently in an idle state.
@@ -92,7 +90,7 @@ namespace osu.Game.Input
 
         private bool updateLastInteractionTime()
         {
-            lastInteractionTime = Clock.CurrentTime;
+            TimeSpentIdle = Clock.CurrentTime;
             return false;
         }
     }

@@ -16,28 +16,24 @@ namespace osu.Game.Graphics.UserInterfaceV2
     {
         private OsuTextFlowContainer textFlow = null!;
 
-        private LocalisableString caption;
-
         public LocalisableString Caption
         {
-            get => caption;
+            get;
             set
             {
-                caption = value;
+                field = value;
 
                 if (IsLoaded)
                     updateDisplay();
             }
         }
 
-        private LocalisableString tooltipText;
-
         public LocalisableString TooltipText
         {
-            get => tooltipText;
+            get;
             set
             {
-                tooltipText = value;
+                field = value;
 
                 if (IsLoaded)
                     updateDisplay();
@@ -65,7 +61,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         private void updateDisplay()
         {
-            textFlow.Text = caption;
+            textFlow.Text = Caption;
 
             if (TooltipText != default)
             {

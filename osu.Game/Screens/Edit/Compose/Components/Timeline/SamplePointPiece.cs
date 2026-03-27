@@ -63,8 +63,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             LabelContainer.AutoSizeAxes = Axes.None;
             updateText();
 
-            if (editor != null)
-                editor.ShowSampleEditPopoverRequested += onShowSampleEditPopoverRequested;
+            editor?.ShowSampleEditPopoverRequested += onShowSampleEditPopoverRequested;
         }
 
         private readonly Bindable<bool> contracted = new Bindable<bool>();
@@ -106,8 +105,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         {
             base.Dispose(isDisposing);
 
-            if (editor != null)
-                editor.ShowSampleEditPopoverRequested -= onShowSampleEditPopoverRequested;
+            editor?.ShowSampleEditPopoverRequested -= onShowSampleEditPopoverRequested;
 
             HitObject.DefaultsApplied -= onDefaultsApplied;
         }
@@ -432,12 +430,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                         ternary.Current.Value = activeSets.Contains(ternary.SampleSet.SampleSetIndex) ? onState : TernaryState.False;
                 }
 
-                if (sampleSetDropdown != null)
-                {
-                    sampleSetDropdown.Current.Value = activeSets.Count == 1
+                sampleSetDropdown?.Current.Value = activeSets.Count == 1
                         ? sampleSetDropdown.Items.Single(i => i.SampleSetIndex == activeSets.Single())
                         : new EditorBeatmapSkin.SampleSet(-1, "(multiple)");
-                }
             }
 
             private void playDemoSample() => Scheduler.AddOnce(() =>

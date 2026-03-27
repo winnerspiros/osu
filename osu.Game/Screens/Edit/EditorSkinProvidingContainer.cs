@@ -23,16 +23,14 @@ namespace osu.Game.Screens.Edit
         {
             base.LoadComplete();
 
-            if (beatmapSkin != null)
-                beatmapSkin.BeatmapSkinChanged += triggerSourceChanged;
+            beatmapSkin?.BeatmapSkinChanged += triggerSourceChanged;
         }
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
 
-            if (beatmapSkin != null)
-                beatmapSkin.BeatmapSkinChanged -= triggerSourceChanged;
+            beatmapSkin?.BeatmapSkinChanged -= triggerSourceChanged;
         }
 
         private void triggerSourceChanged() => Schedule(TriggerSourceChanged);

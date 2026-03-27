@@ -224,9 +224,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void cardPlayed(RankedPlayCardWithPlaylistItem item)
         {
-            RankedPlayCard? card;
 
-            if (playerHand.RemoveCard(item, out card, out var drawQuad))
+            if (playerHand.RemoveCard(item, out var card, out var drawQuad))
             {
                 card.MatchScreenSpaceDrawQuad(drawQuad, CenterRow);
             }

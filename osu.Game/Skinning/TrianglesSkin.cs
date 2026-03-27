@@ -63,7 +63,7 @@ namespace osu.Game.Skinning
         public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
         {
             // Temporary until default skin has a valid hit lighting.
-            if ((lookup as SkinnableSprite.SpriteComponentLookup)?.LookupName == @"lighting") return Drawable.Empty();
+            if (lookup is SkinnableSprite.SpriteComponentLookup { LookupName: @"lighting" }) return Drawable.Empty();
 
             switch (lookup)
             {
@@ -95,8 +95,7 @@ namespace osu.Game.Skinning
                                     var leaderboard = container.OfType<DrawableGameplayLeaderboard>().FirstOrDefault();
                                     var spectatorList = container.OfType<SpectatorList>().FirstOrDefault();
 
-                                    if (leaderboard != null)
-                                        leaderboard.Position = new Vector2(40, 60);
+                                    leaderboard?.Position = new Vector2(40, 60);
 
                                     if (spectatorList != null)
                                     {

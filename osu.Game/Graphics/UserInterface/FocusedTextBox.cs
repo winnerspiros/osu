@@ -17,8 +17,6 @@ namespace osu.Game.Graphics.UserInterface
     /// </summary>
     public partial class FocusedTextBox : OsuTextBox, IKeyBindingHandler<GlobalAction>
     {
-        private bool focus;
-
         private bool allowImmediateFocus => host?.OnScreenKeyboardOverlapsGameWindow != true;
 
         /// <summary>
@@ -38,11 +36,11 @@ namespace osu.Game.Graphics.UserInterface
 
         public bool HoldFocus
         {
-            get => allowImmediateFocus && focus;
+            get => allowImmediateFocus && field;
             set
             {
-                focus = value;
-                if (!focus && HasFocus)
+                field = value;
+                if (!field && HasFocus)
                     base.KillFocus();
             }
         }

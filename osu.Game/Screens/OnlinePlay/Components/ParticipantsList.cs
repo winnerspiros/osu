@@ -25,8 +25,7 @@ namespace osu.Game.Screens.OnlinePlay.Components
             {
                 base.RelativeSizeAxes = value;
 
-                if (tiles != null)
-                    tiles.RelativeSizeAxes = value;
+                tiles?.RelativeSizeAxes = value;
             }
         }
 
@@ -37,24 +36,20 @@ namespace osu.Game.Screens.OnlinePlay.Components
             {
                 base.AutoSizeAxes = value;
 
-                if (tiles != null)
-                    tiles.AutoSizeAxes = value;
+                tiles?.AutoSizeAxes = value;
             }
         }
-
-        private FillDirection direction = FillDirection.Full;
 
         public FillDirection Direction
         {
-            get => direction;
+            get;
             set
             {
-                direction = value;
+                field = value;
 
-                if (tiles != null)
-                    tiles.Direction = value;
+                tiles?.Direction = value;
             }
-        }
+        } = FillDirection.Full;
 
         private readonly Room room;
 

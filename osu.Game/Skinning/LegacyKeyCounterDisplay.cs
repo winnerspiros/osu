@@ -70,23 +70,21 @@ namespace osu.Game.Skinning
 
         protected override KeyCounter CreateCounter(InputTrigger trigger) => new LegacyKeyCounter(trigger)
         {
-            TextColour = keyTextColor,
+            TextColour = KeyTextColor,
         };
-
-        private Colour4 keyTextColor = Colour4.White;
 
         public Colour4 KeyTextColor
         {
-            get => keyTextColor;
+            get;
             set
             {
-                if (value != keyTextColor)
+                if (value != field)
                 {
-                    keyTextColor = value;
+                    field = value;
                     foreach (var child in KeyFlow.Cast<LegacyKeyCounter>())
                         child.TextColour = value;
                 }
             }
-        }
+        } = Colour4.White;
     }
 }

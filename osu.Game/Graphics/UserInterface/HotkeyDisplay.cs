@@ -17,17 +17,15 @@ namespace osu.Game.Graphics.UserInterface
 {
     public partial class HotkeyDisplay : CompositeDrawable
     {
-        private Hotkey hotkey;
-
         public Hotkey Hotkey
         {
-            get => hotkey;
+            get;
             set
             {
-                if (EqualityComparer<Hotkey>.Default.Equals(hotkey, value))
+                if (EqualityComparer<Hotkey>.Default.Equals(field, value))
                     return;
 
-                hotkey = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();
@@ -69,7 +67,7 @@ namespace osu.Game.Graphics.UserInterface
         private void updateState()
         {
             flow.Clear();
-            foreach (string h in hotkey.ResolveKeyCombination(readableKeyCombinationProvider, realmKeyBindingStore, gameHost))
+            foreach (string h in Hotkey.ResolveKeyCombination(readableKeyCombinationProvider, realmKeyBindingStore, gameHost))
                 flow.Add(new HotkeyBox(h));
         }
 

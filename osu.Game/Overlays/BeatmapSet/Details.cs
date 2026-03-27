@@ -24,32 +24,28 @@ namespace osu.Game.Overlays.BeatmapSet
         private readonly AdvancedStats advanced;
         private readonly DetailBox ratingBox;
 
-        private APIBeatmapSet beatmapSet;
-
         public APIBeatmapSet BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                if (value == beatmapSet) return;
+                if (value == field) return;
 
-                basic.BeatmapSet = preview.BeatmapSet = beatmapSet = value;
+                basic.BeatmapSet = preview.BeatmapSet = field = value;
 
                 if (IsLoaded)
                     updateDisplay();
             }
         }
 
-        private IBeatmapInfo beatmapInfo;
-
         public IBeatmapInfo BeatmapInfo
         {
-            get => beatmapInfo;
+            get;
             set
             {
-                if (value == beatmapInfo) return;
+                if (value == field) return;
 
-                basic.BeatmapInfo = advanced.BeatmapInfo = beatmapInfo = value;
+                basic.BeatmapInfo = advanced.BeatmapInfo = field = value;
 
                 if (IsLoaded)
                     updateDisplay();
@@ -112,7 +108,7 @@ namespace osu.Game.Overlays.BeatmapSet
         {
             Ratings.Ratings = BeatmapSet?.Ratings;
             ratingBox.Alpha = BeatmapSet?.Status > 0 ? 1 : 0;
-            advanced.Ruleset.Value = rulesets.GetRuleset(beatmapInfo?.Ruleset.OnlineID ?? 0);
+            advanced.Ruleset.Value = rulesets.GetRuleset(BeatmapInfo?.Ruleset.OnlineID ?? 0);
         }
 
         private partial class DetailBox : Container

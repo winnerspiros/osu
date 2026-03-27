@@ -69,8 +69,6 @@ namespace osu.Game.Rulesets.Osu
 
         private partial class OsuKeyBindingContainer : RulesetKeyBindingContainer
         {
-            private bool allowGameplayInputs = true;
-
             /// <summary>
             /// Whether gameplay input buttons should be allowed.
             /// Defaults to <c>true</c>, generally used for mods like Relax which turn off main inputs.
@@ -80,13 +78,13 @@ namespace osu.Game.Rulesets.Osu
             /// </remarks>
             public bool AllowGameplayInputs
             {
-                get => allowGameplayInputs;
+                get;
                 set
                 {
-                    allowGameplayInputs = value;
+                    field = value;
                     ReloadMappings();
                 }
-            }
+            } = true;
 
             public OsuKeyBindingContainer(RulesetInfo ruleset, int variant, SimultaneousBindingMode unique)
                 : base(ruleset, variant, unique)

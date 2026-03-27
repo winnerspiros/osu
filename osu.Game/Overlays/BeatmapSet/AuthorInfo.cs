@@ -28,16 +28,14 @@ namespace osu.Game.Overlays.BeatmapSet
         private UpdateableAvatar avatar;
         private FillFlowContainer fields;
 
-        private APIBeatmapSet beatmapSet;
-
         public APIBeatmapSet BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                if (value == beatmapSet) return;
+                if (value == field) return;
 
-                beatmapSet = value;
+                field = value;
                 Scheduler.AddOnce(updateDisplay);
             }
         }

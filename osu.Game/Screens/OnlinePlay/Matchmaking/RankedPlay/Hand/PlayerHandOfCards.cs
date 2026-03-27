@@ -32,8 +32,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
         /// </summary>
         public event Action? StateChanged;
 
-        private HandSelectionMode selectionMode;
-
         /// <summary>
         /// Current selection mode.
         /// </summary>
@@ -42,10 +40,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
         /// </remarks>
         public HandSelectionMode SelectionMode
         {
-            get => selectionMode;
+            get;
             set
             {
-                selectionMode = value;
+                field = value;
                 allowSelection.Value = value != HandSelectionMode.Disabled;
 
                 if (value == HandSelectionMode.Disabled)
@@ -56,17 +54,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
             }
         }
 
-        private Action? playCardAction;
-
         /// <summary>
         /// When set to non-null, displays a "Play" button on the selected card that invokes this action.
         /// </summary>
         public Action? PlayCardAction
         {
-            get => playCardAction;
+            get;
             set
             {
-                playCardAction = value;
+                field = value;
 
                 foreach (var card in Cards.OfType<PlayerHandCard>())
                     card.PlayAction = value;
@@ -109,12 +105,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 
         private void cardClicked(PlayerHandCard card)
         {
-            if (selectionMode == HandSelectionMode.Disabled)
+            if (SelectionMode == HandSelectionMode.Disabled)
                 return;
 
             try
             {
-                if (selectionMode == HandSelectionMode.Single)
+                if (SelectionMode == HandSelectionMode.Single)
                 {
                     // only play feedback SFX if the selected card has changed
                     if (!card.Selected)
@@ -159,7 +155,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
                     return true;
 
                 case Key.Space:
-                    if (selectionMode == HandSelectionMode.Disabled)
+                    if (SelectionMode == HandSelectionMode.Disabled)
                         return false;
 
                     if (Cards.FirstOrDefault(it => it.HasFocus) is not PlayerHandCard card)
@@ -190,7 +186,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 
             // default behaviour is to start from either end of the cards if no card is focused currently
             // in single-selection mode we can however use the current selection as a fallback index if there's no focus
-            if (selectionMode == HandSelectionMode.Single && currentIndex == -1)
+            if (SelectionMode == HandSelectionMode.Single && currentIndex == -1)
                 currentIndex = Cards.ToList().FindIndex(c => c.Selected);
 
             int newIndex = currentIndex + direction;

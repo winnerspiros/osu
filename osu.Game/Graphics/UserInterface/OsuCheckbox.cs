@@ -26,8 +26,7 @@ namespace osu.Game.Graphics.UserInterface
         {
             set
             {
-                if (LabelTextFlowContainer != null)
-                    LabelTextFlowContainer.Text = value;
+                LabelTextFlowContainer?.Text = value;
             }
         }
 
@@ -36,8 +35,7 @@ namespace osu.Game.Graphics.UserInterface
             get => LabelTextFlowContainer?.Padding ?? new MarginPadding();
             set
             {
-                if (LabelTextFlowContainer != null)
-                    LabelTextFlowContainer.Padding = value;
+                LabelTextFlowContainer?.Padding = value;
             }
         }
 

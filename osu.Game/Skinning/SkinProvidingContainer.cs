@@ -76,8 +76,7 @@ namespace osu.Game.Skinning
             var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
             ParentSource = dependencies.Get<ISkinSource>();
-            if (ParentSource != null)
-                ParentSource.SourceChanged += TriggerSourceChanged;
+            ParentSource?.SourceChanged += TriggerSourceChanged;
 
             dependencies.CacheAs<ISkinSource>(this);
 
@@ -237,8 +236,7 @@ namespace osu.Game.Skinning
 
             base.Dispose(isDisposing);
 
-            if (ParentSource != null)
-                ParentSource.SourceChanged -= TriggerSourceChanged;
+            ParentSource?.SourceChanged -= TriggerSourceChanged;
 
             foreach (var i in skinSources)
             {

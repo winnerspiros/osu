@@ -20,18 +20,16 @@ namespace osu.Game.Beatmaps.ControlPoints
 
         protected void RaiseChanged() => Changed?.Invoke(this);
 
-        private double time;
-
         [JsonIgnore]
         public double Time
         {
-            get => time;
+            get;
             set
             {
-                if (time == value)
+                if (field == value)
                     return;
 
-                time = value;
+                field = value;
                 RaiseChanged();
             }
         }

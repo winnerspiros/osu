@@ -105,7 +105,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
         {
             base.LoadComplete();
 
-            Alpha = matchingFilter ? 1 : 0;
+            Alpha = MatchingFilter ? 1 : 0;
             selectionBox.Alpha = selectedRoom.Value == Room ? 1 : 0;
 
             selectedRoom.BindValueChanged(updateSelectedRoom);
@@ -135,24 +135,22 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
         public IEnumerable<LocalisableString> FilterTerms => new LocalisableString[] { Room.Name };
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
-                matchingFilter = value;
+                field = value;
 
                 if (!IsLoaded)
                     return;
 
-                if (matchingFilter)
+                if (field)
                     this.FadeIn(200);
                 else
                     Hide();
             }
-        }
+        } = true;
 
         public Popover GetPopover() => new PasswordEntryPopover(Room);
 

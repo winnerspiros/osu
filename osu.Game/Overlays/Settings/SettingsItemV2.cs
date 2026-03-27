@@ -152,21 +152,19 @@ namespace osu.Game.Overlays.Settings
             }
         }
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
                 bool wasPresent = IsPresent;
 
-                matchingFilter = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Presence);
             }
-        }
+        } = true;
 
         public override bool IsPresent => base.IsPresent && MatchingFilter;
 

@@ -49,35 +49,31 @@ namespace osu.Game.Overlays.Dialog
             set => icon.Icon = value;
         }
 
-        private LocalisableString headerText;
-
         public LocalisableString HeaderText
         {
-            get => headerText;
+            get;
             set
             {
-                if (headerText == value)
+                if (field == value)
                     return;
 
-                headerText = value;
+                field = value;
                 header.Text = value;
             }
         }
 
-        private LocalisableString bodyText;
-
         public LocalisableString BodyText
         {
-            get => bodyText;
+            get;
             set
             {
-                if (bodyText == value)
+                if (field == value)
                     return;
 
-                bodyText = value;
+                field = value;
 
                 body.Text = value;
-                body.TextAnchor = bodyText.ToString().Contains('\n') ? Anchor.TopLeft : Anchor.TopCentre;
+                body.TextAnchor = field.ToString().Contains('\n') ? Anchor.TopLeft : Anchor.TopCentre;
             }
         }
 

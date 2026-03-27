@@ -37,8 +37,6 @@ namespace osu.Game.Screens.Play
         /// </summary>
         public int SkipCount { get; private set; }
 
-        private readonly double startTime;
-
         public Action RequestSkip;
 
         protected FadeContainer FadingContent { get; private set; }
@@ -69,7 +67,7 @@ namespace osu.Game.Screens.Play
         /// <param name="startTime">The time at which gameplay begins to appear.</param>
         public SkipOverlay(double startTime)
         {
-            this.startTime = startTime;
+            fadeOutBeginTime = startTime;
 
             RelativePositionAxes = Axes.Both;
             RelativeSizeAxes = Axes.X;
@@ -118,7 +116,7 @@ namespace osu.Game.Screens.Play
 
         private const double fade_time = 300;
 
-        private double fadeOutBeginTime => startTime - MasterGameplayClockContainer.MINIMUM_SKIP_TIME;
+        private double fadeOutBeginTime => field - MasterGameplayClockContainer.MINIMUM_SKIP_TIME;
 
         public override void Hide()
         {
@@ -230,7 +228,6 @@ namespace osu.Game.Screens.Play
             [CanBeNull]
             public event Action<Visibility> StateChanged;
 
-            private Visibility state;
             private double? nextHideTime;
 
             public override bool IsPresent => true;
@@ -258,15 +255,15 @@ namespace osu.Game.Screens.Play
 
             public Visibility State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state)
+                    if (value == field)
                         return;
 
-                    state = value;
+                    field = value;
 
-                    switch (state)
+                    switch (field)
                     {
                         case Visibility.Visible:
                             this.FadeIn(500, Easing.OutExpo);

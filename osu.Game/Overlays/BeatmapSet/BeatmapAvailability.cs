@@ -17,8 +17,6 @@ namespace osu.Game.Overlays.BeatmapSet
 {
     public partial class BeatmapAvailability : Container
     {
-        private APIBeatmapSet beatmapSet;
-
         private bool downloadDisabled => BeatmapSet?.Availability.DownloadDisabled ?? false;
         private bool hasExternalLink => !string.IsNullOrEmpty(BeatmapSet?.Availability.ExternalLink);
 
@@ -48,14 +46,14 @@ namespace osu.Game.Overlays.BeatmapSet
 
         public APIBeatmapSet BeatmapSet
         {
-            get => beatmapSet;
+            get;
 
             set
             {
-                if (value == beatmapSet)
+                if (value == field)
                     return;
 
-                beatmapSet = value;
+                field = value;
 
                 if (downloadDisabled || hasExternalLink)
                 {

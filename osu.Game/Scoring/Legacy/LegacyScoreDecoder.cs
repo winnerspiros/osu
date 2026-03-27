@@ -302,8 +302,7 @@ namespace osu.Game.Scoring.Legacy
                 // and if that fails, tries again as float.
                 // notably this cannot just be `(int)Parsing.ParseFloat(split[0])`, because that can lose information
                 // (`float` numbers have 24 bits of significand precision, which is not enough to accurately represent every possible value of `int`).
-                int diff;
-                if (!int.TryParse(split[0], out diff))
+                if (!int.TryParse(split[0], out int diff))
                     diff = (int)Math.Round(Parsing.ParseFloat(split[0]));
 
                 float mouseX = Parsing.ParseFloat(split[1], mouseXParseLimit);

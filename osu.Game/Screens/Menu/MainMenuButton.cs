@@ -80,7 +80,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool IsPresent => base.IsPresent
                                           // Allow keyboard interaction based on state rather than waiting for delayed animations.
-                                          || state == ButtonState.Expanded;
+                                          || State == ButtonState.Expanded;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
 
@@ -293,8 +293,8 @@ namespace osu.Game.Screens.Menu
             boxHoverLayer.FadeOut(800, Easing.OutExpo);
         }
 
-        public override bool HandleNonPositionalInput => state == ButtonState.Expanded;
-        public override bool HandlePositionalInput => state != ButtonState.Exploded && background.Width / initialSize.X >= 0.8f;
+        public override bool HandleNonPositionalInput => State == ButtonState.Expanded;
+        public override bool HandlePositionalInput => State != ButtonState.Exploded && background.Width / initialSize.X >= 0.8f;
 
         public void StopSamplePlayback() => sampleChannel?.Stop();
 
@@ -306,18 +306,16 @@ namespace osu.Game.Screens.Menu
 
         public int ContractStyle;
 
-        private ButtonState state;
-
         public ButtonState State
         {
-            get => state;
+            get;
 
             set
             {
-                if (state == value)
+                if (field == value)
                     return;
 
-                state = value;
+                field = value;
 
                 animateState();
 
@@ -327,7 +325,7 @@ namespace osu.Game.Screens.Menu
 
         private void animateState()
         {
-            switch (state)
+            switch (State)
             {
                 case ButtonState.Contracted:
                     switch (ContractStyle)
@@ -359,17 +357,15 @@ namespace osu.Game.Screens.Menu
             }
         }
 
-        private ButtonSystemState buttonSystemState;
-
         public ButtonSystemState ButtonSystemState
         {
-            get => buttonSystemState;
+            get;
             set
             {
-                if (buttonSystemState == value)
+                if (field == value)
                     return;
 
-                buttonSystemState = value;
+                field = value;
                 UpdateState();
             }
         }

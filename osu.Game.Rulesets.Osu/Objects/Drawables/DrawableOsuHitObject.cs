@@ -123,8 +123,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         protected sealed override double InitialLifetimeOffset => HitObject.TimePreempt;
 
-        private OsuInputManager osuActionInputManager;
-        internal OsuInputManager OsuActionInputManager => osuActionInputManager ??= GetContainingInputManager() as OsuInputManager;
+        internal OsuInputManager OsuActionInputManager => field ??= GetContainingInputManager() as OsuInputManager;
 
         /// <summary>
         /// Shake the hit object in case it was clicked far too early or late (aka "note lock").

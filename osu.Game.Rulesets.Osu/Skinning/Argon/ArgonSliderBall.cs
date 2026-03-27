@@ -118,8 +118,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         {
             base.Dispose(isDisposing);
 
-            if (parentObject != null)
-                parentObject.ApplyCustomUpdateState -= updateStateTransforms;
+            parentObject?.ApplyCustomUpdateState -= updateStateTransforms;
         }
     }
 }

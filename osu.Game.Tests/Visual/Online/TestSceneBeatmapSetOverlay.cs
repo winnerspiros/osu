@@ -20,7 +20,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapSet;
 using osu.Game.Overlays.BeatmapSet.Scores;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 

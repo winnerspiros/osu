@@ -25,20 +25,18 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         public float? MaxValue { get; set; }
 
-        private BarDirection direction = BarDirection.BottomToTop;
-
         public BarDirection Direction
         {
-            get => direction;
+            get;
             set
             {
-                if (direction == value)
+                if (field == value)
                     return;
 
-                direction = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = BarDirection.BottomToTop;
 
         private readonly BarsInfo bars = new BarsInfo();
 
@@ -127,7 +125,7 @@ namespace osu.Game.Graphics.UserInterface
                 shader = Source.shader;
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
-                direction = Source.direction;
+                direction = Source.Direction;
                 barBreadth = Source.bars.Breadth;
 
                 lengths.Clear();

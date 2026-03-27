@@ -228,21 +228,19 @@ namespace osu.Game.Screens.Ranking
             flow.Padding = new MarginPadding { Horizontal = offset };
         }
 
-        private bool handleInput = true;
-
         /// <summary>
         /// Whether this <see cref="ScorePanelList"/> or any of the <see cref="ScorePanel"/>s contained should handle scroll or click input.
         /// Setting to <c>false</c> will also hide the scrollbar.
         /// </summary>
         public bool HandleInput
         {
-            get => handleInput;
+            get;
             set
             {
-                handleInput = value;
+                field = value;
                 scroll.ScrollbarVisible = value;
             }
-        }
+        } = true;
 
         public override bool PropagatePositionalInputSubTree => HandleInput && base.PropagatePositionalInputSubTree;
 

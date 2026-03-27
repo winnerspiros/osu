@@ -116,8 +116,7 @@ namespace osu.Game.Screens.Edit.Timing
                 },
             };
 
-            if (editorChangeHandler != null)
-                editorChangeHandler.OnStateChange += onUndoRedo;
+            editorChangeHandler?.OnStateChange += onUndoRedo;
         }
 
         protected override void LoadComplete()
@@ -195,8 +194,7 @@ namespace osu.Game.Screens.Edit.Timing
         {
             base.Dispose(isDisposing);
 
-            if (editorChangeHandler != null)
-                editorChangeHandler.OnStateChange -= onUndoRedo;
+            editorChangeHandler?.OnStateChange -= onUndoRedo;
         }
     }
 }

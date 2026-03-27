@@ -104,8 +104,7 @@ namespace osu.Game.Graphics.Backgrounds
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            if (musicController != null)
-                musicController.TrackChanged += onTrackChanged;
+            musicController?.TrackChanged += onTrackChanged;
 
             updateStoryboardClockSource(Beatmap);
         }
@@ -129,8 +128,7 @@ namespace osu.Game.Graphics.Backgrounds
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            if (musicController != null)
-                musicController.TrackChanged -= onTrackChanged;
+            musicController?.TrackChanged -= onTrackChanged;
         }
     }
 }

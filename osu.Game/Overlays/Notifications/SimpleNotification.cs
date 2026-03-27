@@ -28,17 +28,15 @@ namespace osu.Game.Overlays.Notifications
             }
         }
 
-        private IconUsage icon = FontAwesome.Solid.InfoCircle;
-
         public IconUsage Icon
         {
-            get => icon;
+            get;
             set
             {
-                icon = value;
-                IconDrawable.Icon = icon;
+                field = value;
+                IconDrawable.Icon = field;
             }
-        }
+        } = FontAwesome.Solid.InfoCircle;
 
         public ColourInfo IconColour
         {
@@ -75,7 +73,7 @@ namespace osu.Game.Overlays.Notifications
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Icon = icon,
+                    Icon = Icon,
                     Size = new Vector2(16),
                 }
             });

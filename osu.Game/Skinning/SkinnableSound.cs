@@ -98,21 +98,19 @@ namespace osu.Game.Skinning
 
         public void ClearSamples() => Samples = [];
 
-        private bool looping;
-
         /// <summary>
         /// Whether the samples should loop on completion.
         /// </summary>
         public bool Looping
         {
-            get => looping;
+            get;
             set
             {
-                if (value == looping) return;
+                if (value == field) return;
 
-                looping = value;
+                field = value;
 
-                samplesContainer.ForEach(c => c.Looping = looping);
+                samplesContainer.ForEach(c => c.Looping = field);
             }
         }
 

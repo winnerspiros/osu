@@ -77,14 +77,12 @@ namespace osu.Game.Graphics.UserInterface
             Current.BindValueChanged(onCurrentValueChanged, true);
         }
 
-        private bool glowing;
-
         public bool Glowing
         {
-            get => glowing;
+            get;
             set
             {
-                glowing = value;
+                field = value;
 
                 if (value)
                 {
@@ -104,19 +102,17 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private readonly Bindable<bool> current = new Bindable<bool>();
-
         public Bindable<bool> Current
         {
-            get => current;
+            get;
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                field.UnbindBindings();
+                field.BindTo(value);
             }
-        }
+        } = new Bindable<bool>();
 
         private Color4 accentColour;
 

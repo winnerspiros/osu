@@ -7,17 +7,15 @@ namespace osu.Game.Screens.Play
 {
     public class OffsetCorrectionClock : FramedOffsetClock
     {
-        private double offset;
-
         public new double Offset
         {
-            get => offset;
+            get;
             set
             {
-                if (value == offset)
+                if (value == field)
                     return;
 
-                offset = value;
+                field = value;
 
                 updateOffset();
             }

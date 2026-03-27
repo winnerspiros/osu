@@ -60,16 +60,14 @@ namespace osu.Game.Graphics.UserInterface
             public override bool HandleNonPositionalInput => State == Visibility.Visible;
             public override bool HandlePositionalInput => State == Visibility.Visible;
 
-            private Visibility state;
-
             public Visibility State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state) return;
+                    if (value == field) return;
 
-                    state = value;
+                    field = value;
 
                     const float transition_duration = 500;
 

@@ -63,8 +63,6 @@ namespace osu.Game.Overlays.Mods
         public Bindable<Dictionary<ModType, IReadOnlyList<ModState>>> AvailableMods { get; } =
             new Bindable<Dictionary<ModType, IReadOnlyList<ModState>>>(new Dictionary<ModType, IReadOnlyList<ModState>>());
 
-        private Func<Mod, bool> isValidMod = _ => true;
-
         /// <summary>
         /// A function determining whether each mod in the column should be displayed.
         /// A return value of <see langword="true"/> means that the mod is not filtered and therefore its corresponding panel should be displayed.
@@ -72,13 +70,13 @@ namespace osu.Game.Overlays.Mods
         /// </summary>
         public Func<Mod, bool> IsValidMod
         {
-            get => isValidMod;
+            get;
             set
             {
-                isValidMod = value ?? throw new ArgumentNullException(nameof(value));
+                field = value ?? throw new ArgumentNullException(nameof(value));
                 filterMods();
             }
-        }
+        } = _ => true;
 
         public string SearchTerm
         {

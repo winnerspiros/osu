@@ -12,7 +12,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Game.Configuration;
 using osu.Game.Graphics.Containers;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play;
@@ -143,8 +142,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             {
                 localConfig.SetValue(OsuSetting.KeyOverlay, false);
                 var kcd = hudOverlay.ChildrenOfType<KeyCounterDisplay>().FirstOrDefault();
-                if (kcd != null)
-                    kcd.AlwaysVisible.Value = false;
+                kcd?.AlwaysVisible.Value = false;
             });
 
             AddStep("set showhud false", () => hudOverlay.ShowHud.Value = false);

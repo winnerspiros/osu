@@ -38,7 +38,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             RelativeSizeAxes = Axes.X;
             Height = height;
 
-            IEnumerable<Dimension> createColumns(int count)
+            static IEnumerable<Dimension> createColumns(int count)
             {
                 for (int i = 0; i < count; ++i)
                 {
@@ -101,17 +101,15 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 Preset = preset;
             }
 
-            private bool isSelected;
-
             public bool IsSelected
             {
-                get => isSelected;
+                get;
                 set
                 {
-                    if (value == isSelected)
+                    if (value == field)
                         return;
 
-                    isSelected = value;
+                    field = value;
 
                     if (IsLoaded)
                         updateColour();
@@ -126,7 +124,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             private void updateColour()
             {
-                BackgroundColour = isSelected ? colours.Blue3 : colourProvider.Background3;
+                BackgroundColour = IsSelected ? colours.Blue3 : colourProvider.Background3;
             }
         }
     }

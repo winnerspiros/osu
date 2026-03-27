@@ -53,7 +53,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
                 return string.Empty;
 
-                string format(string acronym, DifficultyBindable bindable)
+                static string format(string acronym, DifficultyBindable bindable)
                     => $"{acronym}{bindable.Value!.Value.ToStandardFormattedString(1)}";
             }
         }
@@ -93,7 +93,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             public partial class ApproachRateSlider : RoundedSliderBar<float>
             {
                 public override LocalisableString TooltipText =>
-                    (Current as BindableNumber<float>)?.MinValue < 0
+                    Current is BindableNumber<float> { MinValue: < 0 }
                         ? $"{base.TooltipText} ({getPreemptTime(Current.Value):0} ms)"
                         : base.TooltipText;
 

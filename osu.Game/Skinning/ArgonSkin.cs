@@ -91,7 +91,7 @@ namespace osu.Game.Skinning
         public override Drawable? GetDrawableComponent(ISkinComponentLookup lookup)
         {
             // Temporary until default skin has a valid hit lighting.
-            if ((lookup as SkinnableSprite.SpriteComponentLookup)?.LookupName == @"lighting") return Drawable.Empty();
+            if (lookup is SkinnableSprite.SpriteComponentLookup { LookupName: @"lighting" }) return Drawable.Empty();
 
             switch (lookup)
             {
@@ -115,8 +115,7 @@ namespace osu.Game.Skinning
                                     var comboCounter = container.OfType<ArgonComboCounter>().FirstOrDefault();
                                     var spectatorList = container.OfType<SpectatorList>().FirstOrDefault();
 
-                                    if (leaderboard != null)
-                                        leaderboard.Position = new Vector2(36, 115);
+                                    leaderboard?.Position = new Vector2(36, 115);
 
                                     Vector2 pos = new Vector2(36, -66);
 
@@ -126,8 +125,7 @@ namespace osu.Game.Skinning
                                         pos -= new Vector2(0, comboCounter.DrawHeight * 1.4f + 20);
                                     }
 
-                                    if (spectatorList != null)
-                                        spectatorList.Position = pos;
+                                    spectatorList?.Position = pos;
 
                                     foreach (var d in container.OfType<ISerialisableDrawable>())
                                         d.UsesFixedAnchor = true;

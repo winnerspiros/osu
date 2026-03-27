@@ -85,17 +85,15 @@ namespace osu.Game.Screens.Select
             {
                 private readonly float[] displayedData = new float[100];
 
-                private float[] data = new float[100];
-
                 public float[] Data
                 {
-                    get => data;
+                    get;
                     set
                     {
-                        data = value;
+                        field = value;
                         Invalidate(Invalidation.DrawNode);
                     }
-                }
+                } = new float[100];
 
                 private IShader shader = null!;
 
@@ -114,7 +112,7 @@ namespace osu.Game.Screens.Select
                     for (int i = 0; i < displayedData.Length; i++)
                     {
                         float before = displayedData[i];
-                        float value = data.ElementAtOrDefault(i);
+                        float value = Data.ElementAtOrDefault(i);
                         displayedData[i] = (float)Interpolation.DampContinuously(displayedData[i], value, 40, Time.Elapsed);
                         changed |= displayedData[i] != before;
                     }

@@ -70,17 +70,15 @@ namespace osu.Game.Graphics.UserInterfaceV2
             }
         }
 
-        private LocalisableString caption;
-
         /// <summary>
         /// Caption describing this slider bar, displayed on top of the controls.
         /// </summary>
         public LocalisableString Caption
         {
-            get => caption;
+            get;
             set
             {
-                caption = value;
+                field = value;
 
                 if (IsLoaded)
                     captionText.Caption = value;
@@ -290,7 +288,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
         {
             base.LoadComplete();
 
-            captionText.Caption = caption;
+            captionText.Caption = Caption;
 
             focusManager = GetContainingFocusManager()!;
 

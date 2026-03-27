@@ -156,7 +156,6 @@ namespace osu.Game.Screens.Play.HUD
         {
             private readonly Box fill;
             private readonly Container mask;
-            private float length;
 
             public RoundedBar()
             {
@@ -179,10 +178,10 @@ namespace osu.Game.Screens.Play.HUD
 
             public float Length
             {
-                get => length;
+                get;
                 set
                 {
-                    length = value;
+                    field = value;
                     mask.Width = value * DrawWidth;
                 }
             }

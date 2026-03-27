@@ -32,7 +32,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
         /// <summary>
         /// Whether a <see cref="Player"/> is loaded in the area.
         /// </summary>
-        public bool PlayerLoaded => (stack?.CurrentScreen as Player)?.IsLoaded == true;
+        public bool PlayerLoaded => stack?.CurrentScreen is Player { IsLoaded: true };
 
         /// <summary>
         /// The user id this <see cref="PlayerArea"/> corresponds to.
@@ -122,21 +122,19 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
             loadingLayer.Hide();
         }
 
-        private bool mute = true;
-
         public bool Mute
         {
-            get => mute;
+            get;
             set
             {
-                if (mute == value)
+                if (field == value)
                     return;
 
-                mute = value;
+                field = value;
                 volumeAdjustment.Value = value ? 0 : 1;
-                Logger.Log($"{(mute ? "muting" : "unmuting")} player {UserId}");
+                Logger.Log($"{(field ? "muting" : "unmuting")} player {UserId}");
             }
-        }
+        } = true;
 
         // Player interferes with global input, so disable input for now.
         public override bool PropagatePositionalInputSubTree => false;

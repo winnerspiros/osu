@@ -10,11 +10,17 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
     <UseInterpreter>true</UseInterpreter>
+    <!-- Disable linker in debug to avoid ILLink failures from reflection-heavy code
+         (Newtonsoft.Json, Realm, AutoMapper, dynamic binding). -->
+    <MtouchLink>None</MtouchLink>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- On release configurations, we use AOT compiler for optimal performance, along with Mono Interpreter as a fallback for libraries such as AutoMapper. -->
     <UseInterpreter>false</UseInterpreter>
     <MtouchInterpreter>-all</MtouchInterpreter>
+    <!-- Suppress ILLink trim analysis warnings: the project uses extensive reflection
+         (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder) that cannot be statically analysed. -->
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.318.0" />

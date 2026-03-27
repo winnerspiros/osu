@@ -27,32 +27,28 @@ namespace osu.Game.Screens.Play
 
         public int ColumnCount => columns?.Children.Count ?? 0;
 
-        private int progress;
-
         public int Progress
         {
-            get => progress;
+            get;
             set
             {
-                if (value == progress) return;
+                if (value == field) return;
 
-                progress = value;
+                field = value;
                 redrawProgress();
             }
         }
 
         private float[] calculatedValues = []; // values but adjusted to fit the amount of columns
 
-        private int[] values;
-
         public int[] Values
         {
-            get => values;
+            get;
             set
             {
-                if (value == values) return;
+                if (value == field) return;
 
-                values = value;
+                field = value;
                 layout.Invalidate();
             }
         }
@@ -139,7 +135,7 @@ namespace osu.Game.Screens.Play
         private void redrawProgress()
         {
             for (int i = 0; i < ColumnCount; i++)
-                columns[i].State = i <= progress ? ColumnState.Lit : ColumnState.Dimmed;
+                columns[i].State = i <= Progress ? ColumnState.Lit : ColumnState.Dimmed;
             columns?.ForceRedraw();
         }
 
@@ -160,7 +156,7 @@ namespace osu.Game.Screens.Play
         {
             var newValues = new List<float>();
 
-            if (values == null)
+            if (Values == null)
             {
                 for (float i = 0; i < ColumnCount; i++)
                     newValues.Add(0);
@@ -168,13 +164,13 @@ namespace osu.Game.Screens.Play
                 return;
             }
 
-            int max = values.Max();
+            int max = Values.Max();
 
-            float step = values.Length / (float)ColumnCount;
+            float step = Values.Length / (float)ColumnCount;
 
-            for (float i = 0; i < values.Length; i += step)
+            for (float i = 0; i < Values.Length; i += step)
             {
-                newValues.Add((float)values[(int)i] / max);
+                newValues.Add((float)Values[(int)i] / max);
             }
 
             calculatedValues = newValues.ToArray();
@@ -196,30 +192,26 @@ namespace osu.Game.Screens.Play
 
             private readonly List<Box> drawableRows = new List<Box>();
 
-            private float filled;
-
             public float Filled
             {
-                get => filled;
+                get;
                 set
                 {
-                    if (value == filled) return;
+                    if (value == field) return;
 
-                    filled = value;
+                    field = value;
                     fillActive();
                 }
             }
 
-            private ColumnState state;
-
             public ColumnState State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state) return;
+                    if (value == field) return;
 
-                    state = value;
+                    field = value;
                     if (IsLoaded)
                         fillActive();
 
@@ -258,7 +250,7 @@ namespace osu.Game.Screens.Play
             {
                 Color4 colour = State == ColumnState.Lit ? LitColour : DimmedColour;
 
-                int countFilled = (int)Math.Clamp(filled * drawableRows.Count, 0, drawableRows.Count);
+                int countFilled = (int)Math.Clamp(Filled * drawableRows.Count, 0, drawableRows.Count);
 
                 for (int i = 0; i < drawableRows.Count; i++)
                     drawableRows[i].Colour = i < countFilled ? colour : EmptyColour;

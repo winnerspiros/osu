@@ -189,7 +189,7 @@ namespace osu.Game.Overlays.Mods
             part.DrawablePartsRecreated += applySemiBoldToFirstWord;
             applySemiBoldToFirstWord(part.Drawables);
 
-            void applySemiBoldToFirstWord(IEnumerable<Drawable> d)
+            static void applySemiBoldToFirstWord(IEnumerable<Drawable> d)
             {
                 if (d.FirstOrDefault() is OsuSpriteText firstWord)
                     firstWord.Font = firstWord.Font.With(weight: FontWeight.SemiBold);

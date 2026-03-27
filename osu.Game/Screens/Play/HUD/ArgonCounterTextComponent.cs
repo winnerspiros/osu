@@ -44,11 +44,9 @@ namespace osu.Game.Screens.Play.HUD
         /// </summary>
         public string WireframeTemplate
         {
-            get => wireframeTemplate;
-            set => wireframesPart.Text = wireframeTemplate = value;
-        }
-
-        private string wireframeTemplate = string.Empty;
+            get;
+            set => wireframesPart.Text = field = value;
+        } = string.Empty;
 
         public ArgonCounterTextComponent(Anchor anchor, LocalisableString? label = null)
         {

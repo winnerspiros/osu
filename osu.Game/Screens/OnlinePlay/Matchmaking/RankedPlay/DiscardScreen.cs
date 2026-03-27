@@ -49,12 +49,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private const int card_play_samples = 2;
         private Sample?[]? cardPlaySamples;
-
-        /// <summary>
-        /// Whether the local user has discarded cards.
-        /// </summary>
-        private bool hasDiscardedCards;
-
         private Sample? timeRunningOutSample;
         private SampleChannel? timeRunningOutSampleChannel;
 
@@ -150,11 +144,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             onSelectionChanged();
         }
 
-        private bool shouldPlayWarningSample
-            => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
+        private bool shouldPlayWarningSample { get => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
                && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
                && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-               && !hasDiscardedCards;
+               && !field; set;
+        }
 
         protected override void Update()
         {
@@ -231,7 +225,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             Client.DiscardCards(playerHand.Selection.Select(it => it.Card).ToArray()).FireAndForget();
             playerHand.SelectionMode = HandSelectionMode.Disabled;
 
-            hasDiscardedCards = true;
+            shouldPlayWarningSample = true;
         }
 
         private readonly List<RankedPlayCardWithPlaylistItem> discardedCards = new List<RankedPlayCardWithPlaylistItem>();

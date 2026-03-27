@@ -21,16 +21,14 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
             LifetimeStart = Start.StartTime;
         }
 
-        private OsuHitObject? end;
-
         public OsuHitObject? End
         {
-            get => end;
+            get;
             set
             {
                 UnbindEvents();
 
-                end = value;
+                field = value;
 
                 bindEvents();
 

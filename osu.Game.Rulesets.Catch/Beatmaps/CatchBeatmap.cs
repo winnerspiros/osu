@@ -56,7 +56,7 @@ namespace osu.Game.Rulesets.Catch.Beatmaps
         {
             return hitObjects.SelectMany(selectPalpableObjects).OrderBy(h => h.StartTime);
 
-            IEnumerable<PalpableCatchHitObject> selectPalpableObjects(HitObject h)
+            static IEnumerable<PalpableCatchHitObject> selectPalpableObjects(HitObject h)
             {
                 if (h is PalpableCatchHitObject palpable)
                     yield return palpable;

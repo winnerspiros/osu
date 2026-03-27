@@ -19,15 +19,13 @@ namespace osu.Game.Overlays
         /// </summary>
         public bool AllowScrolling
         {
-            get => allowScrolling;
+            get;
             set
             {
-                allowScrolling = value;
+                field = value;
                 scrollCached.Invalidate();
             }
-        }
-
-        private bool allowScrolling = true;
+        } = true;
 
         /// <summary>
         /// Time in milliseconds before scrolling begins.

@@ -42,19 +42,17 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public Vector2 StackedPositionAt(double t) => StackedPosition + this.CurvePositionAt(t);
 
-        private readonly SliderPath path = new SliderPath { OptimiseCatmull = true };
-
         public SliderPath Path
         {
-            get => path;
+            get;
             set
             {
-                path.ControlPoints.Clear();
-                path.ControlPoints.AddRange(value.ControlPoints.Select(c => new PathControlPoint(c.Position, c.Type)));
+                field.ControlPoints.Clear();
+                field.ControlPoints.AddRange(value.ControlPoints.Select(c => new PathControlPoint(c.Position, c.Type)));
 
-                path.ExpectedDistance.Value = value.ExpectedDistance.Value;
+                field.ExpectedDistance.Value = value.ExpectedDistance.Value;
             }
-        }
+        } = new SliderPath { OptimiseCatmull = true };
 
         public double Distance => Path.Distance;
 
@@ -73,14 +71,12 @@ namespace osu.Game.Rulesets.Osu.Objects
         [JsonIgnore]
         public IList<HitSampleInfo> TailSamples { get; private set; }
 
-        private int repeatCount;
-
         public int RepeatCount
         {
-            get => repeatCount;
+            get;
             set
             {
-                repeatCount = value;
+                field = value;
                 updateNestedPositions();
             }
         }
@@ -112,18 +108,14 @@ namespace osu.Game.Rulesets.Osu.Objects
         /// </summary>
         public bool ClassicSliderBehaviour
         {
-            get => classicSliderBehaviour;
+            get;
             set
             {
-                classicSliderBehaviour = value;
-                if (HeadCircle != null)
-                    HeadCircle.ClassicSliderBehaviour = value;
-                if (TailCircle != null)
-                    TailCircle.ClassicSliderBehaviour = value;
+                field = value;
+                HeadCircle?.ClassicSliderBehaviour = value;
+                TailCircle?.ClassicSliderBehaviour = value;
             }
         }
-
-        private bool classicSliderBehaviour;
 
         public BindableNumber<double> SliderVelocityMultiplierBindable { get; } = new BindableDouble(1)
         {
@@ -279,14 +271,13 @@ namespace osu.Game.Rulesets.Osu.Objects
                 }
             }
 
-            if (HeadCircle != null)
-                HeadCircle.Samples = this.GetNodeSamples(0);
+            HeadCircle?.Samples = this.GetNodeSamples(0);
 
             // The samples should be attached to the slider tail, however this can only be done if LastTick is removed otherwise they would play earlier than they're intended to.
             // (see mapping logic in `CreateNestedHitObjects` above)
             //
             // For now, the samples are played by the slider itself at the correct end time.
-            TailSamples = this.GetNodeSamples(repeatCount + 1);
+            TailSamples = this.GetNodeSamples(RepeatCount + 1);
         }
 
         public override Judgement CreateJudgement() => ClassicSliderBehaviour

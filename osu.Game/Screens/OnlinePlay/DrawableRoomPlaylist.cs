@@ -41,24 +41,20 @@ namespace osu.Game.Screens.OnlinePlay
         /// </summary>
         public Action<PlaylistItem>? RequestEdit;
 
-        private bool allowReordering;
-
         /// <summary>
         /// Whether to allow reordering items in the playlist.
         /// </summary>
         public bool AllowReordering
         {
-            get => allowReordering;
+            get;
             set
             {
-                allowReordering = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.AllowReordering = value;
             }
         }
-
-        private bool allowDeletion;
 
         /// <summary>
         /// Whether to allow deleting items from the playlist.
@@ -66,17 +62,15 @@ namespace osu.Game.Screens.OnlinePlay
         /// </summary>
         public bool AllowDeletion
         {
-            get => allowDeletion;
+            get;
             set
             {
-                allowDeletion = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.AllowDeletion = value;
             }
         }
-
-        private bool allowSelection;
 
         /// <summary>
         /// Whether to allow selecting items from the playlist.
@@ -84,17 +78,15 @@ namespace osu.Game.Screens.OnlinePlay
         /// </summary>
         public bool AllowSelection
         {
-            get => allowSelection;
+            get;
             set
             {
-                allowSelection = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.AllowSelection = value;
             }
         }
-
-        private bool allowShowingResults;
 
         /// <summary>
         /// Whether to allow items to request their results to be shown.
@@ -102,17 +94,15 @@ namespace osu.Game.Screens.OnlinePlay
         /// </summary>
         public bool AllowShowingResults
         {
-            get => allowShowingResults;
+            get;
             set
             {
-                allowShowingResults = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.AllowShowingResults = value;
             }
         }
-
-        private bool allowEditing;
 
         /// <summary>
         /// Whether to allow items to be edited.
@@ -120,27 +110,25 @@ namespace osu.Game.Screens.OnlinePlay
         /// </summary>
         public bool AllowEditing
         {
-            get => allowEditing;
+            get;
             set
             {
-                allowEditing = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.AllowEditing = value;
             }
         }
 
-        private bool showItemOwners;
-
         /// <summary>
         /// Whether to show the avatar of users which own each playlist item.
         /// </summary>
         public bool ShowItemOwners
         {
-            get => showItemOwners;
+            get;
             set
             {
-                showItemOwners = value;
+                field = value;
 
                 foreach (var item in ListContainer.OfType<DrawableRoomPlaylistItem>())
                     item.ShowItemOwner = value;

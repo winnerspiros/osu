@@ -28,17 +28,15 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         private readonly Drawable userContent;
 
-        private bool alwaysShowControlPoints;
-
         public bool AlwaysShowControlPoints
         {
-            get => alwaysShowControlPoints;
+            get;
             set
             {
-                if (value == alwaysShowControlPoints)
+                if (value == field)
                     return;
 
-                alwaysShowControlPoints = value;
+                field = value;
                 controlPointsVisible.TriggerChange();
             }
         }
@@ -194,7 +192,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             controlPointsVisible.BindValueChanged(visible =>
             {
-                if (visible.NewValue || alwaysShowControlPoints)
+                if (visible.NewValue || AlwaysShowControlPoints)
                     controlPoints.FadeIn(400, Easing.OutQuint);
                 else
                     controlPoints.FadeOut(200, Easing.OutQuint);

@@ -37,8 +37,7 @@ namespace osu.Game.Screens.Edit.Setup
             base.LoadComplete();
 
             populateItems();
-            if (beatmapSkin != null)
-                beatmapSkin.BeatmapSkinChanged += scheduleItemPopulation;
+            beatmapSkin?.BeatmapSkinChanged += scheduleItemPopulation;
 
             Current.Value = Items.First(i => i?.SampleSetIndex > 0);
             Current.BindValueChanged(val =>
@@ -90,8 +89,7 @@ namespace osu.Game.Screens.Edit.Setup
 
         protected override void Dispose(bool isDisposing)
         {
-            if (beatmapSkin != null)
-                beatmapSkin.BeatmapSkinChanged -= scheduleItemPopulation;
+            beatmapSkin?.BeatmapSkinChanged -= scheduleItemPopulation;
 
             base.Dispose(isDisposing);
         }

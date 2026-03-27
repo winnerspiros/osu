@@ -144,20 +144,17 @@ namespace osu.Game.Skinning
 
         public bool Played { get; private set; }
 
-        private bool looping;
-
         /// <summary>
         /// Whether the sample should loop on completion.
         /// </summary>
         public bool Looping
         {
-            get => looping;
+            get;
             set
             {
-                looping = value;
+                field = value;
 
-                if (activeChannel != null)
-                    activeChannel.Looping = value;
+                activeChannel?.Looping = value;
             }
         }
 

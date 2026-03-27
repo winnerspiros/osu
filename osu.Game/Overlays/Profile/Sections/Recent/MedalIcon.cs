@@ -12,14 +12,13 @@ namespace osu.Game.Overlays.Profile.Sections.Recent
     [LongRunningLoad]
     public partial class MedalIcon : Container
     {
-        private readonly string slug;
         private readonly Sprite sprite;
 
-        private string url => $@"https://s.ppy.sh/images/medals-client/{slug}@2x.png";
+        private string url => $@"https://s.ppy.sh/images/medals-client/{field}@2x.png";
 
         public MedalIcon(string slug)
         {
-            this.slug = slug;
+            url = slug;
 
             Child = sprite = new Sprite
             {

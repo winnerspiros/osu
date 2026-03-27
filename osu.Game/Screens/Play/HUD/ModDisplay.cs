@@ -24,22 +24,20 @@ namespace osu.Game.Screens.Play.HUD
     {
         public const float MOD_ICON_SCALE = 0.6f;
 
-        private ExpansionMode expansionMode = ExpansionMode.ExpandOnHover;
-
         public ExpansionMode ExpansionMode
         {
-            get => expansionMode;
+            get;
             set
             {
-                if (expansionMode == value)
+                if (field == value)
                     return;
 
-                expansionMode = value;
+                field = value;
 
                 if (IsLoaded)
                     updateExpansionMode();
             }
-        }
+        } = ExpansionMode.ExpandOnHover;
 
         private readonly BindableWithCurrent<IReadOnlyList<Mod>> current = new BindableWithCurrent<IReadOnlyList<Mod>>([]);
 
@@ -106,7 +104,7 @@ namespace osu.Game.Screens.Play.HUD
 
         private void updateExpansionMode(double duration = 500)
         {
-            switch (expansionMode)
+            switch (ExpansionMode)
             {
                 case ExpansionMode.AlwaysExpanded:
                     expand(duration);

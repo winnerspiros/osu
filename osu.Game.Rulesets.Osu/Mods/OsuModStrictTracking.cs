@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.Osu.Mods
                     if (slider.Time.Current < slider.HitObject.StartTime)
                         return;
 
-                    if ((slider.Clock as IGameplayClock)?.IsRewinding == true)
+                    if (slider.Clock is IGameplayClock { IsRewinding: true })
                         return;
 
                     var tail = slider.NestedHitObjects.OfType<StrictTrackingDrawableSliderTail>().First();

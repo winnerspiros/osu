@@ -31,8 +31,6 @@ namespace osu.Game.Rulesets.Objects
             }
         }
 
-        private PathType? type;
-
         /// <summary>
         /// The type of path segment starting at this <see cref="PathControlPoint"/>.
         /// If null, this <see cref="PathControlPoint"/> will be a part of the previous path segment.
@@ -40,13 +38,13 @@ namespace osu.Game.Rulesets.Objects
         [JsonProperty]
         public PathType? Type
         {
-            get => type;
+            get;
             set
             {
-                if (value == type)
+                if (value == field)
                     return;
 
-                type = value;
+                field = value;
                 Changed?.Invoke();
             }
         }
@@ -77,8 +75,8 @@ namespace osu.Game.Rulesets.Objects
 
         public bool Equals(PathControlPoint other) => Position == other?.Position && Type == other.Type;
 
-        public override string ToString() => type == null
+        public override string ToString() => Type == null
             ? $"Position={Position}"
-            : $"Position={Position}, Type={type}";
+            : $"Position={Position}, Type={Type}";
     }
 }

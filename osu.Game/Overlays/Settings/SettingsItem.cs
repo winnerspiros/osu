@@ -45,17 +45,15 @@ namespace osu.Game.Overlays.Settings
 
         private OsuTextFlowContainer noticeText;
 
-        private bool showsDefaultIndicator = true;
-
         public bool ShowsDefaultIndicator
         {
-            get => showsDefaultIndicator;
+            get;
             set
             {
-                showsDefaultIndicator = value;
+                field = value;
                 defaultValueIndicatorContainer.Alpha = value ? 1 : 0;
             }
-        }
+        } = true;
 
         private readonly Container defaultValueIndicatorContainer;
 
@@ -135,21 +133,19 @@ namespace osu.Game.Overlays.Settings
 
         public IEnumerable<string> Keywords { get; set; }
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
                 bool wasPresent = IsPresent;
 
-                matchingFilter = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Presence);
             }
-        }
+        } = true;
 
         public override bool IsPresent => base.IsPresent && MatchingFilter;
 
@@ -246,8 +242,7 @@ namespace osu.Game.Overlays.Settings
 
         private void updateDisabled()
         {
-            if (labelText != null)
-                labelText.Alpha = controlWithCurrent.Current.Disabled ? 0.3f : 1;
+            labelText?.Alpha = controlWithCurrent.Current.Disabled ? 0.3f : 1;
         }
     }
 }

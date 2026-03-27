@@ -105,14 +105,12 @@ namespace osu.Game.Screens.Select
                 [Resolved]
                 private OverlayColourProvider colourProvider { get; set; } = null!;
 
-                private ScoreInfo score = null!;
-
                 public ScoreInfo Score
                 {
-                    get => score;
+                    get;
                     set
                     {
-                        score = value;
+                        field = value;
 
                         updateAbsoluteDate();
                         relativeDate.Date = value.Date;
@@ -129,7 +127,7 @@ namespace osu.Game.Screens.Select
                         {
                             new StatisticRow(BeatmapsetsStrings.ShowScoreboardHeadersCombo, value.MaxCombo.ToLocalisableString(@"0\x")),
                             new StatisticRow(BeatmapsetsStrings.ShowScoreboardHeadersAccuracy, value.Accuracy.FormatAccuracy()),
-                            new PerformanceStatisticRow(BeatmapsetsStrings.ShowScoreboardHeaderspp.ToUpper(), score),
+                            new PerformanceStatisticRow(BeatmapsetsStrings.ShowScoreboardHeaderspp.ToUpper(), field),
                             Empty().With(d => d.Height = 20),
                             new StatisticRow(ModSelectOverlayStrings.ScoreMultiplier, ModUtils.FormatScoreMultiplier(multiplier)),
                         };
@@ -138,7 +136,7 @@ namespace osu.Game.Screens.Select
                                                         .Append(Empty().With(d => d.Height = 20))
                                                         .Concat(generalStatistics);
                     }
-                }
+                } = null!;
 
                 [BackgroundDependencyLoader]
                 private void load(OsuConfigManager configManager)
@@ -227,7 +225,7 @@ namespace osu.Game.Screens.Select
                 }
 
                 private void updateAbsoluteDate()
-                    => absoluteDate.Text = score.Date.ToLocalTime().ToLocalisableString(prefer24HourTime.Value ? @"d MMMM yyyy HH:mm" : @"d MMMM yyyy h:mm tt");
+                    => absoluteDate.Text = Score.Date.ToLocalTime().ToLocalisableString(prefer24HourTime.Value ? @"d MMMM yyyy HH:mm" : @"d MMMM yyyy h:mm tt");
             }
 
             public partial class StatisticRow : CompositeDrawable

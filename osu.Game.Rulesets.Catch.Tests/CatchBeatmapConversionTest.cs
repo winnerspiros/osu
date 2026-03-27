@@ -96,33 +96,27 @@ namespace osu.Game.Rulesets.Catch.Tests
         public ConvertValue(CatchHitObject hitObject)
         {
             HitObject = hitObject;
-            startTime = 0;
-            position = 0;
-            hyperDash = false;
+            StartTime = 0;
+            Position = 0;
+            HyperDash = false;
         }
-
-        private double startTime;
 
         public double StartTime
         {
-            get => HitObject?.StartTime ?? startTime;
-            set => startTime = value;
+            get => HitObject?.StartTime ?? field;
+            set;
         }
-
-        private float position;
 
         public float Position
         {
-            get => HitObject?.EffectiveX ?? position;
-            set => position = value;
+            get => HitObject?.EffectiveX ?? field;
+            set;
         }
-
-        private bool hyperDash;
 
         public bool HyperDash
         {
-            get => (HitObject as PalpableCatchHitObject)?.HyperDash ?? hyperDash;
-            set => hyperDash = value;
+            get => (HitObject as PalpableCatchHitObject)?.HyperDash ?? field;
+            set;
         }
 
         public bool Equals(ConvertValue other)

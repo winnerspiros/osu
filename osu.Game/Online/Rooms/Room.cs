@@ -21,20 +21,22 @@ namespace osu.Game.Online.Rooms
         /// <summary>
         /// The online room ID. Will be <c>null</c> while the room has not yet been created.
         /// </summary>
+        [field: JsonProperty("id")]
         public long? RoomID
         {
-            get => roomId;
-            set => SetField(ref roomId, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The room name.
         /// </summary>
+        [field: JsonProperty("name")]
         public string Name
         {
-            get => name;
-            set => SetField(ref name, value);
-        }
+            get;
+            set => SetField(ref field, value);
+        } = string.Empty;
 
         /// <summary>
         /// Sets the room password. Will be <c>null</c> after the room is created.
@@ -42,12 +44,13 @@ namespace osu.Game.Online.Rooms
         /// <remarks>
         /// To check if the room has a password, use <see cref="HasPassword"/>.
         /// </remarks>
+        [field: JsonProperty("password")]
         public string? Password
         {
-            get => password;
+            get;
             set
             {
-                SetField(ref password, value);
+                SetField(ref field, value);
                 HasPassword = !string.IsNullOrEmpty(value);
             }
         }
@@ -61,26 +64,29 @@ namespace osu.Game.Online.Rooms
         [JsonProperty("has_password")]
         public bool HasPassword
         {
-            get => hasPassword;
-            private set => SetField(ref hasPassword, value);
+            get;
+            private set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The room host. Will be <c>null</c> while the room has not yet been created.
         /// </summary>
+        [field: JsonProperty("host")]
         public APIUser? Host
         {
-            get => host;
-            set => SetField(ref host, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The room category.
         /// </summary>
+        [field: JsonProperty("category")]
+        [field: JsonConverter(typeof(SnakeCaseStringEnumConverter))]
         public RoomCategory Category
         {
-            get => category;
-            set => SetField(ref category, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -98,10 +104,11 @@ namespace osu.Game.Online.Rooms
         /// <summary>
         /// The date at which the room was opened. Will be <c>null</c> while the room has not yet been created.
         /// </summary>
+        [field: JsonProperty("starts_at")]
         public DateTimeOffset? StartDate
         {
-            get => startDate;
-            set => SetField(ref startDate, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -110,10 +117,11 @@ namespace osu.Game.Online.Rooms
         /// <remarks>
         /// To set the room duration, use <see cref="Duration"/>.
         /// </remarks>
+        [field: JsonProperty("ends_at")]
         public DateTimeOffset? EndDate
         {
-            get => endDate;
-            set => SetField(ref endDate, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -121,89 +129,100 @@ namespace osu.Game.Online.Rooms
         /// </summary>
         public int? MaxParticipants
         {
-            get => maxParticipants;
-            set => SetField(ref maxParticipants, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The current number of users in the room.
         /// </summary>
+        [field: JsonProperty("participant_count")]
         public int ParticipantCount
         {
-            get => participantCount;
-            set => SetField(ref participantCount, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The set of most recent participants in the room.
         /// </summary>
+        [field: JsonProperty("recent_participants")]
         public IReadOnlyList<APIUser> RecentParticipants
         {
-            get => recentParticipants;
-            set => SetList(ref recentParticipants, value);
-        }
+            get;
+            set => SetList(ref field, value);
+        } = [];
 
         /// <summary>
         /// The match type.
         /// </summary>
+        [field: JsonConverter(typeof(SnakeCaseStringEnumConverter))]
+        [field: JsonProperty("type")]
         public MatchType Type
         {
-            get => type;
-            set => SetField(ref type, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The maximum number of attempts on the playlist. Only valid for playlist rooms.
         /// </summary>
+        [field: JsonProperty("max_attempts", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int? MaxAttempts
         {
-            get => maxAttempts;
-            set => SetField(ref maxAttempts, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The room playlist.
         /// </summary>
+        [field: JsonProperty("playlist")]
         public IReadOnlyList<PlaylistItem> Playlist
         {
-            get => playlist;
-            set => SetList(ref playlist, value);
-        }
+            get;
+            set => SetList(ref field, value);
+        } = [];
 
         /// <summary>
         /// Describes the items in the playlist.
         /// </summary>
+        [field: JsonProperty("playlist_item_stats")]
         public RoomPlaylistItemStats? PlaylistItemStats
         {
-            get => playlistItemStats;
-            set => SetField(ref playlistItemStats, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// Describes the range of difficulty of the room.
         /// </summary>
+        [field: JsonProperty("difficulty_range")]
         public RoomDifficultyRange? DifficultyRange
         {
-            get => difficultyRange;
-            set => SetField(ref difficultyRange, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The playlist queueing mode. Only valid for multiplayer rooms.
         /// </summary>
+        [field: JsonConverter(typeof(SnakeCaseStringEnumConverter))]
+        [field: JsonProperty("queue_mode")]
         public QueueMode QueueMode
         {
-            get => queueMode;
-            set => SetField(ref queueMode, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// Whether to automatically skip map intros. Only valid for multiplayer rooms.
         /// </summary>
+        [field: JsonProperty("auto_skip")]
         public bool AutoSkip
         {
-            get => autoSkip;
-            set => SetField(ref autoSkip, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -218,10 +237,11 @@ namespace osu.Game.Online.Rooms
         /// <summary>
         /// Provides some extra scoring statistics for the local user in the room.
         /// </summary>
+        [field: JsonProperty("current_user_score")]
         public PlaylistAggregateScore? UserScore
         {
-            get => userScore;
-            set => SetField(ref userScore, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -230,28 +250,32 @@ namespace osu.Game.Online.Rooms
         /// <remarks>
         /// Only valid for room listing requests (i.e. in the lounge screen), and may not be valid while inside the room.
         /// </remarks>
+        [field: JsonProperty("current_playlist_item")]
         public PlaylistItem? CurrentPlaylistItem
         {
-            get => currentPlaylistItem;
-            set => SetField(ref currentPlaylistItem, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The chat channel id for the room. Will be <c>0</c> while the room has not yet been created.
         /// </summary>
+        [field: JsonProperty("channel_id")]
         public int ChannelId
         {
-            get => channelId;
-            set => SetField(ref channelId, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
         /// The current status of the room.
         /// </summary>
+        [field: JsonProperty("status")]
+        [field: JsonConverter(typeof(SnakeCaseStringEnumConverter))]
         public RoomStatus Status
         {
-            get => status;
-            set => SetField(ref status, value);
+            get;
+            set => SetField(ref field, value);
         }
 
         /// <summary>
@@ -259,97 +283,26 @@ namespace osu.Game.Online.Rooms
         /// </summary>
         public RoomAvailability Availability
         {
-            get => availability;
-            set => SetField(ref availability, value);
+            get;
+            set => SetField(ref field, value);
         }
 
+        [field: JsonProperty("pinned")]
         public bool Pinned
         {
-            get => pinned;
-            set => SetField(ref pinned, value);
+            get;
+            set => SetField(ref field, value);
         }
 
-        [JsonProperty("id")]
-        private long? roomId;
-
-        [JsonProperty("name")]
-        private string name = string.Empty;
-
-        [JsonProperty("password")]
-        private string? password;
-
         // Not serialised (internal use only).
-        private bool hasPassword;
-
-        [JsonProperty("host")]
-        private APIUser? host;
-
-        [JsonProperty("category")]
-        [JsonConverter(typeof(SnakeCaseStringEnumConverter))]
-        private RoomCategory category;
-
         [JsonProperty("duration")]
         private int? duration;
 
-        [JsonProperty("starts_at")]
-        private DateTimeOffset? startDate;
-
-        [JsonProperty("ends_at")]
-        private DateTimeOffset? endDate;
-
         // Not yet serialised (not implemented).
-        private int? maxParticipants;
-
-        [JsonProperty("participant_count")]
-        private int participantCount;
-
-        [JsonProperty("recent_participants")]
-        private IReadOnlyList<APIUser> recentParticipants = [];
-
-        [JsonProperty("max_attempts", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        private int? maxAttempts;
-
-        [JsonProperty("playlist")]
-        private IReadOnlyList<PlaylistItem> playlist = [];
-
-        [JsonProperty("playlist_item_stats")]
-        private RoomPlaylistItemStats? playlistItemStats;
-
-        [JsonProperty("difficulty_range")]
-        private RoomDifficultyRange? difficultyRange;
-
-        [JsonConverter(typeof(SnakeCaseStringEnumConverter))]
-        [JsonProperty("type")]
-        private MatchType type;
-
-        [JsonConverter(typeof(SnakeCaseStringEnumConverter))]
-        [JsonProperty("queue_mode")]
-        private QueueMode queueMode;
-
-        [JsonProperty("auto_skip")]
-        private bool autoSkip;
-
         [JsonProperty("auto_start_duration")]
         private ushort autoStartDuration;
 
-        [JsonProperty("current_user_score")]
-        private PlaylistAggregateScore? userScore;
-
-        [JsonProperty("current_playlist_item")]
-        private PlaylistItem? currentPlaylistItem;
-
-        [JsonProperty("channel_id")]
-        private int channelId;
-
-        [JsonProperty("status")]
-        [JsonConverter(typeof(SnakeCaseStringEnumConverter))]
-        private RoomStatus status;
-
-        [JsonProperty("pinned")]
-        private bool pinned;
-
         // Not yet serialised (not implemented).
-        private RoomAvailability availability;
 
         public Room()
         {

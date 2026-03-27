@@ -22,32 +22,28 @@ namespace osu.Game.Overlays.Toolbar
 
         private FillFlowContainer runningText;
 
-        private bool showRuntime = true;
-
         public bool ShowRuntime
         {
-            get => showRuntime;
+            get;
             set
             {
-                if (showRuntime == value)
+                if (field == value)
                     return;
 
-                showRuntime = value;
+                field = value;
                 updateMetrics();
             }
-        }
-
-        private bool use24HourDisplay;
+        } = true;
 
         public bool Use24HourDisplay
         {
-            get => use24HourDisplay;
+            get;
             set
             {
-                if (use24HourDisplay == value)
+                if (field == value)
                     return;
 
-                use24HourDisplay = value;
+                field = value;
 
                 updateMetrics();
                 UpdateDisplay(DateTimeOffset.Now); //Update realTime.Text immediately instead of waiting until next second
@@ -94,13 +90,13 @@ namespace osu.Game.Overlays.Toolbar
 
         protected override void UpdateDisplay(DateTimeOffset now)
         {
-            realTime.Text = now.ToLocalisableString(use24HourDisplay ? @"HH:mm:ss" : @"h:mm:ss tt");
+            realTime.Text = now.ToLocalisableString(Use24HourDisplay ? @"HH:mm:ss" : @"h:mm:ss tt");
             gameTime.Text = $"{new TimeSpan(TimeSpan.TicksPerSecond * (int)(Clock.CurrentTime / 1000)):c}";
         }
 
         private void updateMetrics()
         {
-            runningText.FadeTo(showRuntime ? 1 : 0);
+            runningText.FadeTo(ShowRuntime ? 1 : 0);
         }
     }
 }

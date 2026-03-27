@@ -155,25 +155,23 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
                 currentMatchSelectionBox.Hide();
         }
 
-        private bool selected;
-
         public bool Selected
         {
-            get => selected;
+            get;
 
             set
             {
-                if (value == selected) return;
+                if (value == field) return;
 
-                selected = value;
+                field = value;
 
-                if (selected)
+                if (field)
                 {
                     selectionBox.Show();
                     if (editor && editorInfo != null)
                         editorInfo.Selected.Value = Match;
-                    else if (ladderInfo != null)
-                        ladderInfo.CurrentMatch.Value = Match;
+                    else
+                        ladderInfo?.CurrentMatch.Value = Match;
                 }
                 else
                     selectionBox.Hide();

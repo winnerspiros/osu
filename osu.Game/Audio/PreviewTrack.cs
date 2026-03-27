@@ -36,7 +36,7 @@ namespace osu.Game.Audio
             if (Track != null)
             {
                 Track.Completed += Stop;
-                Track.Looping = looping;
+                Track.Looping = Looping;
             }
         }
 
@@ -60,20 +60,17 @@ namespace osu.Game.Audio
         /// </summary>
         public bool IsRunning => Track?.IsRunning ?? false;
 
-        private bool looping;
-
         /// <summary>
         /// Whether the track should loop.
         /// </summary>
         public bool Looping
         {
-            get => looping;
+            get;
             set
             {
-                looping = value;
+                field = value;
 
-                if (Track != null)
-                    Track.Looping = looping;
+                Track?.Looping = field;
             }
         }
 

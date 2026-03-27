@@ -359,23 +359,21 @@ namespace osu.Game.Screens.Edit.Compose.Components
             refreshPlacement();
         }
 
-        private CompositionTool currentTool;
-
         /// <summary>
         /// The current placement tool.
         /// </summary>
         public CompositionTool CurrentTool
         {
-            get => currentTool;
+            get;
 
             set
             {
-                if (currentTool == value)
+                if (field == value)
                     return;
 
-                currentTool = value;
+                field = value;
 
-                SelectionHandler.RightClickAlwaysQuickDeletes = currentTool is not SelectTool;
+                SelectionHandler.RightClickAlwaysQuickDeletes = field is not SelectTool;
 
                 // As per stable editor, when changing tools, we should forcefully commit any pending placement.
                 CommitIfPlacementActive();

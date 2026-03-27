@@ -302,7 +302,7 @@ namespace osu.Game.Tests.Visual.Navigation
         private Func<Player> playToResults()
         {
             var player = playToCompletion();
-            AddUntilStep("wait for results", () => (Game.ScreenStack.CurrentScreen as ResultsScreen)?.IsLoaded == true);
+            AddUntilStep("wait for results", () => Game.ScreenStack.CurrentScreen is ResultsScreen { IsLoaded: true });
             return player;
         }
 
