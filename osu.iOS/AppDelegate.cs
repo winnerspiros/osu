@@ -17,7 +17,18 @@ namespace osu.iOS
         /// <summary>
         /// The current orientation the game is displayed in.
         /// </summary>
-        public UIInterfaceOrientation CurrentOrientation => Host.Window.UIWindow.WindowScene!.InterfaceOrientation;
+        public UIInterfaceOrientation CurrentOrientation
+        {
+            get
+            {
+#pragma warning disable CA1422 // Validate platform compatibility
+                if (!OperatingSystem.IsIOSVersionAtLeast(26))
+                    return Host.Window.UIWindow.WindowScene!.InterfaceOrientation;
+#pragma warning restore CA1422
+
+                return Host.Window.UIWindow.WindowScene!.EffectiveGeometry.InterfaceOrientation;
+            }
+        }
 
         /// <summary>
         /// Controls the orientations allowed for the device to rotate to, overriding the default allowed orientations.
@@ -41,7 +52,7 @@ namespace osu.iOS
 
         protected override Framework.Game CreateGame() => new OsuGameIOS(this);
 
-        public UIInterfaceOrientationMask GetSupportedInterfaceOrientations(UIApplication application, UIWindow forWindow)
+        public UIInterfaceOrientationMask GetSupportedInterfaceOrientations(UIApplication application, UIWindow? forWindow)
         {
             if (orientations != null)
                 return orientations.Value;

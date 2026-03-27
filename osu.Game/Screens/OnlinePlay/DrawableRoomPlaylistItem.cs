@@ -26,6 +26,7 @@ using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Localisation;
 using osu.Game.Online;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Rooms;
@@ -37,7 +38,6 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Users.Drawables;
 using osuTK;
 using osuTK.Graphics;
-using osu.Game.Localisation;
 
 namespace osu.Game.Screens.OnlinePlay
 {
@@ -80,7 +80,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         private IBeatmapInfo? beatmap;
         private IRulesetInfo? ruleset;
-        private Mod[] requiredMods = Array.Empty<Mod>();
+        private Mod[] requiredMods = [];
 
         private Container? borderContainer;
         private FillFlowContainer? difficultyIconContainer;
@@ -135,8 +135,7 @@ namespace osu.Game.Screens.OnlinePlay
         [BackgroundDependencyLoader]
         private void load()
         {
-            if (borderContainer != null)
-                borderContainer.BorderColour = colours.Yellow;
+            borderContainer?.BorderColour = colours.Yellow;
 
             ruleset = rulesets.GetRuleset(Item.RulesetID);
             var rulesetInstance = ruleset?.CreateInstance();
@@ -163,8 +162,7 @@ namespace osu.Game.Screens.OnlinePlay
                     return;
                 }
 
-                if (borderContainer != null)
-                    borderContainer.BorderThickness = IsSelectedItem ? border_thickness : 0;
+                borderContainer?.BorderThickness = IsSelectedItem ? border_thickness : 0;
             }, true);
 
             valid.BindValueChanged(_ => Scheduler.AddOnce(refresh));
@@ -175,13 +173,12 @@ namespace osu.Game.Screens.OnlinePlay
                 {
                     try
                     {
-                        if (showItemOwner)
+                        if (ShowItemOwner)
                         {
                             var foundUser = await userLookupCache.GetUserAsync(Item.OwnerID).ConfigureAwait(false);
                             Schedule(() =>
                             {
-                                if (ownerAvatar != null)
-                                    ownerAvatar.User = foundUser;
+                                ownerAvatar?.User = foundUser;
                             });
                         }
 
@@ -213,71 +210,59 @@ namespace osu.Game.Screens.OnlinePlay
             set => ShowDragHandle.Value = value;
         }
 
-        private bool allowDeletion;
-
         /// <summary>
         /// Whether this item can be deleted.
         /// </summary>
         public bool AllowDeletion
         {
-            get => allowDeletion;
+            get;
             set
             {
-                allowDeletion = value;
+                field = value;
 
-                if (removeButton != null)
-                    removeButton.Alpha = value ? 1 : 0;
+                removeButton?.Alpha = value ? 1 : 0;
             }
         }
-
-        private bool allowShowingResults;
 
         /// <summary>
         /// Whether this item can have results shown.
         /// </summary>
         public bool AllowShowingResults
         {
-            get => allowShowingResults;
+            get;
             set
             {
-                allowShowingResults = value;
+                field = value;
 
-                if (showResultsButton != null)
-                    showResultsButton.Alpha = value ? 1 : 0;
+                showResultsButton?.Alpha = value ? 1 : 0;
             }
         }
-
-        private bool allowEditing;
 
         /// <summary>
         /// Whether this item can be edited.
         /// </summary>
         public bool AllowEditing
         {
-            get => allowEditing;
+            get;
             set
             {
-                allowEditing = value;
+                field = value;
 
-                if (editButton != null)
-                    editButton.Alpha = value ? 1 : 0;
+                editButton?.Alpha = value ? 1 : 0;
             }
         }
-
-        private bool showItemOwner;
 
         /// <summary>
         /// Whether to display the avatar of the user which owns this playlist item.
         /// </summary>
         public bool ShowItemOwner
         {
-            get => showItemOwner;
+            get;
             set
             {
-                showItemOwner = value;
+                field = value;
 
-                if (ownerAvatar != null)
-                    ownerAvatar.Alpha = value ? 1 : 0;
+                ownerAvatar?.Alpha = value ? 1 : 0;
             }
         }
 
@@ -321,8 +306,7 @@ namespace osu.Game.Screens.OnlinePlay
                     difficultyIconContainer.Clear();
             }
 
-            if (panelBackground != null)
-                panelBackground.Beatmap.Value = beatmap;
+            panelBackground?.Beatmap.Value = beatmap;
 
             if (beatmapText != null)
             {
@@ -354,12 +338,11 @@ namespace osu.Game.Screens.OnlinePlay
 
             if (explicitContent != null)
             {
-                bool hasExplicitContent = (beatmap?.BeatmapSet as IBeatmapSetOnlineInfo)?.HasExplicitContent == true;
+                bool hasExplicitContent = beatmap?.BeatmapSet is IBeatmapSetOnlineInfo { HasExplicitContent: true };
                 explicitContent.Alpha = hasExplicitContent ? 1 : 0;
             }
 
-            if (modDisplay != null)
-                modDisplay.Current.Value = requiredMods.ToArray();
+            modDisplay?.Current.Value = requiredMods.ToArray();
 
             if (buttonsFlow != null)
             {
@@ -575,8 +558,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         protected override bool OnHover(HoverEvent e)
         {
-            if (thumbnail != null)
-                thumbnail.Dimmed.Value = true;
+            thumbnail?.Dimmed.Value = true;
 
             panelBackground.FadeColour(OsuColour.Gray(0.7f), BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
             return base.OnHover(e);
@@ -584,8 +566,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            if (thumbnail != null)
-                thumbnail.Dimmed.Value = false;
+            thumbnail?.Dimmed.Value = false;
 
             panelBackground.FadeColour(OsuColour.Gray(1f), BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
             base.OnHoverLost(e);

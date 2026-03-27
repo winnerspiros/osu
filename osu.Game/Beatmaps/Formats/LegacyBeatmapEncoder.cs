@@ -319,7 +319,7 @@ namespace osu.Game.Beatmaps.Formats
                 SampleControlPoint createSampleControlPointFor(double time, IList<HitSampleInfo> samples)
                 {
                     int volume = samples.Max(o => o.Volume);
-                    string bank = samples.Where(s => s.Name == HitSampleInfo.HIT_NORMAL).Select(s => s.Bank).FirstOrDefault()
+                    string bank = samples.FirstOrDefault(s => s.Name == HitSampleInfo.HIT_NORMAL)?.Bank
                                   ?? samples.Select(s => s.Bank).First();
 
                     int customIndex = samples.Max(s =>

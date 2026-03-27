@@ -43,7 +43,7 @@ namespace osu.Game.Overlays.Mods
         protected override string PopOutSampleName => @"SongSelect/mod-select-overlay-pop-out";
 
         [Cached]
-        public Bindable<IReadOnlyList<Mod>> SelectedMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public Bindable<IReadOnlyList<Mod>> SelectedMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         /// <summary>
         /// Contains a list of mods which <see cref="ModSelectOverlay"/> should read from to display effects on the selected beatmap.
@@ -51,7 +51,7 @@ namespace osu.Game.Overlays.Mods
         /// <remarks>
         /// This is different from <see cref="SelectedMods"/> in screens like online-play rooms, where there are required mods activated from the playlist.
         /// </remarks>
-        public Bindable<IReadOnlyList<Mod>> ActiveMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public Bindable<IReadOnlyList<Mod>> ActiveMods { get; private set; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         /// <summary>
         /// Contains a dictionary with the current <see cref="ModState"/> of all mods applicable for the current ruleset.
@@ -63,8 +63,6 @@ namespace osu.Game.Overlays.Mods
         public Bindable<Dictionary<ModType, IReadOnlyList<ModState>>> AvailableMods { get; } =
             new Bindable<Dictionary<ModType, IReadOnlyList<ModState>>>(new Dictionary<ModType, IReadOnlyList<ModState>>());
 
-        private Func<Mod, bool> isValidMod = _ => true;
-
         /// <summary>
         /// A function determining whether each mod in the column should be displayed.
         /// A return value of <see langword="true"/> means that the mod is not filtered and therefore its corresponding panel should be displayed.
@@ -72,13 +70,13 @@ namespace osu.Game.Overlays.Mods
         /// </summary>
         public Func<Mod, bool> IsValidMod
         {
-            get => isValidMod;
+            get;
             set
             {
-                isValidMod = value ?? throw new ArgumentNullException(nameof(value));
+                field = value ?? throw new ArgumentNullException(nameof(value));
                 filterMods();
             }
-        }
+        } = _ => true;
 
         public string SearchTerm
         {
@@ -365,7 +363,7 @@ namespace osu.Game.Overlays.Mods
             filterMods();
 
             foreach (var column in columnFlow.Columns.OfType<ModColumn>())
-                column.AvailableMods = AvailableMods.Value.GetValueOrDefault(column.ModType, Array.Empty<ModState>());
+                column.AvailableMods = AvailableMods.Value.GetValueOrDefault(column.ModType, []);
         }
 
         private void filterMods()

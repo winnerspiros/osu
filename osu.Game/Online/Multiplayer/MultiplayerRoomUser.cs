@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using MessagePack;
 using Newtonsoft.Json;
 using osu.Game.Online.API;
@@ -32,7 +31,7 @@ namespace osu.Game.Online.Multiplayer
         /// Any mods applicable only to the local user.
         /// </summary>
         [Key(3)]
-        public IEnumerable<APIMod> Mods { get; set; } = Enumerable.Empty<APIMod>();
+        public IEnumerable<APIMod> Mods { get; set; } = [];
 
         [Key(4)]
         public MatchUserState? MatchState { get; set; }

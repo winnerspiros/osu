@@ -16,27 +16,24 @@ namespace osu.Game.Overlays.Toolbar
     public partial class ToolbarOverlayToggleButton : ToolbarButton
     {
         private Box stateBackground;
-
-        private OverlayContainer stateContainer;
-
         private readonly Bindable<Visibility> overlayState = new Bindable<Visibility>();
 
         public OverlayContainer StateContainer
         {
-            get => stateContainer;
+            get;
             set
             {
-                stateContainer = value;
+                field = value;
 
                 overlayState.UnbindBindings();
 
-                if (stateContainer != null)
+                if (field != null)
                 {
-                    Action = stateContainer.ToggleVisibility;
-                    overlayState.BindTo(stateContainer.State);
+                    Action = field.ToggleVisibility;
+                    overlayState.BindTo(field.State);
                 }
 
-                if (stateContainer is INamedOverlayComponent named)
+                if (field is INamedOverlayComponent named)
                 {
                     TooltipMain = named.Title;
                     TooltipSub = named.Description;

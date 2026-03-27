@@ -400,7 +400,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             get
             {
                 if (!SelectedBlueprints.Any(b => b.IsHovered))
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 var items = new List<MenuItem>();
 
@@ -424,7 +424,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// <param name="selection">The current selection.</param>
         /// <returns>The relevant menu items.</returns>
         protected virtual IEnumerable<MenuItem> GetContextMenuItemsForSelection(IEnumerable<SelectionBlueprint<T>> selection)
-            => Enumerable.Empty<MenuItem>();
+            => [];
 
         #endregion
     }

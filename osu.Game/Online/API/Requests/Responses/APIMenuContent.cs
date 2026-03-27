@@ -13,7 +13,7 @@ namespace osu.Game.Online.API.Requests.Responses
         /// Images which should be displayed in rotation.
         /// </summary>
         [JsonProperty(@"images")]
-        public APIMenuImage[] Images { get; init; } = Array.Empty<APIMenuImage>();
+        public APIMenuImage[] Images { get; init; } = [];
 
         public bool Equals(APIMenuContent? other)
         {

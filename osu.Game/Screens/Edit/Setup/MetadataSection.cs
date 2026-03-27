@@ -7,8 +7,8 @@ using osu.Framework.Input;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterfaceV2;
-using osu.Game.Resources.Localisation.Web;
 using osu.Game.Localisation;
+using osu.Game.Resources.Localisation.Web;
 
 namespace osu.Game.Screens.Edit.Setup
 {
@@ -48,8 +48,7 @@ namespace osu.Game.Screens.Edit.Setup
                 tagsTextBox = createTextBox<FormTextBox>(BeatmapsetsStrings.ShowInfoMapperTags)
             };
 
-            if (setupScreen != null)
-                setupScreen.MetadataChanged += reloadMetadata;
+            setupScreen?.MetadataChanged += reloadMetadata;
 
             reloadMetadata();
         }
@@ -84,8 +83,7 @@ namespace osu.Game.Screens.Edit.Setup
                 };
             }
 
-            if (editor != null)
-                editor.Saved += () => dirty = false;
+            editor?.Saved += () => dirty = false;
 
             updateReadOnlyState();
         }

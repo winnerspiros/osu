@@ -44,8 +44,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                                 var combo = container.ChildrenOfType<ArgonManiaComboCounter>().FirstOrDefault();
                                 var spectatorList = container.OfType<SpectatorList>().FirstOrDefault();
 
-                                if (leaderboard != null)
-                                    leaderboard.Position = new Vector2(36, 115);
+                                leaderboard?.Position = new Vector2(36, 115);
 
                                 if (combo != null)
                                 {
@@ -55,8 +54,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                                     combo.Y = 200;
                                 }
 
-                                if (spectatorList != null)
-                                    spectatorList.Position = new Vector2(36, -66);
+                                spectatorList?.Position = new Vector2(36, -66);
 
                                 foreach (var d in container.OfType<ISerialisableDrawable>())
                                     d.UsesFixedAnchor = true;

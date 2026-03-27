@@ -50,31 +50,29 @@ namespace osu.Game.Rulesets.Edit
             updateState();
         }
 
-        private SelectionState state;
-
         [CanBeNull]
         public event Action<SelectionState> StateChanged;
 
         public SelectionState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value)
+                if (field == value)
                     return;
 
-                state = value;
+                field = value;
 
                 if (IsLoaded)
                     updateState();
 
-                StateChanged?.Invoke(state);
+                StateChanged?.Invoke(field);
             }
         }
 
         private void updateState()
         {
-            switch (state)
+            switch (State)
             {
                 case SelectionState.Selected:
                     OnSelected();
@@ -125,7 +123,7 @@ namespace osu.Game.Rulesets.Edit
         /// <summary>
         /// The <see cref="MenuItem"/>s to be displayed in the context menu for this <see cref="HitObjectSelectionBlueprint"/>.
         /// </summary>
-        public virtual MenuItem[] ContextMenuItems => Array.Empty<MenuItem>();
+        public virtual MenuItem[] ContextMenuItems => [];
 
         /// <summary>
         /// Whether the <see cref="SelectionBlueprint{T}"/> can be currently selected via a click or a drag box.
@@ -140,7 +138,7 @@ namespace osu.Game.Rulesets.Edit
         /// <summary>
         /// Any points that should be used for snapping purposes in addition to <see cref="ScreenSpaceSelectionPoint"/>. Exposed via <see cref="ScreenSpaceSnapPoints"/>.
         /// </summary>
-        protected virtual Vector2[] ScreenSpaceAdditionalNodes => Array.Empty<Vector2>();
+        protected virtual Vector2[] ScreenSpaceAdditionalNodes => [];
 
         /// <summary>
         /// The screen-space collection of base points on this <see cref="HitObjectSelectionBlueprint"/> that other objects can be snapped to.

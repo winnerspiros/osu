@@ -29,16 +29,14 @@ namespace osu.Game.Overlays.BeatmapSet.Buttons
         [CanBeNull]
         public PreviewTrack Preview { get; private set; }
 
-        private IBeatmapSetInfo beatmapSet;
-
         public IBeatmapSetInfo BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                if (value == beatmapSet) return;
+                if (value == field) return;
 
-                beatmapSet = value;
+                field = value;
 
                 Preview?.Stop();
                 Preview?.Expire();
@@ -142,7 +140,7 @@ namespace osu.Game.Overlays.BeatmapSet.Buttons
 
                 loading = true;
 
-                LoadComponentAsync(Preview = previewTrackManager.Get(beatmapSet), preview =>
+                LoadComponentAsync(Preview = previewTrackManager.Get(BeatmapSet), preview =>
                 {
                     // Make sure that we schedule to after the next audio frame to fix crashes in single-threaded execution.
                     // See: https://github.com/ppy/osu-framework/issues/4692

@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -13,6 +11,8 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Overlays;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -77,14 +77,12 @@ namespace osu.Game.Graphics.UserInterface
             Current.BindValueChanged(onCurrentValueChanged, true);
         }
 
-        private bool glowing;
-
         public bool Glowing
         {
-            get => glowing;
+            get;
             set
             {
-                glowing = value;
+                field = value;
 
                 if (value)
                 {
@@ -104,19 +102,17 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private readonly Bindable<bool> current = new Bindable<bool>();
-
         public Bindable<bool> Current
         {
-            get => current;
+            get;
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                field.UnbindBindings();
+                field.BindTo(value);
             }
-        }
+        } = new Bindable<bool>();
 
         private Color4 accentColour;
 

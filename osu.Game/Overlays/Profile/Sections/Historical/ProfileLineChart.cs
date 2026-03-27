@@ -1,40 +1,38 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics;
 using System;
 using System.Linq;
-using osu.Game.Graphics.Sprites;
-using osu.Framework.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.LocalisationExtensions;
-using osu.Game.Graphics;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK;
 using osu.Framework.Localisation;
+using osu.Framework.Utils;
+using osu.Game.Graphics;
+using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
+using osuTK;
 
 namespace osu.Game.Overlays.Profile.Sections.Historical
 {
     public partial class ProfileLineChart : CompositeDrawable
     {
-        private APIUserHistoryCount[] values = Array.Empty<APIUserHistoryCount>();
-
         public APIUserHistoryCount[] Values
         {
-            get => values;
+            get;
             set
             {
                 if (value.Length == 0)
                     throw new ArgumentException("At least one value expected!", nameof(value));
 
-                graph.Values = values = value;
+                graph.Values = field = value;
 
                 createRowTicks();
                 createColumnTicks();
             }
-        }
+        } = [];
 
         private readonly UserHistoryGraph graph;
         private readonly Container<TickText> rowTicksContainer;
@@ -114,8 +112,8 @@ namespace osu.Game.Overlays.Profile.Sections.Historical
             rowTicksContainer.Clear();
             rowLinesContainer.Clear();
 
-            long min = values.Select(v => v.Count).Min();
-            long max = values.Select(v => v.Count).Max();
+            long min = Values.Select(v => v.Count).Min();
+            long max = Values.Select(v => v.Count).Max();
 
             long tickInterval = getTickInterval(max - min, 6);
 
@@ -143,7 +141,7 @@ namespace osu.Game.Overlays.Profile.Sections.Historical
             columnTicksContainer.Clear();
             columnLinesContainer.Clear();
 
-            int totalMonths = values.Length;
+            int totalMonths = Values.Length;
 
             int monthsPerTick = 1;
 
@@ -157,7 +155,7 @@ namespace osu.Game.Overlays.Profile.Sections.Historical
             for (int i = 0; i < totalMonths; i += monthsPerTick)
             {
                 float x = (float)i / (totalMonths - 1);
-                addColumnTick(x, values[i].Date);
+                addColumnTick(x, Values[i].Date);
             }
         }
 

@@ -71,8 +71,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                 },
             };
 
-            if (parentObject != null)
-                parentObject.HitObjectApplied += onHitObjectApplied;
+            parentObject?.HitObjectApplied += onHitObjectApplied;
 
             onHitObjectApplied(parentObject);
         }

@@ -27,14 +27,12 @@ namespace osu.Game.Screens.Select
             private readonly FillFlowContainer<StatisticDifficulty> statisticsFlow;
             private readonly GridContainer tinyStatisticsGrid;
 
-            private IReadOnlyList<StatisticDifficulty.Data> statistics = Array.Empty<StatisticDifficulty.Data>();
-
             public IReadOnlyList<StatisticDifficulty.Data> Statistics
             {
-                get => statistics;
+                get;
                 set
                 {
-                    statistics = value;
+                    field = value;
 
                     if (IsLoaded)
                     {
@@ -42,7 +40,7 @@ namespace osu.Game.Screens.Select
                         updateTinyStatistics();
                     }
                 }
-            }
+            } = [];
 
             private Color4 accentColour;
 
@@ -178,14 +176,14 @@ namespace osu.Game.Screens.Select
             private void updateStatistics() => Scheduler.AddOnce(() =>
             {
                 if (statisticsFlow.Select(s => s.Value.Label)
-                                  .SequenceEqual(statistics.Select(s => s.Label)))
+                                  .SequenceEqual(Statistics.Select(s => s.Label)))
                 {
-                    for (int i = 0; i < statistics.Count; i++)
-                        statisticsFlow[i].Value = statistics[i];
+                    for (int i = 0; i < Statistics.Count; i++)
+                        statisticsFlow[i].Value = Statistics[i];
                 }
                 else
                 {
-                    statisticsFlow.ChildrenEnumerable = statistics.Select(d => new StatisticDifficulty
+                    statisticsFlow.ChildrenEnumerable = Statistics.Select(d => new StatisticDifficulty
                     {
                         Alpha = 0,
                         AccentColour = accentColour,
@@ -197,8 +195,8 @@ namespace osu.Game.Screens.Select
 
             private void updateTinyStatistics()
             {
-                tinyStatisticsGrid.RowDimensions = statistics.Select(_ => new Dimension(GridSizeMode.AutoSize)).ToArray();
-                tinyStatisticsGrid.Content = statistics.Select(s => new[]
+                tinyStatisticsGrid.RowDimensions = Statistics.Select(_ => new Dimension(GridSizeMode.AutoSize)).ToArray();
+                tinyStatisticsGrid.Content = Statistics.Select(s => new[]
                 {
                     new OsuSpriteText
                     {

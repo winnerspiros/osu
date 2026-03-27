@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Extensions;
@@ -40,7 +39,7 @@ namespace osu.Game.Rulesets.Edit.Checks.Components
         public Issue(IssueTemplate template, params object[] args)
         {
             Time = null;
-            HitObjects = Array.Empty<HitObject>();
+            HitObjects = [];
             Template = template;
             Arguments = args;
         }

@@ -35,7 +35,7 @@ namespace osu.Game.Online.Rooms
         /// Mods that should be applied for every participant in the room.
         /// </summary>
         [Key(5)]
-        public IEnumerable<APIMod> RequiredMods { get; set; } = Enumerable.Empty<APIMod>();
+        public IEnumerable<APIMod> RequiredMods { get; set; } = [];
 
         /// <summary>
         /// Mods that participants are allowed to apply at their own discretion.
@@ -46,7 +46,7 @@ namespace osu.Game.Online.Rooms
         /// and is <see cref="ModUtils.CheckCompatibleSet(IEnumerable{Mod})">compatible</see> with the rest of the user's selection.
         /// </remarks>
         [Key(6)]
-        public IEnumerable<APIMod> AllowedMods { get; set; } = Enumerable.Empty<APIMod>();
+        public IEnumerable<APIMod> AllowedMods { get; set; } = [];
 
         [Key(7)]
         public bool Expired { get; set; }

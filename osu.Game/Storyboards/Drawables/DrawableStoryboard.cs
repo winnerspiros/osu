@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,7 +60,7 @@ namespace osu.Game.Storyboards.Drawables
         public DrawableStoryboard(Storyboard storyboard, IReadOnlyList<Mod>? mods = null)
         {
             Storyboard = storyboard;
-            Mods = mods ?? Array.Empty<Mod>();
+            Mods = mods ?? [];
 
             Size = new Vector2(640, 480);
 

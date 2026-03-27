@@ -28,7 +28,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
@@ -279,7 +278,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 
                 // If the mods are updated at the end of the frame, the flow container will skip a reflow cycle: https://github.com/ppy/osu-framework/issues/4187
                 // This looks particularly jarring here, so re-schedule the update to that start of our frame as a fix.
-                Schedule(() => userModsDisplay.Current.Value = userRuleset == null ? Array.Empty<Mod>() : user.Mods.Select(m => m.ToMod(userRuleset)).ToList());
+                Schedule(() => userModsDisplay.Current.Value = userRuleset == null ? [] : user.Mods.Select(m => m.ToMod(userRuleset)).ToList());
             }
 
             userStateDisplay.UpdateStatus(user);

@@ -1,14 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Game.Input.Bindings;
-using osuTK.Input;
-using osu.Framework.Input.Bindings;
 using osu.Game.Overlays;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -17,8 +17,6 @@ namespace osu.Game.Graphics.UserInterface
     /// </summary>
     public partial class FocusedTextBox : OsuTextBox, IKeyBindingHandler<GlobalAction>
     {
-        private bool focus;
-
         private bool allowImmediateFocus => host?.OnScreenKeyboardOverlapsGameWindow != true;
 
         /// <summary>
@@ -38,11 +36,11 @@ namespace osu.Game.Graphics.UserInterface
 
         public bool HoldFocus
         {
-            get => allowImmediateFocus && focus;
+            get => allowImmediateFocus && field;
             set
             {
-                focus = value;
-                if (!focus && HasFocus)
+                field = value;
+                if (!field && HasFocus)
                     base.KillFocus();
             }
         }

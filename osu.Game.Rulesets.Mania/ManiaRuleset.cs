@@ -303,7 +303,7 @@ namespace osu.Game.Rulesets.Mania
                     };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 
@@ -349,7 +349,7 @@ namespace osu.Game.Rulesets.Mania
                     return new DualStageVariantGenerator(getDualStageKeyCount(variant)).GenerateMappings();
             }
 
-            return Array.Empty<KeyBinding>();
+            return [];
         }
 
         public override LocalisableString GetVariantName(int variant)

@@ -123,7 +123,7 @@ namespace osu.Game.Rulesets.Catch.Tests
 
             path.Clear();
             path.SetVertexPosition(0, 10);
-            path.ResampleVertices(Array.Empty<double>());
+            path.ResampleVertices([]);
             Assert.That(path.Vertices, Is.EqualTo(new[]
             {
                 new JuiceStreamPathVertex(0, 10)

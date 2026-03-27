@@ -23,20 +23,18 @@ namespace osu.Game.Rulesets.Mania.Edit.Blueprints
         [Resolved]
         private ManiaHitObjectComposer? composer { get; set; }
 
-        private Column? column;
-
         public Column? Column
         {
-            get => column;
+            get;
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                if (value == column)
+                if (value == field)
                     return;
 
-                column = value;
-                HitObject.Column = column.Index;
+                field = value;
+                HitObject.Column = field.Index;
             }
         }
 

@@ -102,7 +102,7 @@ namespace osu.Game.Database
             {
                 notification.CompletionText = $"No {HumanisedModelName}s were found to import!";
                 notification.State = ProgressNotificationState.Completed;
-                return Enumerable.Empty<RealmLive<TModel>>();
+                return [];
             }
 
             notification.Progress = 0;

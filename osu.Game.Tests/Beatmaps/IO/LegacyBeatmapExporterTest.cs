@@ -154,7 +154,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 () => getStringContentsOf(osu_filename, firstExport.GetBuffer()),
                 () => Is.EqualTo(getStringContentsOf(osu_filename, secondExport.GetBuffer())));
 
-            string getStringContentsOf(string filename, byte[] archiveBytes)
+            static string getStringContentsOf(string filename, byte[] archiveBytes)
             {
                 using var memoryStream = new MemoryStream(archiveBytes);
                 using var archiveReader = new ZipArchiveReader(memoryStream);
@@ -182,7 +182,7 @@ namespace osu.Game.Tests.Beatmaps.IO
                 () => hasBareLineFeed(outStream.GetBuffer()),
                 () => Is.False);
 
-            bool hasBareLineFeed(byte[] archiveBytes)
+            static bool hasBareLineFeed(byte[] archiveBytes)
             {
                 using var memoryStream = new MemoryStream(archiveBytes);
                 using var archiveReader = new ZipArchiveReader(memoryStream);

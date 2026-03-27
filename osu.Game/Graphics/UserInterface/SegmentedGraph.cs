@@ -22,7 +22,7 @@ namespace osu.Game.Graphics.UserInterface
         private bool graphNeedsUpdate;
 
         private T[]? values;
-        private int[] tiers = Array.Empty<int>();
+        private int[] tiers = [];
         private readonly SegmentManager segments;
 
         private int tierCount;
@@ -39,7 +39,7 @@ namespace osu.Game.Graphics.UserInterface
 
         public T[] Values
         {
-            get => values ?? Array.Empty<T>();
+            get => values ?? [];
             set
             {
                 if (value == values) return;
@@ -90,7 +90,7 @@ namespace osu.Game.Graphics.UserInterface
         {
             if (arr == null || arr.Length == 0)
             {
-                tiers = Array.Empty<int>();
+                tiers = [];
                 return;
             }
 
@@ -283,10 +283,7 @@ namespace osu.Game.Graphics.UserInterface
 
             public void EndSegment(int tier, float end)
             {
-                SegmentInfo? pendingSegment = pendingSegments[tier];
-                if (pendingSegment == null)
-                    throw new InvalidOperationException($"Cannot end {nameof(SegmentInfo)} of tier {tier.ToString()} that has not been started.");
-
+                SegmentInfo? pendingSegment = pendingSegments[tier] ?? throw new InvalidOperationException($"Cannot end {nameof(SegmentInfo)} of tier {tier.ToString()} that has not been started.");
                 SegmentInfo segment = pendingSegment.Value;
                 segment.End = Math.Clamp(end, 0, 1);
                 segments.Add(segment);

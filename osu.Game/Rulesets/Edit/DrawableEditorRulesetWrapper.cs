@@ -104,8 +104,7 @@ namespace osu.Game.Rulesets.Edit
                 beatmap.HitObjectUpdated -= hitObjectUpdated;
             }
 
-            if (changeHandler != null)
-                changeHandler.OnStateChange -= stateChanged;
+            changeHandler?.OnStateChange -= stateChanged;
         }
     }
 }

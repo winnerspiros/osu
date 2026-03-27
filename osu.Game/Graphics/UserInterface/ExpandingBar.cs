@@ -13,50 +13,44 @@ namespace osu.Game.Graphics.UserInterface
     /// </summary>
     public partial class ExpandingBar : Circle
     {
-        private bool expanded = true;
-
         public bool Expanded
         {
-            get => expanded;
+            get;
             set
             {
-                if (value == expanded)
+                if (value == field)
                     return;
 
-                expanded = value;
+                field = value;
                 updateState();
             }
-        }
-
-        private float expandedSize = 4;
+        } = true;
 
         public float ExpandedSize
         {
-            get => expandedSize;
+            get;
             set
             {
-                if (value == expandedSize)
+                if (value == field)
                     return;
 
-                expandedSize = value;
+                field = value;
                 updateState();
             }
-        }
-
-        private float collapsedSize = 2;
+        } = 4;
 
         public float CollapsedSize
         {
-            get => collapsedSize;
+            get;
             set
             {
-                if (value == collapsedSize)
+                if (value == field)
                     return;
 
-                collapsedSize = value;
+                field = value;
                 updateState();
             }
-        }
+        } = 2;
 
         public override Axes RelativeSizeAxes
         {
@@ -89,15 +83,15 @@ namespace osu.Game.Graphics.UserInterface
 
         private void updateState()
         {
-            float newSize = expanded ? ExpandedSize : CollapsedSize;
-            Easing easingType = expanded ? Easing.OutElastic : Easing.Out;
+            float newSize = Expanded ? ExpandedSize : CollapsedSize;
+            Easing easingType = Expanded ? Easing.OutElastic : Easing.Out;
 
             if (RelativeSizeAxes == Axes.X)
                 this.ResizeHeightTo(newSize, 400, easingType);
             else
                 this.ResizeWidthTo(newSize, 400, easingType);
 
-            this.FadeTo(expanded ? 1 : 0.5f, 100, Easing.OutQuint);
+            this.FadeTo(Expanded ? 1 : 0.5f, 100, Easing.OutQuint);
         }
     }
 }

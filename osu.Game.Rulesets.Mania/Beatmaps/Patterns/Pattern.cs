@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using osu.Game.Rulesets.Mania.Objects;
 
 namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns
@@ -19,7 +18,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns
         /// <summary>
         /// All the hit objects contained in this pattern.
         /// </summary>
-        public IEnumerable<ManiaHitObject> HitObjects => hitObjects ?? Enumerable.Empty<ManiaHitObject>();
+        public IEnumerable<ManiaHitObject> HitObjects => hitObjects ?? [];
 
         /// <summary>
         /// Check whether a column of this patterns contains a hit object.

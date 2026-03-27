@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -80,7 +79,7 @@ namespace osu.Game.Tests.Testing
             public override IResourceStore<byte[]> CreateResourceStore() => new NamespacedResourceStore<byte[]>(TestResources.GetStore(), @"Resources");
             public override IRulesetConfigManager CreateConfig(SettingsStore? settings) => new TestRulesetConfigManager();
 
-            public override IEnumerable<Mod> GetModsFor(ModType type) => Array.Empty<Mod>();
+            public override IEnumerable<Mod> GetModsFor(ModType type) => [];
             public override DrawableRuleset CreateDrawableRulesetWith(IBeatmap beatmap, IReadOnlyList<Mod>? mods = null) => null!;
             public override IBeatmapConverter CreateBeatmapConverter(IBeatmap beatmap) => null!;
             public override DifficultyCalculator CreateDifficultyCalculator(IWorkingBeatmap beatmap) => null!;

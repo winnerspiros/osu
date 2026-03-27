@@ -16,8 +16,6 @@ namespace osu.Game.Rulesets.Mania.Scoring
         private static readonly DifficultyRange meh_window_range = new DifficultyRange(151, 136, 121);
         private static readonly DifficultyRange miss_window_range = new DifficultyRange(188, 173, 158);
 
-        private double speedMultiplier = 1;
-
         /// <summary>
         /// Multiplier used to compensate for the playback speed of the track speeding up or slowing down.
         /// The goal of this multiplier is to keep hit windows independent of track speed.
@@ -28,15 +26,13 @@ namespace osu.Game.Rulesets.Mania.Scoring
         /// </summary>
         public double SpeedMultiplier
         {
-            get => speedMultiplier;
+            get;
             set
             {
-                speedMultiplier = value;
+                field = value;
                 updateWindows();
             }
-        }
-
-        private double difficultyMultiplier = 1;
+        } = 1;
 
         /// <summary>
         /// Multiplier used to make the gameplay more or less difficult.
@@ -47,50 +43,44 @@ namespace osu.Game.Rulesets.Mania.Scoring
         /// </summary>
         public double DifficultyMultiplier
         {
-            get => difficultyMultiplier;
+            get;
             set
             {
-                difficultyMultiplier = value;
+                field = value;
                 updateWindows();
             }
-        }
+        } = 1;
 
-        private double totalMultiplier => speedMultiplier / difficultyMultiplier;
+        private double totalMultiplier => SpeedMultiplier / DifficultyMultiplier;
 
         private double overallDifficulty;
 
-        private bool classicModActive;
-
         public bool ClassicModActive
         {
-            get => classicModActive;
+            get;
             set
             {
-                classicModActive = value;
+                field = value;
                 updateWindows();
             }
         }
-
-        private bool scoreV2Active;
 
         public bool ScoreV2Active
         {
-            get => scoreV2Active;
+            get;
             set
             {
-                scoreV2Active = value;
+                field = value;
                 updateWindows();
             }
         }
 
-        private bool isConvert;
-
         public bool IsConvert
         {
-            get => isConvert;
+            get;
             set
             {
-                isConvert = value;
+                field = value;
                 updateWindows();
             }
         }

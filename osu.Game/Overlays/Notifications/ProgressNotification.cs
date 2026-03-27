@@ -60,15 +60,13 @@ namespace osu.Game.Overlays.Notifications
 
         public LocalisableString CompletionText { get; set; } = "Task has completed!";
 
-        private float progress;
-
         public float Progress
         {
-            get => progress;
+            get;
             set
             {
-                progress = value;
-                Scheduler.AddOnce(p => progressBar.Progress = p, progress);
+                field = value;
+                Scheduler.AddOnce(p => progressBar.Progress = p, field);
             }
         }
 
@@ -91,12 +89,12 @@ namespace osu.Game.Overlays.Notifications
 
         public ProgressNotificationState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value) return;
+                if (field == value) return;
 
-                state = value;
+                field = value;
 
                 Scheduler.AddOnce(updateState);
                 attemptPostCompletion();
@@ -107,7 +105,7 @@ namespace osu.Game.Overlays.Notifications
         {
             const double colour_fade_duration = 200;
 
-            switch (state)
+            switch (State)
             {
                 case ProgressNotificationState.Queued:
                     Light.Colour = colourQueued;
@@ -165,7 +163,7 @@ namespace osu.Game.Overlays.Notifications
         /// </summary>
         private void attemptPostCompletion()
         {
-            if (state != ProgressNotificationState.Completed) return;
+            if (State != ProgressNotificationState.Completed) return;
 
             // This notification may not have been posted yet (and thus may not have a target to post the completion to).
             // Completion posting will be re-attempted in a scheduled invocation.
@@ -180,8 +178,6 @@ namespace osu.Game.Overlays.Notifications
 
             Close(false);
         }
-
-        private ProgressNotificationState state;
 
         protected virtual Notification CreateCompletionNotification() => new ProgressCompletionNotification
         {
@@ -276,29 +272,25 @@ namespace osu.Game.Overlays.Notifications
             private Color4 colourActive;
             private Color4 colourInactive;
 
-            private float progress;
-
             public float Progress
             {
-                get => progress;
+                get;
                 set
                 {
-                    if (progress == value) return;
+                    if (field == value) return;
 
-                    progress = value;
-                    box.ResizeTo(new Vector2(progress, 1), 100, Easing.OutQuad);
+                    field = value;
+                    box.ResizeTo(new Vector2(field, 1), 100, Easing.OutQuad);
                 }
             }
 
-            private bool active;
-
             public bool Active
             {
-                get => active;
+                get;
                 set
                 {
-                    active = value;
-                    this.FadeColour(active ? colourActive : colourInactive, 100);
+                    field = value;
+                    this.FadeColour(field ? colourActive : colourInactive, 100);
                 }
             }
 

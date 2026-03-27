@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -22,6 +21,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Settings;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays
@@ -266,13 +266,11 @@ namespace osu.Game.Overlays
 
                 SectionsContainer.SelectedSection.BindValueChanged(section =>
                 {
-                    if (selectedSidebarButton != null)
-                        selectedSidebarButton.Selected = false;
+                    selectedSidebarButton?.Selected = false;
 
                     selectedSidebarButton = Sidebar.Children.OfType<SidebarIconButton>().FirstOrDefault(b => b.Section == section.NewValue);
 
-                    if (selectedSidebarButton != null)
-                        selectedSidebarButton.Selected = true;
+                    selectedSidebarButton?.Selected = true;
                 }, true);
             });
         }

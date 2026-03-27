@@ -2,33 +2,31 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Game.Beatmaps.Timing;
-using osu.Game.Rulesets.Objects;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Game.Beatmaps.ControlPoints;
 using Newtonsoft.Json;
 using osu.Framework.Lists;
+using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Formats;
+using osu.Game.Beatmaps.Timing;
 using osu.Game.IO.Serialization.Converters;
+using osu.Game.Rulesets.Objects;
 
 namespace osu.Game.Beatmaps
 {
     public class Beatmap<T> : IBeatmap<T>
         where T : HitObject
     {
-        private BeatmapDifficulty difficulty = new BeatmapDifficulty();
-
         public BeatmapDifficulty Difficulty
         {
-            get => difficulty;
+            get;
             set
             {
-                difficulty = value;
+                field = value;
 
-                beatmapInfo.Difficulty = difficulty.Clone();
+                beatmapInfo.Difficulty = field.Clone();
             }
-        }
+        } = new BeatmapDifficulty();
 
         private BeatmapInfo beatmapInfo;
 
@@ -77,7 +75,7 @@ namespace osu.Game.Beatmaps
 
         IReadOnlyList<HitObject> IBeatmap.HitObjects => HitObjects;
 
-        public virtual IEnumerable<BeatmapStatistic> GetStatistics() => Enumerable.Empty<BeatmapStatistic>();
+        public virtual IEnumerable<BeatmapStatistic> GetStatistics() => [];
 
         public double GetMostCommonBeatLength()
         {
@@ -146,7 +144,7 @@ namespace osu.Game.Beatmaps
 
         public int CountdownOffset { get; set; }
 
-        public int[] Bookmarks { get; set; } = Array.Empty<int>();
+        public int[] Bookmarks { get; set; } = [];
 
         public int BeatmapVersion { get; set; } = LegacyBeatmapEncoder.FIRST_LAZER_VERSION;
 

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -86,7 +85,7 @@ namespace osu.Game.Rulesets.Mania.Tests.Editor
     {
         public override Playfield Playfield { get; }
         public override ComposeBlueprintContainer BlueprintContainer => throw new NotImplementedException();
-        public override IEnumerable<DrawableHitObject> HitObjects => Enumerable.Empty<DrawableHitObject>();
+        public override IEnumerable<DrawableHitObject> HitObjects => [];
         public override bool CursorInPlacementArea => false;
 
         public TestHitObjectComposer(Playfield playfield)

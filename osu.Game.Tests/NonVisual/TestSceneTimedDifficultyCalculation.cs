@@ -133,7 +133,7 @@ namespace osu.Game.Tests.NonVisual
 
         private class TestRuleset : Ruleset
         {
-            public override IEnumerable<Mod> GetModsFor(ModType type) => Enumerable.Empty<Mod>();
+            public override IEnumerable<Mod> GetModsFor(ModType type) => [];
 
             public override DrawableRuleset CreateDrawableRulesetWith(IBeatmap beatmap, IReadOnlyList<Mod>? mods = null) => throw new NotImplementedException();
 
@@ -210,7 +210,7 @@ namespace osu.Game.Tests.NonVisual
 
         private class TestDifficultyAttributes : DifficultyAttributes
         {
-            public HitObject[] Objects = Array.Empty<HitObject>();
+            public HitObject[] Objects = [];
         }
     }
 }

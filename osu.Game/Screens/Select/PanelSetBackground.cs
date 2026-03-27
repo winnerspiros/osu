@@ -25,19 +25,16 @@ namespace osu.Game.Screens.Select
         private BeatmapCarousel? beatmapCarousel { get; set; }
 
         private Sprite? sprite;
-
-        private WorkingBeatmap? working;
-
         private CancellationTokenSource? loadCancellation;
 
         private double timeSinceUnpool;
 
         public WorkingBeatmap? Beatmap
         {
-            get => working;
+            get;
             set
             {
-                if (working == null && value == null)
+                if (field == null && value == null)
                     return;
 
                 // this guard papers over excessive refreshes of the background asset which occur if `working == value` type guards are used.
@@ -51,10 +48,10 @@ namespace osu.Game.Screens.Select
                 // note that this is basically a reimplementation of the caching scheme in `WorkingBeatmapCache.getBackgroundFromStore()`,
                 // which cannot be used directly by retrieving the texture and checking texture reference equality,
                 // because missing the cache would incur a synchronous texture load on the update thread.
-                if (getBackgroundFileHash(working) == getBackgroundFileHash(value))
+                if (getBackgroundFileHash(field) == getBackgroundFileHash(value))
                     return;
 
-                working = value;
+                field = value;
 
                 loadCancellation?.Cancel();
                 loadCancellation = null;
@@ -134,7 +131,7 @@ namespace osu.Game.Screens.Select
         private void loadContentIfRequired()
         {
             // A load is already in progress if the cancellation token is non-null.
-            if (loadCancellation != null || working == null)
+            if (loadCancellation != null || Beatmap == null)
                 return;
 
             if (beatmapCarousel != null)
@@ -160,7 +157,7 @@ namespace osu.Game.Screens.Select
 
             loadCancellation = new CancellationTokenSource();
 
-            LoadComponentAsync(new PanelBeatmapBackground(working)
+            LoadComponentAsync(new PanelBeatmapBackground(Beatmap)
             {
                 RelativeSizeAxes = Axes.Both,
                 Anchor = Anchor.Centre,

@@ -13,7 +13,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
@@ -85,10 +84,7 @@ namespace osu.Game.Online.Rooms
 
         public ScoreInfo CreateScoreInfo(ScoreManager scoreManager, RulesetStore rulesets, [NotNull] BeatmapInfo beatmap)
         {
-            var ruleset = rulesets.GetRuleset(RulesetId);
-            if (ruleset == null)
-                throw new InvalidOperationException($"Couldn't create score with unknown ruleset: {RulesetId}");
-
+            var ruleset = rulesets.GetRuleset(RulesetId) ?? throw new InvalidOperationException($"Couldn't create score with unknown ruleset: {RulesetId}");
             var rulesetInstance = ruleset.CreateInstance();
 
             var scoreInfo = new ScoreInfo
@@ -106,7 +102,7 @@ namespace osu.Game.Online.Rooms
                 Date = EndedAt,
                 HasOnlineReplay = HasReplay,
                 Rank = Rank,
-                Mods = Mods?.Select(m => m.ToMod(rulesetInstance)).ToArray() ?? Array.Empty<Mod>(),
+                Mods = Mods?.Select(m => m.ToMod(rulesetInstance)).ToArray() ?? [],
                 PP = PP,
                 Ranked = Ranked,
                 Position = Position,

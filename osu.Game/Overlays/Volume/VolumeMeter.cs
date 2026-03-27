@@ -57,17 +57,15 @@ namespace osu.Game.Overlays.Volume
         [CanBeNull]
         public event Action<SelectionState> StateChanged;
 
-        private SelectionState state;
-
         public SelectionState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value)
+                if (field == value)
                     return;
 
-                state = value;
+                field = value;
                 StateChanged?.Invoke(value);
 
                 updateSelectedState();
@@ -250,21 +248,19 @@ namespace osu.Game.Overlays.Volume
 
         private int? displayVolumeInt;
 
-        private double displayVolume;
-
         protected double DisplayVolume
         {
-            get => displayVolume;
+            get;
             set
             {
-                displayVolume = value;
+                field = value;
 
-                int intValue = (int)Math.Round(displayVolume * 100);
+                int intValue = (int)Math.Round(field * 100);
                 bool intVolumeChanged = intValue != displayVolumeInt;
 
                 displayVolumeInt = intValue;
 
-                if (displayVolume >= 0.995f)
+                if (field >= 0.995f)
                 {
                     text.Text = "MAX";
                     maxGlow.EffectColour = meterColour.Opacity(2f);
@@ -275,8 +271,8 @@ namespace osu.Game.Overlays.Volume
                     text.Text = intValue.ToString(CultureInfo.CurrentCulture);
                 }
 
-                volumeCircle.Progress = displayVolume * 0.75f;
-                volumeCircleGlow.Progress = displayVolume * 0.75f;
+                volumeCircle.Progress = field * 0.75f;
+                volumeCircleGlow.Progress = field * 0.75f;
 
                 if (intVolumeChanged && IsLoaded)
                     Scheduler.AddOnce(playTickSound);
@@ -292,7 +288,7 @@ namespace osu.Game.Overlays.Volume
 
             var channel = notchSample.GetChannel();
 
-            channel.Frequency.Value = 0.99f + RNG.NextDouble(0.02f) + displayVolume * 0.1f;
+            channel.Frequency.Value = 0.99f + RNG.NextDouble(0.02f) + DisplayVolume * 0.1f;
 
             // intentionally pitched down, even when hitting max.
             if (displayVolumeInt == 0 || displayVolumeInt == 100)
@@ -413,7 +409,7 @@ namespace osu.Game.Overlays.Volume
 
         private void updateSelectedState()
         {
-            switch (state)
+            switch (State)
             {
                 case SelectionState.Selected:
                     this.ScaleTo(1.04f, transition_length, Easing.OutExpo);

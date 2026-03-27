@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -65,7 +64,7 @@ namespace osu.Game.Tests.Visual.SongSelect
         [Test]
         public void TestEmpty()
         {
-            AddStep("set empty", () => display.Statistics = Array.Empty<BeatmapTitleWedge.StatisticDifficulty.Data>());
+            AddStep("set empty", () => display.Statistics = []);
             AddAssert("no statistics", () => !display.ChildrenOfType<BeatmapTitleWedge.StatisticDifficulty>().Any());
             AddAssert("no tiny statistics", () => !display.ChildrenOfType<GridContainer>().Single().Content.Any());
         }

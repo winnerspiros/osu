@@ -18,14 +18,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
     {
         public partial class PlayerHandCard : HandCard
         {
-            private Action? playAction;
-
             public Action? PlayAction
             {
-                get => playAction;
+                get;
                 set
                 {
-                    playAction = value;
+                    field = value;
                     PlayButton.Action = value;
                     updatePlayButtonVisibility();
                 }

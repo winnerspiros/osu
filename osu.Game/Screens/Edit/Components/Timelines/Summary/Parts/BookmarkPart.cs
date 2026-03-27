@@ -50,18 +50,16 @@ namespace osu.Game.Screens.Edit.Components.Timelines.Summary.Parts
 
         private partial class BookmarkVisualisation : PoolableDrawable, IHasTooltip
         {
-            private int startTime;
-
             public int StartTime
             {
-                get => startTime;
+                get;
                 set
                 {
-                    if (startTime == value)
+                    if (field == value)
                         return;
 
-                    startTime = value;
-                    X = startTime;
+                    field = value;
+                    X = field;
                 }
             }
 

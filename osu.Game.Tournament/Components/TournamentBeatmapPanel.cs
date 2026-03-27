@@ -131,10 +131,8 @@ namespace osu.Game.Tournament.Components
 
         private void matchChanged(ValueChangedEvent<TournamentMatch?> match)
         {
-            if (match.OldValue != null)
-                match.OldValue.PicksBans.CollectionChanged -= picksBansOnCollectionChanged;
-            if (match.NewValue != null)
-                match.NewValue.PicksBans.CollectionChanged += picksBansOnCollectionChanged;
+            match.OldValue?.PicksBans.CollectionChanged -= picksBansOnCollectionChanged;
+            match.NewValue?.PicksBans.CollectionChanged += picksBansOnCollectionChanged;
 
             Scheduler.AddOnce(updateState);
         }

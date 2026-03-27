@@ -1,18 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Game.Overlays.Profile.Sections.Historical;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics;
-using NUnit.Framework;
-using osu.Game.Overlays;
-using osu.Framework.Allocation;
 using System;
 using System.Linq;
-using osu.Framework.Testing;
+using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Overlays;
 using osu.Game.Overlays.Profile;
+using osu.Game.Overlays.Profile.Sections.Historical;
 using osu.Game.Rulesets.Osu;
 
 namespace osu.Game.Tests.Visual.Online
@@ -110,7 +110,7 @@ namespace osu.Game.Tests.Visual.Online
         private static readonly APIUser user_with_empty_values = new APIUser
         {
             Id = 2,
-            MonthlyPlayCounts = Array.Empty<APIUserHistoryCount>()
+            MonthlyPlayCounts = []
         };
 
         private static readonly APIUser user_with_one_value = new APIUser

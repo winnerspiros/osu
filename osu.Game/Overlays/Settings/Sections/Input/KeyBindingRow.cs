@@ -56,19 +56,18 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         /// <summary>
         /// The default key bindings for this row.
         /// </summary>
-        public IEnumerable<KeyCombination> Defaults { get; init; } = Array.Empty<KeyCombination>();
+        public IEnumerable<KeyCombination> Defaults { get; init; } = [];
 
         #region IFilterable
 
-        private bool matchingFilter;
 
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
-                matchingFilter = value;
-                this.FadeTo(!matchingFilter ? 0 : 1);
+                field = value;
+                this.FadeTo(!field ? 0 : 1);
             }
         }
 
@@ -337,7 +336,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             return true;
 
-            bool isModifier(Key k) => k < Key.F1;
+            static bool isModifier(Key k) => k < Key.F1;
         }
 
         protected override void OnKeyUp(KeyUpEvent e)
@@ -549,9 +548,9 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         /// </summary>
         private void updateBindTarget()
         {
-            if (bindTarget != null) bindTarget.IsBinding = false;
+            bindTarget?.IsBinding = false;
             bindTarget = buttons.FirstOrDefault(b => b.IsHovered) ?? buttons.FirstOrDefault();
-            if (bindTarget != null) bindTarget.IsBinding = true;
+            bindTarget?.IsBinding = true;
         }
 
         private void updateIsDefaultValue()

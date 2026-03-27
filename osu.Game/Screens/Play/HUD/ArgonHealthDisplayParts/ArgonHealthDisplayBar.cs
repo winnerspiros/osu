@@ -33,65 +33,57 @@ namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
             }
         }
 
-        private float radius = 10f;
-
         public float PathRadius
         {
-            get => radius;
+            get;
             set
             {
-                if (radius == value)
+                if (field == value)
                     return;
 
-                radius = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private float glowPortion;
+        } = 10f;
 
         public float GlowPortion
         {
-            get => glowPortion;
+            get;
             set
             {
-                if (glowPortion == value)
+                if (field == value)
                     return;
 
-                glowPortion = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
-
-        private Colour4 barColour = Color4.White;
 
         public Colour4 BarColour
         {
-            get => barColour;
+            get;
             set
             {
-                if (barColour == value)
+                if (field == value)
                     return;
 
-                barColour = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
-
-        private Colour4 glowColour = Color4.White.Opacity(0);
+        } = Color4.White;
 
         public Colour4 GlowColour
         {
-            get => glowColour;
+            get;
             set
             {
-                if (glowColour == value)
+                if (field == value)
                     return;
 
-                glowColour = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = Color4.White.Opacity(0);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -127,8 +119,8 @@ namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
                 progressRange = new Vector2(Math.Min(Source.progressRange.X, Source.progressRange.Y), Source.progressRange.Y);
                 pathRadius = Source.PathRadius;
                 glowPortion = Source.GlowPortion;
-                barColour = Source.barColour;
-                glowColour = Source.glowColour;
+                barColour = Source.BarColour;
+                glowColour = Source.GlowColour;
             }
 
             protected override void Draw(IRenderer renderer)

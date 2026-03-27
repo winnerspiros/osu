@@ -391,7 +391,7 @@ namespace osu.Game.Screens.Menu
 
         private bool onOsuLogo()
         {
-            switch (state)
+            switch (State)
             {
                 default:
                     return false;
@@ -418,39 +418,37 @@ namespace osu.Game.Screens.Menu
             }
         }
 
-        private ButtonSystemState state = ButtonSystemState.Initial;
-
-        public override bool HandleNonPositionalInput => state != ButtonSystemState.Exit;
-        public override bool HandlePositionalInput => state != ButtonSystemState.Exit;
+        public override bool HandleNonPositionalInput => State != ButtonSystemState.Exit;
+        public override bool HandlePositionalInput => State != ButtonSystemState.Exit;
 
         public ButtonSystemState State
         {
-            get => state;
+            get;
 
             set
             {
-                if (state == value) return;
+                if (field == value) return;
 
-                ButtonSystemState lastState = state;
-                state = value;
+                ButtonSystemState lastState = field;
+                field = value;
 
                 updateLogoState(lastState);
 
-                Logger.Log($"{nameof(ButtonSystem)}'s state changed from {lastState} to {state}");
+                Logger.Log($"{nameof(ButtonSystem)}'s state changed from {lastState} to {field}");
 
                 buttonArea.FinishTransforms(true);
 
                 using (buttonArea.BeginDelayedSequence(lastState == ButtonSystemState.Initial ? 150 : 0))
                 {
-                    buttonArea.ButtonSystemState = state;
+                    buttonArea.ButtonSystemState = field;
 
                     foreach (var b in buttonArea.OfType<MainMenuButton>())
-                        b.ButtonSystemState = state;
+                        b.ButtonSystemState = field;
                 }
 
                 StateChanged?.Invoke(State);
             }
-        }
+        } = ButtonSystemState.Initial;
 
         private ScheduledDelegate? logoDelayedAction;
         private IDisposable? logoTracking;
@@ -459,7 +457,7 @@ namespace osu.Game.Screens.Menu
         {
             if (logo == null) return;
 
-            switch (state)
+            switch (State)
             {
                 case ButtonSystemState.Exit:
                 case ButtonSystemState.Initial:

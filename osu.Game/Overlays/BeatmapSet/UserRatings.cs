@@ -23,20 +23,18 @@ namespace osu.Game.Overlays.BeatmapSet
         private readonly Container graphContainer;
         private readonly BarGraph graph;
 
-        private int[] ratings;
-
         public int[] Ratings
         {
-            get => ratings;
+            get;
             set
             {
-                if (value == ratings) return;
+                if (value == field) return;
 
-                ratings = value;
+                field = value;
 
                 const int rating_range = 10;
 
-                if (ratings == null)
+                if (field == null)
                 {
                     negativeRatings.Text = 0.ToLocalisableString(@"N0");
                     positiveRatings.Text = 0.ToLocalisableString(@"N0");

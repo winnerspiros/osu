@@ -72,7 +72,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             {
                 var (working, online) = createTestBeatmap();
 
-                online.Result!.Ratings = Array.Empty<int>();
+                online.Result!.Ratings = [];
 
                 Beatmap.Value = working;
                 onlineLookupResult.Value = online;
@@ -90,7 +90,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             {
                 var (working, online) = createTestBeatmap();
 
-                online.Result!.Ratings = Array.Empty<int>();
+                online.Result!.Ratings = [];
                 online.Result!.Beatmaps.Single().FailTimes = null;
 
                 Beatmap.Value = working;

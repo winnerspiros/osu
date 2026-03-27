@@ -17,7 +17,6 @@ using osu.Game.Rulesets;
 using osu.Game.Rulesets.Catch;
 using osu.Game.Rulesets.Catch.Beatmaps;
 using osu.Game.Rulesets.Mania;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Objects.Types;
@@ -45,7 +44,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 ClassicAssert.AreEqual(6, working.Beatmap.BeatmapVersion);
                 Assert.That(working.Beatmap.BeatmapInfo.Ruleset.Name, Is.Not.EqualTo("null placeholder ruleset"));
-                ClassicAssert.AreEqual(6, working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>()).BeatmapVersion);
+                ClassicAssert.AreEqual(6, working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []).BeatmapVersion);
             }
         }
 
@@ -61,7 +60,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 var working = new TestWorkingBeatmap(decoder.Decode(stream));
 
                 ClassicAssert.AreEqual(4, working.Beatmap.BeatmapVersion);
-                ClassicAssert.AreEqual(4, working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>()).BeatmapVersion);
+                ClassicAssert.AreEqual(4, working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []).BeatmapVersion);
 
                 ClassicAssert.AreEqual(-1, working.BeatmapInfo.Metadata.PreviewTime);
             }
@@ -1212,7 +1211,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 }
 
                 var working = new TestWorkingBeatmap(decoder.Decode(stream));
-                var playable = working.GetPlayableBeatmap(ruleset.RulesetInfo, Array.Empty<Mod>());
+                var playable = working.GetPlayableBeatmap(ruleset.RulesetInfo, []);
 
                 // There's no good way to figure out these values other than to compare (in code) with osu!stable...
 
@@ -1255,7 +1254,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 var working = new TestWorkingBeatmap(decoder.Decode(stream));
-                IBeatmap beatmap = working.GetPlayableBeatmap(ruleset.RulesetInfo, Array.Empty<Mod>());
+                IBeatmap beatmap = working.GetPlayableBeatmap(ruleset.RulesetInfo, []);
 
                 Assert.That(beatmap.HitObjects[0].GetEndTime(), Is.EqualTo(3153));
             }

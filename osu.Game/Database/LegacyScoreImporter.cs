@@ -17,7 +17,7 @@ namespace osu.Game.Database
         protected override IEnumerable<string> GetStableImportPaths(Storage storage)
         {
             if (!storage.ExistsDirectory(ImportFromStablePath))
-                return Enumerable.Empty<string>();
+                return [];
 
             return storage.GetFiles(ImportFromStablePath)
                           .Where(p => Importer.HandledExtensions.Any(ext => Path.GetExtension(p).Equals(ext, StringComparison.OrdinalIgnoreCase)))

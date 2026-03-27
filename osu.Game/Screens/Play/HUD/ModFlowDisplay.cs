@@ -34,17 +34,15 @@ namespace osu.Game.Screens.Play.HUD
             }
         }
 
-        private float iconScale = 1;
-
         public float IconScale
         {
-            get => iconScale;
+            get;
             set
             {
-                iconScale = value;
+                field = value;
                 updateDisplay();
             }
-        }
+        } = 1;
 
         public ModFlowDisplay()
         {
@@ -66,13 +64,13 @@ namespace osu.Game.Screens.Play.HUD
 
             if (current.Value == null) return;
 
-            Spacing = new Vector2(0, -12 * iconScale);
+            Spacing = new Vector2(0, -12 * IconScale);
 
             foreach (Mod mod in current.Value.AsOrdered())
             {
                 Add(new ModIcon(mod)
                 {
-                    Scale = new Vector2(0.6f * iconScale),
+                    Scale = new Vector2(0.6f * IconScale),
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.TopCentre,
                 });

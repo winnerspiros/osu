@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Game.Graphics.UserInterface;
 using osu.Framework.Allocation;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.Graphics;
 using osu.Framework.Localisation;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.Play.Leaderboards;
+using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {

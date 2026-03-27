@@ -17,14 +17,12 @@ namespace osu.Game.Beatmaps.Drawables
 {
     public partial class DifficultySpectrumDisplay : CompositeDrawable
     {
-        private IBeatmapSetInfo? beatmapSet;
-
         public IBeatmapSetInfo? BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                beatmapSet = value;
+                field = value;
 
                 if (IsLoaded)
                     updateDisplay();
@@ -59,7 +57,7 @@ namespace osu.Game.Beatmaps.Drawables
             foreach (var group in flow)
                 group.Alpha = 0;
 
-            if (beatmapSet == null)
+            if (BeatmapSet == null)
             {
                 foreach (var group in flow)
                     group.Beatmaps = [];
@@ -67,9 +65,9 @@ namespace osu.Game.Beatmaps.Drawables
             }
 
             // matching web: https://github.com/ppy/osu-web/blob/d06d8c5e735eb1f48799b1654b528e9a7afb0a35/resources/assets/lib/beatmapset-panel.tsx#L127
-            bool collapsed = beatmapSet.Beatmaps.Count() > max_difficulties_before_collapsing;
+            bool collapsed = BeatmapSet.Beatmaps.Count() > max_difficulties_before_collapsing;
 
-            foreach (var rulesetGrouping in beatmapSet.Beatmaps.GroupBy(beatmap => beatmap.Ruleset).OrderBy(group => group.Key))
+            foreach (var rulesetGrouping in BeatmapSet.Beatmaps.GroupBy(beatmap => beatmap.Ruleset).OrderBy(group => group.Key))
             {
                 int rulesetId = rulesetGrouping.Key.OnlineID;
 
@@ -103,14 +101,12 @@ namespace osu.Game.Beatmaps.Drawables
                 }
             }
 
-            private bool collapsed;
-
             public bool Collapsed
             {
-                get => collapsed;
+                get;
                 set
                 {
-                    collapsed = value;
+                    field = value;
                     updateDisplay();
                 }
             }
@@ -156,7 +152,7 @@ namespace osu.Game.Beatmaps.Drawables
 
             private void updateDisplay()
             {
-                countText.Alpha = collapsed ? 1 : 0;
+                countText.Alpha = Collapsed ? 1 : 0;
                 countText.Text = beatmaps.Length.ToLocalisableString(@"N0");
 
                 var dots = this.OfType<DifficultyDot>().ToArray();
@@ -165,7 +161,7 @@ namespace osu.Game.Beatmaps.Drawables
                 {
                     var dot = dots[i];
 
-                    if (collapsed || i >= beatmaps.Length)
+                    if (Collapsed || i >= beatmaps.Length)
                     {
                         dot.Alpha = 0;
                         continue;
@@ -179,14 +175,12 @@ namespace osu.Game.Beatmaps.Drawables
 
         private partial class DifficultyDot : Circle
         {
-            private double starDifficulty;
-
             public double StarDifficulty
             {
-                get => starDifficulty;
+                get;
                 set
                 {
-                    starDifficulty = value;
+                    field = value;
                     updateColour();
                 }
             }
@@ -205,7 +199,7 @@ namespace osu.Game.Beatmaps.Drawables
 
             private void updateColour()
             {
-                Colour = colours.ForStarDifficulty(starDifficulty);
+                Colour = colours.ForStarDifficulty(StarDifficulty);
             }
         }
     }

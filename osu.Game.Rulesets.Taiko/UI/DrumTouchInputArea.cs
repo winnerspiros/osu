@@ -213,17 +213,15 @@ namespace osu.Game.Rulesets.Taiko.UI
 
         private partial class DrumSegment : CompositeDrawable, IKeyBindingHandler<TaikoAction>
         {
-            private TaikoAction action;
-
             public TaikoAction Action
             {
-                get => action;
+                get;
                 set
                 {
-                    if (action == value)
+                    if (field == value)
                         return;
 
-                    action = value;
+                    field = value;
                     updateColoursFromAction();
                 }
             }

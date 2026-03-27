@@ -54,8 +54,7 @@ namespace osu.Game.Users
         {
             base.LoadComplete();
 
-            if (statisticsProvider != null)
-                statisticsProvider.StatisticsUpdated += onStatisticsUpdated;
+            statisticsProvider?.StatisticsUpdated += onStatisticsUpdated;
 
             ruleset.BindValueChanged(_ => updateDisplay(), true);
         }

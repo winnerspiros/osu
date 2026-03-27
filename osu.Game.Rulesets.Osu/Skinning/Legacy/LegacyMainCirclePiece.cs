@@ -194,8 +194,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         {
             base.Dispose(isDisposing);
 
-            if (drawableObject != null)
-                drawableObject.ApplyCustomUpdateState -= updateStateTransforms;
+            drawableObject?.ApplyCustomUpdateState -= updateStateTransforms;
         }
     }
 }

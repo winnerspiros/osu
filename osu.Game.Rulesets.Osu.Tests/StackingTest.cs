@@ -1,14 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Game.Beatmaps;
 using osu.Game.IO;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Tests.Beatmaps;
 using Decoder = osu.Game.Beatmaps.Formats.Decoder;
@@ -52,7 +50,7 @@ SliderTickRate:0.5
             using (var reader = new LineBufferedReader(stream))
             {
                 var beatmap = Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
-                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>());
+                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []);
 
                 var objects = converted.HitObjects.ToList();
 
@@ -97,7 +95,7 @@ SliderTickRate:1
             using (var reader = new LineBufferedReader(stream))
             {
                 var beatmap = Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
-                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>());
+                var converted = new TestWorkingBeatmap(beatmap).GetPlayableBeatmap(new OsuRuleset().RulesetInfo, []);
 
                 var objects = converted.HitObjects.ToList();
 

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -213,7 +212,7 @@ namespace osu.Game.Tests.NonVisual
 
             public IBindable<int> UnreadCount { get; } = new Bindable<int>();
 
-            public IEnumerable<Notification> AllNotifications { get; } = Enumerable.Empty<Notification>();
+            public IEnumerable<Notification> AllNotifications { get; } = [];
         }
     }
 }

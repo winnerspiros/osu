@@ -554,20 +554,18 @@ namespace osu.Game.Overlays
                 NextTrack(allowProtectedTracks: true);
         }
 
-        private bool applyModTrackAdjustments;
-
         /// <summary>
         /// Whether mod track adjustments are allowed to be applied.
         /// </summary>
         public bool ApplyModTrackAdjustments
         {
-            get => applyModTrackAdjustments;
+            get;
             set
             {
-                if (applyModTrackAdjustments == value)
+                if (field == value)
                     return;
 
-                applyModTrackAdjustments = value;
+                field = value;
                 ResetTrackAdjustments();
             }
         }
@@ -588,7 +586,7 @@ namespace osu.Game.Overlays
             CurrentTrack.RemoveAllAdjustments(AdjustableProperty.Tempo);
             CurrentTrack.RemoveAllAdjustments(AdjustableProperty.Volume);
 
-            if (applyModTrackAdjustments)
+            if (ApplyModTrackAdjustments)
             {
                 CurrentTrack.BindAdjustments(modTrackAdjustments = new AudioAdjustments());
 

@@ -40,7 +40,7 @@ namespace osu.Game.IO.Legacy
             if (len > 0) return ReadBytes(len);
             if (len < 0) return null;
 
-            return Array.Empty<byte>();
+            return [];
         }
 
         /// <summary> Reads a char array from the buffer, handling nulls and the array length. </summary>
@@ -50,7 +50,7 @@ namespace osu.Game.IO.Legacy
             if (len > 0) return ReadChars(len);
             if (len < 0) return null;
 
-            return Array.Empty<char>();
+            return [];
         }
 
         /// <summary> Reads a DateTime from the buffer. </summary>

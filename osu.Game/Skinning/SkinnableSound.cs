@@ -76,7 +76,7 @@ namespace osu.Game.Skinning
         {
         }
 
-        private ISampleInfo[] samples = Array.Empty<ISampleInfo>();
+        private ISampleInfo[] samples = [];
 
         /// <summary>
         /// The samples that should be played.
@@ -96,23 +96,21 @@ namespace osu.Game.Skinning
             }
         }
 
-        public void ClearSamples() => Samples = Array.Empty<ISampleInfo>();
-
-        private bool looping;
+        public void ClearSamples() => Samples = [];
 
         /// <summary>
         /// Whether the samples should loop on completion.
         /// </summary>
         public bool Looping
         {
-            get => looping;
+            get;
             set
             {
-                if (value == looping) return;
+                if (value == field) return;
 
-                looping = value;
+                field = value;
 
-                samplesContainer.ForEach(c => c.Looping = looping);
+                samplesContainer.ForEach(c => c.Looping = field);
             }
         }
 

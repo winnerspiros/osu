@@ -6,7 +6,6 @@
 using System;
 using JetBrains.Annotations;
 using osu.Framework;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,6 +15,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Users;
+using osuTK;
 
 namespace osu.Game.Overlays.MedalSplash
 {
@@ -33,7 +33,6 @@ namespace osu.Game.Overlays.MedalSplash
         private readonly Sprite medalSprite, medalGlow;
         private readonly OsuSpriteText unlocked, name;
         private readonly TextFlowContainer description;
-        private DisplayState state;
 
         public DrawableMedal(Medal medal)
         {
@@ -133,12 +132,12 @@ namespace osu.Game.Overlays.MedalSplash
 
         public DisplayState State
         {
-            get => state;
+            get;
             set
             {
-                if (state == value) return;
+                if (field == value) return;
 
-                state = value;
+                field = value;
                 updateState();
 
                 StateChanged?.Invoke(State);
@@ -151,7 +150,7 @@ namespace osu.Game.Overlays.MedalSplash
 
             const double duration = 900;
 
-            switch (state)
+            switch (State)
             {
                 case DisplayState.None:
                     medalContainer.ScaleTo(0);

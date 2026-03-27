@@ -509,7 +509,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("TopLeft item checked", () => (getMenuItemByText("TopLeft").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
+            AddAssert("TopLeft item checked", () => getMenuItemByText("TopLeft").Item is TernaryStateRadioMenuItem { State.Value: TernaryState.True });
 
             AddStep("Click Centre anchor", () =>
             {
@@ -517,8 +517,8 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("Centre item checked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
-            AddAssert("TopLeft item unchecked", () => (getMenuItemByText("TopLeft").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
+            AddAssert("Centre item checked", () => getMenuItemByText("Centre").Item is TernaryStateRadioMenuItem { State.Value: TernaryState.True });
+            AddAssert("TopLeft item unchecked", () => getMenuItemByText("TopLeft").Item is TernaryStateRadioMenuItem { State.Value: TernaryState.False });
 
             AddStep("Click Closest anchor", () =>
             {
@@ -526,8 +526,8 @@ namespace osu.Game.Tests.Visual.Gameplay
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("Closest item checked", () => (getMenuItemByText("Closest").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.True);
-            AddAssert("Centre item unchecked", () => (getMenuItemByText("Centre").Item as TernaryStateRadioMenuItem)?.State.Value == TernaryState.False);
+            AddAssert("Closest item checked", () => getMenuItemByText("Closest").Item is TernaryStateRadioMenuItem { State.Value: TernaryState.True });
+            AddAssert("Centre item unchecked", () => getMenuItemByText("Centre").Item is TernaryStateRadioMenuItem { State.Value: TernaryState.False });
 
             Menu.DrawableMenuItem getMenuItemByText(string text)
                 => this.ChildrenOfType<Menu.DrawableMenuItem>().First(m => m.Item.Text.ToString() == text);

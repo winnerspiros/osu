@@ -230,7 +230,7 @@ namespace osu.Game.Rulesets.Osu
                     };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

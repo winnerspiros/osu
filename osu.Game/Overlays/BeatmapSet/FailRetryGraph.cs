@@ -18,19 +18,17 @@ namespace osu.Game.Overlays.BeatmapSet
     {
         private readonly BarGraph retryGraph, failGraph;
 
-        private APIFailTimes failTimes;
-
         public APIFailTimes FailTimes
         {
-            get => failTimes;
+            get;
             set
             {
-                if (value == failTimes) return;
+                if (value == field) return;
 
-                failTimes = value;
+                field = value;
 
-                int[] retries = FailTimes?.Retries ?? Array.Empty<int>();
-                int[] fails = FailTimes?.Fails ?? Array.Empty<int>();
+                int[] retries = FailTimes?.Retries ?? [];
+                int[] fails = FailTimes?.Fails ?? [];
                 int[] retriesAndFails = sumRetriesAndFails(retries, fails);
 
                 float maxValue = retriesAndFails.Any() ? retriesAndFails.Max() : 0;

@@ -51,18 +51,16 @@ namespace osu.Game.Screens.Edit.Compose.Components
             Box.Size = Vector2.ComponentMax(e.MouseDownPosition, e.MousePosition) - Box.Position;
         }
 
-        private Visibility state;
-
         public Visibility State
         {
-            get => state;
+            get;
             set
             {
-                if (value == state) return;
+                if (value == field) return;
 
-                state = value;
-                this.FadeTo(state == Visibility.Hidden ? 0 : 1, 250, Easing.OutQuint);
-                StateChanged?.Invoke(state);
+                field = value;
+                this.FadeTo(field == Visibility.Hidden ? 0 : 1, 250, Easing.OutQuint);
+                StateChanged?.Invoke(field);
             }
         }
 

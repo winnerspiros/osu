@@ -41,7 +41,7 @@ namespace osu.Game.Overlays.Mods
 
         public readonly Bindable<ModCustomisationPanelState> ExpandedState = new Bindable<ModCustomisationPanelState>();
 
-        public Bindable<IReadOnlyList<Mod>> SelectedMods { get; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public Bindable<IReadOnlyList<Mod>> SelectedMods { get; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 

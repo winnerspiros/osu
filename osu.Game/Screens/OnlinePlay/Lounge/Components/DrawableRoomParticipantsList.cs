@@ -169,17 +169,15 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
             updateRoomParticipants();
         }
 
-        private int numberOfCircles = 4;
-
         /// <summary>
         /// The maximum number of circles visible (including the "hidden count" circle in the overflow case).
         /// </summary>
         public int NumberOfCircles
         {
-            get => numberOfCircles;
+            get;
             set
             {
-                numberOfCircles = value;
+                field = value;
 
                 if (LoadState < LoadState.Loaded)
                     return;
@@ -191,7 +189,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 
                 updateHiddenUsers();
             }
-        }
+        } = 4;
 
         private void updateRoomParticipants()
         {
@@ -331,20 +329,18 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
         {
             public int Count
             {
-                get => count;
+                get;
                 set
                 {
-                    count = value;
-                    countText.Text = $"+{count}";
+                    field = value;
+                    countText.Text = $"+{field}";
 
-                    if (count > 0)
+                    if (field > 0)
                         Show();
                     else
                         Hide();
                 }
             }
-
-            private int count;
 
             private readonly SpriteText countText = new OsuSpriteText
             {

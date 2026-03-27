@@ -90,7 +90,7 @@ namespace osu.Game.Tests.Visual.Beatmaps
                             break;
 
                         default:
-                            pill.Status = (pill.Status + 1);
+                            pill.Status++;
                             break;
                     }
                 }

@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -24,7 +23,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         /// </summary>
         protected virtual bool AutoAdvanceTarget => false;
 
-        protected IEnumerable<KeyBinding> Defaults { get; init; } = Array.Empty<KeyBinding>();
+        protected IEnumerable<KeyBinding> Defaults { get; init; } = [];
 
         [Resolved]
         private RealmAccess realm { get; set; } = null!;
@@ -128,6 +127,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         }
 
         // Empty FilterTerms so that the ResetButton is visible only when the whole subsection is visible.
-        public override IEnumerable<LocalisableString> FilterTerms => Enumerable.Empty<LocalisableString>();
+        public override IEnumerable<LocalisableString> FilterTerms => [];
     }
 }

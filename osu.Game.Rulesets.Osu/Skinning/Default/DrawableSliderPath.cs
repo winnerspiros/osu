@@ -46,24 +46,22 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             }
         }
 
-        private float borderSize = 1;
-
         public float BorderSize
         {
-            get => borderSize;
+            get;
             set
             {
-                if (borderSize == value)
+                if (field == value)
                     return;
 
                 if (value < border_min_size || value > border_max_size)
                     return;
 
-                borderSize = value;
+                field = value;
 
                 InvalidateTexture();
             }
-        }
+        } = 1;
 
         protected float CalculatedBorderPortion => BorderSize * BORDER_PORTION;
     }

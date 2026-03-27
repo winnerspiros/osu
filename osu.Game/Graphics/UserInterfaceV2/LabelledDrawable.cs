@@ -16,8 +16,6 @@ namespace osu.Game.Graphics.UserInterfaceV2
     public abstract partial class LabelledDrawable<T> : CompositeDrawable
         where T : Drawable
     {
-        private float? fixedLabelWidth;
-
         /// <summary>
         /// The fixed width of the label of this <see cref="LabelledDrawable{T}"/>.
         /// If <c>null</c>, the label portion will auto-size to its content.
@@ -25,13 +23,13 @@ namespace osu.Game.Graphics.UserInterfaceV2
         /// </summary>
         public float? FixedLabelWidth
         {
-            get => fixedLabelWidth;
+            get;
             set
             {
-                if (fixedLabelWidth == value)
+                if (field == value)
                     return;
 
-                fixedLabelWidth = value;
+                field = value;
 
                 updateLabelWidth();
             }
@@ -135,7 +133,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         private void updateLabelWidth()
         {
-            if (fixedLabelWidth == null)
+            if (FixedLabelWidth == null)
             {
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
                 labelText.RelativeSizeAxes = Axes.None;
@@ -143,7 +141,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
             }
             else
             {
-                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, fixedLabelWidth.Value) };
+                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, FixedLabelWidth.Value) };
                 labelText.AutoSizeAxes = Axes.Y;
                 labelText.RelativeSizeAxes = Axes.X;
             }

@@ -61,7 +61,7 @@ namespace osu.Game.Skinning
             retrievalSource = null;
 
             if (source == null)
-                return Array.Empty<Texture>();
+                return [];
 
             // find the first source which provides either the animated or non-animated version.
             retrievalSource = (source as ISkinSource)?.FindProvider(s =>
@@ -88,7 +88,7 @@ namespace osu.Game.Skinning
 
             return singleTexture != null
                 ? new[] { singleTexture }
-                : Array.Empty<Texture>();
+                : [];
 
             IEnumerable<Texture> getTextures(ISkin skin)
             {

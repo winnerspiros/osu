@@ -228,21 +228,19 @@ namespace osu.Game.Screens.Ranking
             flow.Padding = new MarginPadding { Horizontal = offset };
         }
 
-        private bool handleInput = true;
-
         /// <summary>
         /// Whether this <see cref="ScorePanelList"/> or any of the <see cref="ScorePanel"/>s contained should handle scroll or click input.
         /// Setting to <c>false</c> will also hide the scrollbar.
         /// </summary>
         public bool HandleInput
         {
-            get => handleInput;
+            get;
             set
             {
-                handleInput = value;
+                field = value;
                 scroll.ScrollbarVisible = value;
             }
-        }
+        } = true;
 
         public override bool PropagatePositionalInputSubTree => HandleInput && base.PropagatePositionalInputSubTree;
 
@@ -267,10 +265,7 @@ namespace osu.Game.Screens.Ranking
         /// <exception cref="InvalidOperationException">If <paramref name="panel"/> is not a part of this <see cref="ScorePanelList"/>.</exception>
         public void Detach(ScorePanel panel)
         {
-            var container = flow.SingleOrDefault(t => t.Panel == panel);
-            if (container == null)
-                throw new InvalidOperationException("Panel is not contained by the score panel list.");
-
+            var container = flow.SingleOrDefault(t => t.Panel == panel) ?? throw new InvalidOperationException("Panel is not contained by the score panel list.");
             container.Detach();
         }
 
@@ -281,10 +276,7 @@ namespace osu.Game.Screens.Ranking
         /// <exception cref="InvalidOperationException">If <paramref name="panel"/> is not a part of this <see cref="ScorePanelList"/>.</exception>
         public void Attach(ScorePanel panel)
         {
-            var container = flow.SingleOrDefault(t => t.Panel == panel);
-            if (container == null)
-                throw new InvalidOperationException("Panel is not contained by the score panel list.");
-
+            var container = flow.SingleOrDefault(t => t.Panel == panel) ?? throw new InvalidOperationException("Panel is not contained by the score panel list.");
             container.Attach();
         }
 

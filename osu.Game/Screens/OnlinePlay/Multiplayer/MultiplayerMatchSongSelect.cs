@@ -62,7 +62,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
         protected override UserActivity InitialActivity => new UserActivity.InLobby(room);
 
-        protected readonly Bindable<IReadOnlyList<Mod>> FreeMods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        protected readonly Bindable<IReadOnlyList<Mod>> FreeMods = new Bindable<IReadOnlyList<Mod>>([]);
 
         private readonly Bindable<bool> freestyle = new Bindable<bool>(true);
 

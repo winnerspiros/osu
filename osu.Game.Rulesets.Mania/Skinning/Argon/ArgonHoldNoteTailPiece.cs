@@ -125,8 +125,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
         {
             base.Dispose(isDisposing);
 
-            if (drawableObject != null)
-                drawableObject.HitObjectApplied -= hitObjectApplied;
+            drawableObject?.HitObjectApplied -= hitObjectApplied;
         }
     }
 }

@@ -1,17 +1,17 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
-using osu.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
-using System;
+using osuTK;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -25,20 +25,18 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         public float? MaxValue { get; set; }
 
-        private BarDirection direction = BarDirection.BottomToTop;
-
         public BarDirection Direction
         {
-            get => direction;
+            get;
             set
             {
-                if (direction == value)
+                if (field == value)
                     return;
 
-                direction = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = BarDirection.BottomToTop;
 
         private readonly BarsInfo bars = new BarsInfo();
 
@@ -127,7 +125,7 @@ namespace osu.Game.Graphics.UserInterface
                 shader = Source.shader;
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
-                direction = Source.direction;
+                direction = Source.Direction;
                 barBreadth = Source.bars.Breadth;
 
                 lengths.Clear();
@@ -202,7 +200,7 @@ namespace osu.Game.Graphics.UserInterface
             private readonly List<float> initialLengths = new List<float>();
             private readonly List<float> finalLengths = new List<float>();
 
-            public void Clear() => SetLengths(Array.Empty<float>());
+            public void Clear() => SetLengths([]);
 
             public void SetLengths(float[] newLengths)
             {

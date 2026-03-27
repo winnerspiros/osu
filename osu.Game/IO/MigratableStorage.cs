@@ -19,17 +19,17 @@ namespace osu.Game.IO
         /// <summary>
         /// A relative list of directory paths which should not be migrated.
         /// </summary>
-        public virtual string[] IgnoreDirectories => Array.Empty<string>();
+        public virtual string[] IgnoreDirectories => [];
 
         /// <summary>
         /// A relative list of file paths which should not be migrated.
         /// </summary>
-        public virtual string[] IgnoreFiles => Array.Empty<string>();
+        public virtual string[] IgnoreFiles => [];
 
         /// <summary>
         /// A list of file/directory suffixes which should not be migrated.
         /// </summary>
-        public virtual string[] IgnoreSuffixes => Array.Empty<string>();
+        public virtual string[] IgnoreSuffixes => [];
 
         protected MigratableStorage(Storage storage, string subPath = null)
             : base(storage, subPath)

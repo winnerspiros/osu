@@ -48,7 +48,7 @@ namespace osu.Game.Rulesets.Mods
             get
             {
                 if (string.IsNullOrEmpty(ModsJson))
-                    return Array.Empty<Mod>();
+                    return [];
 
                 var apiMods = JsonConvert.DeserializeObject<IEnumerable<APIMod>>(ModsJson);
                 var ruleset = Ruleset.CreateInstance();

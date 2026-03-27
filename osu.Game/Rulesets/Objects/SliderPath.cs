@@ -59,7 +59,7 @@ namespace osu.Game.Rulesets.Objects
         private double calculatedLength;
 
         private readonly List<int> segmentEnds = new List<int>();
-        private double[] segmentEndDistances = Array.Empty<double>();
+        private double[] segmentEndDistances = [];
 
         /// <summary>
         /// Creates a new <see cref="SliderPath"/>.
@@ -137,8 +137,6 @@ namespace osu.Game.Rulesets.Objects
             }
         }
 
-        private bool optimiseCatmull;
-
         /// <summary>
         /// Whether to optimise Catmull path segments, usually resulting in removing bulbs around stacked knots.
         /// </summary>
@@ -147,10 +145,10 @@ namespace osu.Game.Rulesets.Objects
         /// </remarks>
         public bool OptimiseCatmull
         {
-            get => optimiseCatmull;
+            get;
             set
             {
-                optimiseCatmull = value;
+                field = value;
                 invalidate();
             }
         }

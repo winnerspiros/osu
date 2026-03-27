@@ -26,16 +26,14 @@ namespace osu.Game.Overlays.BeatmapSet
         private readonly Bar successRate;
         private readonly Container percentContainer;
 
-        private APIBeatmap beatmap;
-
         public APIBeatmap Beatmap
         {
-            get => beatmap;
+            get;
             set
             {
-                if (value == beatmap) return;
+                if (value == field) return;
 
-                beatmap = value;
+                field = value;
 
                 updateDisplay();
             }
@@ -43,8 +41,8 @@ namespace osu.Game.Overlays.BeatmapSet
 
         private void updateDisplay()
         {
-            int passCount = beatmap?.PassCount ?? 0;
-            int playCount = beatmap?.PlayCount ?? 0;
+            int passCount = Beatmap?.PassCount ?? 0;
+            int playCount = Beatmap?.PlayCount ?? 0;
 
             float rate = playCount != 0 ? (float)passCount / playCount : 0;
             successPercent.Text = rate.ToLocalisableString(@"0.#%");
@@ -52,7 +50,7 @@ namespace osu.Game.Overlays.BeatmapSet
             successRate.Length = rate;
             percentContainer.ResizeWidthTo(successRate.Length, 250, Easing.InOutCubic);
 
-            Graph.FailTimes = beatmap?.FailTimes;
+            Graph.FailTimes = Beatmap?.FailTimes;
         }
 
         public SuccessRate()

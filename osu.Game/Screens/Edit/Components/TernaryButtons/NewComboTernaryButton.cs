@@ -145,13 +145,11 @@ namespace osu.Game.Screens.Edit.Components.TernaryButtons
                 ComboColours.BindCollectionChanged((_, _) => updateState());
                 SelectedHitObject.BindValueChanged(val =>
                 {
-                    if (val.OldValue != null)
-                        val.OldValue.ComboIndexWithOffsetsBindable.ValueChanged -= onComboIndexChanged;
+                    val.OldValue?.ComboIndexWithOffsetsBindable.ValueChanged -= onComboIndexChanged;
 
                     updateState();
 
-                    if (val.NewValue != null)
-                        val.NewValue.ComboIndexWithOffsetsBindable.ValueChanged += onComboIndexChanged;
+                    val.NewValue?.ComboIndexWithOffsetsBindable.ValueChanged += onComboIndexChanged;
                 }, true);
             }
 

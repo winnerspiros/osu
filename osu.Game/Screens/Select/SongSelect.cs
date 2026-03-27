@@ -44,7 +44,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
 using osu.Game.Overlays.Volume;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.Menu;
@@ -357,7 +356,7 @@ namespace osu.Game.Screens.Select
                     if (modSelectOverlay.State.Value == Visibility.Visible)
                         modSelectOverlay.DeselectAll();
                     else
-                        Mods.Value = Array.Empty<Mod>();
+                        Mods.Value = [];
                 }
             },
             new FooterButtonRandom

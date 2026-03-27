@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
@@ -96,7 +95,7 @@ namespace osu.Game.Screens.Play
                     Ruleset = ruleset.RulesetInfo
                 }
             };
-            Mods = mods ?? Array.Empty<Mod>();
+            Mods = mods ?? [];
             ScoreProcessor = scoreProcessor ?? ruleset.CreateScoreProcessor();
             HealthProcessor = healthProcessor ?? ruleset.CreateHealthProcessor(beatmap.HitObjects[0].StartTime);
             Storyboard = storyboard ?? new Storyboard();

@@ -52,19 +52,17 @@ namespace osu.Game.Online.Spectator
         /// <summary>
         /// The applied <see cref="Mod"/>s.
         /// </summary>
-        public IReadOnlyList<Mod> Mods => scoreInfo?.Mods ?? Array.Empty<Mod>();
+        public IReadOnlyList<Mod> Mods => scoreInfo?.Mods ?? [];
 
         public Func<ScoringMode, long> GetDisplayScore => mode => scoreInfo?.GetDisplayScore(mode) ?? 0;
-
-        private IClock? referenceClock;
 
         /// <summary>
         /// The clock used to determine the current score.
         /// </summary>
         public IClock ReferenceClock
         {
-            get => referenceClock ?? Clock;
-            set => referenceClock = value;
+            get => field ?? Clock;
+            set;
         }
 
         [Resolved]

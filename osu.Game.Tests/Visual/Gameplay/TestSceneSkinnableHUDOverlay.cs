@@ -14,7 +14,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Osu.UI;
@@ -96,7 +95,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             {
                 SetContents(_ =>
                 {
-                    hudOverlay = new HUDOverlay(new DrawableOsuRuleset(new OsuRuleset(), new OsuBeatmap()), Array.Empty<Mod>(), new PlayerConfiguration());
+                    hudOverlay = new HUDOverlay(new DrawableOsuRuleset(new OsuRuleset(), new OsuBeatmap()), [], new PlayerConfiguration());
 
                     action?.Invoke(hudOverlay);
 

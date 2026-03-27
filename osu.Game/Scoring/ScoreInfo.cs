@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -173,12 +174,11 @@ namespace osu.Game.Scoring
 
         // TODO: this is a bit temporary to account for the fact that this class is used to ferry API user data to certain UI components.
         // Eventually we should either persist enough information to realm to not require the API lookups, or perform the API lookups locally.
-        private APIUser? user;
 
         [Ignored]
         public APIUser User
         {
-            get => user ??= new APIUser
+            get => field ??= new APIUser
             {
                 Id = RealmUser.OnlineID,
                 Username = RealmUser.Username,
@@ -186,13 +186,13 @@ namespace osu.Game.Scoring
             };
             set
             {
-                user = value;
+                field = value;
 
                 RealmUser = new RealmUser
                 {
-                    OnlineID = user.OnlineID,
-                    Username = user.Username,
-                    CountryCode = user.CountryCode,
+                    OnlineID = field.OnlineID,
+                    Username = field.Username,
+                    CountryCode = field.CountryCode,
                 };
             }
         }
@@ -261,40 +261,38 @@ namespace osu.Game.Scoring
         /// </summary>
         public bool IsLegacyScore { get; set; }
 
-        private Dictionary<HitResult, int>? statistics;
-
         [Ignored]
+        [AllowNull]
         public Dictionary<HitResult, int> Statistics
         {
             get
             {
-                if (statistics != null)
-                    return statistics;
+                if (field != null)
+                    return field;
 
                 if (!string.IsNullOrEmpty(StatisticsJson))
-                    statistics = JsonConvert.DeserializeObject<Dictionary<HitResult, int>>(StatisticsJson);
+                    field = JsonConvert.DeserializeObject<Dictionary<HitResult, int>>(StatisticsJson);
 
-                return statistics ??= new Dictionary<HitResult, int>();
+                return field ??= new Dictionary<HitResult, int>();
             }
-            set => statistics = value;
+            set;
         }
 
-        private Dictionary<HitResult, int>? maximumStatistics;
-
         [Ignored]
+        [AllowNull]
         public Dictionary<HitResult, int> MaximumStatistics
         {
             get
             {
-                if (maximumStatistics != null)
-                    return maximumStatistics;
+                if (field != null)
+                    return field;
 
                 if (!string.IsNullOrEmpty(MaximumStatisticsJson))
-                    maximumStatistics = JsonConvert.DeserializeObject<Dictionary<HitResult, int>>(MaximumStatisticsJson);
+                    field = JsonConvert.DeserializeObject<Dictionary<HitResult, int>>(MaximumStatisticsJson);
 
-                return maximumStatistics ??= new Dictionary<HitResult, int>();
+                return field ??= new Dictionary<HitResult, int>();
             }
-            set => maximumStatistics = value;
+            set;
         }
 
         private Mod[]? mods;
@@ -335,7 +333,7 @@ namespace osu.Game.Scoring
                 if (mods != null)
                     apiMods ??= mods.Select(m => new APIMod(m)).ToArray();
 
-                return apiMods ?? Array.Empty<APIMod>();
+                return apiMods ?? [];
             }
             set
             {

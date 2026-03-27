@@ -31,14 +31,12 @@ namespace osu.Game.Graphics.UserInterfaceV2
             set => current.Current = value;
         }
 
-        private bool readOnly;
-
         public bool ReadOnly
         {
-            get => readOnly;
+            get;
             set
             {
-                readOnly = value;
+                field = value;
 
                 if (textBox.IsNotNull())
                     updateState();

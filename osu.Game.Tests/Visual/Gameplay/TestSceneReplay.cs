@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.ComponentModel;
 using System.Linq;
 using osu.Game.Rulesets;
@@ -19,9 +18,9 @@ namespace osu.Game.Tests.Visual.Gameplay
     {
         protected override Player CreatePlayer(Ruleset ruleset)
         {
-            var beatmap = Beatmap.Value.GetPlayableBeatmap(ruleset.RulesetInfo, Array.Empty<Mod>());
+            var beatmap = Beatmap.Value.GetPlayableBeatmap(ruleset.RulesetInfo, []);
 
-            return new ScoreAccessibleReplayPlayer(ruleset.GetAutoplayMod()?.CreateScoreFromReplayData(beatmap, Array.Empty<Mod>()));
+            return new ScoreAccessibleReplayPlayer(ruleset.GetAutoplayMod()?.CreateScoreFromReplayData(beatmap, []));
         }
 
         protected override void AddCheckSteps()

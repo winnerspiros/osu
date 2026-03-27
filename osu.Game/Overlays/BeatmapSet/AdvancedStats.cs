@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -45,16 +44,14 @@ namespace osu.Game.Overlays.BeatmapSet
         protected FillFlowContainer Flow { get; private set; }
         private readonly StatisticRow starDifficulty;
 
-        private IBeatmapInfo beatmapInfo;
-
         public IBeatmapInfo BeatmapInfo
         {
-            get => beatmapInfo;
+            get;
             set
             {
-                if (value == beatmapInfo) return;
+                if (value == field) return;
 
-                beatmapInfo = value;
+                field = value;
 
                 updateStatistics();
             }
@@ -75,7 +72,7 @@ namespace osu.Game.Overlays.BeatmapSet
         /// <remarks>
         /// No checks are done as to whether the mods specified are valid for the current <see cref="Ruleset"/>.
         /// </remarks>
-        public Bindable<IReadOnlyList<Mod>> Mods { get; } = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public Bindable<IReadOnlyList<Mod>> Mods { get; } = new Bindable<IReadOnlyList<Mod>>([]);
 
         public AdvancedStats(int columns = 1)
         {

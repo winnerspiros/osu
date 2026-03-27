@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-using osu.Framework.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Extensions.Color4Extensions;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK;
 using osu.Game.Overlays.Profile.Header.Components;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Users
 {

@@ -3,9 +3,7 @@
 
 #nullable disable
 
-using System;
 using Newtonsoft.Json;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 
 namespace osu.Game.Online.API.Requests.Responses
@@ -50,7 +48,7 @@ namespace osu.Game.Online.API.Requests.Responses
                 TotalScore = TotalScore,
                 User = User,
                 Position = Position,
-                Mods = Array.Empty<Mod>()
+                Mods = []
             };
     }
 }

@@ -54,13 +54,11 @@ namespace osu.Game.Online.Chat
         /// </summary>
         public static string WebsiteRootUrl
         {
-            get => websiteRootUrl;
-            set => websiteRootUrl = value
+            get;
+            set => field = value
                                     .Trim('/') // trim potential trailing slash/
                                     .Split('/').Last(); // only keep domain name, ignoring protocol.
-        }
-
-        private static string websiteRootUrl = "osu.ppy.sh";
+        } = "osu.ppy.sh";
 
         private static void handleMatches(Regex regex, string display, string link, MessageFormatterResult result, int startIndex = 0, LinkAction? linkActionOverride = null, char[]? escapeChars = null)
         {

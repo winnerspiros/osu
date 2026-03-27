@@ -197,7 +197,7 @@ namespace osu.Game
         /// </remarks>
         [Cached]
         [Cached(typeof(IBindable<IReadOnlyList<Mod>>))]
-        protected readonly Bindable<IReadOnlyList<Mod>> SelectedMods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        protected readonly Bindable<IReadOnlyList<Mod>> SelectedMods = new Bindable<IReadOnlyList<Mod>>([]);
 
         /// <summary>
         /// Mods available for the current <see cref="Ruleset"/>.
@@ -787,8 +787,7 @@ namespace osu.Game
 
             realm?.Dispose();
 
-            if (Host != null)
-                Host.ExceptionThrown -= onExceptionThrown;
+            Host?.ExceptionThrown -= onExceptionThrown;
 
             RestartOnExitAction?.Invoke();
         }

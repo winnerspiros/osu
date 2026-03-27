@@ -29,14 +29,12 @@ namespace osu.Game.Screens.Select
             private OsuSpriteText valueText = null!;
             private LoadingSpinner loading = null!;
 
-            private LocalisableString? text;
-
             public LocalisableString? Text
             {
-                get => text;
+                get;
                 set
                 {
-                    text = value;
+                    field = value;
                     Scheduler.AddOnce(updateDisplay);
                 }
             }
@@ -143,11 +141,11 @@ namespace osu.Game.Screens.Select
 
             private void updateDisplay()
             {
-                loading.State.Value = text != null ? Visibility.Hidden : Visibility.Visible;
+                loading.State.Value = Text != null ? Visibility.Hidden : Visibility.Visible;
 
-                if (text != null)
+                if (Text != null)
                 {
-                    valueText.Text = text.Value;
+                    valueText.Text = Text.Value;
                     valueText.FadeIn(120, Easing.OutQuint);
                 }
                 else

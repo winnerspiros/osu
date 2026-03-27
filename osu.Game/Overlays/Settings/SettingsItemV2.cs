@@ -136,7 +136,7 @@ namespace osu.Game.Overlays.Settings
 
         public const string CLASSIC_DEFAULT_SEARCH_TERM = @"has-classic-default";
 
-        public IEnumerable<string> Keywords { get; init; } = Enumerable.Empty<string>();
+        public IEnumerable<string> Keywords { get; init; } = [];
 
         public IEnumerable<LocalisableString> FilterTerms
         {
@@ -152,21 +152,19 @@ namespace osu.Game.Overlays.Settings
             }
         }
 
-        private bool matchingFilter = true;
-
         public bool MatchingFilter
         {
-            get => matchingFilter;
+            get;
             set
             {
                 bool wasPresent = IsPresent;
 
-                matchingFilter = value;
+                field = value;
 
                 if (IsPresent != wasPresent)
                     Invalidate(Invalidation.Presence);
             }
-        }
+        } = true;
 
         public override bool IsPresent => base.IsPresent && MatchingFilter;
 

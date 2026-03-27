@@ -18,21 +18,17 @@ namespace osu.Game.Overlays
         private readonly OsuSpriteText titleText;
         private readonly Container iconContainer;
 
-        private LocalisableString title;
-
         public LocalisableString Title
         {
-            get => title;
-            protected set => titleText.Text = title = value;
+            get;
+            protected set => titleText.Text = field = value;
         }
 
         public LocalisableString Description { get; protected set; }
 
-        private IconUsage icon;
-
         public IconUsage Icon
         {
-            get => icon;
+            get;
             protected set => iconContainer.Child = new SpriteIcon
             {
                 RelativeSizeAxes = Axes.Both,
@@ -40,7 +36,7 @@ namespace osu.Game.Overlays
                 Origin = Anchor.Centre,
                 FillMode = FillMode.Fit,
 
-                Icon = icon = value,
+                Icon = field = value,
             };
         }
 

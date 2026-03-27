@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -12,22 +11,20 @@ namespace osu.Game.Screens.Edit.Components.RadioButtons
 {
     public partial class EditorRadioButtonCollection : CompositeDrawable
     {
-        private IReadOnlyList<RadioButton> items = Array.Empty<RadioButton>();
-
         public IReadOnlyList<RadioButton> Items
         {
-            get => items;
+            get;
             set
             {
-                if (ReferenceEquals(items, value))
+                if (ReferenceEquals(field, value))
                     return;
 
-                items = value;
+                field = value;
 
                 buttonContainer.Clear();
-                items.ForEach(addButton);
+                field.ForEach(addButton);
             }
-        }
+        } = [];
 
         private readonly FlowContainer<EditorRadioButton> buttonContainer;
 

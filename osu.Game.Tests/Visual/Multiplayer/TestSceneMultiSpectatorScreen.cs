@@ -555,7 +555,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     var user = new MultiplayerRoomUser(id)
                     {
                         User = new APIUser { Id = id },
-                        Mods = mods ?? Array.Empty<APIMod>(),
+                        Mods = mods ?? [],
                         MatchState = teams ? new TeamVersusUserState { TeamID = i % 2 } : null,
                     };
 

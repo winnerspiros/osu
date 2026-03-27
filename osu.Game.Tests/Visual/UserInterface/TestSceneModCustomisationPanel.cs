@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -31,7 +30,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
-            SelectedMods.Value = Array.Empty<Mod>();
+            SelectedMods.Value = [];
             InputManager.MoveMouseTo(Vector2.One);
 
             Child = new Container
@@ -75,7 +74,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             });
             AddStep("set empty", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
                 panel.Enabled.Value = false;
                 panel.ExpandedState.Value = ModCustomisationPanel.ModCustomisationPanelState.Collapsed;
             });

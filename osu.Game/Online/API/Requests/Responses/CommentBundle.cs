@@ -3,9 +3,9 @@
 
 #nullable disable
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
@@ -32,30 +32,26 @@ namespace osu.Game.Online.API.Requests.Responses
         [JsonProperty(@"pinned_comments")]
         public List<Comment> PinnedComments { get; set; }
 
-        private List<long> userVotes;
-
         [JsonProperty(@"user_votes")]
         public List<long> UserVotes
         {
-            get => userVotes;
+            get;
             set
             {
-                userVotes = value;
+                field = value;
 
                 Comments.ForEach(c => c.IsVoted = value.Contains(c.Id));
                 IncludedComments.ForEach(c => c.IsVoted = value.Contains(c.Id));
             }
         }
 
-        private List<APIUser> users;
-
         [JsonProperty(@"users")]
         public List<APIUser> Users
         {
-            get => users;
+            get;
             set
             {
-                users = value;
+                field = value;
 
                 foreach (var user in value)
                 {

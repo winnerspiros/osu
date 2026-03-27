@@ -47,7 +47,7 @@ namespace osu.Game.Tests.Visual.Ranking
         public void TestEmpty()
         {
             AddStep("create with no items",
-                () => container.Add(new SimpleStatisticTable(2, Enumerable.Empty<SimpleStatisticItem>())));
+                () => container.Add(new SimpleStatisticTable(2, [])));
         }
 
         [Test]

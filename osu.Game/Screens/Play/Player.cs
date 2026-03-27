@@ -594,11 +594,7 @@ namespace osu.Game.Screens.Play
                     throw new InvalidOperationException("Beatmap was not loaded");
 
                 var rulesetInfo = Ruleset.Value ?? Beatmap.Value.BeatmapInfo.Ruleset;
-                ruleset = rulesetInfo.CreateInstance();
-
-                if (ruleset == null)
-                    throw new RulesetLoadException("Instantiation failure");
-
+                ruleset = rulesetInfo.CreateInstance() ?? throw new RulesetLoadException("Instantiation failure");
                 try
                 {
                     playable = Beatmap.Value.GetPlayableBeatmap(ruleset.RulesetInfo, gameplayMods, cancellationToken);

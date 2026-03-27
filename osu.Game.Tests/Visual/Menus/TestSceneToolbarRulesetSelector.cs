@@ -47,7 +47,7 @@ namespace osu.Game.Tests.Visual.Menus
         {
             public static IResourceStore<byte[]> Resources { get; set; } = null!;
 
-            public override IEnumerable<Mod> GetModsFor(ModType type) => Enumerable.Empty<Mod>();
+            public override IEnumerable<Mod> GetModsFor(ModType type) => [];
 
             public override DrawableRuleset CreateDrawableRulesetWith(IBeatmap beatmap, IReadOnlyList<Mod>? mods = null) => null!;
 

@@ -23,22 +23,21 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
     /// </summary>
     public partial class CloudVisualisation : CompositeDrawable
     {
-        private APIUser[] users = [];
         private Container usersContainer = null!;
 
         private readonly Bindable<double?> lastSamplePlayback = new Bindable<double?>();
 
         public APIUser[] Users
         {
-            get => users;
+            get;
             set
             {
-                users = value;
+                field = value;
 
                 foreach (var u in usersContainer)
                     u.Delay(RNG.Next(0, 1000)).FadeOut(500).Expire();
 
-                LoadComponentsAsync(users.Select(u => new MovingAvatar(u, lastSamplePlayback)), avatars =>
+                LoadComponentsAsync(field.Select(u => new MovingAvatar(u, lastSamplePlayback)), avatars =>
                 {
                     if (usersContainer.Count == 0)
                     {
@@ -49,7 +48,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     usersContainer.AddRange(avatars);
                 });
             }
-        }
+        } = [];
 
         protected override void LoadComplete()
         {

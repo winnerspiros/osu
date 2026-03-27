@@ -17,32 +17,28 @@ namespace osu.Game.Storyboards.Drawables
     {
         public StoryboardSprite Sprite { get; }
 
-        private bool flipH;
-
         public bool FlipH
         {
-            get => flipH;
+            get;
             set
             {
-                if (flipH == value)
+                if (field == value)
                     return;
 
-                flipH = value;
+                field = value;
                 Invalidate(Invalidation.MiscGeometry);
             }
         }
 
-        private bool flipV;
-
         public bool FlipV
         {
-            get => flipV;
+            get;
             set
             {
-                if (flipV == value)
+                if (field == value)
                     return;
 
-                flipV = value;
+                field = value;
                 Invalidate(Invalidation.MiscGeometry);
             }
         }

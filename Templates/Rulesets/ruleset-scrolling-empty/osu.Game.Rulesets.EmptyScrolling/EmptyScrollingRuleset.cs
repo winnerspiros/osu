@@ -9,10 +9,10 @@ using osu.Framework.Input.Bindings;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Difficulty;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.EmptyScrolling.Beatmaps;
 using osu.Game.Rulesets.EmptyScrolling.Mods;
 using osu.Game.Rulesets.EmptyScrolling.UI;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 
 namespace osu.Game.Rulesets.EmptyScrolling
@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.EmptyScrolling
                     return new[] { new EmptyScrollingModAutoplay() };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

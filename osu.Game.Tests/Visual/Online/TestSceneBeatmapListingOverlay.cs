@@ -229,7 +229,7 @@ namespace osu.Game.Tests.Visual.Online
             setRankAchievedFilter(new[] { ScoreRank.XH });
             supporterRequiredPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             notFoundPlaceholderShown();
 
             // only Played filter
@@ -244,7 +244,7 @@ namespace osu.Game.Tests.Visual.Online
             setPlayedFilter(SearchPlayed.Played);
             supporterRequiredPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             setPlayedFilter(SearchPlayed.Any);
             notFoundPlaceholderShown();
         }
@@ -259,7 +259,7 @@ namespace osu.Game.Tests.Visual.Online
             setRankAchievedFilter(new[] { ScoreRank.XH });
             notFoundPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             notFoundPlaceholderShown();
 
             // only Played filter
@@ -274,7 +274,7 @@ namespace osu.Game.Tests.Visual.Online
             setPlayedFilter(SearchPlayed.Played);
             notFoundPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             setPlayedFilter(SearchPlayed.Any);
             notFoundPlaceholderShown();
         }
@@ -292,7 +292,7 @@ namespace osu.Game.Tests.Visual.Online
             setRankAchievedFilter(new[] { ScoreRank.XH });
             supporterRequiredPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             noPlaceholderShown();
 
             // only Played filter
@@ -307,7 +307,7 @@ namespace osu.Game.Tests.Visual.Online
             setPlayedFilter(SearchPlayed.Played);
             supporterRequiredPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             setPlayedFilter(SearchPlayed.Any);
             noPlaceholderShown();
         }
@@ -325,7 +325,7 @@ namespace osu.Game.Tests.Visual.Online
             setRankAchievedFilter(new[] { ScoreRank.XH });
             noPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             noPlaceholderShown();
 
             // only Played filter
@@ -340,7 +340,7 @@ namespace osu.Game.Tests.Visual.Online
             setPlayedFilter(SearchPlayed.Played);
             noPlaceholderShown();
 
-            setRankAchievedFilter(Array.Empty<ScoreRank>());
+            setRankAchievedFilter([]);
             setPlayedFilter(SearchPlayed.Any);
             noPlaceholderShown();
         }

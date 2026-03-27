@@ -252,7 +252,7 @@ namespace osu.Game.Overlays.SkinEditor
                 // Set everything to a clean state
                 editOperation = null;
                 finishingEdit = false;
-                flow.Children = Array.Empty<Drawable>();
+                flow.Children = [];
             });
         }
 

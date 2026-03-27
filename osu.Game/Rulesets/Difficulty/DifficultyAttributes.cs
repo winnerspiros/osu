@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using osu.Game.Beatmaps;
@@ -37,7 +36,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// <summary>
         /// The mods which were applied to the beatmap.
         /// </summary>
-        public Mod[] Mods { get; set; } = Array.Empty<Mod>();
+        public Mod[] Mods { get; set; } = [];
 
         /// <summary>
         /// The combined star rating of all skills.

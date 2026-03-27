@@ -130,7 +130,7 @@ namespace osu.Game.Rulesets
         /// </summary>
         /// <param name="mods">The legacy enum which will be converted.</param>
         /// <returns>An enumerable of constructed <see cref="Mod"/>s.</returns>
-        public virtual IEnumerable<Mod> ConvertFromLegacyMods(LegacyMods mods) => Array.Empty<Mod>();
+        public virtual IEnumerable<Mod> ConvertFromLegacyMods(LegacyMods mods) => [];
 
         /// <summary>
         /// Converts mods to legacy enum values. Do not override if you're not a legacy ruleset.
@@ -310,7 +310,7 @@ namespace osu.Game.Rulesets
         /// </summary>
         /// <param name="variant">A variant.</param>
         /// <returns>A list of valid <see cref="KeyBinding"/>s.</returns>
-        public virtual IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => Array.Empty<KeyBinding>();
+        public virtual IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => [];
 
         /// <summary>
         /// Gets the name for a key binding variant. This is used for display in the settings overlay.
@@ -332,7 +332,7 @@ namespace osu.Game.Rulesets
         /// <param name="score">The <see cref="ScoreInfo"/> to create the statistics for. The score is guaranteed to have <see cref="ScoreInfo.HitEvents"/> populated.</param>
         /// <param name="playableBeatmap">The <see cref="IBeatmap"/>, converted for this <see cref="Ruleset"/> with all relevant <see cref="Mod"/>s applied.</param>
         /// <returns>The <see cref="StatisticItem"/>s to display.</returns>
-        public virtual StatisticItem[] CreateStatisticsForScore(ScoreInfo score, IBeatmap playableBeatmap) => Array.Empty<StatisticItem>();
+        public virtual StatisticItem[] CreateStatisticsForScore(ScoreInfo score, IBeatmap playableBeatmap) => [];
 
         /// <summary>
         /// Get all <see cref="HitResult"/>s for this ruleset which are important enough to displayed to the end user.

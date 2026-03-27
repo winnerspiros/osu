@@ -174,10 +174,10 @@ namespace osu.Game.Overlays.Chat
             get
             {
                 if (user.Equals(APIUser.SYSTEM_USER))
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 if (user.Equals(api.LocalUser.Value))
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 List<MenuItem> items = new List<MenuItem>();
 

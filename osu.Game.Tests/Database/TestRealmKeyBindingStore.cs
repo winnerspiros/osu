@@ -11,7 +11,6 @@ using osu.Framework.Input.Bindings;
 using osu.Game.Database;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
-using osu.Game.Rulesets;
 using Realms;
 
 namespace osu.Game.Tests.Database
@@ -29,7 +28,7 @@ namespace osu.Game.Tests.Database
                 KeyBindingContainer testContainer = new TestKeyBindingContainer();
 
                 var keyBindingStore = new RealmKeyBindingStore(realm, new ReadableKeyCombinationProvider());
-                keyBindingStore.Register(testContainer, Enumerable.Empty<RulesetInfo>());
+                keyBindingStore.Register(testContainer, []);
 
                 Assert.That(queryCount(realm), Is.EqualTo(3));
 
@@ -58,7 +57,7 @@ namespace osu.Game.Tests.Database
                 Assert.That(queryCount(realm, GlobalAction.Back), Is.EqualTo(3));
 
                 var keyBindingStore = new RealmKeyBindingStore(realm, new ReadableKeyCombinationProvider());
-                keyBindingStore.Register(testContainer, Enumerable.Empty<RulesetInfo>());
+                keyBindingStore.Register(testContainer, []);
 
                 Assert.That(queryCount(realm, GlobalAction.Back), Is.EqualTo(1));
             });
@@ -72,7 +71,7 @@ namespace osu.Game.Tests.Database
                 KeyBindingContainer testContainer = new TestKeyBindingContainer();
 
                 var keyBindingStore = new RealmKeyBindingStore(realm, new ReadableKeyCombinationProvider());
-                keyBindingStore.Register(testContainer, Enumerable.Empty<RulesetInfo>());
+                keyBindingStore.Register(testContainer, []);
 
                 realm.Run(outerRealm =>
                 {

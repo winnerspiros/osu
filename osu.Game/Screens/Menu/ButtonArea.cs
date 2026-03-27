@@ -21,8 +21,6 @@ namespace osu.Game.Screens.Menu
         protected override Container<Drawable> Content => Flow;
 
         private readonly ButtonAreaBackground buttonAreaBackground;
-        private Visibility state;
-
         public const float BUTTON_AREA_HEIGHT = 100;
 
         public ButtonArea()
@@ -74,14 +72,14 @@ namespace osu.Game.Screens.Menu
 
         public Visibility State
         {
-            get => state;
+            get;
             set
             {
-                if (value == state) return;
+                if (value == field) return;
 
-                state = value;
-                InternalChild.FadeTo(state == Visibility.Hidden ? 0 : 1, 300);
-                StateChanged?.Invoke(state);
+                field = value;
+                InternalChild.FadeTo(field == Visibility.Hidden ? 0 : 1, 300);
+                StateChanged?.Invoke(field);
             }
         }
 
@@ -94,8 +92,6 @@ namespace osu.Game.Screens.Menu
 
         private partial class ButtonAreaBackground : Box, IStateful<ButtonAreaBackgroundState>
         {
-            private ButtonAreaBackgroundState state;
-
             public ButtonAreaBackground()
             {
                 RelativeSizeAxes = Axes.Both;
@@ -107,14 +103,14 @@ namespace osu.Game.Screens.Menu
 
             public ButtonAreaBackgroundState State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state) return;
+                    if (value == field) return;
 
-                    state = value;
+                    field = value;
 
-                    switch (state)
+                    switch (field)
                     {
                         case ButtonAreaBackgroundState.Flat:
                             this.ScaleTo(new Vector2(2, 0), 300, Easing.InSine);
@@ -125,7 +121,7 @@ namespace osu.Game.Screens.Menu
                             break;
                     }
 
-                    StateChanged?.Invoke(state);
+                    StateChanged?.Invoke(field);
                 }
             }
 

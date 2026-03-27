@@ -66,16 +66,15 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
         /// </summary>
         protected Anchor TrailOrigin
         {
-            get => trailOrigin;
+            get;
             set
             {
-                trailOrigin = value;
+                field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        }
+        } = Anchor.Centre;
 
         private readonly TrailPart[] parts = new TrailPart[max_sprites];
-        private Anchor trailOrigin = Anchor.Centre;
         private int currentIndex;
         private IShader shader;
         private double timeOffset;

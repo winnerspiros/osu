@@ -19,14 +19,12 @@ namespace osu.Game.Skinning
 
         public Colour4 ActiveColour { get; set; }
 
-        private Colour4 textColour;
-
         public Colour4 TextColour
         {
-            get => textColour;
+            get;
             set
             {
-                textColour = value;
+                field = value;
                 initialNameText.Colour = value;
                 overlayKeyText.Colour = value;
             }
@@ -72,14 +70,14 @@ namespace osu.Game.Skinning
                                 Origin = Anchor.Centre,
                                 Text = trigger.Name,
                                 Font = OsuFont.GetFont(weight: FontWeight.SemiBold),
-                                Colour = textColour,
+                                Colour = TextColour,
                             },
                             overlayKeyText = new LegacySpriteText(LegacyFont.ScoreEntry)
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Alpha = 0,
-                                Colour = textColour,
+                                Colour = TextColour,
                             }
                         }
                     },

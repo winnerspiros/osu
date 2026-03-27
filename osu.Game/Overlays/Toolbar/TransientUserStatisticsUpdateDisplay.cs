@@ -229,15 +229,13 @@ namespace osu.Game.Overlays.Toolbar
 
             public string ValuePrefix
             {
-                get => valuePrefix;
+                get;
                 set
                 {
-                    valuePrefix = value;
+                    field = value;
                     UpdateDisplay();
                 }
-            }
-
-            private string valuePrefix = string.Empty;
+            } = string.Empty;
 
             protected override LocalisableString FormatCount(T count) => LocalisableString.Format(@"{0}{1:N0}", ValuePrefix, count);
 

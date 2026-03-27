@@ -22,17 +22,15 @@ namespace osu.Game.Skinning
                 textDrawable.Text = Text;
         }
 
-        private LocalisableString text;
-
         public LocalisableString Text
         {
-            get => text;
+            get;
             set
             {
-                if (text == value)
+                if (field == value)
                     return;
 
-                text = value;
+                field = value;
 
                 if (Drawable is IHasText textDrawable)
                     textDrawable.Text = value;

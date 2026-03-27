@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Newtonsoft.Json;
 
 namespace osu.Game.Beatmaps
@@ -15,12 +14,12 @@ namespace osu.Game.Beatmaps
         /// Points of failure on a relative time scale (usually 0..100).
         /// </summary>
         [JsonProperty(@"fail")]
-        public int[]? Fails { get; set; } = Array.Empty<int>();
+        public int[]? Fails { get; set; } = [];
 
         /// <summary>
         /// Points of retry on a relative time scale (usually 0..100).
         /// </summary>
         [JsonProperty(@"exit")]
-        public int[]? Retries { get; set; } = Array.Empty<int>();
+        public int[]? Retries { get; set; } = [];
     }
 }

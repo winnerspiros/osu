@@ -25,31 +25,27 @@ namespace osu.Game.Overlays.BeatmapSet
     {
         private readonly Statistic length, bpm, circleCount, sliderCount;
 
-        private IBeatmapSetInfo beatmapSet;
-
         public IBeatmapSetInfo BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                if (value == beatmapSet) return;
+                if (value == field) return;
 
-                beatmapSet = value;
+                field = value;
 
                 updateDisplay();
             }
         }
 
-        private IBeatmapInfo beatmapInfo;
-
         public IBeatmapInfo BeatmapInfo
         {
-            get => beatmapInfo;
+            get;
             set
             {
-                if (value == beatmapInfo) return;
+                if (value == field) return;
 
-                beatmapInfo = value;
+                field = value;
 
                 updateDisplay();
             }
@@ -57,7 +53,7 @@ namespace osu.Game.Overlays.BeatmapSet
 
         private void updateDisplay()
         {
-            if (beatmapInfo == null)
+            if (BeatmapInfo == null)
             {
                 bpm.Value = "-";
 
@@ -67,11 +63,11 @@ namespace osu.Game.Overlays.BeatmapSet
             }
             else
             {
-                bpm.Value = beatmapInfo.BPM.ToLocalisableString(@"0.##");
+                bpm.Value = BeatmapInfo.BPM.ToLocalisableString(@"0.##");
 
-                length.Value = TimeSpan.FromMilliseconds(beatmapInfo.Length).ToFormattedDuration();
+                length.Value = TimeSpan.FromMilliseconds(BeatmapInfo.Length).ToFormattedDuration();
 
-                if (beatmapInfo is not IBeatmapOnlineInfo onlineInfo) return;
+                if (BeatmapInfo is not IBeatmapOnlineInfo onlineInfo) return;
 
                 circleCount.Value = onlineInfo.CircleCount.ToLocalisableString(@"N0");
                 sliderCount.Value = onlineInfo.SliderCount.ToLocalisableString(@"N0");

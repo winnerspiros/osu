@@ -13,7 +13,6 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
@@ -45,7 +44,7 @@ namespace osu.Game.Tests.Beatmaps
             Task.Factory.StartNew(() =>
             {
                 loadStarted.Set();
-                Assert.Throws<OperationCanceledException>(() => working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, Array.Empty<Mod>(), cts.Token));
+                Assert.Throws<OperationCanceledException>(() => working.GetPlayableBeatmap(new OsuRuleset().RulesetInfo, [], cts.Token));
                 loadCompleted.Set();
             }, TaskCreationOptions.LongRunning);
 

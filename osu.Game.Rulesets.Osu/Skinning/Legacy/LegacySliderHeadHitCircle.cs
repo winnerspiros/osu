@@ -46,8 +46,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         {
             base.Dispose(isDisposing);
 
-            if (drawableHitObject != null)
-                drawableHitObject.HitObjectApplied -= onHitObjectApplied;
+            drawableHitObject?.HitObjectApplied -= onHitObjectApplied;
         }
     }
 }

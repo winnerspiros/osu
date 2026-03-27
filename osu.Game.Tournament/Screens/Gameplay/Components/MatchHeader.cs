@@ -16,39 +16,35 @@ namespace osu.Game.Tournament.Screens.Gameplay.Components
         private TeamScoreDisplay teamDisplay2 = null!;
         private DrawableTournamentHeaderLogo logo = null!;
 
-        private bool showScores = true;
-
         public bool ShowScores
         {
-            get => showScores;
+            get;
             set
             {
-                if (value == showScores)
+                if (value == field)
                     return;
 
-                showScores = value;
+                field = value;
 
                 if (IsLoaded)
                     updateDisplay();
             }
-        }
-
-        private bool showLogo = true;
+        } = true;
 
         public bool ShowLogo
         {
-            get => showLogo;
+            get;
             set
             {
-                if (value == showLogo)
+                if (value == field)
                     return;
 
-                showLogo = value;
+                field = value;
 
                 if (IsLoaded)
                     updateDisplay();
             }
-        }
+        } = true;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -69,7 +65,7 @@ namespace osu.Game.Tournament.Screens.Gameplay.Components
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Alpha = showLogo ? 1 : 0
+                            Alpha = ShowLogo ? 1 : 0
                         },
                         new DrawableTournamentHeaderText
                         {
@@ -105,10 +101,10 @@ namespace osu.Game.Tournament.Screens.Gameplay.Components
 
         private void updateDisplay()
         {
-            teamDisplay1.ShowScore = showScores;
-            teamDisplay2.ShowScore = showScores;
+            teamDisplay1.ShowScore = ShowScores;
+            teamDisplay2.ShowScore = ShowScores;
 
-            logo.Alpha = showLogo ? 1 : 0;
+            logo.Alpha = ShowLogo ? 1 : 0;
         }
     }
 }

@@ -555,15 +555,13 @@ namespace osu.Game.Screens.Edit.Compose.Components
                     };
                 }
 
-                private bool active;
-
                 public bool Active
                 {
-                    get => active;
+                    get;
                     set
                     {
                         this.FadeColour(value ? colourProvider.Background1 : colourProvider.Background3, 500, Easing.OutQuint);
-                        active = value;
+                        field = value;
                     }
                 }
             }

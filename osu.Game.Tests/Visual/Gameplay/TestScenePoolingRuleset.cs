@@ -92,7 +92,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddAssert("DHO reused", () => this.ChildrenOfType<DrawableTestHitObject>().Single() == firstObject);
             AddAssert("object in new position", () => firstObject.Position != position);
 
-            void onStateUpdate(DrawableHitObject hitObject, ArmedState state)
+            static void onStateUpdate(DrawableHitObject hitObject, ArmedState state)
             {
                 using (hitObject.BeginAbsoluteSequence(hitObject.StateUpdateTime))
                     hitObject.MoveToOffset(new Vector2(-100, 0));
@@ -474,7 +474,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private class TestHitObjectWithNested : TestHitObject
         {
-            public IEnumerable<HitObject> NestedObjects { get; init; } = Array.Empty<HitObject>();
+            public IEnumerable<HitObject> NestedObjects { get; init; } = [];
 
             protected override void CreateNestedHitObjects(CancellationToken cancellationToken)
             {

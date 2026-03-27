@@ -26,16 +26,14 @@ namespace osu.Game.Graphics.Sprites
             TextureShader = shaders.Load(@"LogoAnimation", @"LogoAnimation");
         }
 
-        private float animationProgress;
-
         public float AnimationProgress
         {
-            get => animationProgress;
+            get;
             set
             {
-                if (animationProgress == value) return;
+                if (field == value) return;
 
-                animationProgress = value;
+                field = value;
                 Invalidate(Invalidation.DrawInfo);
             }
         }
@@ -70,7 +68,7 @@ namespace osu.Game.Graphics.Sprites
             {
                 base.ApplyState();
 
-                progress = source.animationProgress;
+                progress = source.AnimationProgress;
             }
 
             private IUniformBuffer<AnimationData> animationDataBuffer;

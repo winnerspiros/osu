@@ -347,7 +347,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                     if (!CursorInPlacementArea)
                         return;
 
-                    distanceSnapGrid = createDistanceSnapGrid(Enumerable.Empty<HitObject>());
+                    distanceSnapGrid = createDistanceSnapGrid([]);
                     break;
             }
 

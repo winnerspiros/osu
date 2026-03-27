@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -29,7 +28,7 @@ namespace osu.Game.Rulesets.Mania.Tests
         private const int columns = 4;
 
         [Cached(typeof(IReadOnlyList<Mod>))]
-        private IReadOnlyList<Mod> mods { get; set; } = Array.Empty<Mod>();
+        private IReadOnlyList<Mod> mods { get; set; } = [];
 
         private readonly List<Stage> stages = new List<Stage>();
 

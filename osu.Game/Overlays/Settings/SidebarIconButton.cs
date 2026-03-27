@@ -3,15 +3,15 @@
 
 #nullable disable
 
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.Sprites;
+using osuTK;
 
 namespace osu.Game.Overlays.Settings
 {
@@ -28,27 +28,23 @@ namespace osu.Game.Overlays.Settings
         // always consider as part of flow, even when not visible (for the sake of the initial animation).
         public override bool IsPresent => true;
 
-        private SettingsSection section;
-
         public SettingsSection Section
         {
-            get => section;
+            get;
             set
             {
-                section = value;
+                field = value;
                 headerText.Text = value.Header;
                 iconContainer.Icon = value.CreateIcon();
             }
         }
 
-        private bool selected;
-
         public bool Selected
         {
-            get => selected;
+            get;
             set
             {
-                selected = value;
+                field = value;
 
                 if (IsLoaded)
                     UpdateState();

@@ -45,7 +45,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         }
 
         [SetUp]
-        public void SetUp() => storyboardMods = Array.Empty<Mod>();
+        public void SetUp() => storyboardMods = [];
 
         [Test]
         public void TestStoryboardSamplesStopDuringPause()

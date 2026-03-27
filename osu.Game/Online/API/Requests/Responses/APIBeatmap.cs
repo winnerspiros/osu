@@ -115,7 +115,7 @@ namespace osu.Game.Online.API.Requests.Responses
         public double BPM { get; set; }
 
         [JsonProperty(@"owners")]
-        public BeatmapOwner[] BeatmapOwners { get; set; } = Array.Empty<BeatmapOwner>();
+        public BeatmapOwner[] BeatmapOwners { get; set; } = [];
 
         /// <summary>
         /// Minimum count of votes required to display a tag on the beatmap's page.

@@ -140,7 +140,7 @@ namespace osu.Game.Tests.Visual.Online
                 2014,
                 2013
             },
-            NewsPosts = Array.Empty<APINewsPost>()
+            NewsPosts = []
         };
 
         // see https://osu.ppy.sh/docs/index.html#get-news-listing:

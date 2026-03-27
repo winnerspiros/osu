@@ -319,7 +319,7 @@ namespace osu.Game.Screens
         /// </summary>
         protected virtual BackgroundScreen CreateBackground() => null;
 
-        public virtual IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => Array.Empty<ScreenFooterButton>();
+        public virtual IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => [];
 
         public virtual bool OnBackButton() => false;
     }

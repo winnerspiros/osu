@@ -106,7 +106,7 @@ namespace osu.Game.Tests.Visual.Metadata
         }
 
         public override Task<BeatmapUpdates> GetChangesSince(int queueId)
-            => Task.FromResult(new BeatmapUpdates(Array.Empty<int>(), queueId));
+            => Task.FromResult(new BeatmapUpdates([], queueId));
 
         public override Task BeatmapSetsUpdated(BeatmapUpdates updates) => Task.CompletedTask;
 

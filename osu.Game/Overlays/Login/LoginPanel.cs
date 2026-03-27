@@ -24,8 +24,6 @@ namespace osu.Game.Overlays.Login
 {
     public partial class LoginPanel : Container
     {
-        private bool bounding = true;
-
         private Drawable? form;
 
         [Resolved]
@@ -47,17 +45,17 @@ namespace osu.Game.Overlays.Login
         [Resolved]
         private OsuConfigManager config { get; set; } = null!;
 
-        public override RectangleF BoundingBox => bounding ? base.BoundingBox : RectangleF.Empty;
+        public override RectangleF BoundingBox => Bounding ? base.BoundingBox : RectangleF.Empty;
 
         public bool Bounding
         {
-            get => bounding;
+            get;
             set
             {
-                bounding = value;
+                field = value;
                 Invalidate(Invalidation.MiscGeometry);
             }
-        }
+        } = true;
 
         public LoginPanel()
         {

@@ -14,7 +14,7 @@ namespace osu.Game.Tests.Utils
         [Test]
         public void TestNextBestNameEmptySet()
         {
-            string nextBestName = NamingUtils.GetNextBestName(Enumerable.Empty<string>(), "New Difficulty");
+            string nextBestName = NamingUtils.GetNextBestName([], "New Difficulty");
 
             ClassicAssert.AreEqual("New Difficulty", nextBestName);
         }
@@ -133,7 +133,7 @@ namespace osu.Game.Tests.Utils
         [Test]
         public void TestNextBestFilenameEmptySet()
         {
-            string nextBestFilename = NamingUtils.GetNextBestFilename(Enumerable.Empty<string>(), "test_file.osr");
+            string nextBestFilename = NamingUtils.GetNextBestFilename([], "test_file.osr");
 
             ClassicAssert.AreEqual("test_file.osr", nextBestFilename);
         }

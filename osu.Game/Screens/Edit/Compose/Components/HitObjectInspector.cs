@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Threading;
@@ -38,7 +37,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             else if (EditorBeatmap.PlacementObject.Value != null)
                 objects = new[] { EditorBeatmap.PlacementObject.Value };
             else
-                objects = Array.Empty<HitObject>();
+                objects = [];
 
             AddInspectorValues(objects);
 

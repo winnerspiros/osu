@@ -12,14 +12,12 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
 {
     public partial class GradedCircles : CompositeDrawable
     {
-        private double progress;
-
         public double Progress
         {
-            get => progress;
+            get;
             set
             {
-                progress = value;
+                field = value;
 
                 foreach (var circle in circles)
                     circle.RevealProgress = value;

@@ -74,7 +74,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             ScaleBindable.UnbindFrom(HitObject.ScaleBindable);
         }
 
-        protected virtual IEnumerable<Drawable> DimmablePieces => Enumerable.Empty<Drawable>();
+        protected virtual IEnumerable<Drawable> DimmablePieces => [];
 
         protected override void UpdateInitialTransforms()
         {
@@ -123,8 +123,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         protected sealed override double InitialLifetimeOffset => HitObject.TimePreempt;
 
-        private OsuInputManager osuActionInputManager;
-        internal OsuInputManager OsuActionInputManager => osuActionInputManager ??= GetContainingInputManager() as OsuInputManager;
+        internal OsuInputManager OsuActionInputManager => field ??= GetContainingInputManager() as OsuInputManager;
 
         /// <summary>
         /// Shake the hit object in case it was clicked far too early or late (aka "note lock").

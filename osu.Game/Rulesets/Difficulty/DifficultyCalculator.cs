@@ -55,7 +55,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A structure describing the difficulty of the beatmap.</returns>
         public DifficultyAttributes Calculate(CancellationToken cancellationToken = default)
-            => Calculate(Array.Empty<Mod>(), cancellationToken);
+            => Calculate([], cancellationToken);
 
         /// <summary>
         /// Calculates the difficulty of the beatmap using a specific mod combination.
@@ -97,7 +97,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The set of <see cref="TimedDifficultyAttributes"/>.</returns>
         public List<TimedDifficultyAttributes> CalculateTimed(CancellationToken cancellationToken = default)
-            => CalculateTimed(Array.Empty<Mod>(), cancellationToken);
+            => CalculateTimed([], cancellationToken);
 
         /// <summary>
         /// Calculates the difficulty of the beatmap using a specific mod combination and returns a set of <see cref="TimedDifficultyAttributes"/> representing the difficulty at every relevant time value in the beatmap.
@@ -202,7 +202,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// </summary>
         public Mod[] CreateDifficultyAdjustmentModCombinations()
         {
-            return createDifficultyAdjustmentModCombinations(DifficultyAdjustmentMods, Array.Empty<Mod>()).ToArray();
+            return createDifficultyAdjustmentModCombinations(DifficultyAdjustmentMods, []).ToArray();
 
             static IEnumerable<Mod> createDifficultyAdjustmentModCombinations(ReadOnlyMemory<Mod> remainingMods, IEnumerable<Mod> currentSet, int currentSetCount = 0)
             {
@@ -251,7 +251,7 @@ namespace osu.Game.Rulesets.Difficulty
                 if (!(mod is MultiMod multi))
                     return (mod.Yield(), 1);
 
-                IEnumerable<Mod> set = Enumerable.Empty<Mod>();
+                IEnumerable<Mod> set = [];
                 int count = 0;
 
                 foreach (var nested in multi.Mods)
@@ -268,7 +268,7 @@ namespace osu.Game.Rulesets.Difficulty
         /// <summary>
         /// Retrieves all <see cref="Mod"/>s which adjust the <see cref="Beatmaps.Beatmap"/> difficulty.
         /// </summary>
-        protected virtual Mod[] DifficultyAdjustmentMods => Array.Empty<Mod>();
+        protected virtual Mod[] DifficultyAdjustmentMods => [];
 
         /// <summary>
         /// Creates <see cref="DifficultyAttributes"/> to describe beatmap's calculated difficulty.

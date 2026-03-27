@@ -28,23 +28,21 @@ namespace osu.Game.Overlays.Chat
 {
     public partial class ChatLine : CompositeDrawable, IHasPopover
     {
-        private Message message = null!;
-
         public Message Message
         {
-            get => message;
+            get;
             set
             {
-                if (message == value) return;
+                if (field == value) return;
 
-                message = MessageFormatter.FormatMessage(value);
+                field = MessageFormatter.FormatMessage(value);
 
                 if (!IsLoaded)
                     return;
 
                 updateMessageContent();
             }
-        }
+        } = null!;
 
         public IEnumerable<Drawable> DrawableContentFlow => drawableContentFlow.Children;
 
@@ -72,35 +70,32 @@ namespace osu.Game.Overlays.Chat
 
         private Drawable? background;
 
-        private bool alternatingBackground;
-        private bool requiresTimestamp = true;
-
         public bool RequiresTimestamp
         {
-            get => requiresTimestamp;
+            get;
             set
             {
-                if (requiresTimestamp == value)
+                if (field == value)
                     return;
 
-                requiresTimestamp = value;
+                field = value;
 
                 if (!IsLoaded)
                     return;
 
                 updateMessageContent();
             }
-        }
+        } = true;
 
         public bool AlternatingBackground
         {
-            get => alternatingBackground;
+            get;
             set
             {
-                if (alternatingBackground == value)
+                if (field == value)
                     return;
 
-                alternatingBackground = value;
+                field = value;
                 updateBackground();
             }
         }
@@ -186,7 +181,7 @@ namespace osu.Game.Overlays.Chat
                                 Font = OsuFont.GetFont(size: font_size, weight: FontWeight.SemiBold, fixedWidth: true),
                                 AlwaysPresent = true,
                             },
-                            drawableUsername = new DrawableChatUsername(message.Sender)
+                            drawableUsername = new DrawableChatUsername(Message.Sender)
                             {
                                 Width = UsernameWidth,
                                 FontSize = font_size,
@@ -195,7 +190,7 @@ namespace osu.Game.Overlays.Chat
                                 Anchor = Anchor.TopRight,
                                 Margin = new MarginPadding { Horizontal = Spacing },
                                 AccentColour = UsernameColour,
-                                Inverted = !string.IsNullOrEmpty(message.Sender.Colour),
+                                Inverted = !string.IsNullOrEmpty(Message.Sender.Colour),
                             },
                             drawableContentFlow = new LinkFlowContainer(styleMessageContent)
                             {
@@ -231,7 +226,7 @@ namespace osu.Game.Overlays.Chat
             }
         }
 
-        public Popover GetPopover() => new ReportChatPopover(message);
+        public Popover GetPopover() => new ReportChatPopover(Message);
 
         /// <summary>
         /// Performs a highlight animation on this <see cref="ChatLine"/>.
@@ -264,8 +259,8 @@ namespace osu.Game.Overlays.Chat
 
             if (isMention)
                 messageColour = colourProvider?.Highlight1 ?? Color4.Orange;
-            else if (Message.IsAction && !string.IsNullOrEmpty(message.Sender.Colour))
-                messageColour = Color4Extensions.FromHex(message.Sender.Colour);
+            else if (Message.IsAction && !string.IsNullOrEmpty(Message.Sender.Colour))
+                messageColour = Color4Extensions.FromHex(Message.Sender.Colour);
 
             text.Colour = messageColour;
         }
@@ -275,9 +270,9 @@ namespace osu.Game.Overlays.Chat
 
         private void updateMessageContent()
         {
-            this.FadeTo(message is LocalEchoMessage ? 0.4f : 1.0f, 500, Easing.OutQuint);
+            this.FadeTo(Message is LocalEchoMessage ? 0.4f : 1.0f, 500, Easing.OutQuint);
 
-            if (requiresTimestamp && !(message is LocalEchoMessage))
+            if (RequiresTimestamp && !(Message is LocalEchoMessage))
             {
                 drawableTimestamp.Show();
                 updateTimestamp();
@@ -287,20 +282,20 @@ namespace osu.Game.Overlays.Chat
                 drawableTimestamp.Hide();
             }
 
-            drawableUsername.Text = $@"{message.Sender.Username}";
+            drawableUsername.Text = $@"{Message.Sender.Username}";
 
             // remove non-existent channels from the link list
-            message.Links.RemoveAll(link => link.Action == LinkAction.OpenChannel && chatManager?.AvailableChannels.Any(c => c.Name == link.Argument.ToString()) != true);
+            Message.Links.RemoveAll(link => link.Action == LinkAction.OpenChannel && chatManager?.AvailableChannels.Any(c => c.Name == link.Argument.ToString()) != true);
 
-            isMention = MessageNotifier.MatchUsername(message.DisplayContent, api.LocalUser.Value.Username).Success;
+            isMention = MessageNotifier.MatchUsername(Message.DisplayContent, api.LocalUser.Value.Username).Success;
 
             drawableContentFlow.Clear();
-            drawableContentFlow.AddLinks(message.DisplayContent, message.Links);
+            drawableContentFlow.AddLinks(Message.DisplayContent, Message.Links);
         }
 
         private void updateTimestamp()
         {
-            drawableTimestamp.Text = message.Timestamp.LocalDateTime.ToLocalisableString(prefer24HourTime.Value ? @"HH:mm" : @"hh:mm tt");
+            drawableTimestamp.Text = Message.Timestamp.LocalDateTime.ToLocalisableString(prefer24HourTime.Value ? @"HH:mm" : @"hh:mm tt");
         }
 
         private static readonly Color4[] default_username_colours =
@@ -344,8 +339,7 @@ namespace osu.Game.Overlays.Chat
 
         private void updateBackground()
         {
-            if (background != null)
-                background.Alpha = alternatingBackground ? 0.2f : 0;
+            background?.Alpha = AlternatingBackground ? 0.2f : 0;
         }
     }
 }

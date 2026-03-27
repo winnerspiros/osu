@@ -24,21 +24,12 @@ namespace osu.Game.Graphics.UserInterface
 
         public LocalisableString LabelText
         {
-            set
-            {
-                if (LabelTextFlowContainer != null)
-                    LabelTextFlowContainer.Text = value;
-            }
+            set => LabelTextFlowContainer?.Text = value;
         }
 
         public MarginPadding LabelPadding
         {
-            get => LabelTextFlowContainer?.Padding ?? new MarginPadding();
-            set
-            {
-                if (LabelTextFlowContainer != null)
-                    LabelTextFlowContainer.Padding = value;
-            }
+            get => LabelTextFlowContainer?.Padding ?? new MarginPadding(); set => LabelTextFlowContainer?.Padding = value;
         }
 
         protected readonly Nub Nub;

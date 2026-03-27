@@ -32,18 +32,16 @@ namespace osu.Game.Rulesets.Catch.Objects
         /// </summary>
         public bool HyperDash => hyperDash.Value;
 
-        private CatchHitObject? hyperDashTarget;
-
         /// <summary>
         /// The target fruit if we are to initiate a hyperdash.
         /// </summary>
         [JsonIgnore]
         public CatchHitObject? HyperDashTarget
         {
-            get => hyperDashTarget;
+            get;
             set
             {
-                hyperDashTarget = value;
+                field = value;
                 HyperDashBindable.Value = value != null;
             }
         }

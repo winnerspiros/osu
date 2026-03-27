@@ -12,24 +12,24 @@ jobs:
     name: Update osu-web mod definitions
     runs-on: ubuntu-latest
     steps:
-    - name: Install .NET 8.0.x
-      uses: actions/setup-dotnet@v4
+    - name: Install .NET 10.0.x
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: "8.0.x"
+        dotnet-version: "10.0.x"
 
     - name: Checkout ppy/osu
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: osu
 
     - name: Checkout ppy/osu-tools
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: ppy/osu-tools
         path: osu-tools
 
     - name: Checkout ppy/osu-web
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: ppy/osu-web
         path: osu-web
@@ -47,7 +47,7 @@ jobs:
       working-directory: ./osu-tools
 
     - name: Create pull request with changes
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v8
       with:
         title: Update mod definitions
         body: "This PR has been auto-generated to update the mod definitions to match ppy/osu@${{ github.ref_name }}."

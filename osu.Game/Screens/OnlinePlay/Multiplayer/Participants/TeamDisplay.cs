@@ -119,7 +119,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
             var user = current.Value;
             var userRoomState = client.Room?.Users.FirstOrDefault(u => u.Equals(user))?.MatchState;
 
-            bool roomLocked = (client.Room?.MatchState as TeamVersusRoomState)?.Locked == true;
+            bool roomLocked = client.Room?.MatchState is TeamVersusRoomState { Locked: true };
 
             if (client.LocalUser?.Equals(user) == true && !roomLocked)
             {

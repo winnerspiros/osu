@@ -54,7 +54,7 @@ namespace osu.Game.Tests.Beatmaps
         {
             AddStep("setup difficulty cache", () =>
             {
-                SelectedMods.Value = Array.Empty<Mod>();
+                SelectedMods.Value = [];
 
                 Child = difficultyCache = new TestBeatmapDifficultyCache();
 

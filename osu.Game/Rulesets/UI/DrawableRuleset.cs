@@ -110,8 +110,7 @@ namespace osu.Game.Rulesets.UI
             set
             {
                 frameStablePlayback = value;
-                if (frameStabilityContainer != null)
-                    frameStabilityContainer.FrameStablePlayback = value;
+                frameStabilityContainer?.FrameStablePlayback = value;
             }
         }
 
@@ -130,7 +129,7 @@ namespace osu.Game.Rulesets.UI
                 throw new ArgumentException($"{GetType()} expected the beatmap to contain hitobjects of type {typeof(TObject)}.", nameof(beatmap));
 
             Beatmap = tBeatmap;
-            Mods = mods?.ToArray() ?? Array.Empty<Mod>();
+            Mods = mods?.ToArray() ?? [];
 
             RelativeSizeAxes = Axes.Both;
 
@@ -316,8 +315,7 @@ namespace osu.Game.Rulesets.UI
 
             HasReplayLoaded.Value = replayInputManager.ReplayInputHandler != null;
 
-            if (replayInputManager.ReplayInputHandler != null)
-                replayInputManager.ReplayInputHandler.GamefieldToScreenSpace = Playfield.GamefieldToScreenSpace;
+            replayInputManager.ReplayInputHandler?.GamefieldToScreenSpace = Playfield.GamefieldToScreenSpace;
 
             if (!ProvidingUserCursor)
             {

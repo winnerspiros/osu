@@ -39,17 +39,16 @@ namespace osu.Game.Overlays.BeatmapSet
         public readonly DifficultiesContainer Difficulties;
 
         public readonly Bindable<APIBeatmap?> Beatmap = new Bindable<APIBeatmap?>();
-        private APIBeatmapSet? beatmapSet;
         private readonly Box background;
 
         public APIBeatmapSet? BeatmapSet
         {
-            get => beatmapSet;
+            get;
             set
             {
-                if (value == beatmapSet) return;
+                if (value == field) return;
 
-                beatmapSet = value;
+                field = value;
                 updateDisplay();
             }
         }
@@ -163,7 +162,7 @@ namespace osu.Game.Overlays.BeatmapSet
 
             if (BeatmapSet != null)
             {
-                Difficulties.ChildrenEnumerable = BeatmapSet.Beatmaps.Concat(BeatmapSet.Converts ?? Array.Empty<APIBeatmap>())
+                Difficulties.ChildrenEnumerable = BeatmapSet.Beatmaps.Concat(BeatmapSet.Converts ?? [])
                                                             .Where(b => b.Ruleset.MatchesOnlineID(ruleset.Value))
                                                             .OrderBy(b => !b.Convert)
                                                             .ThenBy(b => b.StarRating)
@@ -185,10 +184,10 @@ namespace osu.Game.Overlays.BeatmapSet
             // Else just choose the first available difficulty for now.
             Beatmap.Value ??= Difficulties.FirstOrDefault()?.Beatmap;
 
-            if (beatmapSet?.Status == BeatmapOnlineStatus.Pending && beatmapSet.NominationStatus != null)
+            if (BeatmapSet?.Status == BeatmapOnlineStatus.Pending && BeatmapSet.NominationStatus != null)
             {
                 nominations.Show();
-                nominations.Value = beatmapSet.NominationStatus.Current;
+                nominations.Value = BeatmapSet.NominationStatus.Current;
             }
             else
                 nominations.Hide();
@@ -208,7 +207,7 @@ namespace osu.Game.Overlays.BeatmapSet
             infoContainer.AddArbitraryDrawable(Empty().With(e => e.Width = 5));
 
             var beatmapOwners = beatmapInfo?.BeatmapOwners;
-            bool isHostDifficulty = beatmapOwners?.Length == 1 && beatmapOwners.First().Id == beatmapSet?.AuthorID;
+            bool isHostDifficulty = beatmapOwners?.Length == 1 && beatmapOwners.First().Id == BeatmapSet?.AuthorID;
 
             if (beatmapOwners != null && !isHostDifficulty)
             {
@@ -296,16 +295,14 @@ namespace osu.Game.Overlays.BeatmapSet
             public Action<APIBeatmap>? OnClicked;
             public event Action<DifficultySelectorState>? StateChanged;
 
-            private DifficultySelectorState state;
-
             public DifficultySelectorState State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state) return;
+                    if (value == field) return;
 
-                    state = value;
+                    field = value;
 
                     StateChanged?.Invoke(State);
                     if (value == DifficultySelectorState.Selected)
@@ -389,14 +386,12 @@ namespace osu.Game.Overlays.BeatmapSet
         {
             private readonly OsuSpriteText text;
 
-            private int value;
-
             public int Value
             {
-                get => value;
+                get;
                 set
                 {
-                    this.value = value;
+                    field = value;
                     text.Text = Value.ToLocalisableString(@"N0");
                 }
             }

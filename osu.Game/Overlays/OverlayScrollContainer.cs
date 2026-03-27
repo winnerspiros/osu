@@ -96,19 +96,17 @@ namespace osu.Game.Overlays
         {
             private const int fade_duration = 500;
 
-            private Visibility state;
-
             public Visibility State
             {
-                get => state;
+                get;
                 set
                 {
-                    if (value == state)
+                    if (value == field)
                         return;
 
-                    state = value;
-                    Enabled.Value = state == Visibility.Visible;
-                    this.FadeTo(state == Visibility.Visible ? 1 : 0, fade_duration, Easing.OutQuint);
+                    field = value;
+                    Enabled.Value = field == Visibility.Visible;
+                    this.FadeTo(field == Visibility.Visible ? 1 : 0, fade_duration, Easing.OutQuint);
                 }
             }
 

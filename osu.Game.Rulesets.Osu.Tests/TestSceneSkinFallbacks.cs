@@ -152,7 +152,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
             public Drawable GetDrawableComponent(ISkinComponentLookup lookup)
             {
-                if (!enabled) return null;
+                if (!Enabled) return null;
 
                 if (lookup is OsuSkinComponentLookup osuComponent && osuComponent.Component == OsuSkinComponents.SliderBody)
                     return null;
@@ -177,20 +177,18 @@ namespace osu.Game.Rulesets.Osu.Tests
             [CanBeNull]
             public event Action SourceChanged;
 
-            private bool enabled = true;
-
             public bool Enabled
             {
-                get => enabled;
+                get;
                 set
                 {
-                    if (value == enabled)
+                    if (value == field)
                         return;
 
-                    enabled = value;
+                    field = value;
                     SourceChanged?.Invoke();
                 }
-            }
+            } = true;
         }
     }
 }

@@ -66,7 +66,7 @@ namespace osu.Game.Tests.Visual.Spectator
         public void SendStartPlay(int userId, int beatmapId, APIMod[]? mods = null)
         {
             userBeatmapDictionary[userId] = beatmapId;
-            userModsDictionary[userId] = mods ?? Array.Empty<APIMod>();
+            userModsDictionary[userId] = mods ?? [];
             userNextFrameDictionary[userId] = 0;
             sendPlayingState(userId);
         }

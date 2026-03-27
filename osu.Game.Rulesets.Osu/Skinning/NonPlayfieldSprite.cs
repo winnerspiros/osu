@@ -18,9 +18,8 @@ namespace osu.Game.Rulesets.Osu.Skinning
             get => base.Texture;
             set
             {
-                if (value != null)
-                    // stable "magic ratio". see OsuPlayfieldAdjustmentContainer for full explanation.
-                    value.ScaleAdjust *= 1.6f;
+                // stable "magic ratio". see OsuPlayfieldAdjustmentContainer for full explanation.
+                value?.ScaleAdjust *= 1.6f;
                 base.Texture = value;
             }
         }

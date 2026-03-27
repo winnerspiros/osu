@@ -23,17 +23,15 @@ namespace osu.Game.Graphics.Cursor
         private readonly IBindable<bool> screenshotCursorVisibility = new Bindable<bool>(true);
         public override bool IsPresent => screenshotCursorVisibility.Value && base.IsPresent;
 
-        private bool hideCursorOnNonMouseInput;
-
         public bool HideCursorOnNonMouseInput
         {
-            get => hideCursorOnNonMouseInput;
+            get;
             set
             {
-                if (hideCursorOnNonMouseInput == value)
+                if (field == value)
                     return;
 
-                hideCursorOnNonMouseInput = value;
+                field = value;
                 updateState();
             }
         }
@@ -117,7 +115,7 @@ namespace osu.Game.Graphics.Cursor
             if (gameActive.Value)
             {
                 // do not display when last input is not mouse.
-                if (hideCursorOnNonMouseInput && !lastInputWasMouse.Value)
+                if (HideCursorOnNonMouseInput && !lastInputWasMouse.Value)
                     return false;
 
                 // do not display when game is idle.

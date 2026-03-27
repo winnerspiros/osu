@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\osu.Android.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>osu.Android</RootNamespace>
     <AssemblyName>osu.Android</AssemblyName>
@@ -17,7 +17,7 @@
     <ProjectReference Include="..\osu.Game\osu.Game.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.3" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.51" />
   </ItemGroup>
   <!-- Exclude native C++ source files from the managed build. They are compiled separately via CMake/NDK. -->
   <ItemGroup>

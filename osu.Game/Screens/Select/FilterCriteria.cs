@@ -47,7 +47,7 @@ namespace osu.Game.Screens.Select
             IsUpperInclusive = true
         };
 
-        public OptionalTextFilter[] SearchTerms = Array.Empty<OptionalTextFilter>();
+        public OptionalTextFilter[] SearchTerms = [];
 
         public RulesetInfo? Ruleset;
         public IReadOnlyList<Mod>? Mods;
@@ -56,8 +56,6 @@ namespace osu.Game.Screens.Select
 
         public bool? HasOnlineID;
 
-        private string searchText = string.Empty;
-
         /// <summary>
         /// <see cref="SearchText"/> as a number (if it can be parsed as one).
         /// </summary>
@@ -65,10 +63,10 @@ namespace osu.Game.Screens.Select
 
         public string SearchText
         {
-            get => searchText;
+            get;
             set
             {
-                searchText = value;
+                field = value;
 
                 List<OptionalTextFilter> terms = new List<OptionalTextFilter>();
 
@@ -109,7 +107,7 @@ namespace osu.Game.Screens.Select
                 if (SearchTerms.Length == 1 && int.TryParse(SearchTerms[0].SearchTerm, out int parsed))
                     SearchNumber = parsed;
             }
-        }
+        } = string.Empty;
 
         /// <summary>
         /// Hashes from the <see cref="BeatmapCollection"/> to filter to.
@@ -219,11 +217,11 @@ namespace osu.Game.Screens.Select
                         break;
 
                     case MatchMode.IsolatedPhrase:
-                        result = Regex.IsMatch(value, $@"(^|\b){Regex.Escape(searchTerm)}($|\b)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        result = Regex.IsMatch(value, $@"(^|\b){Regex.Escape(SearchTerm)}($|\b)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                         break;
 
                     case MatchMode.FullPhrase:
-                        result = CultureInfo.InvariantCulture.CompareInfo.Compare(value, searchTerm, CompareOptions.OrdinalIgnoreCase) == 0;
+                        result = CultureInfo.InvariantCulture.CompareInfo.Compare(value, SearchTerm, CompareOptions.OrdinalIgnoreCase) == 0;
                         break;
                 }
 
@@ -238,26 +236,24 @@ namespace osu.Game.Screens.Select
             /// </summary>
             public bool ExcludeTerm;
 
-            private string searchTerm;
-
             public string SearchTerm
             {
-                get => searchTerm;
+                get;
                 set
                 {
-                    searchTerm = value;
+                    field = value;
 
-                    if (searchTerm.StartsWith('\"'))
+                    if (field.StartsWith('\"'))
                     {
                         // length check ensures that the quote character in the `StartsWith()` check above and the `EndsWith()` check below is not the same character.
-                        if (searchTerm.EndsWith("\"!", StringComparison.Ordinal) && searchTerm.Length >= 3)
+                        if (field.EndsWith("\"!", StringComparison.Ordinal) && field.Length >= 3)
                         {
-                            searchTerm = searchTerm.TrimEnd('!').Trim('\"');
+                            field = field.TrimEnd('!').Trim('\"');
                             MatchMode = MatchMode.FullPhrase;
                         }
                         else
                         {
-                            searchTerm = searchTerm.Trim('\"');
+                            field = field.Trim('\"');
                             MatchMode = MatchMode.IsolatedPhrase;
                         }
                     }

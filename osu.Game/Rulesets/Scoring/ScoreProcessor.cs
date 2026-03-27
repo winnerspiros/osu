@@ -89,7 +89,7 @@ namespace osu.Game.Rulesets.Scoring
         /// <summary>
         /// The current selected mods
         /// </summary>
-        public readonly Bindable<IReadOnlyList<Mod>> Mods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        public readonly Bindable<IReadOnlyList<Mod>> Mods = new Bindable<IReadOnlyList<Mod>>([]);
 
         /// <summary>
         /// The current rank.

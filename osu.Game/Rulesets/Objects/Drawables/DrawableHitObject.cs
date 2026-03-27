@@ -753,7 +753,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         protected bool UpdateResult(bool userTriggered)
         {
             // It's possible for input to get into a bad state when rewinding gameplay, so results should not be processed
-            if ((Clock as IGameplayClock)?.IsRewinding == true)
+            if (Clock is IGameplayClock { IsRewinding: true })
                 return false;
 
             if (Judged)
@@ -794,11 +794,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
         {
             base.Dispose(isDisposing);
 
-            if (HitObject != null)
-                HitObject.DefaultsApplied -= onDefaultsApplied;
+            HitObject?.DefaultsApplied -= onDefaultsApplied;
 
-            if (CurrentSkin != null)
-                CurrentSkin.SourceChanged -= skinSourceChanged;
+            CurrentSkin?.SourceChanged -= skinSourceChanged;
 
             // Safeties against shooting in foot in cases where these are bound by external entities (like playfield) that don't clean up.
             OnNestedDrawableCreated = null;

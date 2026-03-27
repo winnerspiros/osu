@@ -334,7 +334,7 @@ namespace osu.Game.Tests.Visual.Online
             },
             Title = "osu!volunteer",
             Colour = "ff0000",
-            Achievements = Array.Empty<APIUserAchievement>(),
+            Achievements = [],
             PlayMode = "osu",
             Kudosu = new APIUser.KudosuCount
             {

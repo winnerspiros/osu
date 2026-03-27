@@ -51,7 +51,7 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// Lock to be held when operating on <see cref="trackedBindables"/> or <see cref="linkedCancellationSources"/>.
         /// </summary>
-        private readonly object bindableUpdateLock = new object();
+        private readonly Lock bindableUpdateLock = new Lock();
 
         private CancellationTokenSource trackedUpdateCancellationSource = new CancellationTokenSource();
 
@@ -164,11 +164,8 @@ namespace osu.Game.Beatmaps
             // In the case that the user hasn't given us a ruleset, use the beatmap's default ruleset.
             rulesetInfo ??= beatmapInfo.Ruleset;
 
-            var localBeatmapInfo = beatmapInfo as BeatmapInfo;
-            var localRulesetInfo = rulesetInfo as RulesetInfo;
-
             // Difficulty can only be computed if the beatmap and ruleset are locally available.
-            if (localBeatmapInfo == null || localRulesetInfo == null)
+            if (beatmapInfo is not BeatmapInfo localBeatmapInfo || rulesetInfo is not RulesetInfo localRulesetInfo)
             {
                 // If not, fall back to the existing star difficulty (e.g. from an online source).
                 return Task.FromResult<StarDifficulty?>(new StarDifficulty(beatmapInfo.StarRating, (beatmapInfo as IBeatmapOnlineInfo)?.MaxCombo ?? 0));
@@ -356,7 +353,7 @@ namespace osu.Game.Beatmaps
                 BeatmapInfo = beatmapInfo;
                 // In the case that the user hasn't given us a ruleset, use the beatmap's default ruleset.
                 Ruleset = ruleset ?? BeatmapInfo.Ruleset;
-                OrderedMods = mods?.OrderBy(m => m.Acronym).Select(mod => mod.DeepClone()).ToArray() ?? Array.Empty<Mod>();
+                OrderedMods = mods?.OrderBy(m => m.Acronym).Select(mod => mod.DeepClone()).ToArray() ?? [];
             }
 
             public bool Equals(DifficultyCacheLookup other)

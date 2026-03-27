@@ -35,24 +35,22 @@ namespace osu.Game.Rulesets.UI
         [Resolved]
         private ScoreProcessor? scoreProcessor { get; set; }
 
-        private ReplayRecorder? recorder;
-
         public ReplayRecorder? Recorder
         {
-            get => recorder;
+            get;
             set
             {
-                if (value == recorder)
+                if (value == field)
                     return;
 
-                if (value != null && recorder != null)
+                if (value != null && field != null)
                     throw new InvalidOperationException("Cannot attach more than one recorder");
 
-                recorder?.Expire();
-                recorder = value;
+                field?.Expire();
+                field = value;
 
-                if (recorder != null)
-                    KeyBindingContainer.Add(recorder);
+                if (field != null)
+                    KeyBindingContainer.Add(field);
             }
         }
 
@@ -104,29 +102,28 @@ namespace osu.Game.Rulesets.UI
 
         #region IHasReplayHandler
 
-        private ReplayInputHandler? replayInputHandler;
 
         public ReplayInputHandler? ReplayInputHandler
         {
-            get => replayInputHandler;
+            get;
             set
             {
-                if (replayInputHandler == value)
+                if (field == value)
                     return;
 
-                if (replayInputHandler != null)
-                    RemoveHandler(replayInputHandler);
+                if (field != null)
+                    RemoveHandler(field);
 
                 // ensures that all replay keys are released, that the last replay state is correctly cleared,
                 // and that all user-pressed keys are released, so that the replay handler may trigger them itself
                 // setting `UseParentInput` will only sync releases (https://github.com/ppy/osu-framework/blob/17d65f476d51cc5f2aaea818534f8fbac47e5fe6/osu.Framework/Input/PassThroughInputManager.cs#L179-L182)
                 new ReplayStateReset().Apply(CurrentState, this);
 
-                replayInputHandler = value;
-                UseParentInput = replayInputHandler == null;
+                field = value;
+                UseParentInput = field == null;
 
-                if (replayInputHandler != null)
-                    AddHandler(replayInputHandler);
+                if (field != null)
+                    AddHandler(field);
             }
         }
 

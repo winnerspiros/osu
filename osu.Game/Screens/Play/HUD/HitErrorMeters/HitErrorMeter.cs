@@ -42,8 +42,7 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
         {
             base.LoadComplete();
 
-            if (gameplayClockContainer != null)
-                gameplayClockContainer.OnSeek += Clear;
+            gameplayClockContainer?.OnSeek += Clear;
 
             processor.NewJudgement += processorNewJudgement;
         }
@@ -72,11 +71,9 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
         {
             base.Dispose(isDisposing);
 
-            if (processor != null)
-                processor.NewJudgement -= processorNewJudgement;
+            processor?.NewJudgement -= processorNewJudgement;
 
-            if (gameplayClockContainer != null)
-                gameplayClockContainer.OnSeek -= Clear;
+            gameplayClockContainer?.OnSeek -= Clear;
         }
     }
 }

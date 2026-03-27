@@ -52,7 +52,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         /// <summary>
         /// Any mods applied by/to the local user.
         /// </summary>
-        private readonly Bindable<IReadOnlyList<Mod>> userMods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        private readonly Bindable<IReadOnlyList<Mod>> userMods = new Bindable<IReadOnlyList<Mod>>([]);
 
         private readonly IBindable<APIState> apiState = new Bindable<APIState>();
         private readonly IBindable<DailyChallengeInfo?> dailyChallengeInfo = new Bindable<DailyChallengeInfo?>();
@@ -515,8 +515,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             var track = Beatmap.Value?.Track;
 
-            if (track != null)
-                track.Looping = false;
+            track?.Looping = false;
         }
 
         private void updateMods()

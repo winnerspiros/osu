@@ -41,7 +41,7 @@ namespace osu.Game.Beatmaps
 
         private CancellationTokenSource loadCancellationSource = new CancellationTokenSource();
 
-        private readonly object beatmapFetchLock = new object();
+        private readonly Lock beatmapFetchLock = new Lock();
 
         private readonly Lazy<Storyboard> storyboard;
         private readonly Lazy<ISkin> skin;
@@ -265,7 +265,7 @@ namespace osu.Game.Beatmaps
                 using (var cancellationTokenSource = new CancellationTokenSource(10_000))
                 {
                     // don't apply the default timeout when debugger is attached (may be breakpointing / debugging).
-                    return GetPlayableBeatmap(ruleset, mods ?? Array.Empty<Mod>(), Debugger.IsAttached ? CancellationToken.None : cancellationTokenSource.Token);
+                    return GetPlayableBeatmap(ruleset, mods ?? [], Debugger.IsAttached ? CancellationToken.None : cancellationTokenSource.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -276,11 +276,7 @@ namespace osu.Game.Beatmaps
 
         public virtual IBeatmap GetPlayableBeatmap(IRulesetInfo ruleset, IReadOnlyList<Mod> mods, CancellationToken token)
         {
-            var rulesetInstance = ruleset.CreateInstance();
-
-            if (rulesetInstance == null)
-                throw new RulesetLoadException("Creating ruleset instance failed when attempting to create playable beatmap.");
-
+            var rulesetInstance = ruleset.CreateInstance() ?? throw new RulesetLoadException("Creating ruleset instance failed when attempting to create playable beatmap.");
             IBeatmapConverter converter = CreateBeatmapConverter(Beatmap, rulesetInstance);
 
             // Check if the beatmap can be converted

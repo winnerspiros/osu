@@ -21,7 +21,7 @@ namespace osu.Game.Database
         {
             // make sure the directory exists
             if (!storage.ExistsDirectory(string.Empty))
-                return Array.Empty<string>();
+                return [];
 
             List<string> paths = new List<string>();
 

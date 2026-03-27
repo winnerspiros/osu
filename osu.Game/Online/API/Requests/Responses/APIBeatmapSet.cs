@@ -59,7 +59,7 @@ namespace osu.Game.Online.API.Requests.Responses
         public DateTimeOffset? LastUpdated { get; set; }
 
         [JsonProperty("ratings")]
-        public int[] Ratings { get; set; } = Array.Empty<int>();
+        public int[] Ratings { get; set; } = [];
 
         [JsonProperty(@"track_id")]
         public int? TrackId { get; set; }
@@ -152,7 +152,7 @@ namespace osu.Game.Online.API.Requests.Responses
         public string Tags { get; set; } = string.Empty;
 
         [JsonProperty(@"beatmaps")]
-        public APIBeatmap[] Beatmaps { get; set; } = Array.Empty<APIBeatmap>();
+        public APIBeatmap[] Beatmaps { get; set; } = [];
 
         [JsonProperty(@"converts")]
         public APIBeatmap[]? Converts { get; set; }

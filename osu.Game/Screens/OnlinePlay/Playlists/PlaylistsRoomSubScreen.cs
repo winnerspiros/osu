@@ -119,7 +119,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
         protected readonly Bindable<PlaylistItem?> SelectedItem = new Bindable<PlaylistItem?>();
         protected readonly Bindable<BeatmapInfo?> UserBeatmap = new Bindable<BeatmapInfo?>();
         protected readonly Bindable<RulesetInfo?> UserRuleset = new Bindable<RulesetInfo?>();
-        protected readonly Bindable<IReadOnlyList<Mod>> UserMods = new Bindable<IReadOnlyList<Mod>>(Array.Empty<Mod>());
+        protected readonly Bindable<IReadOnlyList<Mod>> UserMods = new Bindable<IReadOnlyList<Mod>>([]);
 
         private readonly IBindable<bool> isIdle = new BindableBool();
         private readonly Room room;

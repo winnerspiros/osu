@@ -2,22 +2,22 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using NUnit.Framework;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Testing;
-using osu.Game.Rulesets.Scoring;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
+using osu.Framework.Testing;
+using osu.Framework.Threading;
+using osu.Framework.Utils;
+using osu.Game.Rulesets.Osu.HUD;
+using osu.Game.Rulesets.Osu.Judgements;
+using osu.Game.Rulesets.Osu.Objects;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Tests.Visual;
 using osuTK;
 using osuTK.Graphics;
-using osu.Framework.Input.Events;
-using osu.Game.Rulesets.Osu.Judgements;
-using osu.Game.Rulesets.Osu.Objects;
-using NUnit.Framework;
-using osu.Framework.Extensions.ObjectExtensions;
-using osu.Framework.Utils;
-using osu.Framework.Threading;
-using osu.Game.Rulesets.Osu.HUD;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

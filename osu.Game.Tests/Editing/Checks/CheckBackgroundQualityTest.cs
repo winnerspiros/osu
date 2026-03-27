@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.IO;
 using System.Linq;
 using Moq;
@@ -45,7 +44,7 @@ namespace osu.Game.Tests.Editing.Checks
         {
             // While this is a problem, it is out of scope for this check and is caught by a different one.
             beatmap.Metadata.BackgroundFile = string.Empty;
-            var context = getContext(null!, new MemoryStream(Array.Empty<byte>()));
+            var context = getContext(null!, new MemoryStream([]));
 
             Assert.That(check.Run(context), Is.Empty);
         }

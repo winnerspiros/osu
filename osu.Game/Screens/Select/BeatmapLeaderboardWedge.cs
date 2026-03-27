@@ -227,7 +227,7 @@ namespace osu.Game.Screens.Select
 
         public void RefetchScores()
         {
-            SetScores(Array.Empty<ScoreInfo>());
+            SetScores([]);
 
             if (beatmap.IsDefault)
             {

@@ -1,20 +1,20 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics;
-using osu.Framework.Input.Events;
-using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Bindables;
-using osu.Framework.Graphics.Containers;
-using osu.Game.Graphics.UserInterface;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Game.Graphics.Sprites;
-using osu.Game.Graphics;
-using osuTK.Graphics;
+using osu.Framework.Bindables;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Game.Graphics;
+using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
+using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -99,45 +99,36 @@ namespace osu.Game.Overlays
             SelectedItem.BindValueChanged(_ => updateState(), true);
         }
 
-        private LocalisableString mainText;
-
         protected LocalisableString MainText
         {
-            get => mainText;
+            get;
             set
             {
-                mainText = value;
+                field = value;
 
-                if (mainTextPiece != null)
-                    mainTextPiece.Text = value;
+                mainTextPiece?.Text = value;
             }
         }
-
-        private LocalisableString additionalText;
 
         protected LocalisableString AdditionalText
         {
-            get => additionalText;
+            get;
             set
             {
-                additionalText = value;
+                field = value;
 
-                if (additionalTextPiece != null)
-                    additionalTextPiece.Text = value;
+                additionalTextPiece?.Text = value;
             }
         }
 
-        private LocalisableString infoText;
-
         protected LocalisableString InfoText
         {
-            get => infoText;
+            get;
             set
             {
-                infoText = value;
+                field = value;
 
-                if (infoTextPiece != null)
-                    infoTextPiece.Text = value;
+                infoTextPiece?.Text = value;
             }
         }
 

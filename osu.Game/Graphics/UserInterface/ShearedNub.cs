@@ -96,17 +96,15 @@ namespace osu.Game.Graphics.UserInterface
             FinishTransforms(true);
         }
 
-        private bool glowing;
-
         public bool Glowing
         {
-            get => glowing;
+            get;
             set
             {
-                if (glowing == value)
+                if (field == value)
                     return;
 
-                glowing = value;
+                field = value;
                 updateDisplay();
             }
         }
@@ -126,19 +124,17 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private readonly Bindable<bool> current = new Bindable<bool>();
-
         public Bindable<bool> Current
         {
-            get => current;
+            get;
             set
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                current.UnbindBindings();
-                current.BindTo(value);
+                field.UnbindBindings();
+                field.BindTo(value);
             }
-        }
+        } = new Bindable<bool>();
 
         private Color4 accentColour;
 

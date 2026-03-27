@@ -24,10 +24,10 @@ jobs:
           distribution: microsoft
           java-version: 17
 
-      - name: Install .NET 8.0.x
+      - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Install .NET Android workload
         run: dotnet workload install android
@@ -89,7 +89,7 @@ jobs:
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
-          -f net8.0-android
+          -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
           -p:ApplicationVersion=${{ github.run_number }}
@@ -104,7 +104,7 @@ jobs:
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
-          -f net8.0-android
+          -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
           -p:ApplicationVersion=${{ github.run_number }}
@@ -113,7 +113,7 @@ jobs:
       - name: Find APK
         id: find_apk
         run: |
-          PUBLISH_DIR="osu.Android/bin/Release/net8.0-android/publish"
+          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)

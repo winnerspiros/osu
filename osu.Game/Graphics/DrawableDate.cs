@@ -14,17 +14,15 @@ namespace osu.Game.Graphics
 {
     public partial class DrawableDate : OsuSpriteText, IHasCustomTooltip<DateTimeOffset>
     {
-        private DateTimeOffset date;
-
         public DateTimeOffset Date
         {
-            get => date;
+            get;
             set
             {
-                if (date == value)
+                if (field == value)
                     return;
 
-                date = value.ToLocalTime();
+                field = value.ToLocalTime();
 
                 if (LoadState >= LoadState.Ready)
                     updateTime();

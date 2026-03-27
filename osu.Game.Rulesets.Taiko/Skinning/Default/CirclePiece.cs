@@ -56,17 +56,15 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
             }
         }
 
-        private bool kiaiMode;
-
         /// <summary>
         /// Whether Kiai mode effects are enabled for this circle piece.
         /// </summary>
         public bool KiaiMode
         {
-            get => kiaiMode;
+            get;
             set
             {
-                kiaiMode = value;
+                field = value;
 
                 resetEdgeEffects();
             }

@@ -122,17 +122,15 @@ namespace osu.Game.Tests.Visual.Gameplay
         {
             private TaskCompletionSource<bool>? calculationBlocker;
 
-            private bool blockCalculation;
-
             public bool BlockCalculation
             {
-                get => blockCalculation;
+                get;
                 set
                 {
-                    if (value == blockCalculation)
+                    if (value == field)
                         return;
 
-                    blockCalculation = value;
+                    field = value;
 
                     if (value)
                         calculationBlocker = new TaskCompletionSource<bool>();
@@ -143,7 +141,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
             public override async Task<StarDifficulty?> GetDifficultyAsync(IBeatmapInfo beatmapInfo, IRulesetInfo? rulesetInfo = null, IEnumerable<Mod>? mods = null, CancellationToken cancellationToken = default, int debounceDelay = 0)
             {
-                if (blockCalculation)
+                if (BlockCalculation)
                 {
                     Debug.Assert(calculationBlocker != null);
                     await calculationBlocker.Task.ConfigureAwait(false);

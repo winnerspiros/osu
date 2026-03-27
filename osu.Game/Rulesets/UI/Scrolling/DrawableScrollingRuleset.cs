@@ -169,17 +169,15 @@ namespace osu.Game.Rulesets.UI.Scrolling
                 throw new ArgumentException($"{nameof(Playfield)} must be a {nameof(ScrollingPlayfield)} when using {nameof(DrawableScrollingRuleset<TObject>)}.");
         }
 
-        private ScrollVisualisationMethod visualisationMethod = ScrollVisualisationMethod.Sequential;
-
         public ScrollVisualisationMethod VisualisationMethod
         {
-            get => visualisationMethod;
+            get;
             set
             {
-                visualisationMethod = value;
+                field = value;
                 updateScrollAlgorithm();
             }
-        }
+        } = ScrollVisualisationMethod.Sequential;
 
         private void updateScrollAlgorithm()
         {

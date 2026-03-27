@@ -92,22 +92,20 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
             private Sprite passingSprite = null!;
             private Sprite failingSprite = null!;
 
-            private bool passing = true;
-
             public bool Passing
             {
-                get => passing;
+                get;
                 set
                 {
-                    if (value == passing)
+                    if (value == field)
                         return;
 
-                    passing = value;
+                    field = value;
 
                     if (IsLoaded)
                         updatePassing();
                 }
-            }
+            } = true;
 
             [BackgroundDependencyLoader]
             private void load(ISkinSource skin)
@@ -136,7 +134,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 
             private void updatePassing()
             {
-                if (passing)
+                if (Passing)
                 {
                     passingSprite.Show();
                     failingSprite.FadeOut(200);

@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using osu.Framework.Allocation;
@@ -305,7 +304,7 @@ namespace osu.Game.Screens.Select
             get
             {
                 if (Item == null)
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 List<MenuItem> items = new List<MenuItem>();
 

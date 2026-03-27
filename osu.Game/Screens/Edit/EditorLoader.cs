@@ -15,7 +15,6 @@ using osu.Framework.Threading;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Menu;
 using osu.Game.Screens.Play;
 
@@ -69,7 +68,7 @@ namespace osu.Game.Screens.Edit
             // will be restored via lease, see `DisallowExternalBeatmapRulesetChanges`.
             if (!(Beatmap.Value is DummyWorkingBeatmap))
                 Ruleset.Value = Beatmap.Value.BeatmapInfo.Ruleset;
-            Mods.Value = Array.Empty<Mod>();
+            Mods.Value = [];
         }
 
         protected virtual Editor CreateEditor() => new Editor(this);

@@ -16,7 +16,7 @@ namespace osu.Game.Screens.Play
         private readonly ScoreProcessor scoreProcessor;
         private readonly double gameplayStartTime;
 
-        private PeriodTracker breaks = new PeriodTracker(Enumerable.Empty<Period>());
+        private PeriodTracker breaks = new PeriodTracker([]);
 
         /// <summary>
         /// Whether the gameplay is currently in a break.

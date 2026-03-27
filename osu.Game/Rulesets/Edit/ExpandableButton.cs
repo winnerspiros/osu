@@ -21,40 +21,36 @@ namespace osu.Game.Rulesets.Edit
             set => base.Height = actualHeight = value;
         }
 
-        private LocalisableString contractedLabelText;
-
         /// <summary>
         /// The label text to display when this button is in a contracted state.
         /// </summary>
         public LocalisableString ContractedLabelText
         {
-            get => contractedLabelText;
+            get;
             set
             {
-                if (value == contractedLabelText)
+                if (value == field)
                     return;
 
-                contractedLabelText = value;
+                field = value;
 
                 if (!Expanded.Value)
                     Text = value;
             }
         }
 
-        private LocalisableString expandedLabelText;
-
         /// <summary>
         /// The label text to display when this button is in an expanded state.
         /// </summary>
         public LocalisableString ExpandedLabelText
         {
-            get => expandedLabelText;
+            get;
             set
             {
-                if (value == expandedLabelText)
+                if (value == field)
                     return;
 
-                expandedLabelText = value;
+                field = value;
 
                 if (Expanded.Value)
                     Text = value;
@@ -77,7 +73,7 @@ namespace osu.Game.Rulesets.Edit
 
             Expanded.BindValueChanged(expanded =>
             {
-                Text = expanded.NewValue ? expandedLabelText : contractedLabelText;
+                Text = expanded.NewValue ? ExpandedLabelText : ContractedLabelText;
 
                 if (expanded.NewValue)
                 {

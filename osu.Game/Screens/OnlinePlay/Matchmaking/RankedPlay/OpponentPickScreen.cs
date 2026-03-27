@@ -119,9 +119,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             Schedule(() =>
             {
-                RankedPlayCard? card;
 
-                if (opponentHand.RemoveCard(item, out card, out var drawQuad))
+                if (opponentHand.RemoveCard(item, out var card, out var drawQuad))
                 {
                     card.MatchScreenSpaceDrawQuad(drawQuad, CenterRow);
                 }

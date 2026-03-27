@@ -10,13 +10,13 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Game.Online.API;
-using osu.Game.Online.Rooms;
-using osu.Game.Overlays.Notifications;
 using osu.Game.Localisation;
+using osu.Game.Online.API;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.RankedPlay;
+using osu.Game.Online.Rooms;
+using osu.Game.Overlays.Notifications;
 
 namespace osu.Game.Online.Multiplayer
 {
@@ -363,7 +363,7 @@ namespace osu.Game.Online.Multiplayer
         public override Task<MatchmakingPool[]> GetMatchmakingPoolsOfType(MatchmakingPoolType type)
         {
             if (!IsConnected.Value)
-                return Task.FromResult(Array.Empty<MatchmakingPool>());
+                return Task.FromResult<MatchmakingPool[]>([]);
 
             Debug.Assert(connection != null);
             return connection.InvokeAsync<MatchmakingPool[]>(nameof(IMatchmakingServer.GetMatchmakingPoolsOfType), type);

@@ -42,7 +42,7 @@ namespace osu.Game.Rulesets.EmptyFreeform
                     return new[] { new EmptyFreeformModAutoplay() };
 
                 default:
-                    return Array.Empty<Mod>();
+                    return [];
             }
         }
 

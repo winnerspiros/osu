@@ -46,8 +46,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
             if (ladderInfo == null) return;
 
             //todo: tournamentgamebase?
-            if (ladderInfo.CurrentMatch.Value != null)
-                ladderInfo.CurrentMatch.Value.Current.Value = false;
+            ladderInfo.CurrentMatch.Value?.Current.Value = false;
 
             ladderInfo.CurrentMatch.Value = match;
             ladderInfo.CurrentMatch.Value.Current.Value = true;
@@ -191,7 +190,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
             get
             {
                 if (editorInfo == null)
-                    return Array.Empty<MenuItem>();
+                    return [];
 
                 return new MenuItem[]
                 {

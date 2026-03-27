@@ -39,16 +39,14 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             [Resolved]
             private ReadableKeyCombinationProvider keyCombinationProvider { get; set; } = null!;
 
-            private bool isBinding;
-
             public bool IsBinding
             {
-                get => isBinding;
+                get;
                 set
                 {
-                    if (value == isBinding) return;
+                    if (value == field) return;
 
-                    isBinding = value;
+                    field = value;
 
                     updateHoverState();
                 }
@@ -123,7 +121,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             private void updateHoverState()
             {
-                if (isBinding)
+                if (IsBinding)
                 {
                     box.FadeColour(colourProvider.Light2, transition_time, Easing.OutQuint);
                     Text.FadeColour(Color4.Black, transition_time, Easing.OutQuint);

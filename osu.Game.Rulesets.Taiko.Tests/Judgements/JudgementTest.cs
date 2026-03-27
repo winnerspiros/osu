@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -44,7 +43,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Judgements
             {
                 Beatmap.Value = CreateWorkingBeatmap(beatmap);
                 Ruleset.Value = new TaikoRuleset().RulesetInfo;
-                SelectedMods.Value = mods ?? Array.Empty<Mod>();
+                SelectedMods.Value = mods ?? [];
 
                 var p = new ScoreAccessibleReplayPlayer(new Score { Replay = new Replay { Frames = frames } });
 
