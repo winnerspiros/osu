@@ -40,6 +40,10 @@ public:
     /// Returns true if the stream is using AAudio (vs OpenSL ES fallback).
     bool isAAudio() const;
 
+    /// Returns true if the stream is using the hardware MMAP path (lowest possible latency).
+    /// MMAP provides direct memory-mapped access to audio hardware buffers.
+    bool isMMap() const;
+
     // oboe::AudioStreamCallback
     oboe::DataCallbackResult onAudioReady(
         oboe::AudioStream* stream, void* audioData, int32_t numFrames) override;

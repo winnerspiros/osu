@@ -233,6 +233,69 @@ namespace osu.Android.Native
             }
         }
 
+        /// <summary>
+        /// Whether the device reports Vulkan 1.3+ API version.
+        /// </summary>
+        public bool MeetsVulkan13
+        {
+            get
+            {
+                if (disposed || nativePtr == IntPtr.Zero) return false;
+
+                try
+                {
+                    return nVulkanMeetsVulkan13(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the device supports VkPhysicalDeviceVulkan13Features::dynamicRendering.
+        /// Dynamic rendering eliminates VkRenderPass/VkFramebuffer boilerplate for simpler,
+        /// more flexible rendering.
+        /// </summary>
+        public bool SupportsDynamicRendering
+        {
+            get
+            {
+                if (disposed || nativePtr == IntPtr.Zero) return false;
+
+                try
+                {
+                    return nVulkanSupportsDynamicRendering(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the device supports VkPhysicalDeviceVulkan13Features::synchronization2.
+        /// Provides a cleaner, less error-prone GPU synchronization model.
+        /// </summary>
+        public bool SupportsSynchronization2
+        {
+            get
+            {
+                if (disposed || nativePtr == IntPtr.Zero) return false;
+
+                try
+                {
+                    return nVulkanSupportsSynchronization2(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Dispose()
         {
             if (disposed) return;
@@ -290,5 +353,14 @@ namespace osu.Android.Native
 
         [DllImport(lib_name)]
         private static extern byte nVulkanSupportsMailboxPresentMode(IntPtr ptr);
+
+        [DllImport(lib_name)]
+        private static extern byte nVulkanMeetsVulkan13(IntPtr ptr);
+
+        [DllImport(lib_name)]
+        private static extern byte nVulkanSupportsDynamicRendering(IntPtr ptr);
+
+        [DllImport(lib_name)]
+        private static extern byte nVulkanSupportsSynchronization2(IntPtr ptr);
     }
 }

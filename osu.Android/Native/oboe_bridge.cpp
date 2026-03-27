@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
+#include <oboe/OboeExtensions.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstring>
@@ -62,13 +63,14 @@ bool OboeBridge::open() {
     optimiseBufferSize();
 
     LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
-         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s",
+         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
          stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
          stream_->getSampleRate(),
          stream_->getFramesPerBurst(),
          stream_->getBufferSizeInFrames(),
          stream_->getBufferCapacityInFrames(),
-         stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared");
+         stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared",
+         oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
 
     return true;
 }
@@ -150,6 +152,11 @@ int32_t OboeBridge::getBufferSizeInFrames() const {
 bool OboeBridge::isAAudio() const {
     std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
     return stream_ && stream_->getAudioApi() == oboe::AudioApi::AAudio;
+}
+
+bool OboeBridge::isMMap() const {
+    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    return stream_ && oboe::OboeExtensions::isMMapUsed(stream_.get());
 }
 
 oboe::DataCallbackResult OboeBridge::onAudioReady(
@@ -295,6 +302,11 @@ OSU_EXPORT int nOboeGetBufferSizeInFrames(intptr_t ptr) {
 OSU_EXPORT unsigned char nOboeIsAAudio(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isAAudio()) ? 1 : 0;
+}
+
+OSU_EXPORT unsigned char nOboeIsMMap(intptr_t ptr) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    return (bridge && bridge->isMMap()) ? 1 : 0;
 }
 
 } // extern "C"

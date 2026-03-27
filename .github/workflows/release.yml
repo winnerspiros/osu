@@ -35,13 +35,13 @@ jobs:
       - name: Ensure Android NDK and CMake are available
         run: |
           # The ubuntu-latest runner has $ANDROID_HOME pre-installed.
-          # Install a known NDK + CMake version if not already present.
+          # Install latest stable NDK (r29) + CMake.
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" > /dev/null 2>&1
+          sdkmanager --install "ndk;29.0.14206865" "cmake;3.22.1" > /dev/null 2>&1
 
       - name: Build native library (libosu_native.so)
         run: |
-          NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
+          NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
           for ABI in arm64-v8a armeabi-v7a x86; do

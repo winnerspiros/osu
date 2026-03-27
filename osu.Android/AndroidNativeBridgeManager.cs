@@ -133,7 +133,10 @@ namespace osu.Android
                             + $"VRAM={probe.DeviceLocalMemoryMB}MB, "
                             + $"queueFamilies={probe.QueueFamilyCount}, "
                             + $"dedicatedCompute={probe.HasDedicatedComputeQueue}, "
-                            + $"dedicatedTransfer={probe.HasDedicatedTransferQueue}");
+                            + $"dedicatedTransfer={probe.HasDedicatedTransferQueue}, "
+                            + $"vk1.3={probe.MeetsVulkan13}, "
+                            + $"dynamicRendering={probe.SupportsDynamicRendering}, "
+                            + $"synchronization2={probe.SupportsSynchronization2}");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -141,6 +144,7 @@ namespace osu.Android
         {
             Debug.WriteLine($"[osu!] Oboe audio: active={bridge.IsActive}, "
                             + $"api={(bridge.IsAAudio ? "AAudio" : "OpenSLES")}, "
+                            + $"mmap={bridge.IsMMap}, "
                             + $"sampleRate={bridge.SampleRate}Hz, "
                             + $"burst={bridge.FramesPerBurst}frames, "
                             + $"bufferSize={bridge.BufferSizeInFrames}frames");
