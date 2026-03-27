@@ -6,10 +6,10 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Game.Beatmaps;
-using osu.Game.Tests.Resources;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.IO;
 using osu.Game.IO.Archives;
+using osu.Game.Tests.Resources;
 
 namespace osu.Game.Tests.Beatmaps.IO
 {

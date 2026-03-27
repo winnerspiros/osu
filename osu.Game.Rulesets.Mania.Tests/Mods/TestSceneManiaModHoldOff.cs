@@ -5,11 +5,11 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Game.Beatmaps;
-using osu.Game.Rulesets.Mania.Mods;
-using osu.Game.Tests.Visual;
-using osu.Game.Rulesets.Mania.Objects;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Mania.Beatmaps;
+using osu.Game.Rulesets.Mania.Mods;
+using osu.Game.Rulesets.Mania.Objects;
+using osu.Game.Tests.Visual;
 
 namespace osu.Game.Rulesets.Mania.Tests.Mods
 {

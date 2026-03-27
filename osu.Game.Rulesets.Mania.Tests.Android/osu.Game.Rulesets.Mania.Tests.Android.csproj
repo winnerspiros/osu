@@ -21,4 +21,13 @@
     <ProjectReference Include="..\osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj" />
     <ProjectReference Include="..\osu.Game\osu.Game.csproj" />
   </ItemGroup>
+  <!-- Workaround for CS0433: NotNullAttribute conflict between JetBrains.Annotations and Xamarin.Jetbrains.Annotations.
+       See osu.Game.Tests.Android.csproj for full explanation. -->
+  <Target Name="AddPackageAliases" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="%(Filename) == 'Xamarin.Jetbrains.Annotations'">
+        <Aliases>XamarinJetbrainsAnnotations</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 </Project>

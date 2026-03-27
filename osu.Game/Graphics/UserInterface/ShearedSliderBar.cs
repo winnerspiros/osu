@@ -3,7 +3,6 @@
 
 using System;
 using System.Numerics;
-using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -12,6 +11,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
+using osuTK.Graphics;
 using Vector2 = osuTK.Vector2;
 
 namespace osu.Game.Graphics.UserInterface
