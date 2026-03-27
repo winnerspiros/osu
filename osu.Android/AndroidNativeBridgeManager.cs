@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using osu.Android.Native;
 using osu.Framework.Threading;
 using Debug = System.Diagnostics.Debug;
@@ -10,40 +11,48 @@ namespace osu.Android
 {
     /// <summary>
     /// Encapsulates all native bridge lifecycle management (Oboe audio, Vulkan probe).
-    /// Kept in a SEPARATE class so that <see cref="OboeAudioBridge"/> and <see cref="VulkanProbe"/>
-    /// types are only loaded by the runtime when this class is first accessed — NOT during
-    /// <see cref="OsuGameAndroid"/> class initialization, which happens before the framework
-    /// is ready and before native libraries are expected to be available.
+    /// Field types are declared as <c>object?</c> and all access is through
+    /// <c>[MethodImpl(NoInlining)]</c> helpers so that <see cref="OboeAudioBridge"/> and
+    /// <see cref="VulkanProbe"/> are only resolved by the runtime when their specific
+    /// feature is enabled — not when this class is loaded. This prevents Samsung-device
+    /// crashes caused by <c>NativeLibrary.TryLoad</c> being called during class
+    /// initialisation before the framework is ready.
     /// </summary>
     internal sealed class AndroidNativeBridgeManager : IDisposable
     {
-        private OboeAudioBridge? oboeBridge;
-        private VulkanProbe? vulkanProbe;
+        /// <summary>Boxed <see cref="OboeAudioBridge"/> — keeps the type out of class init.</summary>
+        private object? oboeBridge;
+
+        /// <summary>Boxed <see cref="VulkanProbe"/> — keeps the type out of class init.</summary>
+        private object? vulkanProbe;
+
         private volatile bool disposed;
 
+        // ── Oboe ───────────────────────────────────────────────────────────
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured)
         {
             if (oboeBridge != null) return;
 
             try
             {
-                oboeBridge = OboeAudioBridge.Create();
+                var bridge = OboeAudioBridge.Create();
 
-                if (oboeBridge != null)
+                if (bridge != null)
                 {
-                    bool started = oboeBridge.Start();
+                    oboeBridge = bridge;
+                    bool started = bridge.Start();
 
                     if (started)
                     {
-                        logOboeInfo();
+                        logOboeInfo(bridge);
 
-                        // Latency is measured asynchronously by the audio callback.
-                        // Schedule a check after a short warm-up period to get a stable reading.
                         scheduler.AddDelayed(() =>
                         {
-                            if (oboeBridge == null) return;
+                            if (oboeBridge is not OboeAudioBridge b) return;
 
-                            double latency = oboeBridge.GetOutputLatencyMs();
+                            double latency = b.GetOutputLatencyMs();
                             Debug.WriteLine($"[osu!] Oboe measured latency after warm-up: {latency:F1}ms");
 
                             if (latency > 0)
@@ -62,23 +71,36 @@ namespace osu.Android
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void StopOboeBridge()
         {
-            oboeBridge?.Dispose();
+            (oboeBridge as OboeAudioBridge)?.Dispose();
             oboeBridge = null;
             Debug.WriteLine("[osu!] Oboe bridge stopped by user setting");
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public double GetMeasuredAudioLatencyMs()
+        {
+            return (oboeBridge as OboeAudioBridge)?.GetOutputLatencyMs() ?? -1;
+        }
+
+        // ── Vulkan ─────────────────────────────────────────────────────────
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartVulkanProbe()
         {
             if (vulkanProbe != null) return;
 
             try
             {
-                vulkanProbe = VulkanProbe.Create();
+                var probe = VulkanProbe.Create();
 
-                if (vulkanProbe != null)
-                    logVulkanInfo();
+                if (probe != null)
+                {
+                    vulkanProbe = probe;
+                    logVulkanInfo(probe);
+                }
             }
             catch (Exception e)
             {
@@ -86,62 +108,73 @@ namespace osu.Android
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void StopVulkanProbe()
         {
-            vulkanProbe?.Dispose();
+            (vulkanProbe as VulkanProbe)?.Dispose();
             vulkanProbe = null;
             Debug.WriteLine("[osu!] Vulkan probe stopped by user setting");
         }
 
-        /// <summary>
-        /// Returns the measured audio output latency in milliseconds via the Oboe bridge,
-        /// or -1 if unavailable.
-        /// </summary>
-        public double GetMeasuredAudioLatencyMs()
-        {
-            return oboeBridge?.GetOutputLatencyMs() ?? -1;
-        }
+        // ── Logging ────────────────────────────────────────────────────────
 
-        private void logVulkanInfo()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void logVulkanInfo(VulkanProbe probe)
         {
-            if (vulkanProbe == null) return;
-
-            int ver = vulkanProbe.ApiVersion;
+            int ver = probe.ApiVersion;
             int major = (ver >> 22) & 0x3FF;
             int minor = (ver >> 12) & 0x3FF;
             int patch = ver & 0xFFF;
 
-            Debug.WriteLine($"[osu!] Vulkan GPU: available={vulkanProbe.IsAvailable}, "
+            Debug.WriteLine($"[osu!] Vulkan GPU: available={probe.IsAvailable}, "
                             + $"API={major}.{minor}.{patch}, "
-                            + $"swapchain={vulkanProbe.SupportsSwapchain}, "
-                            + $"mailbox={vulkanProbe.SupportsMailboxPresentMode}, "
-                            + $"VRAM={vulkanProbe.DeviceLocalMemoryMB}MB, "
-                            + $"queueFamilies={vulkanProbe.QueueFamilyCount}, "
-                            + $"dedicatedCompute={vulkanProbe.HasDedicatedComputeQueue}, "
-                            + $"dedicatedTransfer={vulkanProbe.HasDedicatedTransferQueue}");
+                            + $"swapchain={probe.SupportsSwapchain}, "
+                            + $"mailbox={probe.SupportsMailboxPresentMode}, "
+                            + $"VRAM={probe.DeviceLocalMemoryMB}MB, "
+                            + $"queueFamilies={probe.QueueFamilyCount}, "
+                            + $"dedicatedCompute={probe.HasDedicatedComputeQueue}, "
+                            + $"dedicatedTransfer={probe.HasDedicatedTransferQueue}");
         }
 
-        private void logOboeInfo()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void logOboeInfo(OboeAudioBridge bridge)
         {
-            if (oboeBridge == null) return;
-
-            Debug.WriteLine($"[osu!] Oboe audio: active={oboeBridge.IsActive}, "
-                            + $"api={(oboeBridge.IsAAudio ? "AAudio" : "OpenSLES")}, "
-                            + $"sampleRate={oboeBridge.SampleRate}Hz, "
-                            + $"burst={oboeBridge.FramesPerBurst}frames, "
-                            + $"bufferSize={oboeBridge.BufferSizeInFrames}frames");
+            Debug.WriteLine($"[osu!] Oboe audio: active={bridge.IsActive}, "
+                            + $"api={(bridge.IsAAudio ? "AAudio" : "OpenSLES")}, "
+                            + $"sampleRate={bridge.SampleRate}Hz, "
+                            + $"burst={bridge.FramesPerBurst}frames, "
+                            + $"bufferSize={bridge.BufferSizeInFrames}frames");
         }
 
+        // ── Cleanup ────────────────────────────────────────────────────────
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Dispose()
         {
             if (disposed) return;
 
             disposed = true;
 
-            oboeBridge?.Dispose();
+            try
+            {
+                (oboeBridge as OboeAudioBridge)?.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Oboe dispose failed: {e.Message}");
+            }
+
             oboeBridge = null;
 
-            vulkanProbe?.Dispose();
+            try
+            {
+                (vulkanProbe as VulkanProbe)?.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Vulkan dispose failed: {e.Message}");
+            }
+
             vulkanProbe = null;
         }
     }

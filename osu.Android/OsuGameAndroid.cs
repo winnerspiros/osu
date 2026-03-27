@@ -304,15 +304,18 @@ namespace osu.Android
 
         private void updateOrientation()
         {
+            // Read framework state on the update thread (the calling thread).
+            // ScreenStack may not be initialised yet during early LoadComplete callbacks.
+            if (ScreenStack?.CurrentScreen is not IOsuScreen currentScreen)
+                return;
+
+            var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
+
+            // Only the Android UI property assignment is dispatched to the main thread.
             gameActivity.RunOnUiThread(() =>
             {
                 try
                 {
-                    if (ScreenStack.CurrentScreen is not IOsuScreen currentScreen)
-                        return;
-
-                    var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
-
                     switch (orientation)
                     {
                         case MobileUtils.Orientation.Locked:
@@ -349,8 +352,14 @@ namespace osu.Android
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-            disposeNativeBridges();
+            try
+            {
+                base.Dispose(isDisposing);
+            }
+            finally
+            {
+                disposeNativeBridges();
+            }
         }
 
         private class AndroidBatteryInfo : BatteryInfo
