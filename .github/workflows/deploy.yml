@@ -48,7 +48,7 @@ jobs:
 
       - name: Set artifacts directory
         id: artifactsPath
-        run: echo "::set-output name=nuget_artifacts::${{github.workspace}}/artifacts"
+        run: echo "nuget_artifacts=${{github.workspace}}/artifacts"
 
       - name: Install .NET 10.0.x
         uses: actions/setup-dotnet@v5
