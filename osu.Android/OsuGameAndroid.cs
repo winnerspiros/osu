@@ -140,9 +140,7 @@ namespace osu.Android
                         });
                     }
                     else if (nativeBridges != null)
-                    {
                         stopOboeBridge();
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -373,7 +371,7 @@ namespace osu.Android
                     {
                         return Battery.ChargeLevel;
                     }
-                    catch
+                    catch (Exception)
                     {
                         return null;
                     }
@@ -388,7 +386,7 @@ namespace osu.Android
                     {
                         return Battery.PowerSource == BatteryPowerSource.Battery;
                     }
-                    catch
+                    catch (Exception)
                     {
                         return false;
                     }
