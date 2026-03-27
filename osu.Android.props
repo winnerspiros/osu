@@ -9,6 +9,14 @@
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
+  <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
+       Suppress trim analysis warnings because the project uses reflection extensively
+       (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
   </ItemGroup>
