@@ -8,14 +8,11 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-    <!-- Suppress 16 KB page-size warnings from the transitive dependency ppy.Veldrid.SPIRV
-         (pulled in by ppy.osu.Framework.Android). All published versions of that package ship
-         libveldrid-spirv.so with 4 KB ELF LOAD alignment. The upstream maintainers need to
-         rebuild with -Wl,-z,max-page-size=16384 (NDK r28+). The library still functions on
-         Android 16; the OS falls back to 4 KB pages for this .so.
-         TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
-    <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
   </PropertyGroup>
+  <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB
+       before the Android SDK validates page sizes. See build/PatchElfPageSize.targets.
+       TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
+  <Import Project="$(MSBuildThisFileDirectory)build\PatchElfPageSize.targets" />
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
        Suppress trim analysis warnings because the project uses reflection extensively
        (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
