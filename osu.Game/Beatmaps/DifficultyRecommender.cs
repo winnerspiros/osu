@@ -41,7 +41,7 @@ namespace osu.Game.Beatmaps
             get
             {
                 if (LoadState < LoadState.Ready || gameRuleset.Value == null)
-                    return Enumerable.Empty<string>();
+                    return [];
 
                 return recommendedDifficultyMapping
                        .OrderByDescending(pair => pair.Value)

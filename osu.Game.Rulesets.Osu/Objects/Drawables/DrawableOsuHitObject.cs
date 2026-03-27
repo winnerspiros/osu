@@ -74,7 +74,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             ScaleBindable.UnbindFrom(HitObject.ScaleBindable);
         }
 
-        protected virtual IEnumerable<Drawable> DimmablePieces => Enumerable.Empty<Drawable>();
+        protected virtual IEnumerable<Drawable> DimmablePieces => [];
 
         protected override void UpdateInitialTransforms()
         {

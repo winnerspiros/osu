@@ -54,7 +54,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         [Cached(typeof(IDialogOverlay))]
         private readonly DialogOverlay dialogOverlay;
 
-        private IEnumerable<ScoreInfo> scores => leaderboardManager.Scores.Value?.AllScores ?? Enumerable.Empty<ScoreInfo>();
+        private IEnumerable<ScoreInfo> scores => leaderboardManager.Scores.Value?.AllScores ?? [];
 
         public TestSceneDeleteLocalScore()
         {

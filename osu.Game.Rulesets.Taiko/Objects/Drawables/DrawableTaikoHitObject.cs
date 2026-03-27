@@ -120,7 +120,7 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
         }
 
         // osu!taiko hitsounds are managed by the drum (see DrumSampleTriggerSource).
-        public sealed override IEnumerable<HitSampleInfo> GetSamples() => Enumerable.Empty<HitSampleInfo>();
+        public sealed override IEnumerable<HitSampleInfo> GetSamples() => [];
     }
 
     public abstract partial class DrawableTaikoHitObject<TObject> : DrawableTaikoHitObject

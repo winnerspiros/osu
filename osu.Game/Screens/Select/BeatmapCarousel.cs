@@ -805,7 +805,7 @@ namespace osu.Game.Screens.Select
         protected override Task<IEnumerable<CarouselItem>> FilterAsync(bool clearExistingPanels = false)
         {
             if (Criteria == null)
-                return Task.FromResult(Enumerable.Empty<CarouselItem>());
+                return Task.FromResult([]);
 
             return base.FilterAsync(clearExistingPanels);
         }

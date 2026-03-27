@@ -48,7 +48,7 @@ namespace osu.Game
         /// <param name="getCurrentScreen">A function to retrieve the currently displayed game screen.</param>
         public PerformFromMenuRunner(Action<IScreen> finalAction, IEnumerable<Type> validScreens, Func<IScreen> getCurrentScreen)
         {
-            validScreens ??= Enumerable.Empty<Type>();
+            validScreens ??= [];
             validScreens = validScreens.Append(typeof(MainMenu));
 
             this.finalAction = finalAction;

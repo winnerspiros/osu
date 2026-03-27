@@ -67,7 +67,7 @@ namespace osu.Game.Rulesets.UI
             get
             {
                 if (HitObjectContainer == null)
-                    return Enumerable.Empty<DrawableHitObject>();
+                    return [];
 
                 var enumerable = HitObjectContainer.Objects;
 

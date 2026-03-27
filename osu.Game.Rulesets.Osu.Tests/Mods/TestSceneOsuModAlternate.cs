@@ -168,7 +168,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Mods
                 new OsuReplayFrame(2950, new Vector2(500, 100), OsuAction.LeftButton),
                 new OsuReplayFrame(2951, new Vector2(500, 100)),
             }.Concat(!pressBeforeSecondObject
-                ? Enumerable.Empty<ReplayFrame>()
+                ? []
                 : new ReplayFrame[]
                 {
                     // press same key after break but before hit object.

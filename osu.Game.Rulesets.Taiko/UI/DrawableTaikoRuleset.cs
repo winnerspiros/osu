@@ -61,7 +61,7 @@ namespace osu.Game.Rulesets.Taiko.UI
             var spriteElements = gameplayState?.Storyboard.Layers.Where(l => l.Name != @"Overlay")
                                               .SelectMany(l => l.Elements)
                                               .OfType<StoryboardSprite>()
-                                              .DistinctBy(e => e.Path) ?? Enumerable.Empty<StoryboardSprite>();
+                                              .DistinctBy(e => e.Path) ?? [];
 
             if (spriteElements.Count() < 10)
             {

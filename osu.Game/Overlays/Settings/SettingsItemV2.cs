@@ -136,7 +136,7 @@ namespace osu.Game.Overlays.Settings
 
         public const string CLASSIC_DEFAULT_SEARCH_TERM = @"has-classic-default";
 
-        public IEnumerable<string> Keywords { get; init; } = Enumerable.Empty<string>();
+        public IEnumerable<string> Keywords { get; init; } = [];
 
         public IEnumerable<LocalisableString> FilterTerms
         {

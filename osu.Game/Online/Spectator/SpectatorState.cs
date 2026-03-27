@@ -25,7 +25,7 @@ namespace osu.Game.Online.Spectator
 
         [NotNull]
         [Key(2)]
-        public IEnumerable<APIMod> Mods { get; set; } = Enumerable.Empty<APIMod>();
+        public IEnumerable<APIMod> Mods { get; set; } = [];
 
         [Key(3)]
         public SpectatedUserState State { get; set; }

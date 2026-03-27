@@ -205,7 +205,7 @@ namespace osu.Game.Overlays.Chat.ChannelList
 
         #region Filtering support
 
-        public IEnumerable<LocalisableString> FilterTerms => isSelector ? Enumerable.Empty<LocalisableString>() : [Channel.Name];
+        public IEnumerable<LocalisableString> FilterTerms => isSelector ? [] : [Channel.Name];
 
         private bool matchingFilter = true;
 

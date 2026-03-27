@@ -261,7 +261,7 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             public virtual IBindable<int> UnreadCount { get; } = new Bindable<int>();
 
-            public IEnumerable<Notification> AllNotifications => Enumerable.Empty<Notification>();
+            public IEnumerable<Notification> AllNotifications => [];
         }
 
         // interface mocks break hot reload, mocking this stub implementation instead works around it.

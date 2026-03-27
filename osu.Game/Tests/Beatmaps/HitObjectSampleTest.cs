@@ -192,7 +192,7 @@ namespace osu.Game.Tests.Beatmaps
 
             private void markLookup(string name) => PerformedLookups.Add(name.Substring(name.LastIndexOf(Path.DirectorySeparatorChar) + 1));
 
-            public IEnumerable<string> GetAvailableResources() => Enumerable.Empty<string>();
+            public IEnumerable<string> GetAvailableResources() => [];
 
             public void Dispose()
             {

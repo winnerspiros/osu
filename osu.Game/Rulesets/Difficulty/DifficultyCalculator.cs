@@ -251,7 +251,7 @@ namespace osu.Game.Rulesets.Difficulty
                 if (!(mod is MultiMod multi))
                     return (mod.Yield(), 1);
 
-                IEnumerable<Mod> set = Enumerable.Empty<Mod>();
+                IEnumerable<Mod> set = [];
                 int count = 0;
 
                 foreach (var nested in multi.Mods)

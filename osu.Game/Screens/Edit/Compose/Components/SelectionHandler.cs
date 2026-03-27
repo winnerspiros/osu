@@ -424,7 +424,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// <param name="selection">The current selection.</param>
         /// <returns>The relevant menu items.</returns>
         protected virtual IEnumerable<MenuItem> GetContextMenuItemsForSelection(IEnumerable<SelectionBlueprint<T>> selection)
-            => Enumerable.Empty<MenuItem>();
+            => [];
 
         #endregion
     }

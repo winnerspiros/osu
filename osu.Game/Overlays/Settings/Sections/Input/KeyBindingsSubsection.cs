@@ -128,6 +128,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         }
 
         // Empty FilterTerms so that the ResetButton is visible only when the whole subsection is visible.
-        public override IEnumerable<LocalisableString> FilterTerms => Enumerable.Empty<LocalisableString>();
+        public override IEnumerable<LocalisableString> FilterTerms => [];
     }
 }

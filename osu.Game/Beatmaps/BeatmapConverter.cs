@@ -134,6 +134,6 @@ namespace osu.Game.Beatmaps
         /// <param name="beatmap">The un-converted Beatmap.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The converted hit object.</returns>
-        protected virtual IEnumerable<T> ConvertHitObject(HitObject original, IBeatmap beatmap, CancellationToken cancellationToken) => Enumerable.Empty<T>();
+        protected virtual IEnumerable<T> ConvertHitObject(HitObject original, IBeatmap beatmap, CancellationToken cancellationToken) => [];
     }
 }

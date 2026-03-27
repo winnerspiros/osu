@@ -193,7 +193,7 @@ namespace osu.Game.Graphics.Carousel
         ///
         /// A filter may add, mutate or remove items.
         /// </remarks>
-        public IEnumerable<ICarouselFilter> Filters { get; init; } = Enumerable.Empty<ICarouselFilter>();
+        public IEnumerable<ICarouselFilter> Filters { get; init; } = [];
 
         /// <summary>
         /// All items which are to be considered for display in this carousel.
@@ -347,7 +347,7 @@ namespace osu.Game.Graphics.Carousel
 
         private List<CarouselItem>? carouselItems;
 
-        private Task<IEnumerable<CarouselItem>> filterTask = Task.FromResult(Enumerable.Empty<CarouselItem>());
+        private Task<IEnumerable<CarouselItem>> filterTask = Task.FromResult([]);
         private CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace osu.Game.Graphics.Carousel
             }, cts.Token).ConfigureAwait(false);
 
             if (cts.Token.IsCancellationRequested)
-                return Enumerable.Empty<CarouselItem>();
+                return [];
 
             Schedule(() =>
             {

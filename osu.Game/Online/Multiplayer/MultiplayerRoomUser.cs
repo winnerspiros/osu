@@ -32,7 +32,7 @@ namespace osu.Game.Online.Multiplayer
         /// Any mods applicable only to the local user.
         /// </summary>
         [Key(3)]
-        public IEnumerable<APIMod> Mods { get; set; } = Enumerable.Empty<APIMod>();
+        public IEnumerable<APIMod> Mods { get; set; } = [];
 
         [Key(4)]
         public MatchUserState? MatchState { get; set; }

@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns
         /// <summary>
         /// All the hit objects contained in this pattern.
         /// </summary>
-        public IEnumerable<ManiaHitObject> HitObjects => hitObjects ?? Enumerable.Empty<ManiaHitObject>();
+        public IEnumerable<ManiaHitObject> HitObjects => hitObjects ?? [];
 
         /// <summary>
         /// Check whether a column of this patterns contains a hit object.

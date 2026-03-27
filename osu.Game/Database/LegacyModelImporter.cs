@@ -29,7 +29,7 @@ namespace osu.Game.Database
         protected virtual IEnumerable<string> GetStableImportPaths(Storage storage)
         {
             if (!storage.ExistsDirectory(ImportFromStablePath))
-                return Enumerable.Empty<string>();
+                return [];
 
             return storage.GetDirectories(ImportFromStablePath)
                           .Select(path => storage.GetFullPath(path));
