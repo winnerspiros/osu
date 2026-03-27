@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup Label="Package References">
     <!-- Held back due to licencing change stupidness. Silenced vulnerability does not affect us. -->
-    <PackageReference Include="AutoMapper" Version="13.0.1">
+    <PackageReference Include="AutoMapper" Version="16.1.1">
       <NoWarn>NU1903</NoWarn>
     </PackageReference>
     <PackageReference Include="DiffPlex" Version="1.9.0" />
@@ -42,7 +42,7 @@
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.312.0" />
     <PackageReference Include="Sentry" Version="6.2.0" />
     <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->
-    <PackageReference Include="SharpCompress" Version="0.47.0" />
+    <PackageReference Include="SharpCompress" Version="0.47.3" />
     <PackageReference Include="NUnit" Version="4.5.1" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
