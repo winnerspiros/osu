@@ -19,10 +19,17 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.3" />
   </ItemGroup>
-  <!-- Exclude native C++ source files from the build. They are compiled separately via CMake/NDK. -->
+  <!-- Exclude native C++ source files from the managed build. They are compiled separately via CMake/NDK. -->
   <ItemGroup>
     <None Remove="Native\*.cpp" />
     <None Remove="Native\*.h" />
     <None Remove="Native\CMakeLists.txt" />
+  </ItemGroup>
+  <!-- Include pre-built native libraries when present (built by the release workflow or local NDK build).
+       When absent, native features (Oboe audio, Vulkan probe) are gracefully disabled at runtime. -->
+  <ItemGroup>
+    <AndroidNativeLibrary Include="libs\arm64-v8a\libosu_native.so" Condition="Exists('libs\arm64-v8a\libosu_native.so')" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="libs\armeabi-v7a\libosu_native.so" Condition="Exists('libs\armeabi-v7a\libosu_native.so')" Abi="armeabi-v7a" />
+    <AndroidNativeLibrary Include="libs\x86\libosu_native.so" Condition="Exists('libs\x86\libosu_native.so')" Abi="x86" />
   </ItemGroup>
 </Project>

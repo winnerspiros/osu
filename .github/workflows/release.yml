@@ -32,6 +32,34 @@ jobs:
       - name: Install .NET Android workload
         run: dotnet workload install android
 
+      - name: Ensure Android NDK and CMake are available
+        run: |
+          # The ubuntu-latest runner has $ANDROID_HOME pre-installed.
+          # Install a known NDK + CMake version if not already present.
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1" > /dev/null 2>&1
+
+      - name: Build native library (libosu_native.so)
+        run: |
+          NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
+          CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
+
+          for ABI in arm64-v8a armeabi-v7a x86; do
+            echo "::group::Building osu_native for $ABI"
+            "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
+              -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
+              -DANDROID_ABI="$ABI" \
+              -DANDROID_PLATFORM=android-30 \
+              -DCMAKE_BUILD_TYPE=Release
+            "$CMAKE_BIN" --build "build-native/$ABI" --config Release -j "$(nproc)"
+            mkdir -p "osu.Android/libs/$ABI"
+            cp "build-native/$ABI/libosu_native.so" "osu.Android/libs/$ABI/"
+            echo "::endgroup::"
+          done
+
+          echo "Native libraries built successfully:"
+          find osu.Android/libs -name "*.so" -exec ls -lh {} \;
+
       - name: Decode keystore
         id: keystore
         run: |
