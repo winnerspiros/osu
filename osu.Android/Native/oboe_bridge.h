@@ -10,8 +10,12 @@
 /// Low-latency audio bridge using Google's Oboe library.
 /// Optimised for rhythm-game audio-visual synchronization with:
 ///  - AAudio preferred (lowest latency path on Android 8.1+)
+///  - MMAP enabled (hardware-level DMA, bypasses kernel copy)
 ///  - Exclusive sharing mode (bypass system mixer)
+///  - Mono output (minimum buffer for latency-measurement stream)
 ///  - Buffer size tuned to 1× burst for minimum latency
+///  - All format/rate/channel conversions disabled (zero resampler overhead)
+///  - Latency sampled every 128 callbacks (avoids syscall overhead in hot path)
 ///  - Automatic stream recovery on disconnect / route change
 class OboeBridge : public oboe::AudioStreamCallback {
 public:
@@ -56,6 +60,7 @@ private:
     std::mutex streamLock_;
     std::atomic<bool> active_{false};
     std::atomic<double> latencyMs_{-1.0};
+    std::atomic<uint32_t> callbackCount_{0};
 
     void updateLatency();
     void optimiseBufferSize();

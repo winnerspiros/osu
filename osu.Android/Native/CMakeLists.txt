@@ -3,9 +3,15 @@ project(osu_native LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Release build optimizations for low-latency performance.
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "-O2 -flto -fvisibility=hidden -DNDEBUG")
+# Maximum release optimizations for lowest-latency audio callback path.
+# -O3:           aggressive inlining & vectorisation
+# -flto:         link-time optimisation across translation units
+# -ffast-math:   enable SIMD-friendly FP (safe — we only memset + store a double)
+# -ffunction/data-sections + --gc-sections:  dead-code elimination
+# -fvisibility=hidden:  only OSU_EXPORT symbols are visible
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -s")
 
 # Disable Oboe's flowgraph module — we don't use any audio processing/conversion
 # features (our bridge outputs silence for latency measurement only).
