@@ -40,7 +40,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             AddStep("set DT, HR", () => MultiplayerClient.ChangeUserMods([new OsuModDoubleTime(), new OsuModHardRock()]).WaitSafely());
             AddUntilStep("mods displayed", () => modDisplay.ChildrenOfType<ModIcon>().Count() == 2);
 
-            AddStep("set no mods", () => MultiplayerClient.ChangeUserMods([]).WaitSafely());
+            AddStep("set no mods", () => MultiplayerClient.ChangeUserMods(Enumerable.Empty<APIMod>()).WaitSafely());
             AddUntilStep("no mods displayed", () => !modDisplay.ChildrenOfType<ModIcon>().Any());
         }
     }

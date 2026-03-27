@@ -741,7 +741,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             await updatePlaylistOrder(ServerRoom).ConfigureAwait(false);
         }
 
-        private IEnumerable<MultiplayerPlaylistItem> upcomingItems => ServerRoom?.Playlist.Where(i => !i.Expired).OrderBy(i => i.PlaylistOrder) ?? [];
+        private IEnumerable<MultiplayerPlaylistItem> upcomingItems => ServerRoom?.Playlist.Where(i => !i.Expired).OrderBy(i => i.PlaylistOrder) ?? Enumerable.Empty<MultiplayerPlaylistItem>();
 
         private async Task updateCurrentItem(MultiplayerRoom room, bool notify = true)
         {

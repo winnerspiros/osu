@@ -347,7 +347,7 @@ namespace osu.Game.Graphics.Carousel
 
         private List<CarouselItem>? carouselItems;
 
-        private Task<IEnumerable<CarouselItem>> filterTask = Task.FromResult([]);
+        private Task<IEnumerable<CarouselItem>> filterTask = Task.FromResult<IEnumerable<CarouselItem>>([]);
         private CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
         /// <summary>
