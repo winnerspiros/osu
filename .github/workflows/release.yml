@@ -35,9 +35,11 @@ jobs:
       - name: Ensure Android NDK and CMake are available
         run: |
           # The ubuntu-latest runner has $ANDROID_HOME pre-installed.
+          # sdkmanager is not on PATH; use the full path.
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           # Install latest stable NDK (r29) + CMake.
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "ndk;29.0.14206865" "cmake;3.22.1" > /dev/null 2>&1
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install "ndk;29.0.14206865" "cmake;3.22.1" > /dev/null 2>&1
 
       - name: Build native library (libosu_native.so)
         run: |
