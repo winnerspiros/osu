@@ -144,10 +144,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             onSelectionChanged();
         }
 
-        private bool shouldPlayWarningSample { get => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
-               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
-               && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-               && !field; set;
+        private bool shouldPlayWarningSample
+        {
+            get => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
+                   && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
+                   && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
+                   && !field;
+            set;
         }
 
         protected override void Update()

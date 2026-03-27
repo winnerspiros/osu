@@ -114,10 +114,12 @@ namespace osu.Game.Overlays.Dashboard.Friends
             {
                 default:
                 case OverlayPanelDisplayStyle.Card:
-                    panel = new UserGridPanel(user);
-                    panel.Anchor = Anchor.TopCentre;
-                    panel.Origin = Anchor.TopCentre;
-                    panel.Width = 290;
+                    panel = new UserGridPanel(user)
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        Width = 290
+                    };
                     break;
 
                 case OverlayPanelDisplayStyle.List:

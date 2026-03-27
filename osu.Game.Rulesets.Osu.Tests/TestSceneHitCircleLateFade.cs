@@ -137,9 +137,10 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 StartTime = Time.Current + 500,
                 Position = new Vector2(250),
-            }, shouldHit);
-
-            drawableHitCircle.Scale = new Vector2(2f);
+            }, shouldHit)
+            {
+                Scale = new Vector2(2f)
+            };
 
             LoadComponent(drawableHitCircle);
             foreach (var mod in SelectedMods.Value.OfType<IApplicableToDrawableHitObject>())
@@ -171,9 +172,10 @@ namespace osu.Game.Rulesets.Osu.Tests
                     Vector2.Zero,
                     new Vector2(0, 100),
                 })
-            });
-
-            drawableSlider.Scale = new Vector2(2f);
+            })
+            {
+                Scale = new Vector2(2f)
+            };
 
             drawableSlider.HitObject.ApplyDefaults(new ControlPointInfo(), new BeatmapDifficulty());
 

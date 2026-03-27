@@ -8,6 +8,9 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <!-- Suppress 16 KB page-size warnings from third-party native libraries (e.g. ppy.Veldrid.SPIRV)
+         that we cannot rebuild. The libraries still work; Android 16 will merely log a compatibility notice. -->
+    <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
   </PropertyGroup>
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
        Suppress trim analysis warnings because the project uses reflection extensively
