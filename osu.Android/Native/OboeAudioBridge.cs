@@ -227,6 +227,28 @@ namespace osu.Android.Native
             }
         }
 
+        /// <summary>
+        /// Whether the stream is using the hardware MMAP path (lowest possible latency).
+        /// MMAP provides direct memory-mapped access to audio hardware buffers,
+        /// bypassing the normal kernel copy path.
+        /// </summary>
+        public bool IsMMap
+        {
+            get
+            {
+                if (disposed || nativePtr == IntPtr.Zero) return false;
+
+                try
+                {
+                    return nOboeIsMMap(nativePtr) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Dispose()
         {
             if (disposed) return;
@@ -284,5 +306,8 @@ namespace osu.Android.Native
 
         [DllImport(lib_name)]
         private static extern byte nOboeIsAAudio(IntPtr ptr);
+
+        [DllImport(lib_name)]
+        private static extern byte nOboeIsMMap(IntPtr ptr);
     }
 }

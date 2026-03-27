@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
+#include <oboe/OboeExtensions.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstring>
@@ -22,16 +23,29 @@ OboeBridge::~OboeBridge() {
 bool OboeBridge::open() {
     std::lock_guard<std::mutex> lock(streamLock_);
 
+    // Request MMAP mode globally before opening the stream.
+    // MMAP provides a hardware-level DMA path that bypasses the kernel audio
+    // copy, shaving ~1-2 ms off the round-trip latency on supported devices.
+    oboe::OboeExtensions::setMMapEnabled(true);
+
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
-           ->setChannelCount(oboe::ChannelCount::Stereo)
+           // Mono — this stream outputs silence for latency measurement only.
+           // Mono halves the per-callback buffer vs stereo, reducing the
+           // minimum achievable latency.
+           ->setChannelCount(oboe::ChannelCount::Mono)
            // Let Oboe pick the device's native sample rate.
            // Hardcoding (e.g. 48000) would force Android's SRC resampler when the
            // device native rate differs, adding measurable latency.
            ->setSampleRate(oboe::kUnspecified)
+           // Explicitly forbid all internal conversions so that no resampler,
+           // channel mixer, or format converter sits in the audio path.
+           ->setChannelConversionAllowed(false)
+           ->setFormatConversionAllowed(false)
+           ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::None)
            // Semantic hints help Android route through the optimal audio path.
            ->setContentType(oboe::ContentType::Music)
            ->setUsage(oboe::Usage::Game)
@@ -62,13 +76,14 @@ bool OboeBridge::open() {
     optimiseBufferSize();
 
     LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
-         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s",
+         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
          stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
          stream_->getSampleRate(),
          stream_->getFramesPerBurst(),
          stream_->getBufferSizeInFrames(),
          stream_->getBufferCapacityInFrames(),
-         stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared");
+         stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared",
+         oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
 
     return true;
 }
@@ -121,6 +136,7 @@ void OboeBridge::stop() {
     }
 
     latencyMs_.store(-1.0);
+    callbackCount_.store(0);
     LOGI("Oboe stream stopped");
 }
 
@@ -152,6 +168,11 @@ bool OboeBridge::isAAudio() const {
     return stream_ && stream_->getAudioApi() == oboe::AudioApi::AAudio;
 }
 
+bool OboeBridge::isMMap() const {
+    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    return stream_ && oboe::OboeExtensions::isMMapUsed(stream_.get());
+}
+
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
@@ -163,7 +184,13 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
                      * sizeof(float);
     memset(audioData, 0, byteCount);
 
-    updateLatency();
+    // Sample latency every 128 callbacks (~250 ms at typical burst/sample rates)
+    // instead of every single callback. calculateLatencyMillis() issues a
+    // system call; keeping it out of the majority of callbacks reduces jitter
+    // in this real-time audio thread.
+    if ((callbackCount_.fetch_add(1, std::memory_order_relaxed) & 127) == 0) {
+        updateLatency();
+    }
 
     return oboe::DataCallbackResult::Continue;
 }
@@ -295,6 +322,11 @@ OSU_EXPORT int nOboeGetBufferSizeInFrames(intptr_t ptr) {
 OSU_EXPORT unsigned char nOboeIsAAudio(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isAAudio()) ? 1 : 0;
+}
+
+OSU_EXPORT unsigned char nOboeIsMMap(intptr_t ptr) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    return (bridge && bridge->isMMap()) ? 1 : 0;
 }
 
 } // extern "C"

@@ -139,10 +139,8 @@ namespace osu.Android
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                         });
                     }
-                    else
-                    {
+                    else if (nativeBridges != null)
                         stopOboeBridge();
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -156,7 +154,7 @@ namespace osu.Android
                 {
                     if (e.NewValue)
                         startVulkanProbe();
-                    else
+                    else if (nativeBridges != null)
                         stopVulkanProbe();
                 }
                 catch (Exception ex)
@@ -358,15 +356,42 @@ namespace osu.Android
             }
             finally
             {
-                disposeNativeBridges();
+                if (nativeBridges != null)
+                    disposeNativeBridges();
             }
         }
 
         private class AndroidBatteryInfo : BatteryInfo
         {
-            public override double? ChargeLevel => Battery.ChargeLevel;
+            public override double? ChargeLevel
+            {
+                get
+                {
+                    try
+                    {
+                        return Battery.ChargeLevel;
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                }
+            }
 
-            public override bool OnBattery => Battery.PowerSource == BatteryPowerSource.Battery;
+            public override bool OnBattery
+            {
+                get
+                {
+                    try
+                    {
+                        return Battery.PowerSource == BatteryPowerSource.Battery;
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                }
+            }
         }
     }
 }

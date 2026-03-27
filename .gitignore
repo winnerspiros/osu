@@ -344,3 +344,7 @@ FodyWeavers.xsd
 
 .idea/.idea.osu.Desktop/.idea/misc.xml
 .idea/.idea.osu.Android/.idea/deploymentTargetDropDown.xml
+
+# Native library build artifacts (built by CMake/NDK in CI or locally)
+osu.Android/libs/
+build-native/

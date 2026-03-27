@@ -21,7 +21,8 @@ VulkanProbe::VulkanProbe() {
 
     if (available_) {
         LOGI("Vulkan available: %s (API %u.%u.%u, driver %u, VRAM %u MB, "
-             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d, mailbox=%d)",
+             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d, mailbox=%d, "
+             "vk1.3=%d, dynamicRendering=%d, synchronization2=%d)",
              deviceInfo_.deviceName.c_str(),
              VK_VERSION_MAJOR(deviceInfo_.apiVersion),
              VK_VERSION_MINOR(deviceInfo_.apiVersion),
@@ -32,7 +33,10 @@ VulkanProbe::VulkanProbe() {
              deviceInfo_.hasDedicatedComputeQueue ? 1 : 0,
              deviceInfo_.hasDedicatedTransferQueue ? 1 : 0,
              deviceInfo_.supportsSwapchain ? 1 : 0,
-             deviceInfo_.supportsMailboxPresentMode ? 1 : 0);
+             deviceInfo_.supportsMailboxPresentMode ? 1 : 0,
+             deviceInfo_.meetsVulkan13 ? 1 : 0,
+             deviceInfo_.supportsDynamicRendering ? 1 : 0,
+             deviceInfo_.supportsSynchronization2 ? 1 : 0);
     } else {
         LOGI("Vulkan not available on this device");
     }
@@ -49,7 +53,9 @@ bool VulkanProbe::createInstance() {
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "osu-framework";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    // Request Vulkan 1.3 to enable full feature queries (dynamic rendering,
+    // synchronization2). Falls back to 1.0 on older drivers.
+    appInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -58,6 +64,13 @@ bool VulkanProbe::createInstance() {
     createInfo.enabledExtensionCount = 0;
 
     VkResult result = vkCreateInstance(&createInfo, nullptr, &instance_);
+
+    if (result == VK_ERROR_INCOMPATIBLE_DRIVER) {
+        // Vulkan 1.0-only driver; fall back.
+        LOGI("Vulkan 1.3 instance not supported, falling back to 1.0");
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+        result = vkCreateInstance(&createInfo, nullptr, &instance_);
+    }
 
     if (result != VK_SUCCESS) {
         LOGE("vkCreateInstance failed: %d", result);
@@ -130,6 +143,7 @@ bool VulkanProbe::queryDevice() {
     queryMemory(selected);
     queryQueueFamilies(selected);
     queryMailboxSupport(selected);
+    queryVulkan13Features(selected);
 
     return true;
 }
@@ -203,6 +217,33 @@ void VulkanProbe::queryMailboxSupport(VkPhysicalDevice device) {
     }
 }
 
+void VulkanProbe::queryVulkan13Features(VkPhysicalDevice device) {
+    // Check if the device reports Vulkan 1.3+.
+    uint32_t major = VK_VERSION_MAJOR(deviceInfo_.apiVersion);
+    uint32_t minor = VK_VERSION_MINOR(deviceInfo_.apiVersion);
+
+    if (major < 1 || (major == 1 && minor < 3)) {
+        LOGI("Device Vulkan API %u.%u < 1.3, skipping 1.3 feature query", major, minor);
+        return;
+    }
+
+    deviceInfo_.meetsVulkan13 = true;
+
+    // vkGetPhysicalDeviceFeatures2 is available since Vulkan 1.1, and the device
+    // reports 1.3+, so this is safe.
+    VkPhysicalDeviceVulkan13Features features13{};
+    features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+    VkPhysicalDeviceFeatures2 features2{};
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features2.pNext = &features13;
+
+    vkGetPhysicalDeviceFeatures2(device, &features2);
+
+    deviceInfo_.supportsDynamicRendering = features13.dynamicRendering == VK_TRUE;
+    deviceInfo_.supportsSynchronization2 = features13.synchronization2 == VK_TRUE;
+}
+
 void VulkanProbe::cleanup() {
     if (instance_ != VK_NULL_HANDLE) {
         vkDestroyInstance(instance_, nullptr);
@@ -270,6 +311,21 @@ OSU_EXPORT unsigned char nVulkanHasDedicatedTransferQueue(intptr_t ptr) {
 OSU_EXPORT unsigned char nVulkanSupportsMailboxPresentMode(intptr_t ptr) {
     auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
     return (probe && probe->getDeviceInfo().supportsMailboxPresentMode) ? 1 : 0;
+}
+
+OSU_EXPORT unsigned char nVulkanMeetsVulkan13(intptr_t ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().meetsVulkan13) ? 1 : 0;
+}
+
+OSU_EXPORT unsigned char nVulkanSupportsDynamicRendering(intptr_t ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().supportsDynamicRendering) ? 1 : 0;
+}
+
+OSU_EXPORT unsigned char nVulkanSupportsSynchronization2(intptr_t ptr) {
+    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
+    return (probe && probe->getDeviceInfo().supportsSynchronization2) ? 1 : 0;
 }
 
 } // extern "C"
