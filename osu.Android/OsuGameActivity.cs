@@ -83,6 +83,15 @@ namespace osu.Android
             // first use because the internal Platform.CurrentActivity is null.
             Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
 
+            try
+            {
+                global::Java.Lang.JavaSystem.LoadLibrary("osu_native");
+            }
+            catch (Exception e)
+            {
+                global::Android.Util.Log.Error("OsuGameActivity", $"Failed to load native library: {e}");
+            }
+
 
 
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
@@ -196,4 +205,41 @@ namespace osu.Android
             if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
         }, TaskCreationOptions.LongRunning);
     }
+
+        public global::Android.Views.Surface? GetSurface()
+        {
+            var rootView = Window?.DecorView;
+            if (rootView == null) return null;
+            return findSurfaceView(rootView)?.Holder?.Surface;
+        }
+
+        public IntPtr GetSurfaceGlobalRef()
+        {
+            var tcs = new TaskCompletionSource<IntPtr>();
+            RunOnUiThread(() =>
+            {
+                var surface = GetSurface();
+                if (surface != null && surface.Handle != IntPtr.Zero)
+                    tcs.SetResult(global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle));
+                else
+                    tcs.SetResult(IntPtr.Zero);
+            });
+            tcs.Task.Wait(1000); // Use a timeout to avoid deadlock if the UI thread is stuck.
+            return tcs.Task.IsCompleted ? tcs.Task.Result : IntPtr.Zero;
+        }
+
+        private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
+        {
+            if (view == null) return null;
+            if (view is global::Android.Views.SurfaceView sv) return sv;
+            if (view is global::Android.Views.ViewGroup vg)
+            {
+                for (int i = 0; i < vg.ChildCount; i++)
+                {
+                    var found = findSurfaceView(vg.GetChildAt(i));
+                    if (found != null) return found;
+                }
+            }
+            return null;
+        }
 }
