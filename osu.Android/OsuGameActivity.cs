@@ -204,7 +204,6 @@ namespace osu.Android
 
             if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
         }, TaskCreationOptions.LongRunning);
-    }
 
         public global::Android.Views.Surface? GetSurface()
         {
@@ -242,4 +241,5 @@ namespace osu.Android
             }
             return null;
         }
+    }
 }
