@@ -1,4 +1,16 @@
+# Exclusion for forked framework
+[external/**]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.severity = none
+
 # EditorConfig is awesome: http://editorconfig.org
+
+[external/**]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.severity = none
+
 root = true
 
 [external/**]
@@ -66,3 +78,6 @@ dotnet_naming_symbols.private_constants.required_modifiers = const
 dotnet_naming_rule.private_constants_snake_case.severity = warning
 dotnet_naming_rule.private_constants_snake_case.symbols = private_constants
 dotnet_naming_rule.private_constants_snake_case.style = snake_case
+
+[external/**]
+generated_code = true

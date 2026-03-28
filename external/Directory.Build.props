@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <!-- Disable all analyzers and code style enforcement for everything in the external folder -->
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzers>false</RunAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
+    <NoWarn>$(NoWarn);IDE0001;IDE0002;IDE0003;IDE0004;IDE0005;IDE0018;IDE0019;IDE0031;IDE0032;IDE0040;IDE0042;IDE0055;IDE0057;IDE0062;IDE0270;IDE1006;CA2265</NoWarn>
+  </PropertyGroup>
+</Project>
