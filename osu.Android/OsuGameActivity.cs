@@ -61,7 +61,7 @@ namespace osu.Android
                 throw new InvalidOperationException("Framework tried to create a game twice.");
 
             if (game == null)
-                throw new InvalidOperationException("Game was not initialised in OnCreate.");
+                throw new InvalidOperationException("Game was not initialised.");
 
             gameCreated = true;
             return game;
@@ -69,13 +69,12 @@ namespace osu.Android
 
         public OsuGameActivity()
         {
+            game = new OsuGameAndroid(this);
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
-            game = new OsuGameAndroid(this);
 
             // Initialise MAUI Essentials so that Battery, Connectivity and other platform
             // APIs can resolve the current Activity/context. Without this call the
@@ -83,6 +82,8 @@ namespace osu.Android
             // EnergySaverBroadcastReceiver, ConnectivityBroadcastReceiver) will crash on
             // first use because the internal Platform.CurrentActivity is null.
             Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+
+
 
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
             // on first launch we still have to fire manually.

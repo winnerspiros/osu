@@ -27,28 +27,34 @@ namespace osu.Android
         [Cached]
         private readonly OsuGameActivity gameActivity;
 
+        private readonly object packageInfoLock = new object();
         private PackageInfo? packageInfo;
         private bool packageInfoChecked;
 
         private PackageInfo? getPackageInfo()
         {
-            if (packageInfoChecked)
+            lock (packageInfoLock)
+            {
+                if (packageInfoChecked)
+                    return packageInfo;
+
+                try
+                {
+                    // Use the activity instance directly instead of Application.Context to ensure
+                    // the PackageManager is accessible even on newer/stricter Android versions.
+                    packageInfo = gameActivity.PackageManager?.GetPackageInfo(gameActivity.PackageName!, 0);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
+                }
+                finally
+                {
+                    packageInfoChecked = true;
+                }
+
                 return packageInfo;
-
-            try
-            {
-                packageInfo = gameActivity.PackageManager?.GetPackageInfo(gameActivity.PackageName!, 0);
             }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
-            }
-            finally
-            {
-                packageInfoChecked = true;
-            }
-
-            return packageInfo;
         }
 
         public override Vector2 ScalingContainerTargetDrawSize => DrawWidth > 0 && DrawHeight > 0
@@ -109,12 +115,12 @@ namespace osu.Android
         }
 
         [BackgroundDependencyLoader]
-        private void load(OsuConfigManager config)
+        private void load()
         {
-            config.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
-            config.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
-            config.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
-            config.BindWith(OsuSetting.AudioOffset, audioOffset);
+            LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
+            LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
+            LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
+            LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
         }
 
         protected override void LoadComplete()
