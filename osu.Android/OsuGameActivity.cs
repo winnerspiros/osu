@@ -51,7 +51,7 @@ namespace osu.Android
 
         public new bool IsTablet { get; private set; }
 
-        private readonly OsuGameAndroid game;
+        private OsuGameAndroid? game;
 
         private bool gameCreated;
 
@@ -59,6 +59,9 @@ namespace osu.Android
         {
             if (gameCreated)
                 throw new InvalidOperationException("Framework tried to create a game twice.");
+
+            if (game == null)
+                throw new InvalidOperationException("Game was not initialised.");
 
             gameCreated = true;
             return game;
@@ -79,6 +82,8 @@ namespace osu.Android
             // EnergySaverBroadcastReceiver, ConnectivityBroadcastReceiver) will crash on
             // first use because the internal Platform.CurrentActivity is null.
             Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+
+
 
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
             // on first launch we still have to fire manually.
@@ -145,7 +150,7 @@ namespace osu.Android
                     else if (osu_url_schemes.Contains(intent.Scheme))
                     {
                         if (intent.DataString != null)
-                            game.HandleLink(intent.DataString);
+                            game?.HandleLink(intent.DataString);
                     }
 
                     break;
@@ -188,7 +193,7 @@ namespace osu.Android
                 }
             })).ConfigureAwait(false);
 
-            await game.Import(tasks.ToArray()).ConfigureAwait(false);
+            if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
         }, TaskCreationOptions.LongRunning);
     }
 }
