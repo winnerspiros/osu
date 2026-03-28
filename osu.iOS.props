@@ -29,6 +29,7 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.318.0" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)external/osu-framework/osu.Framework.iOS/osu.Framework.iOS.csproj" />
   </ItemGroup>
+  <Import Project="$(MSBuildThisFileDirectory)external/osu-framework/osu.Framework.iOS.props" />
 </Project>
