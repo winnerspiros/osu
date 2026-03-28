@@ -21,12 +21,14 @@ jobs:
       uses: actions/checkout@v6
         with:
           submodules: recursive
+      with:
         path: osu
 
     - name: Checkout ppy/osu-tools
       uses: actions/checkout@v6
         with:
           submodules: recursive
+      with:
         repository: ppy/osu-tools
         path: osu-tools
 
@@ -34,6 +36,7 @@ jobs:
       uses: actions/checkout@v6
         with:
           submodules: recursive
+      with:
         repository: ppy/osu-web
         path: osu-web
 
