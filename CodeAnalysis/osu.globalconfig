@@ -110,8 +110,3 @@ dotnet_diagnostic.RS0030.severity = error
 # Temporarily disable analysing CanBeNull = true in NRT contexts due to mobile issues.
 # See: https://github.com/ppy/osu/pull/19677
 dotnet_diagnostic.OSUF001.severity = none
-
-# Suppress all diagnostics for external folder
-[**/external/**]
-dotnet_analyzer_diagnostic.severity = none
-dotnet_diagnostic.severity = none
