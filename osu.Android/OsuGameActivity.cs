@@ -73,6 +73,13 @@ namespace osu.Android
         {
             base.OnCreate(savedInstanceState);
 
+            // Initialise MAUI Essentials so that Battery, Connectivity and other platform
+            // APIs can resolve the current Activity/context. Without this call the
+            // BroadcastReceivers registered in the merged manifest (BatteryBroadcastReceiver,
+            // EnergySaverBroadcastReceiver, ConnectivityBroadcastReceiver) will crash on
+            // first use because the internal Platform.CurrentActivity is null.
+            Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+
             // OnNewIntent() only fires for an activity if it's *re-launched* while it's on top of the activity stack.
             // on first launch we still have to fire manually.
             // reference: https://developer.android.com/reference/android/app/Activity#onNewIntent(android.content.Intent)
@@ -115,6 +122,12 @@ namespace osu.Android
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            Microsoft.Maui.ApplicationModel.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
 
         private void handleIntent(Intent? intent)
         {
