@@ -27,7 +27,29 @@ namespace osu.Android
         [Cached]
         private readonly OsuGameActivity gameActivity;
 
-        private readonly PackageInfo? packageInfo;
+        private PackageInfo? packageInfo;
+        private bool packageInfoChecked;
+
+        private PackageInfo? getPackageInfo()
+        {
+            if (packageInfoChecked)
+                return packageInfo;
+
+            try
+            {
+                packageInfo = gameActivity.PackageManager?.GetPackageInfo(gameActivity.PackageName!, 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
+            }
+            finally
+            {
+                packageInfoChecked = true;
+            }
+
+            return packageInfo;
+        }
 
         public override Vector2 ScalingContainerTargetDrawSize => DrawWidth > 0 && DrawHeight > 0
             ? new Vector2(1024, 1024 * DrawHeight / DrawWidth)
@@ -53,16 +75,6 @@ namespace osu.Android
             : base(null)
         {
             gameActivity = activity;
-
-            try
-            {
-                packageInfo = Application.Context.ApplicationContext!.PackageManager!.GetPackageInfo(Application.Context.ApplicationContext.PackageName!, 0);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
-                packageInfo = null;
-            }
         }
 
         public override string Version
@@ -72,7 +84,7 @@ namespace osu.Android
                 if (!IsDeployedBuild)
                     return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
-                return packageInfo?.VersionName ?? @"unknown";
+                return getPackageInfo()?.VersionName ?? @"unknown";
             }
         }
 
@@ -82,7 +94,7 @@ namespace osu.Android
             {
                 try
                 {
-                    string? versionName = packageInfo?.VersionName;
+                    string? versionName = getPackageInfo()?.VersionName;
 
                     if (!string.IsNullOrEmpty(versionName))
                         return new Version(versionName.Split('-').First());
@@ -209,9 +221,17 @@ namespace osu.Android
         {
             try
             {
-                var display = gameActivity.WindowManager?.DefaultDisplay;
+                if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
+                    return;
 
-                if (display == null || gameActivity.Window == null)
+                var window = gameActivity.Window;
+                var windowManager = gameActivity.WindowManager;
+
+                if (window == null || windowManager == null)
+                    return;
+
+                var display = windowManager.DefaultDisplay;
+                if (display == null)
                     return;
 
 #pragma warning disable CA1422
@@ -222,17 +242,30 @@ namespace osu.Android
                     return;
 
                 var preferred = modes.OrderByDescending(m => m.RefreshRate).First();
-                var layoutParams = gameActivity.Window.Attributes;
 
-                if (layoutParams != null)
+                gameActivity.RunOnUiThread(() =>
                 {
-                    layoutParams.PreferredDisplayModeId = preferred.ModeId;
-                    gameActivity.Window.Attributes = layoutParams;
-                }
+                    try
+                    {
+                        if (window.Attributes is WindowManagerLayoutParams layoutParams)
+                        {
+                            layoutParams.PreferredDisplayModeId = preferred.ModeId;
+                            window.Attributes = layoutParams;
+                            Debug.WriteLine($"[osu!] Highest refresh rate selected: {preferred.RefreshRate}Hz (mode {preferred.ModeId})");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        // On some devices (e.g. Samsung S23 on Android 16), accessing display properties
+                        // via the vendor property 'vendor.display.enable_optimal_refresh_rate' can trigger
+                        // SELinux denials or crashes if the window is not yet fully trusted.
+                        Debug.WriteLine($"[osu!] Failed to apply preferred display mode: {e.Message}");
+                    }
+                });
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to select highest refresh rate: {e.Message}");
+                Debug.WriteLine($"[osu!] Failed to query supported display modes: {e.Message}");
             }
         }
 
