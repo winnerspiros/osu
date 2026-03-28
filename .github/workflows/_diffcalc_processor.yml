@@ -46,8 +46,6 @@ jobs:
       - name: Checkout diffcalc-sheet-generator
         uses: actions/checkout@v6
         with:
-          submodules: recursive
-        with:
           path: ${{ inputs.id }}
           repository: 'smoogipoo/diffcalc-sheet-generator'
 

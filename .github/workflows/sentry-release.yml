@@ -15,8 +15,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
-        with:
           fetch-depth: 0
 
       - name: Create Sentry release
