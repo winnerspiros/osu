@@ -26,6 +26,11 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
+    <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
+         NuGet silently falls back to those assets when the app targets net10.0-android (API 36).
+         This is safe because .NET guarantees backward compatibility for loading net8.0 assemblies
+         in a net10.0 runtime, and Android API changes between 34→36 are additive.
+         TODO: Remove this comment once ppy.osu.Framework.Android ships net10.0-android assets. -->
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
   </ItemGroup>
   <PropertyGroup>
