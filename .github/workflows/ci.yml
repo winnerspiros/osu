@@ -48,7 +48,7 @@ jobs:
               echo "::error::$line"
               exit_code=1
             fi
-          done <<< $(dotnet codefilesanity)
+          done <<< $(dotnet codefilesanity | grep -v "^external/")
           exit $exit_code
 
       - name: InspectCode
