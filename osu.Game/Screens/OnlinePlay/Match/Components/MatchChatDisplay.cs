@@ -42,7 +42,7 @@ namespace osu.Game.Screens.OnlinePlay.Match.Components
             if (room.RoomID == null || room.ChannelId == 0)
                 return;
 
-            Channel.Value = channelManager?.JoinChannel(new Channel { Id = room.ChannelId, Type = ChannelType.Multiplayer, Name = $"#lazermp_{room.RoomID?.Value ?? 0}" });
+            Channel.Value = channelManager?.JoinChannel(new Channel { Id = room.ChannelId, Type = ChannelType.Multiplayer, Name = $"#lazermp_{room.RoomID.Value}" });
         }
 
         protected override void Dispose(bool isDisposing)

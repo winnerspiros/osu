@@ -68,7 +68,7 @@ namespace osu.Game.Tests.Visual.Ranking
                     foreach (var b in r.All<BeatmapInfo>())
                         b.Status = BeatmapOnlineStatus.Ranked;
                 });
-                importedBeatmap = beatmapManager.GetAllUsableBeatmapSets().FirstOrDefault().Beatmaps.FirstOrDefault();
+                importedBeatmap = beatmapManager.GetAllUsableBeatmapSets().FirstOrDefault()?.Beatmaps.FirstOrDefault()!;
             });
             AddStep("clear all scores", () => Realm.Write(r => r.RemoveAll<ScoreInfo>()));
         }
