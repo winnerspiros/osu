@@ -224,13 +224,11 @@ namespace osu.Android
                     try
                     {
                         var surface = GetSurface();
-                        if (surface != null)
+                        if (surface != null && surface.Handle != IntPtr.Zero)
                         {
-#pragma warning disable CS8602
-                            IntPtr handle = surface.Handle;
-#pragma warning restore CS8602
-                            if (handle != IntPtr.Zero)
-                                result = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+#pragma warning disable CS8602, CS8604
+                            result = global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle);
+#pragma warning restore CS8602, CS8604
                         }
                     }
                     finally
