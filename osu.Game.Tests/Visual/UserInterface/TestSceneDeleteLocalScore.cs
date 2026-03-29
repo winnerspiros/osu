@@ -159,6 +159,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             // Ensure the context menu has finished showing
             AddStep("finish transforms", () => contextMenuContainer.FinishTransforms(true));
 
+            AddUntilStep("wait for delete option", () => contextMenuContainer.ChildrenOfType<DrawableOsuMenuItem>().Any(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase)));
             AddStep("click delete option", () =>
             {
                 InputManager.MoveMouseTo(contextMenuContainer.ChildrenOfType<DrawableOsuMenuItem>()
