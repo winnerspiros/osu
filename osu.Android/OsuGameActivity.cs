@@ -215,18 +215,28 @@ namespace osu.Android
 
         public IntPtr GetSurfaceGlobalRef()
         {
-            var tcs = new TaskCompletionSource<IntPtr>();
-            RunOnUiThread(() =>
-            {
-                var surface = GetSurface();
-                if (surface != null && surface.Handle != IntPtr.Zero)
-                    tcs.SetResult(global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle));
-                else
-                    tcs.SetResult(IntPtr.Zero);
-            });
-            tcs.Task.WaitSafely();
+            IntPtr result = IntPtr.Zero;
 
-            return tcs.Task.GetResultSafely();
+            using (var resetEvent = new System.Threading.ManualResetEventSlim(false))
+            {
+                RunOnUiThread(() =>
+                {
+                    try
+                    {
+                        var surface = GetSurface();
+                        if (surface != null && surface.Handle != IntPtr.Zero)
+                            result = global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle);
+                    }
+                    finally
+                    {
+                        resetEvent.Set();
+                    }
+                });
+
+                resetEvent.Wait(1000);
+            }
+
+            return result;
         }
 
         private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
