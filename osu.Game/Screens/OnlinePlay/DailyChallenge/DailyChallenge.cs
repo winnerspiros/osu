@@ -344,7 +344,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         private void presentScore(long id)
         {
             if (this.IsCurrentScreen())
-                this.Push(new PlaylistItemScoreResultsScreen(id, room.RoomID!.Value, playlistItem));
+                this.Push(new PlaylistItemScoreResultsScreen(id, (room.RoomID ?? 0), playlistItem));
         }
 
         private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
@@ -427,7 +427,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             API.Queue(new JoinRoomRequest(room, null));
             startLoopingTrack(this, musicController);
 
-            metadataClient.BeginWatchingMultiplayerRoom(room.RoomID!.Value).ContinueWith(t =>
+            metadataClient.BeginWatchingMultiplayerRoom((room.RoomID ?? 0)).ContinueWith(t =>
             {
                 if (t.Exception != null)
                 {
@@ -479,7 +479,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             this.Delay(WaveContainer.DISAPPEAR_DURATION).FadeOut();
 
             API.Queue(new PartRoomRequest(room));
-            metadataClient.EndWatchingMultiplayerRoom(room.RoomID!.Value).FireAndForget();
+            metadataClient.EndWatchingMultiplayerRoom((room.RoomID ?? 0)).FireAndForget();
 
             return base.OnExiting(e);
         }

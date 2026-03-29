@@ -727,7 +727,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
         {
             dialogOverlay?.Push(new ClosePlaylistDialog(room, () =>
             {
-                var request = new ClosePlaylistRequest(room.RoomID!.Value);
+                var request = new ClosePlaylistRequest((room.RoomID ?? 0));
                 request.Success += () => room.EndDate = DateTimeOffset.UtcNow;
                 api.Queue(request);
             }));

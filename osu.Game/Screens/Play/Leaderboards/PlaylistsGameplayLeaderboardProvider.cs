@@ -35,7 +35,7 @@ namespace osu.Game.Screens.Play.Leaderboards
         {
             var scoresToShow = new List<GameplayLeaderboardScore>();
 
-            var scoresRequest = new IndexPlaylistScoresRequest(room.RoomID!.Value, playlistItem.ID);
+            var scoresRequest = new IndexPlaylistScoresRequest((room.RoomID ?? 0), playlistItem.ID);
             api.Perform(scoresRequest);
 
             var response = scoresRequest.Response;

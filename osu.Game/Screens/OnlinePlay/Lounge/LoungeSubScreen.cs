@@ -226,8 +226,11 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
         private void onListingReceived(Room[] result)
         {
-            Dictionary<long, Room> localRoomsById = roomListing.Rooms.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID!.Value);
-            Dictionary<long, Room> resultRoomsById = result.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID!.Value);
+            if (result == null)
+                return;
+
+            Dictionary<long, Room> localRoomsById = roomListing.Rooms.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID.Value);
+            Dictionary<long, Room> resultRoomsById = result.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID.Value);
 
             // Remove all local rooms no longer in the result set.
             roomListing.Rooms.RemoveAll(r => r.RoomID == null || !resultRoomsById.ContainsKey(r.RoomID.Value));
