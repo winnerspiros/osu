@@ -27,7 +27,11 @@ int pageSize = TargetPageSize > 0 ? TargetPageSize : 0x4000; // 16 KB default
 if (!System.IO.File.Exists(FilePath))
     return true;
 
-byte[] data = System.IO.File.ReadAllBytes(FilePath);
+byte[] data = null;
+for (int retry = 0; retry < 5; retry++) {
+    try { data = System.IO.File.ReadAllBytes(FilePath); break; }
+    catch (System.IO.IOException) { if (retry == 4) return true; System.Threading.Thread.Sleep(200); }
+}
 
 // ── Validate ELF magic ──────────────────────────────────────────────
 if (data.Length < 64 || data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F')
@@ -200,7 +204,11 @@ try
     }
 
     // Re-read and re-check: another node may have already patched while we waited.
-    byte[] freshData = System.IO.File.ReadAllBytes(FilePath);
+    byte[] freshData = null;
+    for (int retry = 0; retry < 10; retry++) {
+        try { freshData = System.IO.File.ReadAllBytes(FilePath); break; }
+        catch (System.IO.IOException) { if (retry == 9) throw; System.Threading.Thread.Sleep(500); }
+    }
     bool stillNeeds = false;
     if (freshData.Length >= 64 && freshData[0] == 0x7F && freshData[4] == 2 && freshData[5] == 1)
     {
@@ -226,7 +234,10 @@ try
         return true;
     }
 
-    System.IO.File.WriteAllBytes(FilePath, newData);
+    for (int retry = 0; retry < 10; retry++) {
+        try { System.IO.File.WriteAllBytes(FilePath, newData); break; }
+        catch (System.IO.IOException) { if (retry == 9) throw; System.Threading.Thread.Sleep(500); }
+    }
     WasPatched = true;
     Log.LogMessage(MessageImportance.High,
         "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
