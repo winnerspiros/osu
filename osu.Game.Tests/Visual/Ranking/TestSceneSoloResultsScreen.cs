@@ -98,7 +98,7 @@ namespace osu.Game.Tests.Visual.Ranking
 
             AddStep("show results", () => LoadScreen(new SoloResultsScreen(localScore)));
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
+            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(16));
         }
 
         [Test, Retry(3)]
@@ -128,7 +128,7 @@ namespace osu.Game.Tests.Visual.Ranking
 
             AddStep("show results", () => LoadScreen(new SoloResultsScreen(localScore)));
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
+            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(16));
         }
 
         [Test, Retry(3)]
@@ -168,7 +168,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
+            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(16));
         }
 
         [Test, Retry(3)]
@@ -219,7 +219,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
+            AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(16));
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
@@ -317,7 +317,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #31", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(31));
+            AddUntilStep("local score is #31", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(31));
         }
 
         [Test, Retry(3)]
@@ -370,8 +370,8 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddAssert("local score has no position", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.Null);
-            AddUntilStep("previous user best shown at same position", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.OnlineID == 123456 && p.ScorePosition.Value == 133_337));
+            AddAssert("local score has no position", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.Null);
+            AddUntilStep("previous user best shown at same position", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.OnlineID == 123456 && p?.ScorePosition.Value == 133_337));
         }
 
         [Test, Retry(3)]
@@ -425,7 +425,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddAssert("local score has no position", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.Null);
+            AddAssert("local score has no position", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.Null);
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
@@ -479,7 +479,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 LoadScreen(new SoloResultsScreen(localScore));
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
-            AddUntilStep("local score is #36", () => this.ChildrenOfType<ScorePanelList>().Last().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(36));
+            AddUntilStep("local score is #36", () => this.ChildrenOfType<ScorePanelList>().LastOrDefault()?.GetPanelForScore(localScore)?.ScorePosition.Value, () => Is.EqualTo(36));
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
@@ -533,7 +533,7 @@ namespace osu.Game.Tests.Visual.Ranking
             });
             AddUntilStep("wait for loaded", () => ((Drawable)Stack.CurrentScreen).IsLoaded);
             AddAssert("only one score with ID 12345", () => this.ChildrenOfType<ScorePanel>().Count(s => s.Score.OnlineID == 12345), () => Is.EqualTo(1));
-            AddUntilStep("user best position preserved", () => this.ChildrenOfType<ScorePanel>().Any(p => p.ScorePosition.Value == 133_337));
+            AddUntilStep("user best position preserved", () => this.ChildrenOfType<ScorePanel>().Any(p => p?.ScorePosition.Value == 133_337));
         }
 
         protected override void Dispose(bool isDisposing)

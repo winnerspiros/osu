@@ -224,8 +224,12 @@ namespace osu.Android
                     try
                     {
                         var surface = GetSurface();
-                        if (surface != null && surface?.Handle != IntPtr.Zero)
-                            result = global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle);
+                        if (surface != null)
+                        {
+                            var handle = surface.Handle;
+                            if (handle != IntPtr.Zero)
+                                result = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                        }
                     }
                     finally
                     {

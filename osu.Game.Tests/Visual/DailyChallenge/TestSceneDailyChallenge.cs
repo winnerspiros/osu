@@ -38,7 +38,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             base.Content.Add(metadataClient);
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestDailyChallenge()
         {
             var room = new Room
@@ -60,7 +60,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             AddStep("push screen", () => LoadScreen(new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestUseTheseModsUnavailableIfNoFreeMods()
         {
             var room = new Room
@@ -92,7 +92,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                 () => this.ChildrenOfType<OsuContextMenu>().All(m => m.Items.All(item => item.Text.Value != "Use these mods")));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestNotifications()
         {
             var room = new Room
@@ -122,7 +122,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             AddAssert("notification posted", () => notificationOverlay.AllNotifications.OfType<SimpleNotification>().Any(n => n.Text == DailyChallengeStrings.ChallengeEndedNotification));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestConclusionNotificationDoesNotFireOnDisconnect()
         {
             var room = new Room

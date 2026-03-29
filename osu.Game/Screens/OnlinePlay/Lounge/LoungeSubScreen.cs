@@ -229,8 +229,8 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             if (result == null)
                 return;
 
-            Dictionary<long, Room> localRoomsById = roomListing.Rooms.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID.Value);
-            Dictionary<long, Room> resultRoomsById = result.Where(r => r.RoomID != null).ToDictionary(r => r.RoomID.Value);
+            Dictionary<long, Room> localRoomsById = roomListing.Rooms.Where(r => r.RoomID != null).GroupBy(r => r.RoomID.Value).ToDictionary(g => g.Key, g => g.First());
+            Dictionary<long, Room> resultRoomsById = result.Where(r => r.RoomID != null).GroupBy(r => r.RoomID.Value).ToDictionary(g => g.Key, g => g.First());
 
             // Remove all local rooms no longer in the result set.
             roomListing.Rooms.RemoveAll(r => r.RoomID == null || !resultRoomsById.ContainsKey(r.RoomID.Value));
@@ -241,7 +241,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
                 if (r.RoomID == null)
                     continue;
 
-                if (localRoomsById.TryGetValue(r.RoomID.Value, out Room? existingRoom))
+                if (r.RoomID != null && localRoomsById.TryGetValue(r.RoomID.Value, out Room? existingRoom))
                     existingRoom.CopyFrom(r);
                 else
                     roomListing.Rooms.Add(r);
@@ -376,6 +376,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
 
             joiningRoomOperation = ongoingOperationTracker?.BeginOperation();
 
+            if (room.RoomID == null) return;
             var req = new GetRoomRequest(room.RoomID.Value);
 
             req.Success += r =>

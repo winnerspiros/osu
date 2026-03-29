@@ -37,6 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
             lastPollRequest?.Cancel();
 
             var tcs = new TaskCompletionSource<bool>();
+            if (room.RoomID == null) return base.Poll();
             var req = new GetRoomRequest(room.RoomID.Value);
 
             req.Success += result =>
