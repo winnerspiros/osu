@@ -83,7 +83,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                 }));
             });
 
-            AddStep("signal client", () => metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = (room.RoomID ?? 0) }));
+            AddStep("signal client", () => { if (room.RoomID != null) metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = room.RoomID.Value }); });
         }
     }
 }
