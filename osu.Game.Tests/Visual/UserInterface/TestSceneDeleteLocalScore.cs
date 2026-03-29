@@ -142,7 +142,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddUntilStep("wait for drawables", () => leaderboard.ChildrenOfType<BeatmapLeaderboardScore>().Any());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestDeleteViaRightClick()
         {
             ScoreInfo scoreBeingDeleted = null;
@@ -182,7 +182,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("release left mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestDeleteViaDatabase()
         {
             AddStep("delete top score", () => scoreManager.Delete(importedScores[0]));

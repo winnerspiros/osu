@@ -604,6 +604,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             };
 
             AddServerSideRoom(apiRoom, api.LocalUser.Value);
+
             return JoinRoomInternal((apiRoom.RoomID ?? 0), room.Settings.Password);
         }
 

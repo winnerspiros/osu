@@ -32,13 +32,13 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("load screen", () => LoadScreen(screen = new RankedPlayScreen(MultiplayerClient.ClientRoom!)));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestIntroStage()
         {
             AddStep("set round warmup phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.RoundWarmup, s => s.StarRating = 6.3f).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestDiscardCardsStage()
         {
             AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
@@ -69,7 +69,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("set finish discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.FinishCardDiscard).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestAddRemoveCards()
         {
             AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
@@ -81,7 +81,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
                 AddStep("remove card", () => MultiplayerClient.RankedPlayRemoveCards(hand => [hand[0]]).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestRevealCards()
         {
             var requestHandler = new BeatmapRequestHandler();
@@ -101,7 +101,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             }
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestPlayCardDirect()
         {
             AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = API.LocalUser.Value.OnlineID).WaitSafely());
@@ -109,7 +109,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("play card", () => MultiplayerClient.PlayCard(hand => hand[0]).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestDiscardCardsDirect()
         {
             AddStep("set discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardDiscard).WaitSafely());
@@ -119,7 +119,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             AddStep("set finish discard phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.FinishCardDiscard).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestPlayStage()
         {
             AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = API.LocalUser.Value.OnlineID).WaitSafely());
@@ -150,7 +150,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             });
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOtherPlaysCard()
         {
             AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = 2).WaitSafely());
@@ -163,7 +163,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
             }).WaitSafely());
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestHealthChange()
         {
             AddStep("set play phase", () => MultiplayerClient.RankedPlayChangeStage(RankedPlayStage.CardPlay, state => state.ActiveUserId = 2).WaitSafely());

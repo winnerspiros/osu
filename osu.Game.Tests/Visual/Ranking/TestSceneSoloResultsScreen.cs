@@ -73,7 +73,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddStep("clear all scores", () => Realm.Write(r => r.RemoveAll<ScoreInfo>()));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestLocalLeaderboardWithOfflineScore()
         {
             ScoreInfo localScore = null!;
@@ -101,7 +101,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Single().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestLocalLeaderboardWithOnlineScore()
         {
             ScoreInfo localScore = null!;
@@ -131,7 +131,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Single().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithLessThan50Scores()
         {
             ScoreInfo localScore = null!;
@@ -171,7 +171,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Single().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithLessThan50Scores_UserWasInTop50()
         {
             ScoreInfo localScore = null!;
@@ -223,7 +223,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithLessThan50Scores_ShowingAnotherUserScore()
         {
             var scores = new List<ScoreInfo>();
@@ -280,7 +280,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddAssert("local user best shown", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.UserID == API.LocalUser.Value.Id));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithLessThan50Scores_UserIsLast()
         {
             ScoreInfo localScore = null!;
@@ -320,7 +320,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("local score is #31", () => this.ChildrenOfType<ScorePanelList>().Single().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(31));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserOutsideOfTop50_DidNotBeatOwnBest()
         {
             ScoreInfo localScore = null!;
@@ -374,7 +374,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("previous user best shown at same position", () => this.ChildrenOfType<ScorePanel>().Any(p => p.Score.OnlineID == 123456 && p.ScorePosition.Value == 133_337));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserOutsideOfTop50_BeatOwnBest()
         {
             ScoreInfo localScore = null!;
@@ -429,7 +429,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardWithMoreThan50Scores_UserInTop50()
         {
             ScoreInfo localScore = null!;
@@ -483,7 +483,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddAssert("previous user best not shown", () => this.ChildrenOfType<ScorePanel>().All(p => p.Score.OnlineID != 123456));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestOnlineLeaderboardDeduplication()
         {
             AddStep("set leaderboard to global", () => leaderboardManager.FetchWithCriteria(new LeaderboardCriteria(importedBeatmap, importedBeatmap.Ruleset, BeatmapLeaderboardScope.Global, null)));

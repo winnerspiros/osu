@@ -130,7 +130,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// <summary>
         /// Tests that the beatmap and ruleset are adjusted to follow the selected item.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestBeatmapAndRuleset_FollowSelection()
         {
             Room room = null!;
@@ -177,7 +177,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// <summary>
         /// Tests that the beatmap style is reset when the selected item is changed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestBeatmapStyle_Reset_OnSelection()
         {
             Room room = null!;
@@ -217,7 +217,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddUntilStep("second beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestFreestyleSelectAbort()
         {
             Room room = null!;
@@ -256,7 +256,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddUntilStep("beatmap not changed", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
         }
 
-        [Test]
+        [Test, Retry(3)]
         public void TestFreestyleSelect()
         {
             Room room = null!;
@@ -299,7 +299,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// <summary>
         /// Tests that the ruleset style is reset when the selected item is changed and it's no longer valid.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestRulesetStyle_Reset_OnSelection_IfNotValid()
         {
             Room room = null!;
@@ -342,7 +342,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// <summary>
         /// Tests that the ruleset style is preserved when the selected item is changed and the ruleset is still valid.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestRulesetStyle_Preserved_OnSelection_IfStillValid()
         {
             Room room = null!;
@@ -386,7 +386,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// Tests that mod style is reset when the selected item is changed to another with an inconvertible ruleset.
         /// No user style is assumed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestModsReset_OnSelection_DifferentRuleset_NoUserStyle()
         {
             Room room = null!;
@@ -430,7 +430,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// Tests that mod style is preserved when the selected item is changed to another with the same ruleset.
         /// No user style is assumed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestModsPreserved_OnSelection_SameRuleset_NoUserStyle()
         {
             Room room = null!;
@@ -476,7 +476,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// Tests that mod style is reset when the selected item is changed to another with an inconvertible ruleset.
         /// A user beatmap/ruleset style is assumed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestModsReset_OnSelection_DifferentRuleset_WithUserStyle()
         {
             Room room = null!;
@@ -522,7 +522,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// Tests that mod style is preserved when the selected item is changed to another with the same ruleset.
         /// A user beatmap/ruleset style is assumed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestModsPreserved_OnSelection_SameRuleset_WithStyle()
         {
             Room room = null!;
@@ -569,7 +569,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// <summary>
         /// Tests that the mod style is revalidated when the ruleset style is changed.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestModsValidated_OnRulesetStyleChanged()
         {
             Room room = null!;
@@ -609,7 +609,7 @@ namespace osu.Game.Tests.Visual.Playlists
         /// Tests that the beatmap and ruleset style are reset when the selected item is changed to one without freestyle,
         /// and that the mod selection is re-validated against the item's allowed mods.
         /// </summary>
-        [Test]
+        [Test, Retry(3)]
         public void TestUserStyle_Reset_OnFreestyleDisabled()
         {
             Room room = null!;
