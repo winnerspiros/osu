@@ -16,6 +16,7 @@ using osu.Framework.Android;
 using osu.Game.Database;
 using Debug = System.Diagnostics.Debug;
 using Uri = Android.Net.Uri;
+using osu.Framework.Extensions;
 
 namespace osu.Android
 {
@@ -223,8 +224,7 @@ namespace osu.Android
                 else
                     tcs.SetResult(IntPtr.Zero);
             });
-            tcs.Task.Wait(1000); // Use a timeout to avoid deadlock if the UI thread is stuck.
-            return tcs.Task.IsCompleted ? tcs.Task.Result : IntPtr.Zero;
+            return tcs.Task.GetResultSafely();
         }
 
         private global::Android.Views.SurfaceView? findSurfaceView(global::Android.Views.View? view)
