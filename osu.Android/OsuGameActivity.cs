@@ -225,6 +225,7 @@ namespace osu.Android
                     tcs.SetResult(IntPtr.Zero);
             });
             tcs.Task.WaitSafely();
+
             return tcs.Task.GetResultSafely();
         }
 
