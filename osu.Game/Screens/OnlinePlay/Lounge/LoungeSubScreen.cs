@@ -235,7 +235,9 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             // Add or update local rooms with the result set.
             foreach (var r in result)
             {
-                if (r.RoomID == null) continue;
+                if (r.RoomID == null)
+                    continue;
+
                 if (localRoomsById.TryGetValue(r.RoomID.Value, out Room? existingRoom))
                     existingRoom.CopyFrom(r);
                 else
