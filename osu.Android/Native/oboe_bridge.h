@@ -13,15 +13,6 @@
 typedef int32_t (*OboeAudioProvider)(void* audioData, int32_t numFrames);
 
 /// Low-latency audio bridge using Google's Oboe library.
-/// Optimised for rhythm-game audio-visual synchronization with:
-///  - AAudio preferred (lowest latency path on Android 8.1+)
-///  - MMAP enabled (hardware-level DMA, bypasses kernel copy)
-///  - Exclusive sharing mode (bypass system mixer)
-///  - Mono output (minimum buffer for latency-measurement stream)
-///  - Buffer size tuned to 1× burst for minimum latency
-///  - All format/rate/channel conversions disabled (zero resampler overhead)
-///  - Latency sampled every 128 callbacks (avoids syscall overhead in hot path)
-///  - Automatic stream recovery on disconnect / route change
 class OboeBridge : public oboe::AudioStreamCallback {
 public:
     OboeBridge();
@@ -50,7 +41,6 @@ public:
     bool isAAudio() const;
 
     /// Returns true if the stream is using the hardware MMAP path (lowest possible latency).
-    /// MMAP provides direct memory-mapped access to audio hardware buffers.
     bool isMMap() const;
 
     /// Sets the provider function that will be called to fill the audio buffer.
@@ -67,7 +57,6 @@ private:
     std::shared_ptr<oboe::AudioStream> stream_;
     std::mutex streamLock_;
     std::atomic<bool> active_{false};
-    std::atomic<bool> affinitySet_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
     std::atomic<OboeAudioProvider> provider_{nullptr};

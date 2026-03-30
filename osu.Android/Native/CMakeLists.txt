@@ -27,8 +27,7 @@ if(oboe_FOUND)
 else()
     include(FetchContent)
     FetchContent_Declare(oboe
-        URL https://github.com/google/oboe/archive/refs/tags/1.10.0.tar.gz
-        URL_HASH SHA256=0e4245f8860c4287040a5d76501c588490bcc9cb57614c486c0c201a5dde3e9f
+        URL https://github.com/google/oboe/archive/39b1fd258998eb3cd80a0f9e800498bb4efa4eb2.tar.gz
     )
     FetchContent_MakeAvailable(oboe)
     set(OBOE_LIB oboe)
