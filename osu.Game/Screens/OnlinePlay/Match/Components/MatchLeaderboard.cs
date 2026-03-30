@@ -49,7 +49,7 @@ namespace osu.Game.Screens.OnlinePlay.Match.Components
             if (room.RoomID == null)
                 return null;
 
-            var req = new GetRoomLeaderboardRequest(room.RoomID ?? 0);
+            var req = new GetRoomLeaderboardRequest(room.RoomID.Value);
 
             req.Success += r => Schedule(() =>
             {

@@ -224,11 +224,21 @@ namespace osu.Android
                     try
                     {
                         var surface = GetSurface();
-                        if (surface != null && surface.Handle != IntPtr.Zero)
+                        if (surface != null && surface.Handle != global::System.IntPtr.Zero)
                         {
-#pragma warning disable CS0618, CS8602, CS8604
                             result = global::Android.Runtime.JNIEnv.NewGlobalRef(surface.Handle);
-#pragma warning restore CS0618, CS8602, CS8604
+                        }
+                    }
+                    finally
+                    {
+                        resetEvent.Set();
+                    }
+                });
+
+                resetEvent.Wait(1000);
+            }
+
+            return result;
                         }
                     }
                     finally

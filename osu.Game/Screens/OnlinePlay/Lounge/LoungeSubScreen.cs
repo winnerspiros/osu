@@ -377,7 +377,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             joiningRoomOperation = ongoingOperationTracker?.BeginOperation();
 
             if (room.RoomID == null) return;
-            var req = new GetRoomRequest(room.RoomID.Value);
+            var req = new GetRoomRequest(room.RoomID!.Value);
 
             req.Success += r =>
             {

@@ -197,9 +197,7 @@ try
 
     if (lockStream == null)
     {
-        // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.High,
-            "PatchElfPageSize: could not acquire lock for {0}, skipping (another build node may be patching it)",
-            System.IO.Path.GetFileName(FilePath));
+        System.Console.WriteLine(string.Format("PatchElfPageSize: could not acquire lock for {0}, skipping (another build node may be patching it)", System.IO.Path.GetFileName(FilePath)));
         return true;
     }
 
@@ -228,9 +226,7 @@ try
 
     if (!stillNeeds)
     {
-        // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.Low,
-            "PatchElfPageSize: {0} was already patched by another build node",
-            System.IO.Path.GetFileName(FilePath));
+        System.Console.WriteLine(string.Format("PatchElfPageSize: {0} was already patched by another build node", System.IO.Path.GetFileName(FilePath)));
         return true;
     }
 
@@ -239,9 +235,7 @@ try
         catch (System.IO.IOException) { if (retry == 9) throw; System.Threading.Thread.Sleep(500); }
     }
     WasPatched = true;
-    // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.High,
-        "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
-        System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
+    System.Console.WriteLine(string.Format("PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)", System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length));
 }
 finally
 {
