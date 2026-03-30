@@ -4,7 +4,7 @@
 #include "oboe_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <oboe/AudioClock.h>
-#include <oboe/Process.h>
+#include <common/Process.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstring>
@@ -67,6 +67,10 @@ bool OboeBridge::open(int32_t sampleRate) {
 
     // Enable ADPF (Android Dynamic Performance Framework) hint support.
     stream_->setPerformanceHintEnabled(true);
+
+    // Set buffer size to 2x burst size for initial stability.
+    // LatencyTuner will then attempt to shrink it if stable.
+    stream_->setBufferSizeInFrames(stream_->getFramesPerBurst() * 2);
 
     // Initialise LatencyTuner for dynamic buffer management.
     // This allows us to start at 1x burst and only grow if underruns occur.

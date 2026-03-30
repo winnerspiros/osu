@@ -46,6 +46,9 @@ add_library(osu_native SHARED
     vulkan_bridge.cpp
 )
 
+# Add Oboe internal headers to include path for Process.h (CPU affinity).
+target_include_directories(osu_native PRIVATE ${oboe_SOURCE_DIR}/src)
+
 target_link_libraries(osu_native
     ${OBOE_LIB}
     ${vulkan-lib}
