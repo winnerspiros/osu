@@ -43,7 +43,6 @@ bool OboeBridge::open() {
            ->setAudioApi(oboe::AudioApi::AAudio)
            ->setFramesPerCallback(oboe::kUnspecified)
            ->setBufferCapacityInFrames(oboe::kUnspecified)
-           ->setPerformanceHintEnabled(true) // Enable ADPF for dynamic performance management
            ->setChannelConversionAllowed(false)
            ->setFormatConversionAllowed(false)
            ->setCallback(this);
@@ -61,6 +60,11 @@ bool OboeBridge::open() {
         LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
         return false;
     }
+
+    // Enable ADPF for dynamic performance management.
+    // This is only supported on AAudio streams on Android 12+ (API 31+).
+    // Oboe handles the internal version checks.
+    stream_->setPerformanceHintEnabled(true);
 
     optimiseBufferSize();
 
