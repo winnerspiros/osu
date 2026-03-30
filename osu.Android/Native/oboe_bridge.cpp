@@ -4,7 +4,9 @@
 #include "oboe_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <oboe/AudioClock.h>
-#include <common/Process.h>
+#include <sched.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstring>
@@ -205,15 +207,22 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
         // Attempt to set CPU affinity to high-performance cores.
         if (!affinitySet_.load(std::memory_order_relaxed)) {
-            std::vector<int> exclusiveCores = oboe::Process::getExclusiveCores();
+            cpu_set_t cpuset;
+            CPU_ZERO(&cpuset);
 
-            if (!exclusiveCores.empty()) {
-                oboe::Result result = oboe::Process::setThreadAffinity(
-                    oboe::Process::getThreadId(),
-                    exclusiveCores);
+            int num_cores = sysconf(_SC_NPROCESSORS_CONF);
+            if (num_cores > 0) {
+                // Target the "big" cores (higher indexed) for better performance.
+                // In big.LITTLE, indices 4-7 are typically the high-performance cores.
+                int start_core = std::max(0, num_cores / 2);
+                for (int i = start_core; i < num_cores; ++i) {
+                    CPU_SET(i, &cpuset);
+                }
 
-                if (result == oboe::Result::OK) {
-                    LOGI("Oboe audio thread pinned to exclusive cores");
+                if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) {
+                    LOGI("Oboe audio thread pinned to cores %d-%d", start_core, num_cores - 1);
+                } else {
+                    LOGE("Failed to set thread affinity: %d", errno);
                 }
             }
             affinitySet_.store(true);
