@@ -28,10 +28,10 @@ namespace osu.Android
 
         private volatile bool disposed;
 
-        // ── Oboe ───────────────────────────────────────────────────────────
+        // ── Oboe ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured)
+        public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, OboeAudioBridge.OboeAudioProvider? provider = null)
         {
             if (oboeBridge != null) return;
 
@@ -42,6 +42,10 @@ namespace osu.Android
                 if (bridge != null)
                 {
                     oboeBridge = bridge;
+
+                    if (provider != null)
+                        bridge.SetProvider(provider);
+
                     bool started = bridge.Start();
 
                     if (started)
@@ -85,7 +89,7 @@ namespace osu.Android
             return (oboeBridge as OboeAudioBridge)?.GetOutputLatencyMs() ?? -1;
         }
 
-        // ── Vulkan ─────────────────────────────────────────────────────────
+        // ── Vulkan ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartVulkanProbe()
@@ -116,7 +120,7 @@ namespace osu.Android
             Debug.WriteLine("[osu!] Vulkan probe stopped by user setting");
         }
 
-        // ── Logging ────────────────────────────────────────────────────────
+        // ── Logging ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void logVulkanInfo(VulkanProbe probe)
@@ -150,7 +154,7 @@ namespace osu.Android
                             + $"bufferSize={bridge.BufferSizeInFrames}frames");
         }
 
-        // ── Cleanup ────────────────────────────────────────────────────────
+        // ── Cleanup ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Dispose()

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -17,6 +17,7 @@ using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
+using osu.Android.Native;
 using osuTK;
 using Debug = System.Diagnostics.Debug;
 
@@ -28,6 +29,7 @@ namespace osu.Android
         private readonly OsuGameActivity gameActivity;
 
         private readonly object packageInfoLock = new object();
+
         private PackageInfo? packageInfo;
         private bool packageInfoChecked;
 
@@ -35,18 +37,15 @@ namespace osu.Android
         {
             lock (packageInfoLock)
             {
-                if (packageInfoChecked)
-                    return packageInfo;
+                if (packageInfoChecked) return packageInfo;
 
                 try
                 {
-                    // Use the activity instance directly instead of Application.Context to ensure
-                    // the PackageManager is accessible even on newer/stricter Android versions.
                     packageInfo = gameActivity.PackageManager?.GetPackageInfo(gameActivity.PackageName!, 0);
                 }
-                catch (Exception e)
+                catch
                 {
-                    Debug.WriteLine($"[osu!] Failed to retrieve package info: {e.Message}");
+                    // ignore errors.
                 }
                 finally
                 {
@@ -65,6 +64,8 @@ namespace osu.Android
         private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
+
+        private OboeAudioRedirector? audioRedirector;
 
         /// <summary>
         /// Boxed reference to the native bridge manager.
@@ -121,6 +122,8 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
+
+            audioRedirector = new OboeAudioRedirector(Audio);
         }
 
         protected override void LoadComplete()
@@ -146,6 +149,8 @@ namespace osu.Android
                 {
                     if (e.NewValue)
                     {
+                        audioRedirector?.RefreshMixers();
+
                         startOboeBridge(latency =>
                         {
                             // Only auto-suggest when the user hasn't already configured a manual offset.
@@ -155,7 +160,7 @@ namespace osu.Android
                             double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                             audioOffset.Value = suggested;
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
-                        });
+                        }, audioRedirector?.Provider);
                     }
                     else if (nativeBridges != null)
                         stopOboeBridge();
@@ -284,17 +289,17 @@ namespace osu.Android
             return getMeasuredAudioLatencyFromBridge();
         }
 
-        // ── Native bridge helpers ──────────────────────────────────────────
-        // Every method below is [NoInlining] so that AndroidNativeBridgeManager
+        // ── Native bridge helpers ━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // Every method below is [MethodImplOptions.NoInlining] so that AndroidNativeBridgeManager
         // (and its P/Invoke field types) are never resolved until explicitly called.
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void startOboeBridge(Action<double> onLatencyMeasured)
+        private void startOboeBridge(Action<double> onLatencyMeasured, OboeAudioBridge.OboeAudioProvider? provider = null)
         {
             nativeBridges ??= new AndroidNativeBridgeManager();
 
             if (nativeBridges is AndroidNativeBridgeManager mgr)
-                mgr.StartOboeBridge(Scheduler, onLatencyMeasured);
+                mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -395,6 +400,9 @@ namespace osu.Android
             }
             finally
             {
+                audioRedirector?.Dispose();
+                audioRedirector = null;
+
                 if (nativeBridges != null)
                     disposeNativeBridges();
             }
