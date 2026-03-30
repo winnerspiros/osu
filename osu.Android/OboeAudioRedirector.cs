@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ManagedBass;
+using ManagedBass.Mix;
 using osu.Android.Native;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
@@ -17,16 +16,16 @@ namespace osu.Android
 {
     /// <summary>
     /// Redirects audio from the framework's BASS mixers into the Oboe bridge.
+    /// Optimized for zero-copy delivery and hardware sample rate synchronization.
     /// </summary>
     internal sealed class OboeAudioRedirector : IDisposable
     {
         private readonly AudioManager audioManager;
         private readonly List<int> mixerHandles = new List<int>();
+        private int masterMixer;
         private bool devicesSilenced;
+        private int sampleRate = 44100; // Default, will be updated from bridge.
         private readonly OboeAudioBridge.OboeAudioProvider providerDelegate;
-
-        private float[]? mixBuffer;
-        private float[]? channelBuffer;
 
         public OboeAudioRedirector(AudioManager audioManager)
         {
@@ -36,25 +35,63 @@ namespace osu.Android
 
         public OboeAudioBridge.OboeAudioProvider Provider => providerDelegate;
 
-        public void RefreshMixers()
+        public void RefreshMixers(int hardwareSampleRate)
         {
-            mixerHandles.Clear();
+            sampleRate = hardwareSampleRate > 0 ? hardwareSampleRate : 44100;
 
+            mixerHandles.Clear();
             addMixer(audioManager.TrackMixer);
             addMixer(audioManager.SampleMixer);
 
             silenceDefaultAudio();
+            setupMasterMixer();
 
-            Debug.WriteLine($"[osu!] Oboe redirector initialized with {mixerHandles.Count} BASS mixers");
+            Debug.WriteLine($"[osu!] Oboe redirector initialized: rate={sampleRate}Hz, mixers={mixerHandles.Count}");
+        }
+
+        private void setupMasterMixer()
+        {
+            if (masterMixer != 0)
+            {
+                Bass.StreamFree(masterMixer);
+                masterMixer = 0;
+            }
+
+            if (mixerHandles.Count == 0 || !devicesSilenced) return;
+
+            // Create a BASS master mixer that matches the Oboe hardware format (Stereo Float).
+            // We use BASS_MIXER_NONSTOP to ensure the mixer doesn't stall if sources are empty.
+            // BASS_STREAM_DECODE means we pull data manually via ChannelGetData.
+            masterMixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop);
+
+            if (masterMixer == 0)
+            {
+                Debug.WriteLine($"[osu!] Failed to create BASS master mixer: {Bass.LastError}");
+                return;
+            }
+
+            foreach (int handle in mixerHandles)
+            {
+                // Add redirected mixers as sources to our master mixer.
+                // We use BASS_MIXER_BUFFER to provide some internal buffering in BASS native code if needed,
+                // although for lowest latency we rely on the Oboe callback timing.
+                if (!BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin | BassFlags.MixerChanBuffer))
+                {
+                    Debug.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
+                }
+            }
+
+            // Move the master mixer to the silent device too.
+            Bass.ChannelSetDevice(masterMixer, 0);
         }
 
         private void silenceDefaultAudio()
         {
             try
             {
-                // Initialize BASS "No Sound" device (0) if not already.
-                // This device allows BASS to process audio streams without outputting to hardware.
-                if (!Bass.Init(0) && Bass.LastError != Errors.Already)
+                // Initialize BASS "No Sound" device (0) with the hardware sample rate.
+                // This minimizes resampling overhead within BASS.
+                if (!Bass.Init(0, sampleRate) && Bass.LastError != Errors.Already)
                 {
                     Debug.WriteLine($"[osu!] Failed to initialize BASS No Sound device: {Bass.LastError}");
                     return;
@@ -63,7 +100,6 @@ namespace osu.Android
                 bool allSuccess = true;
 
                 // Move all redirected mixers to the silent device.
-                // This "unplugs" them from the system hardware while keeping them active so we can pull data.
                 foreach (int handle in mixerHandles)
                 {
                     if (!Bass.ChannelSetDevice(handle, 0))
@@ -90,10 +126,14 @@ namespace osu.Android
 
             try
             {
-                // Move mixers back to the default device (usually 1 on Android).
+                if (masterMixer != 0)
+                {
+                    Bass.StreamFree(masterMixer);
+                    masterMixer = 0;
+                }
+
                 foreach (int handle in mixerHandles)
                 {
-                    // On Android, Device 1 is typically the default output.
                     if (!Bass.ChannelSetDevice(handle, 1))
                         Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to default device: {Bass.LastError}");
                 }
@@ -113,8 +153,6 @@ namespace osu.Android
 
             try
             {
-                // Try various names and types for the native handle.
-                // osu-framework's AudioMixer usually wraps a BASS mixer handle.
                 object? handleObj = mixer.GetType().GetField("mixerHandle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
                                  ?? mixer.GetType().GetField("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
                                  ?? mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer);
@@ -137,55 +175,16 @@ namespace osu.Android
 
         private int provideAudio(IntPtr audioData, int numFrames)
         {
-            // If we haven't successfully silenced the default BASS output,
-            // return silence to avoid duplicated audio.
-            if (mixerHandles.Count == 0 || !devicesSilenced) return 0;
+            if (masterMixer == 0 || !devicesSilenced) return 0;
 
-            // Oboe is configured for Stereo (2 channels).
-            int numSamples = numFrames * 2;
+            // Zero-copy: Tell BASS to render directly into the memory provided by Oboe.
+            // BASS_DATA_FLOAT is implied by the mixer stream flags.
+            int bytesToRead = numFrames * 8; // 2 channels * 4 bytes/sample
+            int bytesRead = Bass.ChannelGetData(masterMixer, audioData, bytesToRead);
 
-            if (mixBuffer == null || mixBuffer.Length < numSamples)
-                mixBuffer = new float[numSamples];
+            if (bytesRead <= 0) return 0;
 
-            if (channelBuffer == null || channelBuffer.Length < numSamples)
-                channelBuffer = new float[numSamples];
-
-            Array.Clear(mixBuffer, 0, numSamples);
-            bool anyRead = false;
-
-            foreach (int handle in mixerHandles)
-            {
-                // Pull stereo float data from BASS mixer.
-                int bytesRead = Bass.ChannelGetData(handle, channelBuffer, (numSamples * 4) | (int)DataFlags.Float);
-                if (bytesRead <= 0) continue;
-
-                anyRead = true;
-                int samplesRead = bytesRead / 4;
-
-                int i = 0;
-
-                if (Vector.IsHardwareAccelerated)
-                {
-                    int vectorSize = Vector<float>.Count;
-
-                    for (; i <= samplesRead - vectorSize; i += vectorSize)
-                    {
-                        var vMix = new Vector<float>(mixBuffer, i);
-                        var vChan = new Vector<float>(channelBuffer, i);
-                        (vMix + vChan).CopyTo(mixBuffer, i);
-                    }
-                }
-
-                for (; i < samplesRead; i++)
-                {
-                    mixBuffer[i] += channelBuffer[i];
-                }
-            }
-
-            if (!anyRead) return 0;
-
-            Marshal.Copy(mixBuffer, 0, audioData, numSamples);
-            return numFrames;
+            return bytesRead / 8;
         }
 
         public void Dispose()
