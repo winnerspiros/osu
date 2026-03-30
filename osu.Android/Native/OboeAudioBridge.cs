@@ -48,14 +48,14 @@ namespace osu.Android.Native
         /// Creates and opens a new low-latency Oboe audio stream.
         /// Returns null if native library or stream creation fails.
         /// </summary>
-        public static OboeAudioBridge? Create()
+        public static OboeAudioBridge? Create(int sampleRate = 0)
         {
             if (!native_loaded)
                 return null;
 
             try
             {
-                IntPtr ptr = nOboeCreate();
+                IntPtr ptr = nOboeCreate(sampleRate);
 
                 if (ptr == IntPtr.Zero)
                 {
@@ -303,7 +303,7 @@ namespace osu.Android.Native
         }
 
         [DllImport(lib_name)]
-        private static extern IntPtr nOboeCreate();
+        private static extern IntPtr nOboeCreate(int sampleRate);
 
         [DllImport(lib_name)]
         private static extern void nOboeDestroy(IntPtr ptr);

@@ -4,55 +4,34 @@
 #pragma once
 
 #include <oboe/Oboe.h>
+#include <oboe/LatencyTuner.h>
+#include <oboe/StabilizedCallback.h>
 #include <atomic>
 #include <mutex>
 #include <functional>
+#include <memory>
 
 /// Callback function type for providing PCM audio data to the Oboe stream.
 /// Returns the number of frames actually written to the buffer.
 typedef int32_t (*OboeAudioProvider)(void* audioData, int32_t numFrames);
 
 /// Low-latency audio bridge using Google's Oboe library.
-/// Optimized for rhythm-game audio-visual synchronization with:
-///  - AAudio preferred (lowest latency path on Android 8.1+)
-///  - MMAP enabled (hardware-level DMA, bypasses kernel copy)
-///  - Exclusive sharing mode (bypass system mixer)
-///  - Stereo Float output (matches BASS master mixer format)
-///  - Buffer size tuned to 2× burst for stability on modern devices
-///  - ADPF (Android Dynamic Performance Framework) integration
-///  - CPU Affinity pinning to high-performance cores
-///  - Automatic stream recovery on disconnect / route change
 class OboeBridge : public oboe::AudioStreamCallback {
 public:
     OboeBridge();
     ~OboeBridge();
 
-    bool open();
+    bool open(int32_t sampleRate = 0);
     bool start();
     void stop();
 
-    /// Returns the measured output latency in milliseconds, or -1 if unavailable.
     double getOutputLatencyMs() const;
-
-    /// Returns true if the stream is currently active.
     bool isActive() const;
-
-    /// Returns the negotiated sample rate of the open stream (e.g. 48000).
     int32_t getSampleRate() const;
-
-    /// Returns the optimal burst size in frames (one callback quantum).
     int32_t getFramesPerBurst() const;
-
-    /// Returns the current buffer size in frames.
     int32_t getBufferSizeInFrames() const;
-
-    /// Returns true if the stream is using AAudio (vs OpenSL ES fallback).
     bool isAAudio() const;
-
-    /// Returns true if the stream is using the hardware MMAP path (lowest possible latency).
     bool isMMap() const;
-
-    /// Sets the provider function that will be called to fill the audio buffer.
     void setProvider(OboeAudioProvider provider);
 
     // oboe::AudioStreamCallback
@@ -64,14 +43,17 @@ public:
 
 private:
     std::shared_ptr<oboe::AudioStream> stream_;
+    std::unique_ptr<oboe::LatencyTuner> tuner_;
+    std::unique_ptr<oboe::StabilizedCallback> stabilizedCallback_;
+
     std::mutex streamLock_;
     std::atomic<bool> active_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
     std::atomic<OboeAudioProvider> provider_{nullptr};
     std::atomic<bool> affinitySet_{false};
+    int32_t requestedSampleRate_{0};
 
     void updateLatency();
-    void optimiseBufferSize();
     bool reopenAndRestart();
 };

@@ -3,6 +3,8 @@
 
 #include "oboe_bridge.h"
 #include <oboe/OboeExtensions.h>
+#include <oboe/AudioClock.h>
+#include <oboe/Process.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstring>
@@ -21,11 +23,16 @@ OboeBridge::~OboeBridge() {
     LOGI("OboeBridge destroyed");
 }
 
-bool OboeBridge::open() {
+bool OboeBridge::open(int32_t sampleRate) {
     std::lock_guard<std::mutex> lock(streamLock_);
+    requestedSampleRate_ = sampleRate;
 
     // Low-latency MMAP path requires explicit enabling in Oboe.
     oboe::OboeExtensions::setMMapEnabled(true);
+
+    // Initialise StabilizedCallback to even out callback execution time.
+    // We create it here so we can pass it to the builder.
+    stabilizedCallback_ = std::make_unique<oboe::StabilizedCallback>(this);
 
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
@@ -33,7 +40,7 @@ bool OboeBridge::open() {
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
            ->setChannelCount(oboe::ChannelCount::Stereo)
-           ->setSampleRate(oboe::kUnspecified)
+           ->setSampleRate(sampleRate > 0 ? sampleRate : oboe::kUnspecified)
            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::None)
            ->setContentType(oboe::ContentType::Music)
            ->setUsage(oboe::Usage::Game)
@@ -42,7 +49,7 @@ bool OboeBridge::open() {
            ->setBufferCapacityInFrames(oboe::kUnspecified)
            ->setChannelConversionAllowed(false)
            ->setFormatConversionAllowed(false)
-           ->setCallback(this);
+           ->setCallback(stabilizedCallback_.get());
 
     oboe::Result result = builder.openStream(stream_);
 
@@ -59,11 +66,11 @@ bool OboeBridge::open() {
     }
 
     // Enable ADPF (Android Dynamic Performance Framework) hint support.
-    // This allows the Android kernel to provide maximum priority and frequency scaling
-    // to the audio thread for improved stability and lower jitter.
     stream_->setPerformanceHintEnabled(true);
 
-    optimiseBufferSize();
+    // Initialise LatencyTuner for dynamic buffer management.
+    // This allows us to start at 1x burst and only grow if underruns occur.
+    tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
 
     LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
          "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
@@ -76,23 +83,6 @@ bool OboeBridge::open() {
          oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
 
     return true;
-}
-
-void OboeBridge::optimiseBufferSize() {
-    if (!stream_) return;
-
-    // Set buffer size to exactly 2× burst for optimal stability/latency balance.
-    // 1x is the theoretical minimum but often results in "crusty" audio (underruns)
-    // on modern devices due to OS scheduler jitter. 2x is a reliable "gold standard".
-    int32_t burst = stream_->getFramesPerBurst();
-
-    if (burst > 0) {
-        auto setResult = stream_->setBufferSizeInFrames(burst * 2);
-
-        if (setResult) {
-            LOGI("Buffer size tuned to %d frames (2x burst)", setResult.value());
-        }
-    }
 }
 
 bool OboeBridge::start() {
@@ -127,6 +117,8 @@ void OboeBridge::stop() {
         stream_.reset();
     }
 
+    tuner_.reset();
+    stabilizedCallback_.reset();
     latencyMs_.store(-1.0);
     callbackCount_.store(0);
     LOGI("Oboe stream stopped");
@@ -173,7 +165,7 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
     // Record the start time of this callback for ADPF work duration reporting.
-    int64_t startTime = oboe::DefaultClock::getNanoseconds();
+    int64_t startTime = oboe::AudioClock::getNanoseconds();
 
     OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
 
@@ -181,13 +173,11 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         int32_t framesRead = provider(audioData, numFrames);
 
         if (framesRead < numFrames) {
-            // Fill remaining buffer with silence if provider didn't return enough data.
             size_t bytesDone = static_cast<size_t>(framesRead) * stream->getChannelCount() * sizeof(float);
             size_t totalBytes = static_cast<size_t>(numFrames) * stream->getChannelCount() * sizeof(float);
             memset(static_cast<char*>(audioData) + bytesDone, 0, totalBytes - bytesDone);
         }
     } else {
-        // Fallback to silence if no provider is registered.
         size_t byteCount = static_cast<size_t>(numFrames)
                          * static_cast<size_t>(stream->getChannelCount())
                          * sizeof(float);
@@ -196,7 +186,7 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
     // Reporting actual work duration helps ADPF (Android Dynamic Performance Framework)
     // adjust CPU frequency precisely to handle the audio load without skipping.
-    int64_t endTime = oboe::DefaultClock::getNanoseconds();
+    int64_t endTime = oboe::AudioClock::getNanoseconds();
     stream->reportActualWorkDuration(endTime - startTime);
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
@@ -204,9 +194,12 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
     if ((count & 127) == 0) {
         updateLatency();
 
-        // Attempt to set CPU affinity to high-performance cores on the first few callbacks.
-        // Doing this inside the callback ensures we are targeting the actual audio thread
-        // created by Oboe/AAudio. This is essential for preventing scheduler-related underruns.
+        // Dynamically tune the buffer size to the lowest stable value.
+        if (tuner_) {
+            tuner_->tune();
+        }
+
+        // Attempt to set CPU affinity to high-performance cores.
         if (!affinitySet_.load(std::memory_order_relaxed)) {
             std::vector<int> exclusiveCores = oboe::Process::getExclusiveCores();
 
@@ -217,8 +210,6 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
                 if (result == oboe::Result::OK) {
                     LOGI("Oboe audio thread pinned to exclusive cores");
-                } else {
-                    LOGI("Failed to pin Oboe audio thread: %s", oboe::convertToText(result));
                 }
             }
             affinitySet_.store(true);
@@ -238,9 +229,6 @@ void OboeBridge::onErrorAfterClose(oboe::AudioStream* stream, oboe::Result error
          oboe::convertToText(error));
     active_.store(false);
 
-    // Automatic stream recovery: re-open and restart on disconnect / route change.
-    // This is critical for maintaining low-latency audio when headphones are
-    // plugged/unplugged or Bluetooth devices connect/disconnect.
     if (error == oboe::Result::ErrorDisconnected) {
         {
             std::lock_guard<std::mutex> lock(streamLock_);
@@ -259,7 +247,7 @@ void OboeBridge::onErrorAfterClose(oboe::AudioStream* stream, oboe::Result error
 }
 
 bool OboeBridge::reopenAndRestart() {
-    if (open()) {
+    if (open(requestedSampleRate_)) {
         std::lock_guard<std::mutex> lock(streamLock_);
 
         if (stream_) {
@@ -295,12 +283,12 @@ void OboeBridge::updateLatency() {
 
 extern "C" {
 
-OSU_EXPORT intptr_t nOboeCreate() {
+OSU_EXPORT intptr_t nOboeCreate(int sampleRate) {
     auto* bridge = new (std::nothrow) OboeBridge();
 
     if (!bridge) return 0;
 
-    if (!bridge->open()) {
+    if (!bridge->open(sampleRate)) {
         delete bridge;
         return 0;
     }
