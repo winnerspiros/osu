@@ -33,10 +33,9 @@ bool OboeBridge::open() {
            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
-           // Mono — this stream outputs silence for latency measurement only.
-           // Mono halves the per-callback buffer vs stereo, reducing the
-           // minimum achievable latency.
-           ->setChannelCount(oboe::ChannelCount::Mono)
+           // Stereo output for high-quality game audio.
+           // Most Android devices use stereo as their native "Fast Path" configuration.
+           ->setChannelCount(oboe::ChannelCount::Stereo)
            // Let Oboe pick the device's native sample rate.
            // Hardcoding (e.g. 48000) would force Android's SRC resampler when the
            // device native rate differs, adding measurable latency.

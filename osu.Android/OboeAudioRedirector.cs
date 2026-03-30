@@ -79,35 +79,36 @@ namespace osu.Android
         {
             if (mixerHandles.Count == 0) return 0;
 
-            if (mixBuffer == null || mixBuffer.Length < numFrames)
-                mixBuffer = new float[numFrames];
+            // Oboe is configured for Stereo (2 channels).
+            int numSamples = numFrames * 2;
 
-            if (channelBuffer == null || channelBuffer.Length < numFrames * 2)
-                channelBuffer = new float[numFrames * 2];
+            if (mixBuffer == null || mixBuffer.Length < numSamples)
+                mixBuffer = new float[numSamples];
 
-            Array.Clear(mixBuffer, 0, numFrames);
+            if (channelBuffer == null || channelBuffer.Length < numSamples)
+                channelBuffer = new float[numSamples];
+
+            Array.Clear(mixBuffer, 0, numSamples);
             bool anyRead = false;
 
             foreach (int handle in mixerHandles)
             {
                 // Pull stereo float data from BASS mixer.
-                // Mixers in osu-framework are decoding channels (driven by the master mixer).
-                int bytesRead = Bass.ChannelGetData(handle, channelBuffer, (numFrames * 2 * 4) | (int)DataFlags.Float);
+                int bytesRead = Bass.ChannelGetData(handle, channelBuffer, (numSamples * 4) | (int)DataFlags.Float);
                 if (bytesRead <= 0) continue;
 
                 anyRead = true;
-                int framesRead = bytesRead / 8; // 2 channels * 4 bytes
+                int samplesRead = bytesRead / 4;
 
-                for (int i = 0; i < framesRead; i++)
+                for (int i = 0; i < samplesRead; i++)
                 {
-                    // Simple downmix to mono (Oboe is currently mono for lowest latency).
-                    mixBuffer[i] += (channelBuffer[i * 2] + channelBuffer[i * 2 + 1]) * 0.5f;
+                    mixBuffer[i] += channelBuffer[i];
                 }
             }
 
             if (!anyRead) return 0;
 
-            Marshal.Copy(mixBuffer, 0, audioData, numFrames);
+            Marshal.Copy(mixBuffer, 0, audioData, numSamples);
             return numFrames;
         }
 
