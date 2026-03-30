@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using Android.Media;
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -145,11 +146,22 @@ namespace osu.Android
 
             lowLatencyAudio.BindValueChanged(e =>
             {
+            int hardwareSampleRate = 0;
+            try
+            {
+                if (gameActivity.GetSystemService(Android.Content.Context.AudioService) is AudioManager audioManager)
+                {
+                    string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                    if (!string.IsNullOrEmpty(rateStr))
+                        hardwareSampleRate = int.Parse(rateStr);
+                }
+            }
+            catch { }
                 try
                 {
                     if (e.NewValue)
                     {
-                        audioRedirector?.RefreshMixers();
+                        audioRedirector?.RefreshMixers(hardwareSampleRate);
 
                         startOboeBridge(latency =>
                         {
@@ -297,15 +309,28 @@ namespace osu.Android
         // Every method below is [MethodImplOptions.NoInlining] so that AndroidNativeBridgeManager
         // (and its P/Invoke field types) are never resolved until explicitly called.
 
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
         {
+            int hardwareSampleRate = 0;
+
+            try
+            {
+                if (gameActivity.GetSystemService(Android.Content.Context.AudioService) is AudioManager audioManager)
+                {
+                    string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                    if (!string.IsNullOrEmpty(rateStr))
+                        hardwareSampleRate = int.Parse(rateStr);
+                }
+            }
+            catch { }
+
             nativeBridges ??= new AndroidNativeBridgeManager();
 
             if (nativeBridges is AndroidNativeBridgeManager mgr)
-                mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider, onStarted);
+                mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider, hardwareSampleRate, onStarted);
         }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void stopOboeBridge()
         {
