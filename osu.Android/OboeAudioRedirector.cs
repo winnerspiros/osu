@@ -10,6 +10,7 @@ using ManagedBass.Mix;
 using osu.Android.Native;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
+using System.Runtime.CompilerServices;
 using Debug = System.Diagnostics.Debug;
 
 namespace osu.Android
@@ -25,15 +26,13 @@ namespace osu.Android
         private int masterMixer;
         private bool devicesSilenced;
         private int sampleRate = 44100; // Default, will be updated from bridge.
-        private readonly OboeAudioBridge.OboeAudioProvider providerDelegate;
 
         public OboeAudioRedirector(AudioManager audioManager)
         {
             this.audioManager = audioManager;
-            this.providerDelegate = provideAudio;
         }
 
-        public OboeAudioBridge.OboeAudioProvider Provider => providerDelegate;
+        public unsafe IntPtr Provider => (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, int, int>)&provideAudio;
 
         public void RefreshMixers(int hardwareSampleRate)
         {
@@ -45,6 +44,8 @@ namespace osu.Android
 
             silenceDefaultAudio();
             setupMasterMixer();
+
+            ActiveMasterMixer = masterMixer;
 
             Debug.WriteLine($"[osu!] Oboe redirector initialized: rate={sampleRate}Hz, mixers={mixerHandles.Count}");
         }
@@ -73,9 +74,9 @@ namespace osu.Android
             foreach (int handle in mixerHandles)
             {
                 // Add redirected mixers as sources to our master mixer.
-                // We use BASS_MIXER_BUFFER to provide some internal buffering in BASS native code if needed,
-                // although for lowest latency we rely on the Oboe callback timing.
-                if (!BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin | BassFlags.MixerChanBuffer))
+                // We remove BASS_MIXER_BUFFER to eliminate internal BASS buffering latency,
+                // relying entirely on the Oboe callback timing for rock-solid sync.
+                if (!BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin))
                 {
                     Debug.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
                 }
@@ -122,6 +123,7 @@ namespace osu.Android
 
         private void restoreDefaultAudio()
         {
+            ActiveMasterMixer = 0;
             if (!devicesSilenced) return;
 
             try
@@ -173,19 +175,26 @@ namespace osu.Android
             }
         }
 
-        private int provideAudio(IntPtr audioData, int numFrames)
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        private static int provideAudio(IntPtr audioData, int numFrames)
         {
-            if (masterMixer == 0 || !devicesSilenced) return 0;
+            // We use a static method with [UnmanagedCallersOnly] to eliminate delegate marshalling overhead.
+            // Since this is static, we need a way to find the active mixer.
+            int mixer = ActiveMasterMixer;
+
+            if (mixer == 0) return 0;
 
             // Zero-copy: Tell BASS to render directly into the memory provided by Oboe.
             // BASS_DATA_FLOAT is implied by the mixer stream flags.
             int bytesToRead = numFrames * 8; // 2 channels * 4 bytes/sample
-            int bytesRead = Bass.ChannelGetData(masterMixer, audioData, bytesToRead);
+            int bytesRead = Bass.ChannelGetData(mixer, audioData, bytesToRead);
 
             if (bytesRead <= 0) return 0;
 
             return bytesRead / 8;
         }
+
+        internal static int ActiveMasterMixer;
 
         public void Dispose()
         {

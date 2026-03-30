@@ -31,7 +31,7 @@ namespace osu.Android
         // ── Oboe ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, OboeAudioBridge.OboeAudioProvider? provider = null, Action<int>? onStarted = null)
+        public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
         {
             if (oboeBridge != null) return;
 
@@ -43,7 +43,7 @@ namespace osu.Android
                 {
                     oboeBridge = bridge;
 
-                    if (provider != null)
+                    if (provider != IntPtr.Zero)
                         bridge.SetProvider(provider);
 
                     bool started = bridge.Start();
