@@ -34,7 +34,7 @@ for (int retry = 0; retry < 5; retry++) {
 }
 
 // ── Validate ELF magic ──────────────────────────────────────────────
-if (data.Length < 64 || data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F')
+if (data == null || data.Length < 64 || data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F')
     return true;
 
 int eiClass = data[4]; // 1 = 32-bit, 2 = 64-bit
@@ -197,7 +197,7 @@ try
 
     if (lockStream == null)
     {
-        Log.LogMessage(MessageImportance.High,
+        // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.High,
             "PatchElfPageSize: could not acquire lock for {0}, skipping (another build node may be patching it)",
             System.IO.Path.GetFileName(FilePath));
         return true;
@@ -228,7 +228,7 @@ try
 
     if (!stillNeeds)
     {
-        Log.LogMessage(MessageImportance.Low,
+        // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.Low,
             "PatchElfPageSize: {0} was already patched by another build node",
             System.IO.Path.GetFileName(FilePath));
         return true;
@@ -239,7 +239,7 @@ try
         catch (System.IO.IOException) { if (retry == 9) throw; System.Threading.Thread.Sleep(500); }
     }
     WasPatched = true;
-    Log.LogMessage(MessageImportance.High,
+    // System.Console.WriteLine(Microsoft.Build.Framework.Microsoft.Build.Framework.MessageImportance.High,
         "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
         System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
 }

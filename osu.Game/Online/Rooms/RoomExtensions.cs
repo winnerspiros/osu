@@ -15,7 +15,7 @@ namespace osu.Game.Online.Rooms
             if (!room.RoomID.HasValue)
                 return null;
 
-            return $@"{api.Endpoints.WebsiteUrl}/multiplayer/rooms/{room.RoomID!.Value}";
+            return $@"{api.Endpoints.WebsiteUrl}/multiplayer/rooms/{room.RoomID.Value}";
         }
     }
 }

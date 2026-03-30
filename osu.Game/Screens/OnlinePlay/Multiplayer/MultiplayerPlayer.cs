@@ -244,11 +244,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             Debug.Assert(Room.RoomID != null);
 
             return leaderboardProvider.TeamScores.Count == 2
-                ? new MultiplayerTeamResultsScreen(score, Room.RoomID!.Value, PlaylistItem, leaderboardProvider.TeamScores)
+                ? new MultiplayerTeamResultsScreen(score, Room.RoomID.Value, PlaylistItem, leaderboardProvider.TeamScores)
                 {
                     IsLocalPlay = true,
                 }
-                : new MultiplayerResultsScreen(score, Room.RoomID!.Value, PlaylistItem)
+                : new MultiplayerResultsScreen(score, Room.RoomID.Value, PlaylistItem)
                 {
                     IsLocalPlay = true,
                 };

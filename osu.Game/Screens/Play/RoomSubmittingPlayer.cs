@@ -48,7 +48,7 @@ namespace osu.Game.Screens.Play
         protected override APIRequest<MultiplayerScore> CreateSubmissionRequest(Score score, long token)
         {
             Debug.Assert(Room.RoomID != null);
-            return new SubmitRoomScoreRequest(score.ScoreInfo, token, Room.RoomID!.Value, PlaylistItem.ID);
+            return new SubmitRoomScoreRequest(score.ScoreInfo, token, Room.RoomID.Value, PlaylistItem.ID);
         }
     }
 }

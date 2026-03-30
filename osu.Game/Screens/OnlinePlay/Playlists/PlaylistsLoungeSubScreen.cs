@@ -78,7 +78,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
         {
             Debug.Assert(room.RoomID != null);
 
-            var request = new ClosePlaylistRequest(room.RoomID!.Value);
+            var request = new ClosePlaylistRequest(room.RoomID.Value);
             request.Success += RefreshRooms;
             api.Queue(request);
         }

@@ -717,7 +717,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
 
             // fallback is to allow this class to operate when there is no parent OnlineScreen (testing purposes).
             var targetScreen = (Screen?)parentScreen ?? this;
-            targetScreen.Push(new PlaylistItemUserBestResultsScreen(room.RoomID!.Value, item, api.LocalUser.Value.OnlineID));
+            targetScreen.Push(new PlaylistItemUserBestResultsScreen(room.RoomID.Value, item, api.LocalUser.Value.OnlineID));
         }
 
         /// <summary>
