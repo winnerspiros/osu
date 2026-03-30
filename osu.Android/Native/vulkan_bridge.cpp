@@ -21,8 +21,7 @@ VulkanProbe::VulkanProbe() {
 
     if (available_) {
         LOGI("Vulkan available: %s (API %u.%u.%u, driver %u, VRAM %u MB, "
-             "queues %u, dedicatedCompute=%d, dedicatedTransfer=%d, swapchain=%d, mailbox=%d, "
-             "vk1.3=%d, dynamicRendering=%d, synchronization2=%d)",
+             "queues %u, mailbox=%d, vk1.3=%d, sync2=%d, presentWait=%d, gpl=%d, shaderObj=%d, priority=%d)",
              deviceInfo_.deviceName.c_str(),
              VK_VERSION_MAJOR(deviceInfo_.apiVersion),
              VK_VERSION_MINOR(deviceInfo_.apiVersion),
@@ -30,13 +29,13 @@ VulkanProbe::VulkanProbe() {
              deviceInfo_.driverVersion,
              deviceInfo_.deviceLocalMemoryMB,
              deviceInfo_.queueFamilyCount,
-             deviceInfo_.hasDedicatedComputeQueue ? 1 : 0,
-             deviceInfo_.hasDedicatedTransferQueue ? 1 : 0,
-             deviceInfo_.supportsSwapchain ? 1 : 0,
              deviceInfo_.supportsMailboxPresentMode ? 1 : 0,
              deviceInfo_.meetsVulkan13 ? 1 : 0,
-             deviceInfo_.supportsDynamicRendering ? 1 : 0,
-             deviceInfo_.supportsSynchronization2 ? 1 : 0);
+             deviceInfo_.supportsSynchronization2 ? 1 : 0,
+             deviceInfo_.supportsPresentWait ? 1 : 0,
+             deviceInfo_.supportsGraphicsPipelineLibrary ? 1 : 0,
+             deviceInfo_.supportsShaderObject ? 1 : 0,
+             deviceInfo_.supportsGlobalPriority ? 1 : 0);
     } else {
         LOGI("Vulkan not available on this device");
     }
@@ -51,58 +50,37 @@ bool VulkanProbe::createInstance() {
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "osu!";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "osu-framework";
+    appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    // Request Vulkan 1.3 to enable full feature queries (dynamic rendering,
-    // synchronization2). Falls back to 1.0 on older drivers.
     appInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = 0;
-    createInfo.enabledExtensionCount = 0;
 
     VkResult result = vkCreateInstance(&createInfo, nullptr, &instance_);
 
     if (result == VK_ERROR_INCOMPATIBLE_DRIVER) {
-        // Vulkan 1.0-only driver; fall back.
-        LOGI("Vulkan 1.3 instance not supported, falling back to 1.0");
         appInfo.apiVersion = VK_API_VERSION_1_0;
         result = vkCreateInstance(&createInfo, nullptr, &instance_);
     }
 
-    if (result != VK_SUCCESS) {
-        LOGE("vkCreateInstance failed: %d", result);
-        return false;
-    }
-
+    if (result != VK_SUCCESS) return false;
     return true;
 }
 
 bool VulkanProbe::queryDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr);
-
-    if (deviceCount == 0) {
-        LOGI("No Vulkan physical devices found");
-        return false;
-    }
+    if (deviceCount == 0) return false;
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
+    if (vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data()) != VK_SUCCESS) return false;
 
-    if (vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data()) != VK_SUCCESS || deviceCount == 0) {
-        LOGE("Failed to enumerate Vulkan physical devices");
-        return false;
-    }
-
-    // Pick the first discrete GPU, or fall back to the first device.
     VkPhysicalDevice selected = devices[0];
-
     for (const auto& dev : devices) {
         VkPhysicalDeviceProperties props;
         vkGetPhysicalDeviceProperties(dev, &props);
-
         if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
             selected = dev;
             break;
@@ -111,39 +89,16 @@ bool VulkanProbe::queryDevice() {
 
     VkPhysicalDeviceProperties props;
     vkGetPhysicalDeviceProperties(selected, &props);
-
     deviceInfo_.deviceName = props.deviceName;
     deviceInfo_.apiVersion = props.apiVersion;
     deviceInfo_.driverVersion = props.driverVersion;
     deviceInfo_.vendorId = props.vendorID;
 
-    // Check for swapchain extension support.
-    uint32_t extCount = 0;
-
-    if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, nullptr) != VK_SUCCESS || extCount == 0) {
-        deviceInfo_.supportsSwapchain = false;
-    } else {
-        std::vector<VkExtensionProperties> extensions(extCount);
-
-        if (vkEnumerateDeviceExtensionProperties(selected, nullptr, &extCount, extensions.data()) != VK_SUCCESS) {
-            deviceInfo_.supportsSwapchain = false;
-        } else {
-            deviceInfo_.supportsSwapchain = false;
-
-            for (const auto& ext : extensions) {
-                if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-                    deviceInfo_.supportsSwapchain = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    // Query additional performance-relevant capabilities.
     queryMemory(selected);
     queryQueueFamilies(selected);
     queryMailboxSupport(selected);
     queryVulkan13Features(selected);
+    queryModernExtensions(selected);
 
     return true;
 }
@@ -151,97 +106,70 @@ bool VulkanProbe::queryDevice() {
 void VulkanProbe::queryMemory(VkPhysicalDevice device) {
     VkPhysicalDeviceMemoryProperties memProps;
     vkGetPhysicalDeviceMemoryProperties(device, &memProps);
-
     uint64_t deviceLocalBytes = 0;
-
     for (uint32_t i = 0; i < memProps.memoryHeapCount; i++) {
         if (memProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
             deviceLocalBytes += memProps.memoryHeaps[i].size;
         }
     }
-
     deviceInfo_.deviceLocalMemoryMB = static_cast<uint32_t>(deviceLocalBytes / (1024 * 1024));
 }
 
 void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-    deviceInfo_.queueFamilyCount = queueFamilyCount;
-    deviceInfo_.hasDedicatedComputeQueue = false;
-    deviceInfo_.hasDedicatedTransferQueue = false;
-
-    if (queueFamilyCount == 0) return;
-
-    std::vector<VkQueueFamilyProperties> families(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, families.data());
-
+    uint32_t count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+    deviceInfo_.queueFamilyCount = count;
+    std::vector<VkQueueFamilyProperties> families(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, families.data());
     for (const auto& family : families) {
-        // A dedicated compute queue has compute but NOT graphics.
-        bool hasGraphics = (family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0;
-        bool hasCompute = (family.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0;
-        bool hasTransfer = (family.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0;
-
-        if (hasCompute && !hasGraphics) {
+        if ((family.queueFlags & VK_QUEUE_COMPUTE_BIT) && !(family.queueFlags & VK_QUEUE_GRAPHICS_BIT))
             deviceInfo_.hasDedicatedComputeQueue = true;
-        }
-
-        if (hasTransfer && !hasGraphics && !hasCompute) {
+        if ((family.queueFlags & VK_QUEUE_TRANSFER_BIT) && !(family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)))
             deviceInfo_.hasDedicatedTransferQueue = true;
-        }
     }
 }
 
 void VulkanProbe::queryMailboxSupport(VkPhysicalDevice device) {
-    // MAILBOX present mode requires a VkSurface to query definitively, but we detect
-    // it using VK_GOOGLE_display_timing — a device extension that is present exclusively
-    // on Android GPUs (Adreno, Mali) that also expose MAILBOX present mode support.
-    // This gives us a reliable indication without needing an active surface.
-    deviceInfo_.supportsMailboxPresentMode = false;
-
-    uint32_t extCount = 0;
-
-    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, nullptr) != VK_SUCCESS || extCount == 0)
-        return;
-
-    std::vector<VkExtensionProperties> extensions(extCount);
-
-    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, extensions.data()) != VK_SUCCESS)
-        return;
-
-    for (const auto& ext : extensions) {
+    // mailbox detection via display_timing hint
+    uint32_t count = 0;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+    std::vector<VkExtensionProperties> exts(count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
+    for (const auto& ext : exts) {
         if (strcmp(ext.extensionName, "VK_GOOGLE_display_timing") == 0) {
             deviceInfo_.supportsMailboxPresentMode = true;
-            return;
+            break;
         }
     }
 }
 
-void VulkanProbe::queryVulkan13Features(VkPhysicalDevice device) {
-    // Check if the device reports Vulkan 1.3+.
-    uint32_t major = VK_VERSION_MAJOR(deviceInfo_.apiVersion);
-    uint32_t minor = VK_VERSION_MINOR(deviceInfo_.apiVersion);
-
-    if (major < 1 || (major == 1 && minor < 3)) {
-        LOGI("Device Vulkan API %u.%u < 1.3, skipping 1.3 feature query", major, minor);
-        return;
+void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
+    uint32_t count = 0;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+    std::vector<VkExtensionProperties> exts(count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
+    for (const auto& ext : exts) {
+        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) deviceInfo_.supportsSwapchain = true;
+        if (strcmp(ext.extensionName, VK_KHR_PRESENT_ID_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentId = true;
+        if (strcmp(ext.extensionName, VK_KHR_PRESENT_WAIT_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentWait = true;
+        if (strcmp(ext.extensionName, VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME) == 0) deviceInfo_.supportsGraphicsPipelineLibrary = true;
+        if (strcmp(ext.extensionName, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) == 0) deviceInfo_.supportsShaderObject = true;
+        if (strcmp(ext.extensionName, VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME) == 0 || strcmp(ext.extensionName, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME) == 0) deviceInfo_.supportsGlobalPriority = true;
+        if (strcmp(ext.extensionName, VK_EXT_MEMORY_BUDGET_EXTENSION_NAME) == 0) deviceInfo_.supportsMemoryBudget = true;
     }
+}
 
+void VulkanProbe::queryVulkan13Features(VkPhysicalDevice device) {
+    if (VK_VERSION_MAJOR(deviceInfo_.apiVersion) < 1 || (VK_VERSION_MAJOR(deviceInfo_.apiVersion) == 1 && VK_VERSION_MINOR(deviceInfo_.apiVersion) < 3)) return;
     deviceInfo_.meetsVulkan13 = true;
-
-    // vkGetPhysicalDeviceFeatures2 is available since Vulkan 1.1, and the device
-    // reports 1.3+, so this is safe.
-    VkPhysicalDeviceVulkan13Features features13{};
-    features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-
-    VkPhysicalDeviceFeatures2 features2{};
-    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    features2.pNext = &features13;
-
-    vkGetPhysicalDeviceFeatures2(device, &features2);
-
-    deviceInfo_.supportsDynamicRendering = features13.dynamicRendering == VK_TRUE;
-    deviceInfo_.supportsSynchronization2 = features13.synchronization2 == VK_TRUE;
+    VkPhysicalDeviceVulkan13Features f13{};
+    f13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    VkPhysicalDeviceFeatures2 f2{};
+    f2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    f2.pNext = &f13;
+    vkGetPhysicalDeviceFeatures2(device, &f2);
+    deviceInfo_.supportsDynamicRendering = f13.dynamicRendering == VK_TRUE;
+    deviceInfo_.supportsSynchronization2 = f13.synchronization2 == VK_TRUE;
 }
 
 void VulkanProbe::cleanup() {
@@ -251,81 +179,26 @@ void VulkanProbe::cleanup() {
     }
 }
 
-// ============================================================
-// C exports for P/Invoke from .NET
-// ============================================================
-
-// Use intptr_t for pointer handles so the size matches C# IntPtr on both
-// 32-bit (4 bytes) and 64-bit (8 bytes) platforms.  The previous use of
-// C++ `long` was 4 bytes on 32-bit ARM/x86 but C# `long` is always
-// 8 bytes, causing a calling-convention mismatch and crash.
-
 #define OSU_EXPORT __attribute__((visibility("default")))
 
 extern "C" {
-
-OSU_EXPORT intptr_t nVulkanProbeCreate() {
-    auto* probe = new (std::nothrow) VulkanProbe();
-    return reinterpret_cast<intptr_t>(probe);
+OSU_EXPORT intptr_t nVulkanProbeCreate() { return reinterpret_cast<intptr_t>(new (std::nothrow) VulkanProbe()); }
+OSU_EXPORT void nVulkanProbeDestroy(intptr_t ptr) { if (ptr) delete reinterpret_cast<VulkanProbe*>(ptr); }
+OSU_EXPORT byte nVulkanIsAvailable(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->isAvailable()) ? 1 : 0; }
+OSU_EXPORT int nVulkanGetApiVersion(intptr_t ptr) { return ptr ? (int)reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().apiVersion : 0; }
+OSU_EXPORT byte nVulkanSupportsSwapchain(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsSwapchain) ? 1 : 0; }
+OSU_EXPORT int nVulkanGetDeviceLocalMemoryMB(intptr_t ptr) { return ptr ? (int)reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().deviceLocalMemoryMB : 0; }
+OSU_EXPORT int nVulkanGetQueueFamilyCount(intptr_t ptr) { return ptr ? (int)reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().queueFamilyCount : 0; }
+OSU_EXPORT byte nVulkanHasDedicatedComputeQueue(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().hasDedicatedComputeQueue) ? 1 : 0; }
+OSU_EXPORT byte nVulkanHasDedicatedTransferQueue(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().hasDedicatedTransferQueue) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsMailboxPresentMode(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsMailboxPresentMode) ? 1 : 0; }
+OSU_EXPORT byte nVulkanMeetsVulkan13(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().meetsVulkan13) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsDynamicRendering(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsDynamicRendering) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsSynchronization2(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsSynchronization2) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsPresentId(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsPresentId) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsPresentWait(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsPresentWait) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsGraphicsPipelineLibrary(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsGraphicsPipelineLibrary) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsShaderObject(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsShaderObject) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsGlobalPriority(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsGlobalPriority) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsMemoryBudget(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsMemoryBudget) ? 1 : 0; }
 }
-
-OSU_EXPORT void nVulkanProbeDestroy(intptr_t ptr) {
-    if (ptr) delete reinterpret_cast<VulkanProbe*>(ptr);
-}
-
-OSU_EXPORT unsigned char nVulkanIsAvailable(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->isAvailable()) ? 1 : 0;
-}
-
-OSU_EXPORT int nVulkanGetApiVersion(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return probe ? static_cast<int>(probe->getDeviceInfo().apiVersion) : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanSupportsSwapchain(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().supportsSwapchain) ? 1 : 0;
-}
-
-OSU_EXPORT int nVulkanGetDeviceLocalMemoryMB(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return probe ? static_cast<int>(probe->getDeviceInfo().deviceLocalMemoryMB) : 0;
-}
-
-OSU_EXPORT int nVulkanGetQueueFamilyCount(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return probe ? static_cast<int>(probe->getDeviceInfo().queueFamilyCount) : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanHasDedicatedComputeQueue(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().hasDedicatedComputeQueue) ? 1 : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanHasDedicatedTransferQueue(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().hasDedicatedTransferQueue) ? 1 : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanSupportsMailboxPresentMode(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().supportsMailboxPresentMode) ? 1 : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanMeetsVulkan13(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().meetsVulkan13) ? 1 : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanSupportsDynamicRendering(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().supportsDynamicRendering) ? 1 : 0;
-}
-
-OSU_EXPORT unsigned char nVulkanSupportsSynchronization2(intptr_t ptr) {
-    auto* probe = reinterpret_cast<VulkanProbe*>(ptr);
-    return (probe && probe->getDeviceInfo().supportsSynchronization2) ? 1 : 0;
-}
-
-} // extern "C"
