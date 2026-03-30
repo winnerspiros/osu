@@ -27,9 +27,15 @@ if(oboe_FOUND)
 else()
     include(FetchContent)
     FetchContent_Declare(oboe
-        URL https://github.com/google/oboe/archive/39b1fd258998eb3cd80a0f9e800498bb4efa4eb2.tar.gz
+        URL https://github.com/google/oboe/archive/refs/tags/1.10.0.tar.gz
     )
     FetchContent_MakeAvailable(oboe)
+    # Patch Oboe's deprecated -Ofast flag
+    get_target_property(OBOE_OPTIONS oboe COMPILE_OPTIONS)
+    if(OBOE_OPTIONS)
+        string(REPLACE "-Ofast" "-O3;-ffast-math" OBOE_OPTIONS "${OBOE_OPTIONS}")
+        set_target_properties(oboe PROPERTIES COMPILE_OPTIONS "${OBOE_OPTIONS}")
+    endif()
     set(OBOE_LIB oboe)
 endif()
 
