@@ -134,6 +134,7 @@ void OboeBridge::stop() {
         stream_.reset();
     }
 
+    affinitySet_.store(false);
     latencyMs_.store(-1.0);
     callbackCount_.store(0);
     LOGI("Oboe stream stopped");
@@ -202,8 +203,30 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
     // instead of every single callback. calculateLatencyMillis() issues a
     // system call; keeping it out of the majority of callbacks reduces jitter
     // in this real-time audio thread.
-    if ((callbackCount_.fetch_add(1, std::memory_order_relaxed) & 127) == 0) {
+    uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
+
+    if ((count & 127) == 0) {
         updateLatency();
+
+        // Attempt to set CPU affinity to high-performance cores on the first few callbacks.
+        // Doing this inside the callback ensures we are targeting the actual audio thread
+        // created by Oboe/AAudio.
+        if (!affinitySet_.load(std::memory_order_relaxed)) {
+            std::vector<int> exclusiveCores = oboe::Process::getExclusiveCores();
+
+            if (!exclusiveCores.empty()) {
+                oboe::Result result = oboe::Process::setThreadAffinity(
+                    oboe::Process::getThreadId(),
+                    exclusiveCores);
+
+                if (result == oboe::Result::OK) {
+                    LOGI("Oboe audio thread pinned to exclusive cores");
+                } else {
+                    LOGI("Failed to pin Oboe audio thread: %s", oboe::convertToText(result));
+                }
+            }
+            affinitySet_.store(true);
+        }
     }
 
     return oboe::DataCallbackResult::Continue;

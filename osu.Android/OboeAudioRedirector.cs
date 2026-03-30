@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ManagedBass;
@@ -20,6 +21,7 @@ namespace osu.Android
     {
         private readonly AudioManager audioManager;
         private readonly List<int> mixerHandles = new List<int>();
+        private bool devicesSilenced;
         private readonly OboeAudioBridge.OboeAudioProvider providerDelegate;
 
         private float[]? mixBuffer;
@@ -40,7 +42,63 @@ namespace osu.Android
             addMixer(audioManager.TrackMixer);
             addMixer(audioManager.SampleMixer);
 
+            silenceDefaultAudio();
+
             Debug.WriteLine($"[osu!] Oboe redirector initialized with {mixerHandles.Count} BASS mixers");
+        }
+
+        private void silenceDefaultAudio()
+        {
+            if (devicesSilenced) return;
+
+            try
+            {
+                // Initialize BASS "No Sound" device (0) if not already.
+                // This device allows BASS to process audio streams without outputting to hardware.
+                if (!Bass.Init(0) && Bass.LastError != Errors.Already)
+                {
+                    Debug.WriteLine($"[osu!] Failed to initialize BASS No Sound device: {Bass.LastError}");
+                    return;
+                }
+
+                // Move all redirected mixers to the silent device.
+                // This "unplugs" them from the system hardware while keeping them active so we can pull data.
+                foreach (int handle in mixerHandles)
+                {
+                    if (!Bass.ChannelSetDevice(handle, 0))
+                        Debug.WriteLine($"[osu!] Failed to move mixer {handle} to silent device: {Bass.LastError}");
+                }
+
+                devicesSilenced = true;
+                Debug.WriteLine($"[osu!] BASS mixers moved to silent device 0 (Oboe active)");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to silence default audio: {e.Message}");
+            }
+        }
+
+        private void restoreDefaultAudio()
+        {
+            if (!devicesSilenced) return;
+
+            try
+            {
+                // Move mixers back to the default device (usually 1 on Android).
+                foreach (int handle in mixerHandles)
+                {
+                    // On Android, Device 1 is typically the default output.
+                    if (!Bass.ChannelSetDevice(handle, 1))
+                        Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to default device: {Bass.LastError}");
+                }
+
+                devicesSilenced = false;
+                Debug.WriteLine($"[osu!] BASS mixers restored to default device 1");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to restore default audio: {e.Message}");
+            }
         }
 
         private void addMixer(AudioMixer mixer)
@@ -55,7 +113,7 @@ namespace osu.Android
 
                 if (field != null)
                 {
-                    int handle = (int)field.GetValue(mixer);
+                    int handle = field.GetValue(mixer) is int h ? h : 0;
                     if (handle != 0) mixerHandles.Add(handle);
                 }
                 else
@@ -64,7 +122,7 @@ namespace osu.Android
                     var prop = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                     if (prop != null)
                     {
-                        int handle = (int)prop.GetValue(mixer);
+                        int handle = prop.GetValue(mixer) is int h ? h : 0;
                         if (handle != 0) mixerHandles.Add(handle);
                     }
                 }
@@ -100,7 +158,21 @@ namespace osu.Android
                 anyRead = true;
                 int samplesRead = bytesRead / 4;
 
-                for (int i = 0; i < samplesRead; i++)
+                int i = 0;
+
+                if (Vector.IsHardwareAccelerated)
+                {
+                    int vectorSize = Vector<float>.Count;
+
+                    for (; i <= samplesRead - vectorSize; i += vectorSize)
+                    {
+                        var vMix = new Vector<float>(mixBuffer, i);
+                        var vChan = new Vector<float>(channelBuffer, i);
+                        (vMix + vChan).CopyTo(mixBuffer, i);
+                    }
+                }
+
+                for (; i < samplesRead; i++)
                 {
                     mixBuffer[i] += channelBuffer[i];
                 }
@@ -114,6 +186,7 @@ namespace osu.Android
 
         public void Dispose()
         {
+            restoreDefaultAudio();
             mixerHandles.Clear();
         }
     }
