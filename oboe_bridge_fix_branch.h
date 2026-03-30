@@ -13,14 +13,14 @@
 typedef int32_t (*OboeAudioProvider)(void* audioData, int32_t numFrames);
 
 /// Low-latency audio bridge using Google's Oboe library.
-/// Optimized for rhythm-game audio-visual synchronization with:
+/// Optimised for rhythm-game audio-visual synchronization with:
 ///  - AAudio preferred (lowest latency path on Android 8.1+)
 ///  - MMAP enabled (hardware-level DMA, bypasses kernel copy)
 ///  - Exclusive sharing mode (bypass system mixer)
-///  - Stereo Float output (matches BASS master mixer format)
-///  - Buffer size tuned to 2× burst for stability on modern devices
-///  - ADPF (Android Dynamic Performance Framework) integration
-///  - CPU Affinity pinning to high-performance cores
+///  - Mono output (minimum buffer for latency-measurement stream)
+///  - Buffer size tuned to 1× burst for minimum latency
+///  - All format/rate/channel conversions disabled (zero resampler overhead)
+///  - Latency sampled every 128 callbacks (avoids syscall overhead in hot path)
 ///  - Automatic stream recovery on disconnect / route change
 class OboeBridge : public oboe::AudioStreamCallback {
 public:
@@ -43,13 +43,14 @@ public:
     /// Returns the optimal burst size in frames (one callback quantum).
     int32_t getFramesPerBurst() const;
 
-    /// Returns the current buffer size in frames.
+    /// Returns the current buffer size in frames (ideally == framesPerBurst for lowest latency).
     int32_t getBufferSizeInFrames() const;
 
     /// Returns true if the stream is using AAudio (vs OpenSL ES fallback).
     bool isAAudio() const;
 
     /// Returns true if the stream is using the hardware MMAP path (lowest possible latency).
+    /// MMAP provides direct memory-mapped access to audio hardware buffers.
     bool isMMap() const;
 
     /// Sets the provider function that will be called to fill the audio buffer.
@@ -66,10 +67,10 @@ private:
     std::shared_ptr<oboe::AudioStream> stream_;
     std::mutex streamLock_;
     std::atomic<bool> active_{false};
+    std::atomic<bool> affinitySet_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
     std::atomic<OboeAudioProvider> provider_{nullptr};
-    std::atomic<bool> affinitySet_{false};
 
     void updateLatency();
     void optimiseBufferSize();

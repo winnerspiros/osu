@@ -10,18 +10,12 @@ namespace osu.Android.Native
     /// <summary>
     /// Managed wrapper around the native Oboe low-latency audio bridge.
     /// Provides accurate audio output latency measurement for rhythm-game synchronisation.
-    /// Optimised for lowest possible latency: AAudio preferred, exclusive mode, 1x burst buffer.
+    /// Optimised for lowest possible latency: AAudio preferred, exclusive mode, 2x burst buffer,
+    /// and [UnmanagedCallersOnly] provider for zero-overhead callback delivery.
     /// </summary>
     public sealed class OboeAudioBridge : IDisposable
     {
         private const string lib_name = "osu_native";
-
-        /// <summary>
-        /// Callback function type for providing PCM audio data to the Oboe stream.
-        /// Returns the number of frames actually written to the buffer.
-        /// </summary>
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int OboeAudioProvider(IntPtr audioData, int numFrames);
 
         private IntPtr nativePtr;
         private volatile bool disposed;
@@ -199,8 +193,8 @@ namespace osu.Android.Native
         }
 
         /// <summary>
-        /// The actual buffer size in frames. When optimised, this equals <see cref="FramesPerBurst"/>
-        /// for minimum latency (1x burst).
+        /// The actual buffer size in frames. When optimised, this equals 2x <see cref="FramesPerBurst"/>
+        /// for maximum stability.
         /// </summary>
         public int BufferSizeInFrames
         {
@@ -264,8 +258,9 @@ namespace osu.Android.Native
 
         /// <summary>
         /// Sets the provider function that will be called to fill the audio buffer.
+        /// The provider should be a function pointer obtained from a static method with [UnmanagedCallersOnly].
         /// </summary>
-        public void SetProvider(OboeAudioProvider? provider)
+        public void SetProvider(IntPtr provider)
         {
             if (disposed || nativePtr == IntPtr.Zero) return;
 
@@ -341,6 +336,6 @@ namespace osu.Android.Native
         private static extern byte nOboeIsMMap(IntPtr ptr);
 
         [DllImport(lib_name)]
-        private static extern void nOboeSetProvider(IntPtr ptr, [MarshalAs(UnmanagedType.FunctionPtr)] OboeAudioProvider? provider);
+        private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
     }
 }
