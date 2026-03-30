@@ -173,16 +173,31 @@ bool OboeBridge::isMMap() const {
     return stream_ && oboe::OboeExtensions::isMMapUsed(stream_.get());
 }
 
+void OboeBridge::setProvider(OboeAudioProvider provider) {
+    provider_.store(provider, std::memory_order_release);
+}
+
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
-    // Output silence — the primary purpose of this stream is latency measurement.
-    // Future: route game audio through this path for lowest possible latency.
-    // Using explicit cast to size_t to prevent overflow on large frame counts.
-    size_t byteCount = static_cast<size_t>(numFrames)
-                     * static_cast<size_t>(stream->getChannelCount())
-                     * sizeof(float);
-    memset(audioData, 0, byteCount);
+    OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
+
+    if (provider) {
+        int32_t framesRead = provider(audioData, numFrames);
+
+        if (framesRead < numFrames) {
+            // Fill remaining buffer with silence if provider didn't return enough data.
+            size_t bytesDone = static_cast<size_t>(framesRead) * stream->getChannelCount() * sizeof(float);
+            size_t totalBytes = static_cast<size_t>(numFrames) * stream->getChannelCount() * sizeof(float);
+            memset(static_cast<char*>(audioData) + bytesDone, 0, totalBytes - bytesDone);
+        }
+    } else {
+        // Fallback to silence if no provider is registered.
+        size_t byteCount = static_cast<size_t>(numFrames)
+                         * static_cast<size_t>(stream->getChannelCount())
+                         * sizeof(float);
+        memset(audioData, 0, byteCount);
+    }
 
     // Sample latency every 128 callbacks (~250 ms at typical burst/sample rates)
     // instead of every single callback. calculateLatencyMillis() issues a
@@ -327,6 +342,11 @@ OSU_EXPORT unsigned char nOboeIsAAudio(intptr_t ptr) {
 OSU_EXPORT unsigned char nOboeIsMMap(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isMMap()) ? 1 : 0;
+}
+
+OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    if (bridge) bridge->setProvider(provider);
 }
 
 } // extern "C"

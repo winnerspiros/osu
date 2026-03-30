@@ -6,6 +6,11 @@
 #include <oboe/Oboe.h>
 #include <atomic>
 #include <mutex>
+#include <functional>
+
+/// Callback function type for providing PCM audio data to the Oboe stream.
+/// Returns the number of frames actually written to the buffer.
+typedef int32_t (*OboeAudioProvider)(void* audioData, int32_t numFrames);
 
 /// Low-latency audio bridge using Google's Oboe library.
 /// Optimised for rhythm-game audio-visual synchronization with:
@@ -48,6 +53,9 @@ public:
     /// MMAP provides direct memory-mapped access to audio hardware buffers.
     bool isMMap() const;
 
+    /// Sets the provider function that will be called to fill the audio buffer.
+    void setProvider(OboeAudioProvider provider);
+
     // oboe::AudioStreamCallback
     oboe::DataCallbackResult onAudioReady(
         oboe::AudioStream* stream, void* audioData, int32_t numFrames) override;
@@ -61,6 +69,7 @@ private:
     std::atomic<bool> active_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
+    std::atomic<OboeAudioProvider> provider_{nullptr};
 
     void updateLatency();
     void optimiseBufferSize();
