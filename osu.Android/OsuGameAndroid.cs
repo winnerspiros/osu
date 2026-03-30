@@ -163,7 +163,11 @@ namespace osu.Android
                         }, audioRedirector?.Provider);
                     }
                     else if (nativeBridges != null)
+                    {
                         stopOboeBridge();
+                        audioRedirector?.Dispose();
+                        audioRedirector = new OboeAudioRedirector(Audio);
+                    }
                 }
                 catch (Exception ex)
                 {

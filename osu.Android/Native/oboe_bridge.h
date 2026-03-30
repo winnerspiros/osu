@@ -67,6 +67,7 @@ private:
     std::shared_ptr<oboe::AudioStream> stream_;
     std::mutex streamLock_;
     std::atomic<bool> active_{false};
+    std::atomic<bool> affinitySet_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
     std::atomic<OboeAudioProvider> provider_{nullptr};
