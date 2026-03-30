@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -49,8 +50,6 @@ namespace osu.Android
 
         private void silenceDefaultAudio()
         {
-            if (devicesSilenced) return;
-
             try
             {
                 // Initialize BASS "No Sound" device (0) if not already.
@@ -61,16 +60,23 @@ namespace osu.Android
                     return;
                 }
 
+                bool allSuccess = true;
+
                 // Move all redirected mixers to the silent device.
                 // This "unplugs" them from the system hardware while keeping them active so we can pull data.
                 foreach (int handle in mixerHandles)
                 {
                     if (!Bass.ChannelSetDevice(handle, 0))
+                    {
                         Debug.WriteLine($"[osu!] Failed to move mixer {handle} to silent device: {Bass.LastError}");
+                        allSuccess = false;
+                    }
                 }
 
-                devicesSilenced = true;
-                Debug.WriteLine($"[osu!] BASS mixers moved to silent device 0 (Oboe active)");
+                devicesSilenced = allSuccess;
+
+                if (allSuccess && mixerHandles.Count > 0)
+                    Debug.WriteLine($"[osu!] BASS mixers ({mixerHandles.Count}) moved to silent device 0 (Oboe active)");
             }
             catch (Exception e)
             {
@@ -101,31 +107,27 @@ namespace osu.Android
             }
         }
 
-        private void addMixer(AudioMixer mixer)
+        private void addMixer(AudioMixer? mixer)
         {
             if (mixer == null) return;
 
             try
             {
-                // osu-framework AudioMixer usually has a private 'mixerHandle' field.
-                var field = mixer.GetType().GetField("mixerHandle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                         ?? mixer.GetType().GetField("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                // Try various names and types for the native handle.
+                // osu-framework's AudioMixer usually wraps a BASS mixer handle.
+                object? handleObj = mixer.GetType().GetField("mixerHandle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
+                                 ?? mixer.GetType().GetField("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
+                                 ?? mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer);
 
-                if (field != null)
-                {
-                    int handle = field.GetValue(mixer) is int h ? h : 0;
-                    if (handle != 0) mixerHandles.Add(handle);
-                }
-                else
-                {
-                    // Fallback to property
-                    var prop = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                    if (prop != null)
-                    {
-                        int handle = prop.GetValue(mixer) is int h ? h : 0;
-                        if (handle != 0) mixerHandles.Add(handle);
-                    }
-                }
+                if (handleObj == null) return;
+
+                int handle = 0;
+                if (handleObj is int ih) handle = ih;
+                else if (handleObj is long lh) handle = (int)lh;
+                else if (handleObj is IntPtr ph) handle = (int)ph.ToInt64();
+
+                if (handle != 0 && !mixerHandles.Contains(handle))
+                    mixerHandles.Add(handle);
             }
             catch (Exception e)
             {
@@ -135,7 +137,9 @@ namespace osu.Android
 
         private int provideAudio(IntPtr audioData, int numFrames)
         {
-            if (mixerHandles.Count == 0) return 0;
+            // If we haven't successfully silenced the default BASS output,
+            // return silence to avoid duplicated audio.
+            if (mixerHandles.Count == 0 || !devicesSilenced) return 0;
 
             // Oboe is configured for Stereo (2 channels).
             int numSamples = numFrames * 2;

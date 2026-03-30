@@ -4,10 +4,8 @@
 #include "oboe_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <android/log.h>
-#include <cstdint>
-#include <cstring>
 
-#define LOG_TAG "osu!native"
+#define LOG_TAG "OboeBridge"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
@@ -23,9 +21,13 @@ OboeBridge::~OboeBridge() {
 bool OboeBridge::open() {
     std::lock_guard<std::mutex> lock(streamLock_);
 
-    // Request MMAP mode globally before opening the stream.
-    // MMAP provides a hardware-level DMA path that bypasses the kernel audio
-    // copy, shaving ~1-2 ms off the round-trip latency on supported devices.
+    if (stream_) {
+        LOGI("Stream already open, closing first");
+        stream_->close();
+        stream_.reset();
+    }
+
+    // Enable AAudio MMAP for lowest possible latency if supported.
     oboe::OboeExtensions::setMMapEnabled(true);
 
     oboe::AudioStreamBuilder builder;
@@ -33,35 +35,23 @@ bool OboeBridge::open() {
            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
-           // Stereo output for high-quality game audio.
-           // Most Android devices use stereo as their native "Fast Path" configuration.
            ->setChannelCount(oboe::ChannelCount::Stereo)
-           // Let Oboe pick the device's native sample rate.
-           // Hardcoding (e.g. 48000) would force Android's SRC resampler when the
-           // device native rate differs, adding measurable latency.
            ->setSampleRate(oboe::kUnspecified)
-           // Explicitly forbid all internal conversions so that no resampler,
-           // channel mixer, or format converter sits in the audio path.
-           ->setChannelConversionAllowed(false)
-           ->setFormatConversionAllowed(false)
            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::None)
-           // Semantic hints help Android route through the optimal audio path.
            ->setContentType(oboe::ContentType::Music)
            ->setUsage(oboe::Usage::Game)
-           ->setCallback(this)
-           // Prefer AAudio for lowest latency (available on Android 8.1+).
-           // Falls back to OpenSL ES automatically on older devices.
            ->setAudioApi(oboe::AudioApi::AAudio)
-           // Request minimum buffer for lowest latency.
-           // Oboe will clamp to the smallest safe value.
            ->setFramesPerCallback(oboe::kUnspecified)
-           ->setBufferCapacityInFrames(oboe::kUnspecified);
+           ->setBufferCapacityInFrames(oboe::kUnspecified)
+           ->setPerformanceHintEnabled(true) // Enable ADPF for dynamic performance management
+           ->setChannelConversionAllowed(false)
+           ->setFormatConversionAllowed(false)
+           ->setCallback(this);
 
     oboe::Result result = builder.openStream(stream_);
 
     if (result != oboe::Result::OK) {
-        // AAudio might not be available; retry without API preference.
-        LOGI("AAudio open failed (%s), falling back to unspecified API",
+        LOGE("AAudio open failed (%s), falling back to unspecified API",
              oboe::convertToText(result));
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         result = builder.openStream(stream_);
@@ -134,7 +124,6 @@ void OboeBridge::stop() {
         stream_.reset();
     }
 
-    affinitySet_.store(false);
     latencyMs_.store(-1.0);
     callbackCount_.store(0);
     LOGI("Oboe stream stopped");
@@ -207,26 +196,6 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
     if ((count & 127) == 0) {
         updateLatency();
-
-        // Attempt to set CPU affinity to high-performance cores on the first few callbacks.
-        // Doing this inside the callback ensures we are targeting the actual audio thread
-        // created by Oboe/AAudio.
-        if (!affinitySet_.load(std::memory_order_relaxed)) {
-            std::vector<int> exclusiveCores = oboe::Process::getExclusiveCores();
-
-            if (!exclusiveCores.empty()) {
-                oboe::Result result = oboe::Process::setThreadAffinity(
-                    oboe::Process::getThreadId(),
-                    exclusiveCores);
-
-                if (result == oboe::Result::OK) {
-                    LOGI("Oboe audio thread pinned to exclusive cores");
-                } else {
-                    LOGI("Failed to pin Oboe audio thread: %s", oboe::convertToText(result));
-                }
-            }
-            affinitySet_.store(true);
-        }
     }
 
     return oboe::DataCallbackResult::Continue;
@@ -294,11 +263,6 @@ void OboeBridge::updateLatency() {
 // ============================================================
 // C exports for P/Invoke from .NET
 // ============================================================
-
-// Use intptr_t for pointer handles so the size matches C# IntPtr on both
-// 32-bit (4 bytes) and 64-bit (8 bytes) platforms.  The previous use of
-// C++ `long` was 4 bytes on 32-bit ARM/x86 but C# `long` is always
-// 8 bytes, causing a calling-convention mismatch and crash.
 
 #define OSU_EXPORT __attribute__((visibility("default")))
 
