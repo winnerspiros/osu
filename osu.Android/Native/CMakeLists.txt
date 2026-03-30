@@ -18,26 +18,23 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -s")
 # This reduces the Oboe portion of the binary by ~50%.
 set(OBOE_ENABLE_FLOWGRAPH OFF CACHE BOOL "Disable Oboe flowgraph to reduce binary size")
 
-# Try pre-installed Oboe first (e.g. via Android NDK prefab or local install).
-# If not found, download and build from source for CI/hermetic builds.
-find_package(oboe QUIET CONFIG)
+# Download and build Oboe 1.10.0 from source to ensure we have the latest
+# features (like ADPF performance hints) regardless of the build environment.
+include(FetchContent)
+FetchContent_Declare(oboe
+    URL https://github.com/google/oboe/archive/refs/tags/1.10.0.tar.gz
+)
+FetchContent_MakeAvailable(oboe)
 
-if(oboe_FOUND)
-    set(OBOE_LIB oboe::oboe)
-else()
-    include(FetchContent)
-    FetchContent_Declare(oboe
-        URL https://github.com/google/oboe/archive/refs/tags/1.10.0.tar.gz
-    )
-    FetchContent_MakeAvailable(oboe)
-    # Patch Oboe's deprecated -Ofast flag
-    get_target_property(OBOE_OPTIONS oboe COMPILE_OPTIONS)
-    if(OBOE_OPTIONS)
-        string(REPLACE "-Ofast" "-O3;-ffast-math" OBOE_OPTIONS "${OBOE_OPTIONS}")
-        set_target_properties(oboe PROPERTIES COMPILE_OPTIONS "${OBOE_OPTIONS}")
-    endif()
-    set(OBOE_LIB oboe)
+# Patch Oboe's deprecated -Ofast flag to avoid build warnings/errors
+# and ensure we use the same optimized flags as the rest of the project.
+get_target_property(OBOE_OPTIONS oboe COMPILE_OPTIONS)
+if(OBOE_OPTIONS)
+    string(REPLACE "-Ofast" "-O3;-ffast-math" OBOE_OPTIONS "${OBOE_OPTIONS}")
+    set_target_properties(oboe PROPERTIES COMPILE_OPTIONS "${OBOE_OPTIONS}")
 endif()
+
+set(OBOE_LIB oboe)
 
 find_library(vulkan-lib vulkan)
 find_library(log-lib log)
