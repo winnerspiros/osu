@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using Android.Content;
 using Android.Media;
 using System;
 using System.Linq;
@@ -149,7 +150,7 @@ namespace osu.Android
             int hardwareSampleRate = 0;
             try
             {
-                if (gameActivity.GetSystemService(Android.Content.Context.AudioService) is AudioManager audioManager)
+                if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
                 {
                     string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
                     if (!string.IsNullOrEmpty(rateStr))
@@ -317,7 +318,7 @@ namespace osu.Android
 
             try
             {
-                if (gameActivity.GetSystemService(Android.Content.Context.AudioService) is AudioManager audioManager)
+                if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
                 {
                     string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
                     if (!string.IsNullOrEmpty(rateStr))

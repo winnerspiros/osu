@@ -51,7 +51,7 @@ jobs:
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
               -DANDROID_ABI="$ABI" \
-              -DANDROID_PLATFORM=android-30 \
+              -DANDROID_PLATFORM=android-31 \
               -DCMAKE_BUILD_TYPE=Release
             "$CMAKE_BIN" --build "build-native/$ABI" --config Release -j "$(nproc)"
             mkdir -p "osu.Android/libs/$ABI"

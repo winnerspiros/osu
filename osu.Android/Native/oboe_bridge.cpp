@@ -193,7 +193,7 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
     // Reporting actual work duration helps ADPF (Android Dynamic Performance Framework)
     // adjust CPU frequency precisely to handle the audio load without skipping.
     int64_t endTime = oboe::AudioClock::getNanoseconds();
-    stream->reportActualWorkDuration(endTime - startTime);
+    if (stream->isPerformanceHintEnabled()) { stream->reportActualWorkDuration(endTime - startTime); }
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
