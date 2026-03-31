@@ -60,7 +60,8 @@ namespace osu.Android
             }
 
             // User requested Low-Latency Oboe: we MUST use Oboe.
-            // Silence the default device immediately to prevent duplicated audio.
+            // Silence the default device and setup routing.
+            // Order is critical: Device init -> Create Master -> Move Sources -> Add to Master.
             silenceDefaultAudio();
             setupMasterMixer();
 
@@ -93,6 +94,11 @@ namespace osu.Android
                 return;
             }
 
+            // Move the master mixer to the silent device immediately.
+            // This ensures all following operations happen on the same device context.
+            if (!Bass.ChannelSetDevice(masterMixer, 0))
+                Debug.WriteLine($"[osu!] Failed to move master mixer to silent device: {Bass.LastError}");
+
             // Disable BASS-internal buffering for the master mixer.
             // This ensures BASS renders as fast as possible when we call ChannelGetData.
             // This is key for "lowest possible latency" as requested.
@@ -112,6 +118,11 @@ namespace osu.Android
                         Debug.WriteLine($"[osu!] Failed to hijack mixer {handle} from parent {parent}: {Bass.LastError}");
                 }
 
+                // Move source mixer to the silent device before adding to master.
+                // Changing device automatically removes it from any existing mixer.
+                if (!Bass.ChannelSetDevice(handle, 0))
+                    Debug.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
+
                 // Add redirected mixers as sources to our master mixer.
                 // We remove BASS_MIXER_BUFFER to eliminate internal BASS buffering latency,
                 // relying entirely on the Oboe callback timing for rock-solid sync.
@@ -120,9 +131,6 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
                 }
             }
-
-            // Move the master mixer to the silent device too.
-            Bass.ChannelSetDevice(masterMixer, 0);
         }
 
         private void silenceDefaultAudio()
@@ -137,22 +145,7 @@ namespace osu.Android
                     return;
                 }
 
-                bool allSuccess = true;
-
-                // Move all redirected mixers to the silent device.
-                foreach (int handle in mixerHandles)
-                {
-                    if (!Bass.ChannelSetDevice(handle, 0))
-                    {
-                        Debug.WriteLine($"[osu!] Failed to move mixer {handle} to silent device: {Bass.LastError}");
-                        allSuccess = false;
-                    }
-                }
-
-                devicesSilenced = allSuccess;
-
-                if (allSuccess && mixerHandles.Count > 0)
-                    Debug.WriteLine($"[osu!] BASS mixers ({mixerHandles.Count}) moved to silent device 0 (Oboe active)");
+                devicesSilenced = true;
             }
             catch (Exception e)
             {
@@ -180,14 +173,20 @@ namespace osu.Android
                     // Restore to framework's original parent mixer if we hijacked it.
                     if (originalParents.TryGetValue(handle, out int parent))
                     {
+                        // MUST move back to default device (1) before re-adding to framework parent.
+                        if (!Bass.ChannelSetDevice(handle, 1))
+                            Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to default device: {Bass.LastError}");
+
                         if (BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin))
                             Debug.WriteLine($"[osu!] Restored mixer {handle} to framework parent {parent}");
                         else
                             Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to framework parent {parent}: {Bass.LastError}");
                     }
-
-                    if (!Bass.ChannelSetDevice(handle, 1))
-                        Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to default device: {Bass.LastError}");
+                    else
+                    {
+                        // Even if no parent, restore to default device.
+                        Bass.ChannelSetDevice(handle, 1);
+                    }
                 }
 
                 originalParents.Clear();
