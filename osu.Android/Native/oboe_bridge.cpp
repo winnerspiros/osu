@@ -12,6 +12,7 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+typedef uint8_t byte;
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -394,7 +395,6 @@ OSU_EXPORT intptr_t nADPFCreateSession(int64_t targetDurationNanos) {
     auto manager = APerformanceHint_getManager();
     if (!manager) return 0;
 
-    // We use the current thread as the initial thread for the session.
     int32_t thread_id = gettid();
     return reinterpret_cast<intptr_t>(APerformanceHint_createSession(manager, &thread_id, 1, targetDurationNanos));
 }
