@@ -6,7 +6,7 @@ using Android.Content.PM;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
+using global::Android.Runtime.
 using Android.Views;
 using Debug = System.Diagnostics.Debug;
 using System.Collections.Generic;
@@ -186,7 +186,7 @@ namespace osu.Android
             if (surface != null && surface.Handle != IntPtr.Zero)
             {
                 var handle = surface.Handle;
-                surfaceGlobalRef = Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
                 surfaceEvent.Set();
                 Debug.WriteLine("[osu!] Native surface JNI global reference created");
             }
@@ -200,7 +200,7 @@ namespace osu.Android
         {
             if (surfaceGlobalRef != IntPtr.Zero)
             {
-                Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
+                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
                 surfaceGlobalRef = IntPtr.Zero;
             }
             surfaceEvent.Reset();
