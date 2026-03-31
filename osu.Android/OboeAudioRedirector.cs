@@ -3,26 +3,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
-using osu.Android.Native;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
-using System.Runtime.CompilerServices;
-using Debug = System.Diagnostics.Debug;
 
 namespace osu.Android
 {
     /// <summary>
-    /// Redirects audio from the framework's BASS mixers into the Oboe bridge.
-    /// Optimized for zero-copy delivery and hardware sample rate synchronization.
+    /// A bridge between BASS and Oboe that redirects mixed PCM audio from BASS mixers
+    /// into an Oboe/AAudio stream for low-latency output on Android.
     /// </summary>
-    internal sealed class OboeAudioRedirector : IDisposable
+    public class OboeAudioRedirector : IDisposable
     {
         private readonly AudioManager audioManager;
         private readonly List<int> mixerHandles = new List<int>();
+        private readonly Dictionary<int, int> originalParents = new Dictionary<int, int>();
+
         private int masterMixer;
         private bool devicesSilenced;
         private int sampleRate = 44100; // Default, will be updated from bridge.
@@ -36,11 +38,26 @@ namespace osu.Android
 
         public void RefreshMixers(int hardwareSampleRate)
         {
+            // Ensure we are in a clean state before re-initialising.
+            // This restores any previous hijacks if Oboe is being toggled or refreshed.
+            restoreDefaultAudio();
+
             sampleRate = hardwareSampleRate > 0 ? hardwareSampleRate : 44100;
 
             mixerHandles.Clear();
-            addMixer(audioManager.TrackMixer);
-            addMixer(audioManager.SampleMixer);
+
+            // Try to find the root mixer of the framework.
+            // By capturing the root, we get UI sounds, music, and SFX in one go,
+            // and we bypass the framework's final output stages for even lower latency.
+            addRootMixer(audioManager.TrackMixer);
+            addRootMixer(audioManager.SampleMixer);
+
+            // If we failed to find a shared root, fallback to individual mixers.
+            if (mixerHandles.Count == 0)
+            {
+                addMixer(audioManager.TrackMixer);
+                addMixer(audioManager.SampleMixer);
+            }
 
             // User requested Low-Latency Oboe: we MUST use Oboe.
             // Silence the default device immediately to prevent duplicated audio.
@@ -84,6 +101,17 @@ namespace osu.Android
 
             foreach (int handle in mixerHandles)
             {
+                // BASS only allows a channel to have one parent mixer at a time.
+                // The framework's mixers are already attached to a master mixer, so we MUST hijack them.
+                int parent = BassMix.ChannelGetMixer(handle);
+
+                if (parent != 0)
+                {
+                    originalParents[handle] = parent;
+                    if (!BassMix.MixerRemoveChannel(handle))
+                        Debug.WriteLine($"[osu!] Failed to hijack mixer {handle} from parent {parent}: {Bass.LastError}");
+                }
+
                 // Add redirected mixers as sources to our master mixer.
                 // We remove BASS_MIXER_BUFFER to eliminate internal BASS buffering latency,
                 // relying entirely on the Oboe callback timing for rock-solid sync.
@@ -135,15 +163,6 @@ namespace osu.Android
         private void restoreDefaultAudio()
         {
             ActiveMasterMixer = 0;
-            if (!devicesSilenced)
-            {
-                if (masterMixer != 0)
-                {
-                    Bass.StreamFree(masterMixer);
-                    masterMixer = 0;
-                }
-                return;
-            }
 
             try
             {
@@ -155,16 +174,51 @@ namespace osu.Android
 
                 foreach (int handle in mixerHandles)
                 {
+                    // Unplug from our Oboe master mixer.
+                    BassMix.MixerRemoveChannel(handle);
+
+                    // Restore to framework's original parent mixer if we hijacked it.
+                    if (originalParents.TryGetValue(handle, out int parent))
+                    {
+                        if (BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin))
+                            Debug.WriteLine($"[osu!] Restored mixer {handle} to framework parent {parent}");
+                        else
+                            Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to framework parent {parent}: {Bass.LastError}");
+                    }
+
                     if (!Bass.ChannelSetDevice(handle, 1))
                         Debug.WriteLine($"[osu!] Failed to restore mixer {handle} to default device: {Bass.LastError}");
                 }
 
+                originalParents.Clear();
                 devicesSilenced = false;
-                Debug.WriteLine($"[osu!] BASS mixers restored to default device 1");
+                Debug.WriteLine($"[osu!] BASS mixers restored to default device 1 and framework parents");
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] Failed to restore default audio: {e.Message}");
+            }
+        }
+
+        private void addRootMixer(AudioMixer? mixer)
+        {
+            if (mixer == null) return;
+
+            int handle = findHandle(mixer);
+            if (handle == 0) return;
+
+            // Walk up the mixer tree using BASS calls directly to find the absolute root.
+            // This is safer than reflection because it queries the actual BASS engine state.
+            int current = handle;
+            int parent;
+
+            while ((parent = BassMix.ChannelGetMixer(current)) != 0)
+                current = parent;
+
+            if (!mixerHandles.Contains(current))
+            {
+                mixerHandles.Add(current);
+                Debug.WriteLine($"[osu!] Oboe redirector: discovered root mixer {current} from source {handle}");
             }
         }
 
