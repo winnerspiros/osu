@@ -192,7 +192,7 @@ namespace osu.Android
             }
         }
 
-        public void SurfaceChanged(ISurfaceHolder holder, Android.Graphics.Format format, int width, int height)
+        public void SurfaceChanged(ISurfaceHolder holder, global::global::Android.Graphics.Format format, int width, int height)
         {
         }
 

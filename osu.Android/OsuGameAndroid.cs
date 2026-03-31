@@ -519,22 +519,6 @@ namespace osu.Android
             OboeAudioBridge.nADPFReportActualDuration(updateAdpfSession, elapsedNanos);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        protected override void DrawAfterChildren()
-        {
-            if (renderAdpfSession == IntPtr.Zero)
-            {
-                base.DrawAfterChildren();
-                return;
-            }
-
-            long startTime = Stopwatch.GetTimestamp();
-            base.DrawAfterChildren();
-            long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
-            long elapsedNanos = (elapsedTicks * 1000000000) / Stopwatch.Frequency;
-
-            OboeAudioBridge.nADPFReportActualDuration(renderAdpfSession, elapsedNanos);
-        }
     }
 
     internal class AndroidBatteryInfo : BatteryInfo

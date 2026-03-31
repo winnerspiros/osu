@@ -116,7 +116,6 @@ namespace osu.Android
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public bool IsVulkanRecommended() => (vulkanProbe as VulkanProbe)?.IsRecommended ?? false;
         public void StopVulkanProbe()
         {

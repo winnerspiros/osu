@@ -43,7 +43,6 @@ using osu.Game.Input;
 using osu.Game.Input.Bindings;
 using osu.Game.IO;
 using osu.Game.Localisation;
-using osu.Game.Online.API;
 using osu.Game.Online.Chat;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests;
