@@ -23,10 +23,9 @@ using osu.Game.Updater;
 using osu.Game.Utils;
 using osu.Game;
 using osuTK;
-
-
 namespace osu.Android
 {
+    using osu.Game.Performance;
     public partial class OsuGameAndroid : OsuGame
     {
         [Cached]

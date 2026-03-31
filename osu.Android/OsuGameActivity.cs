@@ -1,22 +1,22 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using Android.App;
+using Android.Content.PM;
+using Android.Content;
+using Android.Graphics;
+using Android.OS;
+using Android.Runtime;
+using Android.Views;
+using Debug = System.Diagnostics.Debug;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Android.App;
-using Android.Content;
-using Android.Content.PM;
-using Android.Graphics;
-using Android.OS;
-using Android.Views;
+using System;
+using Uri = Android.Net.Uri;
 using osu.Framework.Android;
 using osu.Game.Database;
-using Debug = System.Diagnostics.Debug;
-using Uri = Android.Net.Uri;
-
 namespace osu.Android
 {
     [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
@@ -39,7 +39,7 @@ namespace osu.Android
         "application/x-osu-replay",
     })]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
-    public class OsuGameActivity : AndroidGameActivity
+    public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
 
@@ -177,9 +177,9 @@ namespace osu.Android
             return null;
         }
 
-        public override void OnSurfaceCreated(ISurfaceHolder holder)
+        public void SurfaceCreated(ISurfaceHolder holder)
         {
-            base.OnSurfaceCreated(holder);
+
             var surface = holder.Surface;
             if (surface != null && surface.Handle != IntPtr.Zero)
             {
@@ -190,7 +190,12 @@ namespace osu.Android
             }
         }
 
-        public override void OnSurfaceDestroyed(ISurfaceHolder holder)
+
+        public void SurfaceChanged(ISurfaceHolder holder, Android.Graphics.Format format, int width, int height)
+        {
+        }
+
+        public void SurfaceDestroyed(ISurfaceHolder holder)
         {
             if (surfaceGlobalRef != IntPtr.Zero)
             {
@@ -198,7 +203,7 @@ namespace osu.Android
                 surfaceGlobalRef = IntPtr.Zero;
             }
             surfaceEvent.Reset();
-            base.OnSurfaceDestroyed(holder);
+
         }
     }
 }
