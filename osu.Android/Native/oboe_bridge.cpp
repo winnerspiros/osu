@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -31,10 +32,10 @@ bool OboeBridge::open(int32_t sampleRate) {
     requestedSampleRate_ = sampleRate;
 
     // Low-latency MMAP path requires explicit enabling in Oboe.
+    // MMAP provides direct access to audio hardware buffers, shaving ~1-2ms off latency.
     oboe::OboeExtensions::setMMapEnabled(true);
 
     // Initialise StabilizedCallback to even out callback execution time.
-    // We create it here so we can pass it to the builder.
     stabilizedCallback_ = std::make_unique<oboe::StabilizedCallback>(this);
 
     oboe::AudioStreamBuilder builder;
@@ -69,14 +70,14 @@ bool OboeBridge::open(int32_t sampleRate) {
     }
 
     // Enable ADPF (Android Dynamic Performance Framework) hint support.
+    // This allows the system to prioritize our audio thread for stable low latency.
     stream_->setPerformanceHintEnabled(true);
 
     // Set buffer size to 2x burst size for initial stability.
-    // LatencyTuner will then attempt to shrink it if stable.
+    // LatencyTuner will then attempt to shrink it to 1x burst if stable.
     stream_->setBufferSizeInFrames(stream_->getFramesPerBurst() * 2);
 
     // Initialise LatencyTuner for dynamic buffer management.
-    // This allows us to start at 1x burst and only grow if underruns occur.
     tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
 
     LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
@@ -201,21 +202,29 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         }
 
         // Attempt to set CPU affinity to high-performance cores.
+        // We do this inside the audio callback to ensure we target the AAudio thread.
         if (!affinitySet_.load(std::memory_order_relaxed)) {
             cpu_set_t cpuset;
             CPU_ZERO(&cpuset);
 
             int num_cores = sysconf(_SC_NPROCESSORS_CONF);
             if (num_cores > 0) {
-                // Target the "big" cores (higher indexed) for better performance.
-                // In big.LITTLE, indices 4-7 are typically the high-performance cores.
-                int start_core = std::max(0, num_cores / 2);
-                for (int i = start_core; i < num_cores; ++i) {
-                    CPU_SET(i, &cpuset);
+                // S23 Ultra (Snapdragon 8 Gen 2) layout: 1 Prime + 2 Gold + 2 Gold + 3 Silver.
+                // Indices are typically: 0-2 (Silver), 3-4 (Gold), 5-6 (Gold), 7 (Prime).
+                // We want to target the Prime (7) and Gold (3-6) cores.
+                if (num_cores >= 8) {
+                    for (int i = 3; i < num_cores; ++i) {
+                        CPU_SET(i, &cpuset);
+                    }
+                } else {
+                    // Fallback for devices with fewer cores.
+                    for (int i = num_cores / 2; i < num_cores; ++i) {
+                        CPU_SET(i, &cpuset);
+                    }
                 }
 
                 if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) {
-                    LOGI("Oboe audio thread pinned to cores %d-%d", start_core, num_cores - 1);
+                    LOGI("Oboe audio thread pinned to high-performance cores");
                 } else {
                     LOGE("Failed to set thread affinity: %d", errno);
                 }

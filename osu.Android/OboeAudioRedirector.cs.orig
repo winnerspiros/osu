@@ -42,17 +42,12 @@ namespace osu.Android
             addMixer(audioManager.TrackMixer);
             addMixer(audioManager.SampleMixer);
 
-            // User requested Low-Latency Oboe: we MUST use Oboe.
-            // Silence the default device immediately to prevent duplicated audio.
             silenceDefaultAudio();
             setupMasterMixer();
 
             ActiveMasterMixer = masterMixer;
 
-            if (mixerHandles.Count == 0)
-                Debug.WriteLine("[osu!] Oboe redirector: CRITICAL WARNING - no mixer handles found via reflection. Audio WILL BE SILENT until handled.");
-            else
-                Debug.WriteLine($"[osu!] Oboe redirector initialized: rate={sampleRate}Hz, mixers={mixerHandles.Count}, master={masterMixer}");
+            Debug.WriteLine($"[osu!] Oboe redirector initialized: rate={sampleRate}Hz, mixers={mixerHandles.Count}");
         }
 
         private void setupMasterMixer()
@@ -63,7 +58,7 @@ namespace osu.Android
                 masterMixer = 0;
             }
 
-            if (!devicesSilenced) return;
+            if (mixerHandles.Count == 0 || !devicesSilenced) return;
 
             // Create a BASS master mixer that matches the Oboe hardware format (Stereo Float).
             // We use BASS_MIXER_NONSTOP to ensure the mixer doesn't stall if sources are empty.
@@ -75,12 +70,6 @@ namespace osu.Android
                 Debug.WriteLine($"[osu!] Failed to create BASS master mixer: {Bass.LastError}");
                 return;
             }
-
-            // Disable BASS-internal buffering for the master mixer.
-            // This ensures BASS renders as fast as possible when we call ChannelGetData.
-            // This is key for "lowest possible latency" as requested.
-            if (!Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0))
-                Debug.WriteLine($"[osu!] Failed to disable BASS buffering on master mixer: {Bass.LastError}");
 
             foreach (int handle in mixerHandles)
             {
@@ -135,15 +124,7 @@ namespace osu.Android
         private void restoreDefaultAudio()
         {
             ActiveMasterMixer = 0;
-            if (!devicesSilenced)
-            {
-                if (masterMixer != 0)
-                {
-                    Bass.StreamFree(masterMixer);
-                    masterMixer = 0;
-                }
-                return;
-            }
+            if (!devicesSilenced) return;
 
             try
             {
@@ -174,76 +155,24 @@ namespace osu.Android
 
             try
             {
-                int handle = findHandle(mixer);
+                object? handleObj = mixer.GetType().GetField("mixerHandle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
+                                 ?? mixer.GetType().GetField("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer)
+                                 ?? mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(mixer);
 
-                if (handle != 0)
-                {
-                    if (!mixerHandles.Contains(handle))
-                    {
-                        mixerHandles.Add(handle);
-                        Debug.WriteLine($"[osu!] Oboe redirector: added mixer handle {handle} for {mixer.GetType().Name}");
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine($"[osu!] Oboe redirector: WARNING - could not find BASS handle for {mixer.GetType().Name} via reflection. Audio might be silent on Oboe.");
-                }
+                if (handleObj == null) return;
+
+                int handle = 0;
+                if (handleObj is int ih) handle = ih;
+                else if (handleObj is long lh) handle = (int)lh;
+                else if (handleObj is IntPtr ph) handle = (int)ph.ToInt64();
+
+                if (handle != 0 && !mixerHandles.Contains(handle))
+                    mixerHandles.Add(handle);
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Oboe redirector: failed to get mixer handle via reflection: {e.Message}");
+                Debug.WriteLine($"[osu!] Failed to get mixer handle via reflection: {e.Message}");
             }
-        }
-
-        private int findHandle(object obj)
-        {
-            Type? type = obj.GetType();
-
-            // Broad search for BASS handles across the entire inheritance chain.
-            // Framework changes often move or rename these internal fields.
-            while (type != null && type != typeof(object))
-            {
-                // Try common names used in ppy/osu and ppy/osu-framework
-                foreach (string name in new[] { "mixerHandle", "handle", "Handle", "mixer_handle", "_handle", "m_handle", "handlePtr" })
-                {
-                    var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (field != null)
-                    {
-                        int h = convertToHandle(field.GetValue(obj));
-                        if (h != 0) return h;
-                    }
-
-                    var prop = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (prop != null)
-                    {
-                        int h = convertToHandle(prop.GetValue(obj));
-                        if (h != 0) return h;
-                    }
-                }
-
-                // Last resort: scan all fields for anything mentioning "handle"
-                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    if (field.Name.Contains("handle", StringComparison.OrdinalIgnoreCase))
-                    {
-                        int h = convertToHandle(field.GetValue(obj));
-                        if (h != 0) return h;
-                    }
-                }
-
-                type = type.BaseType;
-            }
-
-            return 0;
-        }
-
-        private int convertToHandle(object? val)
-        {
-            if (val == null) return 0;
-            if (val is int ih) return ih;
-            if (val is long lh) return (int)lh;
-            if (val is IntPtr ph) return (int)ph.ToInt64();
-            return 0;
         }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]

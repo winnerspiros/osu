@@ -1,0 +1,13 @@
+--- osu.Android/Native/oboe_bridge.cpp
++++ osu.Android/Native/oboe_bridge.cpp
+@@ -212,8 +212,8 @@
+                 // S23 Ultra (Snapdragon 8 Gen 2) layout: 1 Prime + 2 Gold + 2 Gold + 3 Silver.
+                 // Indices are typically: 0-2 (Silver), 3-4 (Gold), 5-6 (Gold), 7 (Prime).
+-                // We want to target the Prime (7) and Gold (3-6) cores.
++                // We want to target the Prime (7) and Gold (3-6) cores.
+                 if (num_cores >= 8) {
+-                    for (int i = 4; i < num_cores; ++i) {
++                    for (int i = 3; i < num_cores; ++i) {
+                         CPU_SET(i, &cpuset);
+                     }
+                 } else {
