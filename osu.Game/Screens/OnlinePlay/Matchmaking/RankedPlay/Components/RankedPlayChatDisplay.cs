@@ -90,8 +90,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             textbox.OnCommit += onCommit;
 
             channel = channelManager?.JoinChannel(new Channel { Id = room.ChannelID, Type = ChannelType.Multiplayer, Name = $"#lazermp_{room.RoomID}" });
-            if (channel != null)
-                channel.NewMessagesArrived += onNewMessagesArrived;
+            channel?.NewMessagesArrived += onNewMessagesArrived;
         }
 
         private void onCommit(TextBox sender, bool newText)
@@ -184,8 +183,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         {
             base.Dispose(isDisposing);
 
-            if (channel != null)
-                channel.NewMessagesArrived -= onNewMessagesArrived;
+            channel?.NewMessagesArrived -= onNewMessagesArrived;
         }
 
         private partial class ChatTextBox : StandAloneChatDisplay.ChatTextBox

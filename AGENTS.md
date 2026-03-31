@@ -11,3 +11,8 @@ Manual work duration reporting (`reportActualWorkDuration`) has been removed fro
 
 ## Build Configuration
 `OBOE_ENABLE_FLOWGRAPH` is set to `OFF` in `CMakeLists.txt` to minimize binary size, as we perform all mixing in BASS and only use Oboe for final hardware delivery.
+
+## API 33 Upgrade
+The project was upgraded to Android API 33 to support APerformanceHint (ADPF) APIs.
+Native builds now target android-33 to avoid compilation errors for these high-performance features.
+The 'byte' type is defined as 'uint8_t' in native bridges to ensure C# P/Invoke compatibility.
