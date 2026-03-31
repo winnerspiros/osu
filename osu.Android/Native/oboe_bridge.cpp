@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
-#include "vulkan_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <oboe/AudioClock.h>
 #include <sched.h>

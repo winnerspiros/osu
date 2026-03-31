@@ -257,7 +257,7 @@ namespace osu.Android
             return bytesRead / 8;
         }
 
-        internal static int ActiveMasterMixer;
+        internal static volatile int ActiveMasterMixer;
 
         public void Dispose()
         {

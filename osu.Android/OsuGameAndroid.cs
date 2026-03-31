@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+
 #pragma warning disable CA1422
 #pragma warning restore CA1422
+
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
@@ -12,6 +14,7 @@ using Microsoft.Maui.Devices;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System;
+using System.Diagnostics;
 using osu.Android.Native;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -23,9 +26,11 @@ using osu.Game.Updater;
 using osu.Game.Utils;
 using osu.Game;
 using osuTK;
+using osu.Game.Performance;
+using osu.Android.Performance;
+
 namespace osu.Android
 {
-    using osu.Game.Performance;
     public partial class OsuGameAndroid : OsuGame
     {
         [Cached]
@@ -67,14 +72,13 @@ namespace osu.Android
         private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
+
         [Cached(typeof(IHighPerformanceSessionManager))]
-        private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new osu.Android.Performance.AndroidHighPerformanceSessionManager();
+        private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
         private IntPtr updateAdpfSession;
         private IntPtr renderAdpfSession;
-        private readonly System.Diagnostics.Stopwatch updateStopwatch = new System.Diagnostics.Stopwatch();
-
 
         /// <summary>
         /// Boxed reference to the native bridge manager.
@@ -98,7 +102,6 @@ namespace osu.Android
             get
             {
                 if (!IsDeployedBuild)
-
                     return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
                 return getPackageInfo()?.VersionName ?? @"unknown";
@@ -114,7 +117,6 @@ namespace osu.Android
                     string? versionName = getPackageInfo()?.VersionName;
 
                     if (!string.IsNullOrEmpty(versionName))
-
                         return new Version(versionName.Split('-').First());
                 }
                 catch (Exception e)
@@ -140,27 +142,26 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void LoadComplete()
         {
-
             // Pin the current thread (Update thread) to high-performance cores.
             // On S23 Ultra, cores 3-7 are high-performance. Mask = 0xF8 (11111000 in binary)
             try
             {
                 if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
                     Debug.WriteLine("[osu!] Update thread pinned to big cores");
-            Scheduler.Add(() =>
-            {
-                // Dispatch to the draw thread to pin it.
-                Host.DrawThread.Scheduler.Add(() =>
-                {
-                    try
-                    {
-                        if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
-                            Debug.WriteLine("[osu!] Render thread pinned to big cores");
-                    }
-                    catch { }
-                });
-            });
 
+                Scheduler.Add(() =>
+                {
+                    // Dispatch to the draw thread to pin it.
+                    Host.DrawThread.Scheduler.Add(() =>
+                    {
+                        try
+                        {
+                            if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
+                                Debug.WriteLine("[osu!] Render thread pinned to big cores");
+                        }
+                        catch { }
+                    });
+                });
             }
             catch (Exception e)
             {
@@ -168,24 +169,26 @@ namespace osu.Android
             }
 
             base.LoadComplete();
+
             try
             {
-                // Target 1ms (1,000,000ns) for 1000 FPS
+                // Target 1ms (1,000,000ns) for 1000 FPS target.
                 updateAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
-            Scheduler.Add(() =>
-            {
-                Host.DrawThread.Scheduler.Add(() =>
-                {
-                    try
-                    {
-                        renderAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
 
-                        if (renderAdpfSession != IntPtr.Zero)
-                            Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
-                    }
-                    catch { }
+                Scheduler.Add(() =>
+                {
+                    Host.DrawThread.Scheduler.Add(() =>
+                    {
+                        try
+                        {
+                            renderAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
+
+                            if (renderAdpfSession != IntPtr.Zero)
+                                Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
+                        }
+                        catch { }
+                    });
                 });
-            });
 
                 if (updateAdpfSession != IntPtr.Zero)
                     Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Update thread");
@@ -208,18 +211,19 @@ namespace osu.Android
 
             lowLatencyAudio.BindValueChanged(e =>
             {
-            int hardwareSampleRate = 0;
-            try
-            {
-                if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                int hardwareSampleRate = 0;
+                try
                 {
-                    string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                    if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                    {
+                        string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
 
-                    if (!string.IsNullOrEmpty(rateStr))
-                        hardwareSampleRate = int.Parse(rateStr);
+                        if (!string.IsNullOrEmpty(rateStr))
+                            hardwareSampleRate = int.Parse(rateStr);
+                    }
                 }
-            }
-            catch { }
+                catch { }
+
                 try
                 {
                     if (e.NewValue)
@@ -265,7 +269,7 @@ namespace osu.Android
                 }
             }, true);
 
-            // Apply unbuffered touch dispatch (deferred from Activity lifecycle to avoid early crash).
+            // Apply unbuffered touch dispatch.
             try
             {
                 if (OperatingSystem.IsAndroidVersionAtLeast(31))
@@ -345,9 +349,6 @@ namespace osu.Android
                     }
                     catch (Exception e)
                     {
-                        // On some devices (e.g. Samsung S23 on Android 16), accessing display properties
-                        // via the vendor property 'vendor.display.enable_optimal_refresh_rate' can trigger
-                        // SELinux denials or crashes if the window is not yet fully trusted.
                         Debug.WriteLine($"[osu!] Failed to apply preferred display mode: {e.Message}");
                     }
                 });
@@ -358,20 +359,9 @@ namespace osu.Android
             }
         }
 
-        /// <summary>
-        /// Returns the measured audio output latency in milliseconds via the Oboe bridge,
-        /// or -1 if unavailable. Can be used to auto-suggest audio offset calibration.
-        /// </summary>
         public bool IsVulkanRecommended() => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
-        public double GetMeasuredAudioLatencyMs()
-        {
-            return getMeasuredAudioLatencyFromBridge();
-        }
 
-        // ── Native bridge helpers ━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // Every method below is [MethodImplOptions.NoInlining] so that AndroidNativeBridgeManager
-        // (and its P/Invoke field types) are never resolved until explicitly called.
-
+        public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
@@ -395,6 +385,7 @@ namespace osu.Android
             if (nativeBridges is AndroidNativeBridgeManager mgr)
                 mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider, hardwareSampleRate, onStarted);
         }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void stopOboeBridge()
         {
@@ -439,14 +430,11 @@ namespace osu.Android
 
         private void updateOrientation()
         {
-            // Read framework state on the update thread (the calling thread).
-            // ScreenStack may not be initialised yet during early LoadComplete callbacks.
             if (ScreenStack?.CurrentScreen is not IOsuScreen currentScreen)
                 return;
 
             var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
 
-            // Only the Android UI property assignment is dispatched to the main thread.
             gameActivity.RunOnUiThread(() =>
             {
                 try
@@ -510,40 +498,6 @@ namespace osu.Android
                     OboeAudioBridge.nADPFCloseSession(renderAdpfSession);
                     renderAdpfSession = IntPtr.Zero;
                 }
-
-            }
-        }
-
-        private class AndroidBatteryInfo : BatteryInfo
-        {
-            public override double? ChargeLevel
-            {
-                get
-                {
-                    try
-                    {
-                        return Battery.ChargeLevel;
-                    }
-                    catch (Exception)
-                    {
-                        return null;
-                    }
-                }
-            }
-
-            public override bool OnBattery
-            {
-                get
-                {
-                    try
-                    {
-                        return Battery.PowerSource == BatteryPowerSource.Battery;
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                }
             }
         }
 
@@ -556,11 +510,35 @@ namespace osu.Android
                 return;
             }
 
-            long startTime = System.Diagnostics.Stopwatch.GetTimestamp();
+            long startTime = Stopwatch.GetTimestamp();
             base.UpdateAfterChildren();
-            long elapsedTicks = System.Diagnostics.Stopwatch.GetTimestamp() - startTime;
-            long elapsedNanos = (elapsedTicks * 1000000000) / System.Diagnostics.Stopwatch.Frequency;
+            long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
+            long elapsedNanos = (elapsedTicks * 1000000000) / Stopwatch.Frequency;
+
             OboeAudioBridge.nADPFReportActualDuration(updateAdpfSession, elapsedNanos);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        protected override void DrawAfterChildren()
+        {
+            if (renderAdpfSession == IntPtr.Zero)
+            {
+                base.DrawAfterChildren();
+                return;
+            }
+
+            long startTime = Stopwatch.GetTimestamp();
+            base.DrawAfterChildren();
+            long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
+            long elapsedNanos = (elapsedTicks * 1000000000) / Stopwatch.Frequency;
+
+            OboeAudioBridge.nADPFReportActualDuration(renderAdpfSession, elapsedNanos);
+        }
+    }
+
+    internal class AndroidBatteryInfo : BatteryInfo
+    {
+        public override double? ChargeLevel => Microsoft.Maui.Devices.Battery.ChargeLevel;
+        public override bool OnBattery => Microsoft.Maui.Devices.Battery.PowerSource == BatteryPowerSource.Battery;
     }
 }

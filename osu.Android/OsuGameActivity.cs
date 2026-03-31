@@ -17,6 +17,8 @@ using System;
 using Uri = Android.Net.Uri;
 using osu.Framework.Android;
 using osu.Game.Database;
+using osu.Android.Native;
+
 namespace osu.Android
 {
     [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
@@ -51,7 +53,7 @@ namespace osu.Android
 
         private bool gameCreated;
 
-        protected override Framework.Game CreateGame()
+        protected override osu.Framework.Game CreateGame()
         {
             if (gameCreated)
                 throw new InvalidOperationException("Framework tried to create a game twice.");
@@ -179,7 +181,6 @@ namespace osu.Android
 
         public void SurfaceCreated(ISurfaceHolder holder)
         {
-
             var surface = holder.Surface;
             if (surface != null && surface.Handle != IntPtr.Zero)
             {
@@ -189,7 +190,6 @@ namespace osu.Android
                 Debug.WriteLine("[osu!] Native surface JNI global reference created");
             }
         }
-
 
         public void SurfaceChanged(ISurfaceHolder holder, Android.Graphics.Format format, int width, int height)
         {
@@ -203,7 +203,6 @@ namespace osu.Android
                 surfaceGlobalRef = IntPtr.Zero;
             }
             surfaceEvent.Reset();
-
         }
     }
 }
