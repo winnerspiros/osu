@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -1634,6 +1635,7 @@ namespace osu.Game
             return base.OnExiting();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();

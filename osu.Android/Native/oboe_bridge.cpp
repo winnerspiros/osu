@@ -368,3 +368,22 @@ OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
 }
 
 } // extern "C"
+
+extern "C" {
+OSU_EXPORT void nLog(int level, const char* tag, const char* msg) {
+    __android_log_print(level, tag, "%s", msg);
+}
+}
+
+extern "C" {
+OSU_EXPORT byte nSetThreadAffinity(int coreMask) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    for (int i = 0; i < 32; i++) {
+        if ((coreMask >> i) & 1) {
+            CPU_SET(i, &cpuset);
+        }
+    }
+    return (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) ? 1 : 0;
+}
+}

@@ -337,5 +337,6 @@ namespace osu.Android.Native
 
         [DllImport(lib_name)]
         private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
+        [DllImport(lib_name)] public static extern byte nSetThreadAffinity(int coreMask);
     }
 }

@@ -66,6 +66,8 @@ namespace osu.Android
         private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
+        [Cached(typeof(IHighPerformanceSessionManager))]
+        private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new osu.Android.Performance.AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
 
@@ -128,8 +130,36 @@ namespace osu.Android
             audioRedirector = new OboeAudioRedirector(Audio);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void LoadComplete()
         {
+
+            // Pin the current thread (Update thread) to high-performance cores.
+            // On S23 Ultra, cores 3-7 are high-performance. Mask = 0xF8 (11111000 in binary)
+            try
+            {
+                if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
+                    Debug.WriteLine("[osu!] Update thread pinned to big cores");
+            Scheduler.Add(() =>
+            {
+                // Dispatch to the draw thread to pin it.
+                Host.DrawThread.Scheduler.Add(() =>
+                {
+                    try
+                    {
+                        if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
+                            Debug.WriteLine("[osu!] Render thread pinned to big cores");
+                    }
+                    catch { }
+                });
+            });
+
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to pin update thread: {e.Message}");
+            }
+
             base.LoadComplete();
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
