@@ -77,4 +77,6 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nVulkanSupportsGlobalPriority(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsMemoryBudget(IntPtr ptr);
     }
+
+        public bool IsRecommended => IsAvailable && MeetsVulkan13 && SupportsDynamicRendering && SupportsSynchronization2;
 }

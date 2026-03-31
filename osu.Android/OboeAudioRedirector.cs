@@ -164,6 +164,7 @@ namespace osu.Android
             if (mixer == null) return;
 
             int handle = findHandle(mixer);
+
             if (handle == 0) return;
 
             int current = handle;
@@ -181,6 +182,7 @@ namespace osu.Android
             if (mixer == null) return;
 
             int handle = findHandle(mixer);
+
             if (handle != 0 && !mixerHandles.Contains(handle))
                 mixerHandles.Add(handle);
         }
@@ -196,9 +198,11 @@ namespace osu.Android
                     if (field.FieldType == typeof(int) || field.FieldType == typeof(IntPtr))
                     {
                         string name = field.Name.ToLowerInvariant();
+
                         if (name.Contains("handle") || name.Contains("mixer"))
                         {
                             int h = convertToHandle(field.GetValue(obj));
+
                             if (h != 0) return h;
                         }
                     }
@@ -209,9 +213,11 @@ namespace osu.Android
                     if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(IntPtr))
                     {
                         string name = prop.Name.ToLowerInvariant();
+
                         if (name.Contains("handle") || name.Contains("mixer"))
                         {
                             int h = convertToHandle(prop.GetValue(obj));
+
                             if (h != 0) return h;
                         }
                     }
@@ -226,9 +232,13 @@ namespace osu.Android
         private int convertToHandle(object? val)
         {
             if (val == null) return 0;
+
             if (val is int ih) return ih;
+
             if (val is long lh) return (int)lh;
+
             if (val is IntPtr ph) return (int)ph.ToInt64();
+
             return 0;
         }
 
@@ -236,6 +246,7 @@ namespace osu.Android
         private static int provideAudio(IntPtr audioData, int numFrames)
         {
             int mixer = ActiveMasterMixer;
+
             if (mixer == 0) return 0;
 
             int bytesToRead = numFrames * 8;

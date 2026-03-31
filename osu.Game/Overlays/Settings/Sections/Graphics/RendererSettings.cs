@@ -34,7 +34,9 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Caption = GraphicsSettingsStrings.Renderer,
                     Current = renderer,
                     Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+#pragma warning disable CS0612 // Type or member is obsolete
                                 .Where(t => t != RendererType.OpenGLLegacy),
+#pragma warning restore CS0612 // Type or member is obsolete
                 })
                 {
                     Keywords = new[] { @"compatibility", @"directx" },

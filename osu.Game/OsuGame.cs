@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -82,6 +81,7 @@ using osuTK.Graphics;
 using Sentry;
 using IntroScreen = osu.Game.Screens.Menu.IntroScreen;
 using MatchType = osu.Game.Online.Rooms.MatchType;
+using System.Runtime.CompilerServices;
 
 namespace osu.Game
 {
@@ -338,6 +338,7 @@ namespace osu.Game
         {
             var userInputManager = base.CreateUserInputManager();
             (userInputManager as OsuUserInputManager)?.PlayingState.BindTo(UserPlayingState);
+
             return userInputManager;
         }
 
@@ -486,6 +487,7 @@ namespace osu.Game
                     break;
 
                 case LinkAction.OpenBeatmapSet:
+
                     if (int.TryParse(argString, out int setId))
                         ShowBeatmapSet(setId);
                     break;
@@ -495,6 +497,7 @@ namespace osu.Game
                     break;
 
                 case LinkAction.SearchBeatmapSet:
+
                     if (link.Argument is LocalisableString localisable)
                         SearchBeatmapSet(Localisation.GetLocalisedString(localisable));
                     else
@@ -535,6 +538,7 @@ namespace osu.Game
                     break;
 
                 case LinkAction.OpenChangelog:
+
                     if (string.IsNullOrEmpty(argString))
                         ShowChangelogListing();
                     else
@@ -546,6 +550,7 @@ namespace osu.Game
                     break;
 
                 case LinkAction.JoinRoom:
+
                     if (long.TryParse(argString, out long roomId))
                         JoinRoom(roomId);
                     break;
@@ -783,6 +788,7 @@ namespace osu.Game
                     Activated = () =>
                     {
                         OpenUrlExternally($@"/multiplayer/rooms/{room.RoomID}");
+
                         return true;
                     }
                 });
@@ -1381,6 +1387,7 @@ namespace osu.Game
                     Activated = () =>
                     {
                         Logger.Storage.PresentFileExternally(logFile);
+
                         return true;
                     }
                 }));
@@ -1431,6 +1438,7 @@ namespace osu.Game
                     Activated = () =>
                     {
                         OpenUrlExternally("https://opentabletdriver.net/Tablets", LinkWarnMode.NeverWarn);
+
                         return true;
                     }
                 }));
@@ -1511,11 +1519,13 @@ namespace osu.Game
             {
                 case GlobalAction.DecreaseVolume:
                 case GlobalAction.IncreaseVolume:
+
                     return volume.Adjust(e.Action);
             }
 
             // All actions below this point don't allow key repeat.
             if (e.Repeat)
+
                 return false;
 
             // Wait until we're loaded at least to the intro before allowing various interactions.
@@ -1526,31 +1536,38 @@ namespace osu.Game
                 case GlobalAction.ToggleMute:
                 case GlobalAction.NextVolumeMeter:
                 case GlobalAction.PreviousVolumeMeter:
+
                     return volume.Adjust(e.Action);
 
                 case GlobalAction.ToggleFPSDisplay:
                     fpsCounter.ToggleVisibility();
+
                     return true;
 
                 case GlobalAction.ToggleSkinEditor:
                     skinEditor.ToggleVisibility();
+
                     return true;
 
                 case GlobalAction.ResetInputSettings:
                     Host.ResetInputHandlers();
                     frameworkConfig.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode).SetDefault();
+
                     return true;
 
                 case GlobalAction.ToggleGameplayMouseButtons:
                     var mouseDisableButtons = LocalConfig.GetBindable<bool>(OsuSetting.MouseDisableButtons);
                     mouseDisableButtons.Value = !mouseDisableButtons.Value;
+
                     return true;
 
                 case GlobalAction.ToggleProfile:
+
                     if (userProfile.State.Value == Visibility.Visible)
                         userProfile.Hide();
                     else
                         ShowUser(API.LocalUser.Value);
+
                     return true;
 
                 case GlobalAction.RandomSkin:
@@ -1558,23 +1575,31 @@ namespace osu.Game
                     // This is mainly to stop many "osu! default (modified)" skins being created via the SkinManager.EnsureMutableSkin() path.
                     // If people want this to work we can potentially avoid selecting default skins when the editor is open, or allow a maximum of one mutable skin somehow.
                     if (skinEditor.State.Value == Visibility.Visible)
+
                         return false;
 
                     SkinManager.SelectRandomSkin();
+
                     return true;
 
                 case GlobalAction.NextSkin:
+
                     if (skinEditor.State.Value == Visibility.Visible)
+
                         return false;
 
                     SkinManager.SelectNextSkin();
+
                     return true;
 
                 case GlobalAction.PreviousSkin:
+
                     if (skinEditor.State.Value == Visibility.Visible)
+
                         return false;
 
                     SkinManager.SelectPreviousSkin();
+
                     return true;
             }
 
@@ -1589,14 +1614,17 @@ namespace osu.Game
             {
                 case PlatformAction.ZoomIn:
                     uiScale.Value += adjustment_increment;
+
                     return true;
 
                 case PlatformAction.ZoomOut:
                     uiScale.Value -= adjustment_increment;
+
                     return true;
 
                 case PlatformAction.ZoomDefault:
                     uiScale.SetDefault();
+
                     return true;
             }
 
@@ -1624,11 +1652,13 @@ namespace osu.Game
         protected override bool OnExiting()
         {
             if (ScreenStack.CurrentScreen is Loader)
+
                 return false;
 
             if (introScreen?.DidLoadMenu == true && !(ScreenStack.CurrentScreen is IntroScreen))
             {
                 Scheduler.Add(introScreen.MakeCurrent);
+
                 return true;
             }
 
@@ -1650,6 +1680,7 @@ namespace osu.Game
             // this avoids a visible jump in the positioning of the screen offset container.
             if (Settings.IsLoaded && Settings.IsPresent)
                 horizontalOffset += Content.ToLocalSpace(Settings.ScreenSpaceDrawQuad.TopRight).X * SIDE_OVERLAY_OFFSET_RATIO;
+
             if (Notifications.IsLoaded && Notifications.IsPresent)
                 horizontalOffset += (Content.ToLocalSpace(Notifications.ScreenSpaceDrawQuad.TopLeft).X - Content.DrawWidth) * SIDE_OVERLAY_OFFSET_RATIO;
 

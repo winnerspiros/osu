@@ -1,27 +1,29 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-using Android.Content;
-using Android.Media;
-using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
+#pragma warning disable CA1422
+#pragma warning restore CA1422
 using Android.App;
 using Android.Content.PM;
+using Android.Content;
+using Android.Media;
 using Android.Views;
+using Debug = System.Diagnostics.Debug;
 using Microsoft.Maui.Devices;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System;
+using osu.Android.Native;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Platform;
-using osu.Game;
 using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
-using osu.Android.Native;
+using osu.Game;
 using osuTK;
-using Debug = System.Diagnostics.Debug;
+
 
 namespace osu.Android
 {
@@ -70,6 +72,10 @@ namespace osu.Android
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new osu.Android.Performance.AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
+        private IntPtr updateAdpfSession;
+        private IntPtr renderAdpfSession;
+        private readonly System.Diagnostics.Stopwatch updateStopwatch = new System.Diagnostics.Stopwatch();
+
 
         /// <summary>
         /// Boxed reference to the native bridge manager.
@@ -93,6 +99,7 @@ namespace osu.Android
             get
             {
                 if (!IsDeployedBuild)
+
                     return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
                 return getPackageInfo()?.VersionName ?? @"unknown";
@@ -108,6 +115,7 @@ namespace osu.Android
                     string? versionName = getPackageInfo()?.VersionName;
 
                     if (!string.IsNullOrEmpty(versionName))
+
                         return new Version(versionName.Split('-').First());
                 }
                 catch (Exception e)
@@ -161,6 +169,30 @@ namespace osu.Android
             }
 
             base.LoadComplete();
+            try
+            {
+                // Target 1ms (1,000,000ns) for 1000 FPS
+                updateAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
+            Scheduler.Add(() =>
+            {
+                Host.DrawThread.Scheduler.Add(() =>
+                {
+                    try
+                    {
+                        renderAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
+
+                        if (renderAdpfSession != IntPtr.Zero)
+                            Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
+                    }
+                    catch { }
+                });
+            });
+
+                if (updateAdpfSession != IntPtr.Zero)
+                    Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Update thread");
+            }
+            catch { }
+
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
             performanceMode.BindValueChanged(e =>
@@ -183,6 +215,7 @@ namespace osu.Android
                 if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
                 {
                     string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+
                     if (!string.IsNullOrEmpty(rateStr))
                         hardwareSampleRate = int.Parse(rateStr);
                 }
@@ -289,12 +322,11 @@ namespace osu.Android
                     return;
 
                 var display = windowManager.DefaultDisplay;
+
                 if (display == null)
                     return;
 
-#pragma warning disable CA1422
                 var modes = display.GetSupportedModes();
-#pragma warning restore CA1422
 
                 if (modes == null || modes.Length == 0)
                     return;
@@ -331,6 +363,7 @@ namespace osu.Android
         /// Returns the measured audio output latency in milliseconds via the Oboe bridge,
         /// or -1 if unavailable. Can be used to auto-suggest audio offset calibration.
         /// </summary>
+        public bool IsVulkanRecommended() => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
         public double GetMeasuredAudioLatencyMs()
         {
             return getMeasuredAudioLatencyFromBridge();
@@ -351,6 +384,7 @@ namespace osu.Android
                 if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
                 {
                     string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+
                     if (!string.IsNullOrEmpty(rateStr))
                         hardwareSampleRate = int.Parse(rateStr);
                 }
@@ -465,6 +499,19 @@ namespace osu.Android
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
+
+                if (updateAdpfSession != IntPtr.Zero)
+                {
+                    OboeAudioBridge.nADPFCloseSession(updateAdpfSession);
+                    updateAdpfSession = IntPtr.Zero;
+                }
+
+                if (renderAdpfSession != IntPtr.Zero)
+                {
+                    OboeAudioBridge.nADPFCloseSession(renderAdpfSession);
+                    renderAdpfSession = IntPtr.Zero;
+                }
+
             }
         }
 
@@ -499,6 +546,22 @@ namespace osu.Android
                     }
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        protected override void UpdateAfterChildren()
+        {
+            if (updateAdpfSession == IntPtr.Zero)
+            {
+                base.UpdateAfterChildren();
+                return;
+            }
+
+            long startTime = System.Diagnostics.Stopwatch.GetTimestamp();
+            base.UpdateAfterChildren();
+            long elapsedTicks = System.Diagnostics.Stopwatch.GetTimestamp() - startTime;
+            long elapsedNanos = (elapsedTicks * 1000000000) / System.Diagnostics.Stopwatch.Frequency;
+            OboeAudioBridge.nADPFReportActualDuration(updateAdpfSession, elapsedNanos);
         }
     }
 }
