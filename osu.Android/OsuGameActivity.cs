@@ -75,6 +75,7 @@ namespace osu.Android
             base.OnCreate(savedInstanceState);
 
             Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            Window?.DecorView.Post(() => GetSurface()?.Holder?.AddCallback(this));
 
             handleIntent(Intent);
 

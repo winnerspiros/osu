@@ -169,6 +169,7 @@ namespace osu.Android
             }
 
             base.LoadComplete();
+            System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
 
             try
             {
