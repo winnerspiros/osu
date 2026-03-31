@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
+#include "vulkan_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <oboe/AudioClock.h>
 #include <sched.h>
@@ -170,8 +171,6 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
-    // Record the start time of this callback for ADPF work duration reporting.
-    int64_t startTime = oboe::AudioClock::getNanoseconds();
 
     OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
 
@@ -190,10 +189,6 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         memset(audioData, 0, byteCount);
     }
 
-    // Reporting actual work duration helps ADPF (Android Dynamic Performance Framework)
-    // adjust CPU frequency precisely to handle the audio load without skipping.
-    int64_t endTime = oboe::AudioClock::getNanoseconds();
-    if (stream->isPerformanceHintEnabled()) { stream->reportActualWorkDuration(endTime - startTime); }
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
@@ -313,7 +308,7 @@ OSU_EXPORT void nOboeDestroy(intptr_t ptr) {
     if (ptr) delete reinterpret_cast<OboeBridge*>(ptr);
 }
 
-OSU_EXPORT unsigned char nOboeStart(intptr_t ptr) {
+OSU_EXPORT byte nOboeStart(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->start()) ? 1 : 0;
 }
@@ -328,7 +323,7 @@ OSU_EXPORT double nOboeGetLatencyMs(intptr_t ptr) {
     return bridge ? bridge->getOutputLatencyMs() : -1.0;
 }
 
-OSU_EXPORT unsigned char nOboeIsActive(intptr_t ptr) {
+OSU_EXPORT byte nOboeIsActive(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isActive()) ? 1 : 0;
 }
@@ -348,12 +343,12 @@ OSU_EXPORT int nOboeGetBufferSizeInFrames(intptr_t ptr) {
     return bridge ? bridge->getBufferSizeInFrames() : 0;
 }
 
-OSU_EXPORT unsigned char nOboeIsAAudio(intptr_t ptr) {
+OSU_EXPORT byte nOboeIsAAudio(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isAAudio()) ? 1 : 0;
 }
 
-OSU_EXPORT unsigned char nOboeIsMMap(intptr_t ptr) {
+OSU_EXPORT byte nOboeIsMMap(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isMMap()) ? 1 : 0;
 }

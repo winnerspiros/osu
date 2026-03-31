@@ -4,8 +4,10 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <string>
 #include <cstdint>
+#include <string>
+
+typedef uint8_t byte;
 
 /// Lightweight Vulkan capability probe for Android.
 /// Requires Vulkan 1.3 as minimum for full feature detection (dynamic rendering,
