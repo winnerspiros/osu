@@ -6,7 +6,7 @@ using Android.Content.PM;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
-using global::Android.Runtime.
+using Android.Runtime;
 using Android.Views;
 using Debug = System.Diagnostics.Debug;
 using System.Collections.Generic;
