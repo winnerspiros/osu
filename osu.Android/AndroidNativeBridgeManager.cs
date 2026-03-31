@@ -86,6 +86,7 @@ namespace osu.Android
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool SetThreadAffinity(int coreMask) => OboeAudioBridge.nSetThreadAffinity(coreMask) != 0;
         public double GetMeasuredAudioLatencyMs()
         {
             return (oboeBridge as OboeAudioBridge)?.GetOutputLatencyMs() ?? -1;
@@ -115,6 +116,7 @@ namespace osu.Android
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool IsVulkanRecommended() => (vulkanProbe as VulkanProbe)?.IsRecommended ?? false;
         public void StopVulkanProbe()
         {
             (vulkanProbe as VulkanProbe)?.Dispose();

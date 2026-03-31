@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
-#include "vulkan_bridge.h"
 #include <oboe/OboeExtensions.h>
 #include <oboe/AudioClock.h>
 #include <sched.h>
@@ -368,3 +367,53 @@ OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
 }
 
 } // extern "C"
+
+extern "C" {
+OSU_EXPORT void nLog(int level, const char* tag, const char* msg) {
+    __android_log_print(level, tag, "%s", msg);
+}
+}
+
+extern "C" {
+OSU_EXPORT byte nSetThreadAffinity(int coreMask) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    for (int i = 0; i < 32; i++) {
+        if ((coreMask >> i) & 1) {
+            CPU_SET(i, &cpuset);
+        }
+    }
+    return (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) ? 1 : 0;
+}
+}
+
+#include <android/performance_hint.h>
+
+extern "C" {
+OSU_EXPORT intptr_t nADPFCreateSession(int64_t targetDurationNanos) {
+    auto manager = APerformanceHint_getManager();
+    if (!manager) return 0;
+
+    // We use the current thread as the initial thread for the session.
+    int32_t thread_id = gettid();
+    return reinterpret_cast<intptr_t>(APerformanceHint_createSession(manager, &thread_id, 1, targetDurationNanos));
+}
+
+OSU_EXPORT void nADPFReportActualDuration(intptr_t sessionPtr, int64_t actualDurationNanos) {
+    if (sessionPtr) {
+        APerformanceHint_reportActualWorkDuration(reinterpret_cast<APerformanceHintSession*>(sessionPtr), actualDurationNanos);
+    }
+}
+
+OSU_EXPORT void nADPFUpdateTargetDuration(intptr_t sessionPtr, int64_t targetDurationNanos) {
+    if (sessionPtr) {
+        APerformanceHint_updateTargetWorkDuration(reinterpret_cast<APerformanceHintSession*>(sessionPtr), targetDurationNanos);
+    }
+}
+
+OSU_EXPORT void nADPFCloseSession(intptr_t sessionPtr) {
+    if (sessionPtr) {
+        APerformanceHint_closeSession(reinterpret_cast<APerformanceHintSession*>(sessionPtr));
+    }
+}
+}
