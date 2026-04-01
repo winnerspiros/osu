@@ -1,0 +1,11 @@
+<<<<<<< SEARCH
+        public virtual bool IsDeployedBuild => false;
+
+        public virtual IReadOnlyList<Mod> InitialMods => Array.Empty<Mod>();
+=======
+        public virtual bool IsDeployedBuild => false;
+
+        public virtual bool IsVulkanRecommended => false;
+
+        public virtual IReadOnlyList<Mod> InitialMods => Array.Empty<Mod>();
+>>>>>>> REPLACE

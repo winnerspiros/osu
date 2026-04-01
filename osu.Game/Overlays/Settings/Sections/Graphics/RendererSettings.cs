@@ -35,8 +35,9 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Current = renderer,
                     Items = host.GetPreferredRenderersForCurrentPlatform().Order()
 #pragma warning disable CS0612, CS0618
-                                .Where(t => t != RendererType.OpenGLLegacy),
+                                .Where(t => t != RendererType.OpenGLLegacy)
 #pragma warning restore CS0612, CS0618
+                                .Where(t => t != RendererType.Vulkan || (game?.IsVulkanRecommended ?? false)),
                 })
                 {
                     Keywords = new[] { @"compatibility", @"directx" },

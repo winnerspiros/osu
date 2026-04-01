@@ -43,10 +43,16 @@ namespace osu.Android
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
 
+            foreach (var mixer in audioManager.ActiveMixers)
+                addRootMixer(mixer);
+
             if (mixerHandles.Count == 0)
             {
                 addMixer(audioManager.TrackMixer);
                 addMixer(audioManager.SampleMixer);
+
+                foreach (var mixer in audioManager.ActiveMixers)
+                    addMixer(mixer);
             }
 
             if (mixerHandles.Count == 0)

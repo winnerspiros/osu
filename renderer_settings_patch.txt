@@ -1,0 +1,22 @@
+<<<<<<< SEARCH
+                new SettingsItemV2(new RendererDropdown
+                {
+                    Caption = GraphicsSettingsStrings.Renderer,
+                    Current = renderer,
+                    Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+#pragma warning disable CS0612, CS0618
+                                .Where(t => t != RendererType.OpenGLLegacy),
+#pragma warning restore CS0612, CS0618
+                })
+=======
+                new SettingsItemV2(new RendererDropdown
+                {
+                    Caption = GraphicsSettingsStrings.Renderer,
+                    Current = renderer,
+                    Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+#pragma warning disable CS0612, CS0618
+                                .Where(t => t != RendererType.OpenGLLegacy)
+#pragma warning restore CS0612, CS0618
+                                .Where(t => t != RendererType.Vulkan || (game?.IsVulkanRecommended ?? false)),
+                })
+>>>>>>> REPLACE

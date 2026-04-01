@@ -137,6 +137,7 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
             audioRedirector = new OboeAudioRedirector(Audio);
+            Audio.ActiveMixers.BindCollectionChanged((_, _) => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -360,7 +361,7 @@ namespace osu.Android
             }
         }
 
-        public bool IsVulkanRecommended() => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
+        public override bool IsVulkanRecommended => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 

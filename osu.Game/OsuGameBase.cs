@@ -118,6 +118,7 @@ namespace osu.Game
         public string VersionHash { get; private set; }
 
         public bool IsDeployedBuild => AssemblyVersion.Major > 0;
+        public virtual bool IsVulkanRecommended => false;
 
         public virtual string Version
         {
