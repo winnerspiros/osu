@@ -1,43 +1,39 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
-#pragma warning disable CA1422
-#pragma warning restore CA1422
-
-using Android.App;
-using Android.Content.PM;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Android.Content;
 using Android.Media;
+using Android.OS;
 using Android.Views;
-using Debug = System.Diagnostics.Debug;
-using Microsoft.Maui.Devices;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System;
-using System.Diagnostics;
 using osu.Android.Native;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics;
+using osu.Framework.Input;
 using osu.Framework.Platform;
-using osu.Game.Configuration;
-using osu.Game.Screens;
-using osu.Game.Updater;
-using osu.Game.Utils;
+using osu.Framework.Threading;
 using osu.Game;
-using osuTK;
-using osu.Game.Performance;
-using osu.Android.Performance;
+using osu.Game.Configuration;
+using osu.Game.Overlays;
+using osu.Game.Overlays.Notifications;
+using osu.Game.Screens;
+using osu.Game.Utils;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Android
 {
     public partial class OsuGameAndroid : OsuGame
     {
-        [Cached]
         private readonly OsuGameActivity gameActivity;
 
         private readonly object packageInfoLock = new object();
-
         private PackageInfo? packageInfo;
         private bool packageInfoChecked;
 
@@ -137,7 +133,29 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
             audioRedirector = new OboeAudioRedirector(Audio);
-            Audio.ActiveMixers.BindCollectionChanged((_, _) => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
+
+            try
+            {
+                // Use reflection to bind to collection changes of the internal activeMixers list in AudioManager.
+                FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    object? val = field.GetValue(Audio);
+                    if (val != null)
+                    {
+                        MethodInfo? bindMethod = val.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (bindMethod != null)
+                        {
+                            Action<object, object> callback = (_, _) => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); };
+                            bindMethod.Invoke(val, new object[] { callback, true });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[osu!] Failed to bind to activeMixers via reflection: {ex.Message}");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -444,11 +462,11 @@ namespace osu.Android
                     switch (orientation)
                     {
                         case MobileUtils.Orientation.Locked:
-                            gameActivity.RequestedOrientation = ScreenOrientation.Locked;
+                            gameActivity.RequestedOrientation = Android.Content.PM.ScreenOrientation.Locked;
                             break;
 
                         case MobileUtils.Orientation.Portrait:
-                            gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
+                            gameActivity.RequestedOrientation = Android.Content.PM.ScreenOrientation.Portrait;
                             break;
 
                         case MobileUtils.Orientation.Default:

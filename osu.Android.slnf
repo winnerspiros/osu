@@ -2,9 +2,6 @@
   "solution": {
     "path": "osu.sln",
     "projects": [
-      "external\\osu-framework\\osu.Framework.Android\\osu.Framework.Android.csproj",
-      "external\\osu-framework\\osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
-      "external\\osu-framework\\osu.Framework\\osu.Framework.csproj",
       "osu.Android\\osu.Android.csproj",
       "osu.Game.Rulesets.Catch.Tests.Android\\osu.Game.Rulesets.Catch.Tests.Android.csproj",
       "osu.Game.Rulesets.Catch\\osu.Game.Rulesets.Catch.csproj",

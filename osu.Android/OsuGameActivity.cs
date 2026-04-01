@@ -1,6 +1,3 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
@@ -183,12 +180,15 @@ namespace osu.Android
         public void SurfaceCreated(ISurfaceHolder holder)
         {
             var surface = holder.Surface;
-            if (surface != null && surface.Handle != IntPtr.Zero)
+            if (surface != null)
             {
                 var handle = surface.Handle;
-                surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
-                surfaceEvent.Set();
-                Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                if (handle != IntPtr.Zero)
+                {
+                    surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                    surfaceEvent.Set();
+                    Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                }
             }
         }
 

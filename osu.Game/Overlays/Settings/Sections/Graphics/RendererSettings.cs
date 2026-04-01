@@ -1,8 +1,7 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using System.Linq;
+using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
@@ -27,17 +26,26 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             var renderer = config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             automaticRendererInUse = renderer.Value == RendererType.Automatic;
 
+            var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
+
+            // Surgically inject Vulkan on Android if recommended, even if the host doesn't report it.
+            // This allows us to use official framework NuGet while still supporting Vulkan in the game.
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (game?.IsVulkanRecommended ?? false))
+            {
+                if (!rendererItems.Contains(RendererType.Vulkan))
+                    rendererItems.Add(RendererType.Vulkan);
+            }
+
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
                 {
                     Caption = GraphicsSettingsStrings.Renderer,
                     Current = renderer,
-                    Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+                    Items = rendererItems.Order()
 #pragma warning disable CS0612, CS0618
-                                .Where(t => t != RendererType.OpenGLLegacy)
+                                .Where(t => t != RendererType.OpenGLLegacy),
 #pragma warning restore CS0612, CS0618
-                                .Where(t => t != RendererType.Vulkan || (game?.IsVulkanRecommended ?? false)),
                 })
                 {
                     Keywords = new[] { @"compatibility", @"directx" },
