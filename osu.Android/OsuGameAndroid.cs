@@ -1,5 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+using Microsoft.Maui.Devices;
+using osu.Android.Performance;
+using osu.Framework.Development;
 
 using Android.Content.PM;
 using osu.Game.Performance;
@@ -8,17 +11,17 @@ using System.Collections.Specialized;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Debug = System.Diagnostics.Debug;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Android.Content;
+using Context = global::Android.Content.Context;
 using Android.Media;
 using Android.OS;
 using Android.Views;
 using osu.Android.Native;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
+using AudioManager = osu.Framework.Audio.AudioManager;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -107,7 +110,7 @@ namespace osu.Android
             get
             {
                 if (!IsDeployedBuild)
-                    return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
+                    return @"local " + (osu.Framework.Development.DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
                 return getPackageInfo()?.VersionName ?? @"unknown";
             }
@@ -244,9 +247,9 @@ namespace osu.Android
                 int hardwareSampleRate = 0;
                 try
                 {
-                    if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                    if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
                     {
-                        string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                        string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                         if (!string.IsNullOrEmpty(rateStr))
                             hardwareSampleRate = int.Parse(rateStr);
@@ -404,9 +407,9 @@ namespace osu.Android
 
             try
             {
-                if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
                 {
-                    string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                    string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                     if (!string.IsNullOrEmpty(rateStr))
                         hardwareSampleRate = int.Parse(rateStr);
@@ -476,11 +479,11 @@ namespace osu.Android
                     switch (orientation)
                     {
                         case MobileUtils.Orientation.Locked:
-                            gameActivity.RequestedOrientation = Android.Content.PM.ScreenOrientation.Locked;
+                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Locked;
                             break;
 
                         case MobileUtils.Orientation.Portrait:
-                            gameActivity.RequestedOrientation = Android.Content.PM.ScreenOrientation.Portrait;
+                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Portrait;
                             break;
 
                         case MobileUtils.Orientation.Default:
@@ -569,6 +572,6 @@ namespace osu.Android
     internal class AndroidBatteryInfo : BatteryInfo
     {
         public override double? ChargeLevel => Microsoft.Maui.Devices.Battery.ChargeLevel;
-        public override bool OnBattery => Microsoft.Maui.Devices.Battery.PowerSource == BatteryPowerSource.Battery;
+        public override bool OnBattery => Microsoft.Maui.Devices.Battery.PowerSource == global::Microsoft.Maui.Devices.BatteryPowerSource.Battery;
     }
 }
