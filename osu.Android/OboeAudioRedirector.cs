@@ -20,6 +20,7 @@ namespace osu.Android
     public class OboeAudioRedirector : IDisposable
     {
         public bool IsRedirecting => ActiveMasterMixer != 0;
+
         private readonly AudioManager audioManager;
         private readonly List<int> mixerHandles = new List<int>();
         private readonly Dictionary<int, int> originalParents = new Dictionary<int, int>();
@@ -36,7 +37,7 @@ namespace osu.Android
 
         public unsafe IntPtr Provider => (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, int, int>)&provideAudio;
 
-                public void RefreshMixers(int hardwareSampleRate)
+        public void RefreshMixers(int hardwareSampleRate)
         {
             if (hardwareSampleRate > 0)
                 lastHardwareSampleRate = hardwareSampleRate;
@@ -45,48 +46,6 @@ namespace osu.Android
             restoreDefaultAudio();
 
             sampleRate = lastHardwareSampleRate;
-            mixerHandles.Clear();
-
-            addRootMixer(audioManager.TrackMixer);
-            addRootMixer(audioManager.SampleMixer);
-
-            foreach (var mixer in getActiveMixers())
-                addRootMixer(mixer);
-
-            if (mixerHandles.Count == 0)
-            {
-                addMixer(audioManager.TrackMixer);
-                addMixer(audioManager.SampleMixer);
-
-                foreach (var mixer in getActiveMixers())
-                    addMixer(mixer);
-            }
-
-            if (mixerHandles.Count == 0)
-            {
-                Console.WriteLine("[osu!] Oboe redirector: No BASS mixers discovered yet, deferring redirection.");
-                return;
-            }
-
-            if (!silenceDefaultAudio())
-            {
-                Console.WriteLine("[osu!] Oboe redirector: Failed to silence default audio, aborting redirection.");
-                return;
-            }
-
-            if (!setupMasterMixer())
-            {
-                Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
-                restoreDefaultAudio();
-                return;
-            }
-
-            ActiveMasterMixer = masterMixer;
-            Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
-        }Hz");
-            restoreDefaultAudio();
-
-            sampleRate = hardwareSampleRate > 0 ? hardwareSampleRate : 44100;
             mixerHandles.Clear();
 
             addRootMixer(audioManager.TrackMixer);
@@ -223,7 +182,7 @@ namespace osu.Android
             }
         }
 
-                private void restoreDefaultAudio()
+        private void restoreDefaultAudio()
         {
             ActiveMasterMixer = 0;
 
@@ -253,30 +212,6 @@ namespace osu.Android
 
                     BassMix.MixerRemoveChannel(handle);
                     Bass.ChannelSetDevice(handle, 1);
-                }
-
-                originalParents.Clear();
-                devicesSilenced = false;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[osu!] Failed to restore default audio: {e.Message}");
-            }
-        }
-
-                foreach (int handle in mixerHandles)
-                {
-                    BassMix.MixerRemoveChannel(handle);
-
-                    if (originalParents.TryGetValue(handle, out int parent))
-                    {
-                        Bass.ChannelSetDevice(handle, 1);
-                        BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
-                    }
-                    else
-                    {
-                        Bass.ChannelSetDevice(handle, 1);
-                    }
                 }
 
                 originalParents.Clear();
