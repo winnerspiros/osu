@@ -1,3 +1,9 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using Android.Content.PM;
+using osu.Game.Performance;
+using osu.Game.Updater;
 using System.Collections.Specialized;
 using System;
 using System.Collections;
