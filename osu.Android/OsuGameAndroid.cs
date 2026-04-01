@@ -1,43 +1,50 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-
-#pragma warning disable CA1422
-#pragma warning restore CA1422
-
-using Android.App;
-using Android.Content.PM;
-using Android.Content;
-using Android.Media;
-using Android.Views;
-using Debug = System.Diagnostics.Debug;
-using Microsoft.Maui.Devices;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System;
 using System.Diagnostics;
+using Microsoft.Maui.Devices;
+using osu.Android.Performance;
+using osu.Framework.Development;
+
+using Android.Content.PM;
+using osu.Game.Performance;
+using osu.Game.Updater;
+using System.Collections.Specialized;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Debug = System.Diagnostics.Debug;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Context = global::Android.Content.Context;
+using Android.Media;
+using Android.OS;
+using Android.Views;
 using osu.Android.Native;
 using osu.Framework.Allocation;
+using AudioManager = osu.Framework.Audio.AudioManager;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics;
+using osu.Framework.Input;
 using osu.Framework.Platform;
-using osu.Game.Configuration;
-using osu.Game.Screens;
-using osu.Game.Updater;
-using osu.Game.Utils;
+using osu.Framework.Threading;
 using osu.Game;
-using osuTK;
-using osu.Game.Performance;
-using osu.Android.Performance;
+using osu.Game.Configuration;
+using osu.Game.Overlays;
+using osu.Game.Overlays.Notifications;
+using osu.Game.Screens;
+using osu.Game.Utils;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Android
 {
     public partial class OsuGameAndroid : OsuGame
     {
-        [Cached]
         private readonly OsuGameActivity gameActivity;
 
         private readonly object packageInfoLock = new object();
-
         private PackageInfo? packageInfo;
         private bool packageInfoChecked;
 
@@ -77,6 +84,8 @@ namespace osu.Android
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
+        private Delegate? activeMixersHandler;
+        private object? activeMixersList;
         private IntPtr updateAdpfSession;
         private IntPtr renderAdpfSession;
 
@@ -102,7 +111,7 @@ namespace osu.Android
             get
             {
                 if (!IsDeployedBuild)
-                    return @"local " + (DebugUtils.IsDebugBuild ? @"debug" : @"release");
+                    return @"local " + (osu.Framework.Development.DebugUtils.IsDebugBuild ? @"debug" : @"release");
 
                 return getPackageInfo()?.VersionName ?? @"unknown";
             }
@@ -137,6 +146,30 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
             audioRedirector = new OboeAudioRedirector(Audio);
+
+            try
+            {
+                // Use reflection to bind to collection changes of the internal activeMixers list in AudioManager.
+                FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    activeMixersList = field.GetValue(Audio);
+                    object? val = field.GetValue(Audio);
+                    if (val != null)
+                    {
+                        MethodInfo? bindMethod = val.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (bindMethod != null)
+                        {
+                            var del = Delegate.CreateDelegate(bindMethod.GetParameters()[0].ParameterType, this, typeof(OsuGameAndroid).GetMethod(nameof(onActiveMixersChanged), BindingFlags.Instance | BindingFlags.NonPublic)!);
+                            bindMethod.Invoke(val, new object[] { del, true });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[osu!] Failed to bind to activeMixers via reflection: {ex.Message}");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -215,9 +248,9 @@ namespace osu.Android
                 int hardwareSampleRate = 0;
                 try
                 {
-                    if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                    if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
                     {
-                        string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                        string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                         if (!string.IsNullOrEmpty(rateStr))
                             hardwareSampleRate = int.Parse(rateStr);
@@ -360,7 +393,11 @@ namespace osu.Android
             }
         }
 
-        public bool IsVulkanRecommended() => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
+        public override bool IsVulkanRecommended => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
+
+        public override bool IsVulkanSupported => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanAvailable() ?? false;
+
+        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
@@ -371,9 +408,9 @@ namespace osu.Android
 
             try
             {
-                if (gameActivity.GetSystemService(Context.AudioService) is AudioManager audioManager)
+                if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
                 {
-                    string? rateStr = audioManager.GetProperty(AudioManager.PropertyOutputSampleRate);
+                    string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                     if (!string.IsNullOrEmpty(rateStr))
                         hardwareSampleRate = int.Parse(rateStr);
@@ -443,11 +480,11 @@ namespace osu.Android
                     switch (orientation)
                     {
                         case MobileUtils.Orientation.Locked:
-                            gameActivity.RequestedOrientation = ScreenOrientation.Locked;
+                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Locked;
                             break;
 
                         case MobileUtils.Orientation.Portrait:
-                            gameActivity.RequestedOrientation = ScreenOrientation.Portrait;
+                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Portrait;
                             break;
 
                         case MobileUtils.Orientation.Default:
@@ -484,6 +521,18 @@ namespace osu.Android
             {
                 audioRedirector?.Dispose();
                 audioRedirector = null;
+
+                if (activeMixersList != null && activeMixersHandler != null)
+                {
+                    try
+                    {
+                        MethodInfo? unbindMethod = activeMixersList.GetType().GetMethod("UnbindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        unbindMethod?.Invoke(activeMixersList, new object[] { activeMixersHandler });
+                    }
+                    catch { }
+                    activeMixersList = null;
+                    activeMixersHandler = null;
+                }
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
@@ -524,6 +573,6 @@ namespace osu.Android
     internal class AndroidBatteryInfo : BatteryInfo
     {
         public override double? ChargeLevel => Microsoft.Maui.Devices.Battery.ChargeLevel;
-        public override bool OnBattery => Microsoft.Maui.Devices.Battery.PowerSource == BatteryPowerSource.Battery;
+        public override bool OnBattery => Microsoft.Maui.Devices.Battery.PowerSource == global::Microsoft.Maui.Devices.BatteryPowerSource.Battery;
     }
 }

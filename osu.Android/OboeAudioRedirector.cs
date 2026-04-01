@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +13,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Bindables;
 
 namespace osu.Android
 {
@@ -43,10 +45,16 @@ namespace osu.Android
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
 
+            foreach (var mixer in getActiveMixers())
+                addRootMixer(mixer);
+
             if (mixerHandles.Count == 0)
             {
                 addMixer(audioManager.TrackMixer);
                 addMixer(audioManager.SampleMixer);
+
+                foreach (var mixer in getActiveMixers())
+                    addMixer(mixer);
             }
 
             if (mixerHandles.Count == 0)
@@ -60,6 +68,24 @@ namespace osu.Android
 
             ActiveMasterMixer = masterMixer;
             Console.WriteLine($"[osu!] Oboe redirector initialized: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
+        }
+
+        private IEnumerable<AudioMixer> getActiveMixers()
+        {
+            // Use reflection to access the internal activeMixers list in AudioManager.
+            // In the official framework, it is an internal BindableList<AudioMixer> activeMixers.
+            FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field == null) yield break;
+
+            object? val = field.GetValue(audioManager);
+            if (val is IEnumerable enumerable)
+            {
+                foreach (var item in enumerable)
+                {
+                    if (item is AudioMixer mixer)
+                        yield return mixer;
+                }
+            }
         }
 
         private void setupMasterMixer()

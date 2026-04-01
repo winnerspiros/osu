@@ -183,12 +183,15 @@ namespace osu.Android
         public void SurfaceCreated(ISurfaceHolder holder)
         {
             var surface = holder.Surface;
-            if (surface != null && surface.Handle != IntPtr.Zero)
+            if (surface != null && surface.IsValid)
             {
-                var handle = surface.Handle;
-                surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
-                surfaceEvent.Set();
-                Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                IntPtr handle = surface.Handle;
+                if (handle == IntPtr.Zero) return;
+                {
+                    surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                    surfaceEvent.Set();
+                    Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                }
             }
         }
 

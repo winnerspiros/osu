@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
@@ -8,10 +8,13 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Dialog;
+
+
 
 namespace osu.Game.Overlays.Settings.Sections.Graphics
 {
@@ -27,13 +30,26 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             var renderer = config.GetBindable<RendererType>(FrameworkSetting.Renderer);
             automaticRendererInUse = renderer.Value == RendererType.Automatic;
 
+            var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
+
+            // Surgically inject Vulkan on Android if recommended, even if the host doesn't report it.
+            // This allows us to use official framework NuGet while still supporting Vulkan in the game.
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (game?.IsVulkanSupported ?? false))
+            {
+                if (!rendererItems.Contains(RendererType.Vulkan))
+                    rendererItems.Add(RendererType.Vulkan);
+            }
+
+            if (!rendererItems.Contains(renderer.Value))
+                renderer.SetDefault();
+
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
                 {
                     Caption = GraphicsSettingsStrings.Renderer,
                     Current = renderer,
-                    Items = host.GetPreferredRenderersForCurrentPlatform().Order()
+                    Items = rendererItems.Order()
 #pragma warning disable CS0612, CS0618
                                 .Where(t => t != RendererType.OpenGLLegacy),
 #pragma warning restore CS0612, CS0618
