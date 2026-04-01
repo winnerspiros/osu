@@ -2,6 +2,8 @@
   "solution": {
     "path": "osu.sln",
     "projects": [
+      "external\\osu-framework\\osu.Framework.NativeLibs\\osu.Framework.NativeLibs.csproj",
+      "external\\osu-framework\\osu.Framework\\osu.Framework.csproj",
       "osu.Desktop\\osu.Desktop.csproj",
       "osu.Game.Benchmarks\\osu.Game.Benchmarks.csproj",
       "osu.Game.Rulesets.Catch.Tests\\osu.Game.Rulesets.Catch.Tests.csproj",
