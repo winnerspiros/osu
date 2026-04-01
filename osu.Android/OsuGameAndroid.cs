@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -73,6 +74,8 @@ namespace osu.Android
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
+        private Delegate? activeMixersHandler;
+        private object? activeMixersList;
         private IntPtr updateAdpfSession;
         private IntPtr renderAdpfSession;
 
@@ -140,14 +143,15 @@ namespace osu.Android
                 FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (field != null)
                 {
+                    activeMixersList = field.GetValue(Audio);
                     object? val = field.GetValue(Audio);
                     if (val != null)
                     {
                         MethodInfo? bindMethod = val.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                         if (bindMethod != null)
                         {
-                            Action<object, object> callback = (_, _) => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); };
-                            bindMethod.Invoke(val, new object[] { callback, true });
+                            var del = Delegate.CreateDelegate(bindMethod.GetParameters()[0].ParameterType, this, typeof(OsuGameAndroid).GetMethod(nameof(onActiveMixersChanged), BindingFlags.Instance | BindingFlags.NonPublic)!);
+                            bindMethod.Invoke(val, new object[] { del, true });
                         }
                     }
                 }
@@ -381,6 +385,10 @@ namespace osu.Android
 
         public override bool IsVulkanRecommended => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
 
+        public override bool IsVulkanSupported => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanAvailable() ?? false;
+
+        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
+
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -503,6 +511,18 @@ namespace osu.Android
             {
                 audioRedirector?.Dispose();
                 audioRedirector = null;
+
+                if (activeMixersList != null && activeMixersHandler != null)
+                {
+                    try
+                    {
+                        MethodInfo? unbindMethod = activeMixersList.GetType().GetMethod("UnbindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        unbindMethod?.Invoke(activeMixersList, new object[] { activeMixersHandler });
+                    }
+                    catch { }
+                    activeMixersList = null;
+                    activeMixersHandler = null;
+                }
 
                 if (nativeBridges != null)
                     disposeNativeBridges();

@@ -120,6 +120,8 @@ namespace osu.Game
         public bool IsDeployedBuild => AssemblyVersion.Major > 0;
         public virtual bool IsVulkanRecommended => false;
 
+        public virtual bool IsVulkanSupported => false;
+
         public virtual string Version
         {
             get

@@ -117,6 +117,8 @@ namespace osu.Android
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public bool IsVulkanRecommended() => (vulkanProbe as VulkanProbe)?.IsRecommended ?? false;
+
+        public bool IsVulkanAvailable() => (vulkanProbe as VulkanProbe)?.IsAvailable ?? false;
         public void StopVulkanProbe()
         {
             (vulkanProbe as VulkanProbe)?.Dispose();

@@ -180,10 +180,10 @@ namespace osu.Android
         public void SurfaceCreated(ISurfaceHolder holder)
         {
             var surface = holder.Surface;
-            if (surface != null)
+            if (surface != null && surface.IsValid)
             {
-                var handle = surface.Handle;
-                if (handle != IntPtr.Zero)
+                IntPtr handle = surface.Handle;
+                if (handle == IntPtr.Zero) return;
                 {
                     surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
                     surfaceEvent.Set();

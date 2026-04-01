@@ -30,11 +30,14 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             // Surgically inject Vulkan on Android if recommended, even if the host doesn't report it.
             // This allows us to use official framework NuGet while still supporting Vulkan in the game.
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (game?.IsVulkanRecommended ?? false))
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (game?.IsVulkanSupported ?? false))
             {
                 if (!rendererItems.Contains(RendererType.Vulkan))
                     rendererItems.Add(RendererType.Vulkan);
             }
+
+            if (!rendererItems.Contains(renderer.Value))
+                renderer.SetDefault();
 
             Children = new Drawable[]
             {
