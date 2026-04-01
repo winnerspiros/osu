@@ -26,12 +26,12 @@ namespace osu.Android.Native
         {
             try
             {
-                // Use DllImportSearchPath.ApplicationDirectory to avoid searching system paths
+                // Use null to avoid searching system paths
                 // which can crash on some Samsung devices with aggressive security policies.
                 native_loaded = NativeLibrary.TryLoad(
                     lib_name,
                     typeof(OboeAudioBridge).Assembly,
-                    DllImportSearchPath.ApplicationDirectory,
+                    null,
                     out _);
             }
             catch (Exception e)

@@ -32,11 +32,14 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
 
-            // Surgically inject Vulkan on Android if recommended, even if the host doesn't report it.
+            // Surgically inject Vulkan on Android if supported, even if the host doesn't report it.
             // This allows us to use official framework NuGet while still supporting Vulkan in the game.
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (game?.IsVulkanSupported ?? false))
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
             {
-                if (!rendererItems.Contains(RendererType.Vulkan))
+                bool isSupported = game?.IsVulkanSupported ?? false;
+                bool isCurrentlySelected = renderer.Value == RendererType.Vulkan;
+
+                if ((isSupported || isCurrentlySelected) && !rendererItems.Contains(RendererType.Vulkan))
                     rendererItems.Add(RendererType.Vulkan);
             }
 
