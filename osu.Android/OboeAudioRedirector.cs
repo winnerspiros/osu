@@ -19,6 +19,8 @@ namespace osu.Android
 {
     public class OboeAudioRedirector : IDisposable
     {
+        public bool IsRedirecting => ActiveMasterMixer != 0;
+
         private readonly AudioManager audioManager;
         private readonly List<int> mixerHandles = new List<int>();
         private readonly Dictionary<int, int> originalParents = new Dictionary<int, int>();
@@ -26,6 +28,7 @@ namespace osu.Android
         private int masterMixer;
         private bool devicesSilenced;
         private int sampleRate = 44100;
+        private int lastHardwareSampleRate = 44100;
 
         public OboeAudioRedirector(AudioManager audioManager)
         {
@@ -36,10 +39,13 @@ namespace osu.Android
 
         public void RefreshMixers(int hardwareSampleRate)
         {
-            Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {hardwareSampleRate}Hz");
+            if (hardwareSampleRate > 0)
+                lastHardwareSampleRate = hardwareSampleRate;
+
+            Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
             restoreDefaultAudio();
 
-            sampleRate = hardwareSampleRate > 0 ? hardwareSampleRate : 44100;
+            sampleRate = lastHardwareSampleRate;
             mixerHandles.Clear();
 
             addRootMixer(audioManager.TrackMixer);
@@ -59,15 +65,25 @@ namespace osu.Android
 
             if (mixerHandles.Count == 0)
             {
-                Console.WriteLine("[osu!] Oboe redirector: CRITICAL - No BASS mixers discovered.");
+                Console.WriteLine("[osu!] Oboe redirector: No BASS mixers discovered yet, deferring redirection.");
                 return;
             }
 
-            silenceDefaultAudio();
-            setupMasterMixer();
+            if (!silenceDefaultAudio())
+            {
+                Console.WriteLine("[osu!] Oboe redirector: Failed to silence default audio, aborting redirection.");
+                return;
+            }
+
+            if (!setupMasterMixer())
+            {
+                Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
+                restoreDefaultAudio();
+                return;
+            }
 
             ActiveMasterMixer = masterMixer;
-            Console.WriteLine($"[osu!] Oboe redirector initialized: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
+            Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
         }
 
         private IEnumerable<AudioMixer> getActiveMixers()
@@ -88,7 +104,7 @@ namespace osu.Android
             }
         }
 
-        private void setupMasterMixer()
+        private bool setupMasterMixer()
         {
             if (masterMixer != 0)
             {
@@ -96,7 +112,7 @@ namespace osu.Android
                 masterMixer = 0;
             }
 
-            if (!devicesSilenced) return;
+            if (!devicesSilenced) return false;
 
             // Ensure we are working with the correct device context.
             Bass.CurrentDevice = 0;
@@ -106,10 +122,12 @@ namespace osu.Android
             if (masterMixer == 0)
             {
                 Console.WriteLine($"[osu!] Failed to create BASS master mixer: {Bass.LastError}");
-                return;
+                return false;
             }
 
             Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0);
+
+            int successfullyAdded = 0;
 
             foreach (int handle in mixerHandles)
             {
@@ -121,31 +139,46 @@ namespace osu.Android
                     BassMix.MixerRemoveChannel(handle);
                 }
 
-                if (!Bass.ChannelSetDevice(handle, 0))
-                    Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
+                // If the channel was on another device, move it to the silent device (0).
+                if (Bass.ChannelGetDevice(handle) != 0)
+                {
+                    if (!Bass.ChannelSetDevice(handle, 0))
+                    {
+                        Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
+                        continue;
+                    }
+                }
 
-                if (!BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin))
+                if (BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin))
+                {
+                    successfullyAdded++;
+                }
+                else
                 {
                     Console.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
                 }
             }
+
+            return successfullyAdded > 0;
         }
 
-        private void silenceDefaultAudio()
+        private bool silenceDefaultAudio()
         {
             try
             {
                 if (!Bass.Init(0, sampleRate) && Bass.LastError != Errors.Already)
                 {
                     Console.WriteLine($"[osu!] Failed to initialize BASS No Sound device: {Bass.LastError}");
-                    return;
+                    return false;
                 }
 
                 devicesSilenced = true;
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine($"[osu!] Failed to silence default audio: {e.Message}");
+                return false;
             }
         }
 
@@ -161,19 +194,24 @@ namespace osu.Android
                     masterMixer = 0;
                 }
 
+                // Restore hijacked mixers to their original parents.
+                foreach (var kvp in originalParents)
+                {
+                    int handle = kvp.Key;
+                    int parent = kvp.Value;
+
+                    BassMix.MixerRemoveChannel(handle);
+                    Bass.ChannelSetDevice(handle, 1);
+                    BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
+                }
+
+                // Restore any other discovered mixers to the default device.
                 foreach (int handle in mixerHandles)
                 {
-                    BassMix.MixerRemoveChannel(handle);
+                    if (originalParents.ContainsKey(handle)) continue;
 
-                    if (originalParents.TryGetValue(handle, out int parent))
-                    {
-                        Bass.ChannelSetDevice(handle, 1);
-                        BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
-                    }
-                    else
-                    {
-                        Bass.ChannelSetDevice(handle, 1);
-                    }
+                    BassMix.MixerRemoveChannel(handle);
+                    Bass.ChannelSetDevice(handle, 1);
                 }
 
                 originalParents.Clear();

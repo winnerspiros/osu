@@ -145,6 +145,10 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
+            // Start Vulkan probe as early as possible so it's ready for RendererSettings.
+            if (vulkanProbeEnabled.Value)
+                startVulkanProbe();
+
             audioRedirector = new OboeAudioRedirector(Audio);
 
             try
@@ -245,28 +249,24 @@ namespace osu.Android
 
             lowLatencyAudio.BindValueChanged(e =>
             {
-                int hardwareSampleRate = 0;
-                try
+                if (e.NewValue)
                 {
-                    if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
+                    int hardwareSampleRate = 0;
+                    try
                     {
-                        string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
-
-                        if (!string.IsNullOrEmpty(rateStr))
-                            hardwareSampleRate = int.Parse(rateStr);
+                        if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
+                        {
+                            string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
+                            if (!string.IsNullOrEmpty(rateStr))
+                                hardwareSampleRate = int.Parse(rateStr);
+                        }
                     }
-                }
-                catch { }
+                    catch { }
 
-                try
-                {
-                    if (e.NewValue)
+                    try
                     {
-                        audioRedirector?.RefreshMixers(hardwareSampleRate);
-
                         startOboeBridge(latency =>
                         {
-                            // Only auto-suggest when the user hasn't already configured a manual offset.
                             if (Math.Abs(audioOffset.Value) >= 0.01)
                                 return;
 
@@ -275,16 +275,23 @@ namespace osu.Android
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                         }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                         {
-                            // Initialise BASS mixers at the hardware sample rate to eliminate resampling latency.
+                            // Only redirect audio once the Oboe stream has successfully started.
+                            // This prevents silence if the bridge fails to initialize.
                             audioRedirector?.RefreshMixers(sampleRate);
                         });
                     }
-                    else if (nativeBridges != null)
-                        stopOboeBridge();
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
+                        lowLatencyAudio.Value = false;
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Debug.WriteLine($"[osu!] Failed to toggle Oboe bridge: {ex.Message}");
+                    stopOboeBridge();
+                    audioRedirector?.Dispose();
+                    // Re-create the redirector instance so it's fresh if re-enabled.
+                    audioRedirector = new OboeAudioRedirector(Audio);
                 }
             }, true);
 
@@ -294,14 +301,14 @@ namespace osu.Android
                 {
                     if (e.NewValue)
                         startVulkanProbe();
-                    else if (nativeBridges != null)
+                    else
                         stopVulkanProbe();
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[osu!] Failed to toggle Vulkan probe: {ex.Message}");
                 }
-            }, true);
+            }, false); // Already started in load() if true.
 
             // Apply unbuffered touch dispatch.
             try
