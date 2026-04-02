@@ -338,9 +338,5 @@ namespace osu.Android.Native
         [DllImport(lib_name)]
         private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
-        [DllImport(lib_name)] internal static extern IntPtr nADPFCreateSession(long targetDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFReportActualDuration(IntPtr sessionPtr, long actualDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFUpdateTargetDuration(IntPtr sessionPtr, long targetDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFCloseSession(IntPtr sessionPtr);
     }
 }

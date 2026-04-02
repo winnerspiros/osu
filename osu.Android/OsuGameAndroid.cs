@@ -211,7 +211,7 @@ namespace osu.Android
             try
             {
                 // Target 1ms (1,000,000ns) for 1000 FPS target.
-                updateAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
+
 
                 Scheduler.Add(() =>
                 {
@@ -219,7 +219,7 @@ namespace osu.Android
                     {
                         try
                         {
-                            renderAdpfSession = OboeAudioBridge.nADPFCreateSession(1000000);
+
 
                             if (renderAdpfSession != IntPtr.Zero)
                                 Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
@@ -267,9 +267,6 @@ namespace osu.Android
                     {
                         startOboeBridge(latency =>
                         {
-                            if (Math.Abs(audioOffset.Value) >= 0.01)
-                                return;
-
                             double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                             audioOffset.Value = suggested;
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
@@ -403,6 +400,12 @@ namespace osu.Android
         public override bool IsVulkanRecommended => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
 
         public override bool IsVulkanSupported => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanAvailable() ?? false;
+
+        public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
+
+        public override string OboeStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? string.Empty;
+
+        public override double OboeLatency => (nativeBridges as AndroidNativeBridgeManager)?.GetMeasuredAudioLatencyMs() ?? -1;
 
         private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
 
@@ -567,12 +570,7 @@ namespace osu.Android
                 return;
             }
 
-            long startTime = Stopwatch.GetTimestamp();
             base.UpdateAfterChildren();
-            long elapsedTicks = Stopwatch.GetTimestamp() - startTime;
-            long elapsedNanos = (elapsedTicks * 1000000000) / Stopwatch.Frequency;
-
-            OboeAudioBridge.nADPFReportActualDuration(updateAdpfSession, elapsedNanos);
         }
 
     }

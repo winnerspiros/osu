@@ -130,13 +130,12 @@ void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
 }
 
 void VulkanProbe::queryMailboxSupport(VkPhysicalDevice device) {
-    // mailbox detection via display_timing hint
     uint32_t count = 0;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
     std::vector<VkExtensionProperties> exts(count);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
     for (const auto& ext : exts) {
-        if (strcmp(ext.extensionName, "VK_GOOGLE_display_timing") == 0) {
+        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
             deviceInfo_.supportsMailboxPresentMode = true;
             break;
         }

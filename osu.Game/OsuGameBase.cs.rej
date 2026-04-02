@@ -1,0 +1,15 @@
+--- OsuGameBase.cs
++++ OsuGameBase.cs
+@@ -122,6 +122,12 @@
+
+         public virtual bool IsVulkanSupported => false;
+
++        public virtual bool IsOboeActive => false;
++
++        public virtual string OboeStatus => string.Empty;
++
++        public virtual double OboeLatency => -1;
++
+         public virtual string Version
+         {
+             get
