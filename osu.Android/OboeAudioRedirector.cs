@@ -44,6 +44,8 @@ namespace osu.Android
 
             Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
             restoreDefaultAudio();
+            mixerHandles.Clear();
+            originalParents.Clear();
 
             sampleRate = lastHardwareSampleRate;
             mixerHandles.Clear();
@@ -79,6 +81,8 @@ namespace osu.Android
             {
                 Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
                 restoreDefaultAudio();
+            mixerHandles.Clear();
+            originalParents.Clear();
                 return;
             }
 
@@ -326,6 +330,8 @@ namespace osu.Android
         public void Dispose()
         {
             restoreDefaultAudio();
+            mixerHandles.Clear();
+            originalParents.Clear();
         }
     }
 }

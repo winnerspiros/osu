@@ -56,14 +56,14 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         private double lastDisplayRequiredTime;
 
-        [Resolved]
+        [Resolved(canBeNull: true)]
         private OsuColour colours { get; set; } = null!;
 
-        [Resolved]
-        protected OsuGame Game { get; private set; } = null!;
+        [Resolved(canBeNull: true)]
+        protected OsuGameBase? Game { get; private set; } = null!;
 
-        [Resolved]
-        private GameHost host { get; set; } = null!;
+        [Resolved(canBeNull: true)]
+        private GameHost? host { get; set; } = null!;
 
         public FPSCounter()
         {
@@ -240,12 +240,12 @@ namespace osu.Game.Graphics.UserInterface
             counterDrawFPS.Colour = getColour(displayedFpsCount / aimDrawFPS);
             string status = $"{displayedFpsCount:#,0} fps";
 
-            if (Game is OsuGame osu)
+            if (Game != null)
             {
-                status += $" | {host.ResolvedRenderer.ToString()}";
+                status += $" | {host?.ResolvedRenderer.ToString()}";
 
-                if (osu.IsOboeActive)
-                    status += $" | Oboe: {osu.OboeStatus} ({osu.OboeLatency:F1}ms)";
+                if (Game.IsOboeActive)
+                    status += $" | Oboe: {Game.OboeStatus} ({Game.OboeLatency:F1}ms)";
             }
 
             counterDrawFPS.Text = status;
