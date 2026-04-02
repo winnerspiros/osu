@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Debug = System.Diagnostics.Debug;
 
 namespace osu.Android.Native
 {
@@ -16,8 +17,28 @@ namespace osu.Android.Native
 
         static VulkanProbe()
         {
-            try { native_loaded = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _); }
-            catch { native_loaded = false; }
+            try
+            {
+                bool success = NativeLibrary.TryLoad(lib_name, typeof(VulkanProbe).Assembly, null, out _);
+
+                if (!success)
+                {
+                    Debug.WriteLine("[osu!] Primary native library load (safe path) failed for Vulkan, attempting standard load...");
+                    success = NativeLibrary.TryLoad(lib_name, out _);
+                }
+
+                native_loaded = success;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to load native library for Vulkan: {e.Message}");
+                native_loaded = false;
+            }
+
+            if (!native_loaded)
+                Debug.WriteLine("[osu!] Native library not found, Vulkan unavailable");
+            else
+                Debug.WriteLine("[osu!] Native library loaded successfully for Vulkan");
         }
 
         public static VulkanProbe? Create()

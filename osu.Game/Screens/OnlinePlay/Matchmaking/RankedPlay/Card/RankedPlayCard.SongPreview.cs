@@ -125,8 +125,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             protected override bool OnHover(HoverEvent e)
             {
-                if (previewTrack != null)
-                    previewTrack.Looping = true;
+                previewTrack?.Looping = true;
 
                 if (shouldBePlaying)
                 {
@@ -138,8 +137,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                if (previewTrack != null)
-                    previewTrack.Looping = false;
+                previewTrack?.Looping = false;
 
                 base.OnHoverLost(e);
             }

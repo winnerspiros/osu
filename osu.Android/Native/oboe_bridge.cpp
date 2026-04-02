@@ -55,17 +55,28 @@ bool OboeBridge::open(int32_t sampleRate) {
            ->setFormatConversionAllowed(false)
            ->setCallback(stabilizedCallback_.get());
 
+    LOGI("Oboe stream: attempting open in Exclusive mode with AAudio (sampleRate=%d)", sampleRate);
     oboe::Result result = builder.openStream(stream_);
 
     if (result != oboe::Result::OK) {
-        LOGE("AAudio open failed (%s), falling back to unspecified API",
+        LOGE("Failed to open Oboe stream in Exclusive mode (%s), falling back to Shared mode", oboe::convertToText(result));
+        builder.setSharingMode(oboe::SharingMode::Shared);
+        // If falling back to Shared, allow conversion to be more resilient
+        builder.setChannelConversionAllowed(true)
+               ->setFormatConversionAllowed(true)
+               ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium);
+        result = builder.openStream(stream_);
+    }
+
+    if (result != oboe::Result::OK) {
+        LOGE("Failed to open Oboe stream with AAudio API (%s), falling back to Unspecified API",
              oboe::convertToText(result));
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         result = builder.openStream(stream_);
     }
 
     if (result != oboe::Result::OK) {
-        LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
+        LOGE("Failed to open Oboe stream with any configuration: %s", oboe::convertToText(result));
         return false;
     }
 

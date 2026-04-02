@@ -120,8 +120,9 @@ namespace osu.Game.Online.Rooms
         /// This will create unique instances of the <see cref="RequiredMods"/> and <see cref="AllowedMods"/> arrays but NOT unique instances of the contained <see cref="APIMod"/>s.
         /// </remarks>
         public PlaylistItem(MultiplayerPlaylistItem item)
-            : this(new APIBeatmap { OnlineID = item.BeatmapID, StarRating = item.StarRating, Checksum = item.BeatmapChecksum })
+            : this(item == null ? new APIBeatmap() : new APIBeatmap { OnlineID = item.BeatmapID, StarRating = item.StarRating, Checksum = item.BeatmapChecksum })
         {
+            if (item == null) return;
             ID = item.ID;
             OwnerID = item.OwnerID;
             RulesetID = item.RulesetID;
