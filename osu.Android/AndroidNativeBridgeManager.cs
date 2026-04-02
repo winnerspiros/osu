@@ -54,16 +54,15 @@ namespace osu.Android
 
                         onStarted?.Invoke(bridge.SampleRate);
 
-                        scheduler.AddDelayed(() =>
+                        scheduler.Add(new ScheduledDelegate(() =>
                         {
                             if (oboeBridge is not OboeAudioBridge b) return;
 
                             double latency = b.GetOutputLatencyMs();
-                            Debug.WriteLine($"[osu!] Oboe measured latency after warm-up: {latency:F1}ms");
 
                             if (latency > 0)
                                 onLatencyMeasured(latency);
-                        }, 2000);
+                        }, 2000, 5000));
                     }
                     else
                     {
@@ -87,6 +86,16 @@ namespace osu.Android
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool SetThreadAffinity(int coreMask) => OboeAudioBridge.nSetThreadAffinity(coreMask) != 0;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool IsOboeActive() => (oboeBridge as OboeAudioBridge)?.IsActive ?? false;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public string GetOboeStatus()
+        {
+            if (oboeBridge is not OboeAudioBridge bridge) return string.Empty;
+            return $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
+        }
         public double GetMeasuredAudioLatencyMs()
         {
             return (oboeBridge as OboeAudioBridge)?.GetOutputLatencyMs() ?? -1;

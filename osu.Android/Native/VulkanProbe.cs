@@ -47,7 +47,7 @@ namespace osu.Android.Native
         public bool SupportsGlobalPriority => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsGlobalPriority(nativePtr) != 0;
         public bool SupportsMemoryBudget => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsMemoryBudget(nativePtr) != 0;
 
-        public bool IsRecommended => IsAvailable && MeetsVulkan13 && SupportsDynamicRendering && SupportsSynchronization2;
+        public bool IsRecommended => IsAvailable && MeetsVulkan13 && SupportsDynamicRendering && SupportsSynchronization2 && SupportsGraphicsPipelineLibrary && SupportsShaderObject;
 
         public void Dispose()
         {
