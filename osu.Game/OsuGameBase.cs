@@ -128,6 +128,8 @@ namespace osu.Game
 
         public virtual double OboeLatency => -1;
 
+        public virtual string VulkanStatus => string.Empty;
+
         public virtual string Version
         {
             get

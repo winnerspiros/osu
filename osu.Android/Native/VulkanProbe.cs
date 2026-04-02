@@ -67,6 +67,11 @@ namespace osu.Android.Native
         public bool SupportsShaderObject => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsShaderObject(nativePtr) != 0;
         public bool SupportsGlobalPriority => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsGlobalPriority(nativePtr) != 0;
         public bool SupportsMemoryBudget => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsMemoryBudget(nativePtr) != 0;
+        public bool SupportsSurfaceMaintenance1 => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsSurfaceMaintenance1(nativePtr) != 0;
+
+        public bool DisablePresentId => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentId(nativePtr) != 0;
+        public bool DisablePresentWait => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentWait(nativePtr) != 0;
+        public bool DisableGraphicsPipelineLibrary => !disposed && nativePtr != IntPtr.Zero && nVulkanDisableGraphicsPipelineLibrary(nativePtr) != 0;
 
         public bool IsRecommended => IsAvailable && MeetsVulkan13 && SupportsDynamicRendering && SupportsSynchronization2 && SupportsGraphicsPipelineLibrary && SupportsShaderObject;
 
@@ -99,5 +104,9 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nVulkanSupportsShaderObject(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsGlobalPriority(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsMemoryBudget(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanSupportsSurfaceMaintenance1(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanDisablePresentId(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanDisablePresentWait(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanDisableGraphicsPipelineLibrary(IntPtr ptr);
     }
 }

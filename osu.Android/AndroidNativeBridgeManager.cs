@@ -134,6 +134,13 @@ namespace osu.Android
 
         public bool IsVulkanAvailable() => (vulkanProbe as VulkanProbe)?.IsAvailable ?? (vulkanProbe != null);
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public string GetVulkanStatus()
+        {
+            if (vulkanProbe is not VulkanProbe probe) return string.Empty;
+            return $"{(probe.SupportsMailboxPresentMode ? "MAILBOX" : "FIFO")}{(probe.DisablePresentId ? " [NoID]" : "")}{(probe.DisablePresentWait ? " [NoWait]" : "")}{(probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "")}";
+        }
+
         public void StopVulkanProbe()
         {
             (vulkanProbe as VulkanProbe)?.Dispose();

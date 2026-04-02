@@ -36,6 +36,12 @@ public:
         bool supportsShaderObject = false;
         bool supportsGlobalPriority = false;
         bool supportsMemoryBudget = false;
+        bool supportsSurfaceMaintenance1 = false;
+
+        // Quirks / Blacklist flags
+        bool disablePresentId = false;
+        bool disablePresentWait = false;
+        bool disableGraphicsPipelineLibrary = false;
     };
 
     VulkanProbe();
