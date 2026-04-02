@@ -323,8 +323,10 @@ namespace osu.Android
                     gameActivity.Window?.SetSustainedPerformanceMode(enabled);
 
                     if (enabled)
+                    {
                         highPerformanceSession?.Dispose();
                         highPerformanceSession = highPerformanceSessionManager.BeginSession();
+                    }
                     else
                     {
                         highPerformanceSession?.Dispose();
