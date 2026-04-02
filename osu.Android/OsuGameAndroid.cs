@@ -517,7 +517,7 @@ namespace osu.Android
                 {
                     string status = mgr.GetVulkanStatus();
                     if (status.Contains("MAILBOX"))
-                        Environment.SetEnvironmentVariable("VULKAN_PRESENT_MODE", "MAILBOX");
+                        System.Environment.SetEnvironmentVariable("VULKAN_PRESENT_MODE", "MAILBOX");
 
                     var disabledExtensions = new System.Collections.Generic.List<string>();
                     if (status.Contains("NoID")) disabledExtensions.Add("VK_KHR_present_id");
@@ -525,9 +525,9 @@ namespace osu.Android
                     if (status.Contains("NoGPL")) disabledExtensions.Add("VK_EXT_graphics_pipeline_library");
 
                     if (disabledExtensions.Count > 0)
-                        Environment.SetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS", string.Join(",", disabledExtensions));
+                        System.Environment.SetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS", string.Join(",", disabledExtensions));
 
-                    Debug.WriteLine($"[osu!] Vulkan overrides applied: MODE={Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, DISABLE={Environment.GetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS")}");
+                    Debug.WriteLine($"[osu!] Vulkan overrides applied: MODE={System.Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, DISABLE={System.Environment.GetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS")}");
                 }
                 catch (Exception e) { Debug.WriteLine($"[osu!] Failed to set Vulkan overrides: {e.Message}"); }
             }
