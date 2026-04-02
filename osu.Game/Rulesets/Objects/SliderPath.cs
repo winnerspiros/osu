@@ -169,11 +169,7 @@ namespace osu.Game.Rulesets.Objects
 
             path.Clear();
 
-            int i = 0;
-
-            for (; i < calculatedPath.Count && cumulativeLength[i] < d0; ++i)
-            {
-            }
+            int i = indexOfDistance(d0);
 
             path.Add(interpolateVertices(i, d0));
 

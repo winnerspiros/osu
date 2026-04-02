@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Game.Configuration;
@@ -78,9 +79,18 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             if (hitLightingEnabled)
             {
-                // todo: this animation changes slightly based on new/old legacy skin versions.
-                Lighting.ScaleTo(0.8f).ScaleTo(1.2f, 600, Easing.Out);
-                Lighting.FadeIn(200).Then().Delay(200).FadeOut(1000);
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
+                {
+                    // Simplified animation for Android to reduce render load
+                    Lighting.ScaleTo(1.0f).ScaleTo(1.1f, 400, Easing.Out);
+                    Lighting.FadeIn(150).Then().Delay(100).FadeOut(600);
+                }
+                else
+                {
+                    // todo: this animation changes slightly based on new/old legacy skin versions.
+                    Lighting.ScaleTo(0.8f).ScaleTo(1.2f, 600, Easing.Out);
+                    Lighting.FadeIn(200).Then().Delay(200).FadeOut(1000);
+                }
 
                 // extend the lifetime to cover lighting fade
                 LifetimeEnd = Lighting.LatestTransformEndTime;

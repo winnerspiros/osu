@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework;
 #nullable disable
 
 using System;
@@ -394,7 +395,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (samples.Length <= 0)
                 return;
 
-            Samples.Samples = samples.Cast<ISampleInfo>().ToArray();
+            Samples.Samples = samples;
         }
 
         private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);
@@ -632,6 +633,9 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         protected override void Update()
         {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (Time.Current < LifetimeStart - 1000 || Time.Current > LifetimeEnd))
+                return;
+
             // We use a flag here to load samples only when they are required to be played.
             // Why in Update and not PlaySamples? Because some hit object implementations may expect LoadSamples to be called to load custom samples
             // (slider slide sound as an example).

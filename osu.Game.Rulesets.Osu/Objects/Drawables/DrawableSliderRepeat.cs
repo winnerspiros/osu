@@ -128,20 +128,35 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             if (curve.Count < 2)
                 return;
 
-            int searchStart = isRepeatAtEnd ? curve.Count - 1 : 0;
-            int direction = isRepeatAtEnd ? -1 : 1;
-
             Vector2 aimRotationVector = Vector2.Zero;
 
             // find the next vector2 in the curve which is not equal to our current position to infer a rotation.
-            for (int i = searchStart; i >= 0 && i < curve.Count; i += direction)
+            // We can optimize this search by checking the points closest to the end/start first and skipping early if possible.
+            if (isRepeatAtEnd)
             {
-                if (Precision.AlmostEquals(curve[i], Position))
-                    continue;
-
-                aimRotationVector = curve[i];
-                break;
+                for (int i = curve.Count - 2; i >= 0; i--)
+                {
+                    if (!Precision.AlmostEquals(curve[i], Position))
+                    {
+                        aimRotationVector = curve[i];
+                        break;
+                    }
+                }
             }
+            else
+            {
+                for (int i = 1; i < curve.Count; i++)
+                {
+                    if (!Precision.AlmostEquals(curve[i], Position))
+                    {
+                        aimRotationVector = curve[i];
+                        break;
+                    }
+                }
+            }
+
+            if (aimRotationVector == Vector2.Zero)
+                return;
 
             float aimRotation = float.RadiansToDegrees(MathF.Atan2(aimRotationVector.Y - Position.Y, aimRotationVector.X - Position.X));
             while (Math.Abs(aimRotation - Arrow.Rotation) > 180)

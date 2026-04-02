@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
@@ -19,6 +20,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
     /// </summary>
     public abstract partial class SnakingSliderBody : SliderBody, ISliderProgress
     {
+        private double lastUpdateTime;
         public readonly List<Vector2> CurrentCurve = new List<Vector2>();
 
         public readonly Bindable<bool> SnakingIn = new Bindable<bool>();
@@ -146,6 +148,23 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 (p0, p1) = (p1, p0);
 
             if (SnakedStart == p0 && SnakedEnd == p1) return;
+#if DEBUG
+            const bool is_debug = true;
+#else
+            const bool is_debug = false;
+#endif
+
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && !is_debug)
+            {
+                // Throttle updates on Android to save CPU/GPU cycles during snaking.
+                // We only update every 2nd frame if the progress delta is small.
+                if (lastUpdateTime > 0 && Clock.CurrentTime - lastUpdateTime < 16)
+                {
+                    double delta = Math.Max(Math.Abs(p0 - (SnakedStart ?? 0)), Math.Abs(p1 - (SnakedEnd ?? 0)));
+                    if (delta < 0.005) return;
+                }
+                lastUpdateTime = Clock.CurrentTime;
+            }
 
             SnakedStart = p0;
             SnakedEnd = p1;
