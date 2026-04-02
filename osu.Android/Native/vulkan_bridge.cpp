@@ -2,27 +2,27 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "vulkan_bridge.h"
-#include <android/log.h>
-#include <cstdint>
-#include <cstring>
-#include <set>
 #include <vector>
+#include <cstring>
+#include <android/log.h>
 
-#define LOG_TAG "osu!native"
+#define LOG_TAG "osu!native-vulkan"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 VulkanProbe::VulkanProbe() {
-    available_ = createInstance() && queryDevice();
+    if (createInstance()) {
+        available_ = queryDevice();
+    }
 
     if (!available_) {
         cleanup();
     }
 
     if (available_) {
-        LOGI("Vulkan available: %s (API %u.%u.%u, driver %u, VRAM %u MB, "
+        LOGI("Vulkan available: %s (Vendor: 0x%x, API %u.%u.%u, driver %u, VRAM %u MB, "
              "queues %u, mailbox=%d, vk1.3=%d, sync2=%d, presentWait=%d, gpl=%d, shaderObj=%d, priority=%d)",
              deviceInfo_.deviceName.c_str(),
+             deviceInfo_.vendorId,
              VK_VERSION_MAJOR(deviceInfo_.apiVersion),
              VK_VERSION_MINOR(deviceInfo_.apiVersion),
              VK_VERSION_PATCH(deviceInfo_.apiVersion),
@@ -155,6 +155,14 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
         if (strcmp(ext.extensionName, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) == 0) deviceInfo_.supportsShaderObject = true;
         if (strcmp(ext.extensionName, VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME) == 0 || strcmp(ext.extensionName, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME) == 0) deviceInfo_.supportsGlobalPriority = true;
         if (strcmp(ext.extensionName, VK_EXT_MEMORY_BUDGET_EXTENSION_NAME) == 0) deviceInfo_.supportsMemoryBudget = true;
+    }
+
+    // Adreno 740 (S23 Ultra) known flickering issues with present_id/wait extensions.
+    // Adreno vendor ID is 0x5143 (Qualcomm).
+    if (deviceInfo_.vendorId == 0x5143 && (deviceInfo_.deviceName.find("740") != std::string::npos || deviceInfo_.deviceName.find("Adreno") != std::string::npos)) {
+        LOGI("Adreno GPU detected: disabling present_id and present_wait to prevent flickering/glitching");
+        deviceInfo_.supportsPresentId = false;
+        deviceInfo_.supportsPresentWait = false;
     }
 }
 

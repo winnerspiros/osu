@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Debug = System.Diagnostics.Debug;
 
@@ -10,8 +11,6 @@ namespace osu.Android.Native
     /// <summary>
     /// Managed wrapper around the native Oboe low-latency audio bridge.
     /// Provides accurate audio output latency measurement for rhythm-game synchronisation.
-    /// Optimised for lowest possible latency: AAudio preferred, exclusive mode, 2x burst buffer,
-    /// and [UnmanagedCallersOnly] provider for zero-overhead callback delivery.
     /// </summary>
     public sealed class OboeAudioBridge : IDisposable
     {
@@ -26,317 +25,154 @@ namespace osu.Android.Native
         {
             try
             {
-                // Use null to avoid searching system paths
-                // which can crash on some Samsung devices with aggressive security policies.
-                native_loaded = NativeLibrary.TryLoad(
-                    lib_name,
-                    typeof(OboeAudioBridge).Assembly,
-                    null,
-                    out _);
+                // Try safe load (null search path) first to avoid Samsung security crashes
+                bool success = NativeLibrary.TryLoad(lib_name, typeof(OboeAudioBridge).Assembly, null, out _);
+
+                if (!success)
+                {
+                    Debug.WriteLine("[osu!] Primary native library load (safe path) failed, attempting standard load...");
+                    // Fallback to standard library loading which might search more paths but is riskier on some devices
+                    success = NativeLibrary.TryLoad(lib_name, out _);
+                }
+
+                native_loaded = success;
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to probe native library for Oboe: {e.Message}");
+                Debug.WriteLine($"[osu!] Failed to load native library for Oboe: {e.Message}");
                 native_loaded = false;
             }
 
             if (!native_loaded)
                 Debug.WriteLine("[osu!] Native library not found, Oboe unavailable");
+            else
+                Debug.WriteLine("[osu!] Native library loaded successfully for Oboe");
         }
 
-        /// <summary>
-        /// Creates and opens a new low-latency Oboe audio stream.
-        /// Returns null if native library or stream creation fails.
-        /// </summary>
         public static OboeAudioBridge? Create(int sampleRate = 0)
         {
-            if (!native_loaded)
-                return null;
-
-            try
-            {
-                IntPtr ptr = nOboeCreate(sampleRate);
-
-                if (ptr == IntPtr.Zero)
-                {
-                    Debug.WriteLine("[osu!] Oboe stream creation failed (native returned null)");
-                    return null;
-                }
-
-                return new OboeAudioBridge(ptr);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Oboe creation failed: {e.Message}");
-                return null;
-            }
+            if (!native_loaded) return null;
+            try { IntPtr ptr = nOboeCreate(sampleRate); return ptr == IntPtr.Zero ? null : new OboeAudioBridge(ptr); }
+            catch { return null; }
         }
 
-        private OboeAudioBridge(IntPtr ptr)
-        {
-            nativePtr = ptr;
-        }
+        private OboeAudioBridge(IntPtr ptr) => nativePtr = ptr;
 
-        /// <summary>
-        /// Starts the audio output stream.
-        /// </summary>
-        /// <returns>True if the stream started successfully.</returns>
         public bool Start()
         {
             if (disposed || nativePtr == IntPtr.Zero) return false;
-
-            try
-            {
-                return nOboeStart(nativePtr) != 0;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Oboe start failed: {e.Message}");
-                return false;
-            }
+            try { return nOboeStart(nativePtr) != 0; }
+            catch { return false; }
         }
 
-        /// <summary>
-        /// Stops the audio output stream.
-        /// </summary>
         public void Stop()
         {
             if (disposed || nativePtr == IntPtr.Zero) return;
-
-            try
-            {
-                nOboeStop(nativePtr);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Oboe stop failed: {e.Message}");
-            }
+            try { nOboeStop(nativePtr); }
+            catch { }
         }
 
-        /// <summary>
-        /// Returns the measured audio output latency in milliseconds, or -1 if unavailable.
-        /// This can be used to automatically calibrate audio offset for gameplay.
-        /// </summary>
         public double GetOutputLatencyMs()
         {
             if (disposed || nativePtr == IntPtr.Zero) return -1;
-
-            try
-            {
-                return nOboeGetLatencyMs(nativePtr);
-            }
-            catch
-            {
-                return -1;
-            }
+            try { return nOboeGetLatencyMs(nativePtr); }
+            catch { return -1; }
         }
 
-        /// <summary>
-        /// Returns true if the Oboe stream is currently running.
-        /// </summary>
         public bool IsActive
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
-
-                try
-                {
-                    return nOboeIsActive(nativePtr) != 0;
-                }
-                catch
-                {
-                    return false;
-                }
+                try { return nOboeIsActive(nativePtr) != 0; }
+                catch { return false; }
             }
         }
 
-        /// <summary>
-        /// The negotiated sample rate of the stream (e.g. 48000).
-        /// </summary>
         public int SampleRate
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return 0;
-
-                try
-                {
-                    return nOboeGetSampleRate(nativePtr);
-                }
-                catch
-                {
-                    return 0;
-                }
+                try { return nOboeGetSampleRate(nativePtr); }
+                catch { return 0; }
             }
         }
 
-        /// <summary>
-        /// The burst size in frames - the optimal callback quantum.
-        /// Lower burst = lower latency. Typical Android values: 96-192 frames.
-        /// </summary>
         public int FramesPerBurst
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return 0;
-
-                try
-                {
-                    return nOboeGetFramesPerBurst(nativePtr);
-                }
-                catch
-                {
-                    return 0;
-                }
+                try { return nOboeGetFramesPerBurst(nativePtr); }
+                catch { return 0; }
             }
         }
 
-        /// <summary>
-        /// The actual buffer size in frames. When optimised, this equals 2x <see cref="FramesPerBurst"/>
-        /// for maximum stability.
-        /// </summary>
         public int BufferSizeInFrames
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return 0;
-
-                try
-                {
-                    return nOboeGetBufferSizeInFrames(nativePtr);
-                }
-                catch
-                {
-                    return 0;
-                }
+                try { return nOboeGetBufferSizeInFrames(nativePtr); }
+                catch { return 0; }
             }
         }
 
-        /// <summary>
-        /// Whether the stream is using AAudio (true) or OpenSL ES (false).
-        /// AAudio provides the lowest latency path on Android 8.1+.
-        /// </summary>
         public bool IsAAudio
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
-
-                try
-                {
-                    return nOboeIsAAudio(nativePtr) != 0;
-                }
-                catch
-                {
-                    return false;
-                }
+                try { return nOboeIsAAudio(nativePtr) != 0; }
+                catch { return false; }
             }
         }
 
-        /// <summary>
-        /// Whether the stream is using the hardware MMAP path (lowest possible latency).
-        /// MMAP provides direct memory-mapped access to audio hardware buffers,
-        /// bypassing the normal kernel copy path.
-        /// </summary>
         public bool IsMMap
         {
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
-
-                try
-                {
-                    return nOboeIsMMap(nativePtr) != 0;
-                }
-                catch
-                {
-                    return false;
-                }
+                try { return nOboeIsMMap(nativePtr) != 0; }
+                catch { return false; }
             }
         }
 
-        /// <summary>
-        /// Sets the provider function that will be called to fill the audio buffer.
-        /// The provider should be a function pointer obtained from a static method with [UnmanagedCallersOnly].
-        /// </summary>
         public void SetProvider(IntPtr provider)
         {
             if (disposed || nativePtr == IntPtr.Zero) return;
-
-            try
-            {
-                nOboeSetProvider(nativePtr, provider);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Oboe set provider failed: {e.Message}");
-            }
+            try { nOboeSetProvider(nativePtr, provider); }
+            catch { }
         }
 
         public void Dispose()
         {
             if (disposed) return;
-
             disposed = true;
-
             if (nativePtr != IntPtr.Zero)
             {
-                try
-                {
-                    nOboeDestroy(nativePtr);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Oboe dispose failed: {e.Message}");
-                }
-
+                try { nOboeDestroy(nativePtr); }
+                catch { }
                 nativePtr = IntPtr.Zero;
             }
-
             GC.SuppressFinalize(this);
         }
 
-        ~OboeAudioBridge()
-        {
-            Dispose();
-        }
+        ~OboeAudioBridge() => Dispose();
 
-        [DllImport(lib_name)]
-        private static extern IntPtr nOboeCreate(int sampleRate);
-
-        [DllImport(lib_name)]
-        private static extern void nOboeDestroy(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern byte nOboeStart(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern void nOboeStop(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern double nOboeGetLatencyMs(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern byte nOboeIsActive(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern int nOboeGetSampleRate(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern int nOboeGetFramesPerBurst(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern int nOboeGetBufferSizeInFrames(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern byte nOboeIsAAudio(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern byte nOboeIsMMap(IntPtr ptr);
-
-        [DllImport(lib_name)]
-        private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
+        [DllImport(lib_name)] private static extern IntPtr nOboeCreate(int sampleRate);
+        [DllImport(lib_name)] private static extern void nOboeDestroy(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nOboeStart(IntPtr ptr);
+        [DllImport(lib_name)] private static extern void nOboeStop(IntPtr ptr);
+        [DllImport(lib_name)] private static extern double nOboeGetLatencyMs(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nOboeIsActive(IntPtr ptr);
+        [DllImport(lib_name)] private static extern int nOboeGetSampleRate(IntPtr ptr);
+        [DllImport(lib_name)] private static extern int nOboeGetFramesPerBurst(IntPtr ptr);
+        [DllImport(lib_name)] private static extern int nOboeGetBufferSizeInFrames(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nOboeIsAAudio(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nOboeIsMMap(IntPtr ptr);
+        [DllImport(lib_name)] private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
     }
 }
