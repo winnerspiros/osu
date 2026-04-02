@@ -84,6 +84,7 @@ namespace osu.Android
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
 
         private OboeAudioRedirector? audioRedirector;
+        private IDisposable? highPerformanceSession;
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
 
@@ -208,27 +209,13 @@ namespace osu.Android
 
             try
             {
-                // Target 1ms (1,000,000ns) for 1000 FPS target.
-
-
-                Scheduler.Add(() =>
-                {
-                    Host.DrawThread.Scheduler.Add(() =>
-                    {
-                        try
-                        {
-
-
-                                Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
-                        }
-                        catch { }
-                    });
-                });
-
-                    Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Update thread");
+                applyPerformanceOptimizations(performanceMode.Value);
+                Debug.WriteLine("[osu!] Performance optimizations applied in LoadComplete");
             }
-            catch { }
-
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
+            }
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
             performanceMode.BindValueChanged(e =>
@@ -334,6 +321,15 @@ namespace osu.Android
                 try
                 {
                     gameActivity.Window?.SetSustainedPerformanceMode(enabled);
+
+                    if (enabled)
+                        highPerformanceSession?.Dispose();
+                        highPerformanceSession = highPerformanceSessionManager.BeginSession();
+                    else
+                    {
+                        highPerformanceSession?.Dispose();
+                        highPerformanceSession = null;
+                    }
 
                     if (enabled)
                         selectHighestRefreshRate();
@@ -542,6 +538,8 @@ namespace osu.Android
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
+                highPerformanceSession?.Dispose();
+                highPerformanceSession = null;
             }
         }
 
