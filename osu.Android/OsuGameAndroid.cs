@@ -178,7 +178,7 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void LoadComplete()
         {
-            // Pin the current thread (Update thread) to high-performance cores.
+                        // Pin the current thread (Update thread) to high-performance cores.
             // On S23 Ultra, cores 3-7 are high-performance. Mask = 0xF8 (11111000 in binary)
             try
             {
@@ -396,6 +396,10 @@ namespace osu.Android
 
         public override bool IsVulkanSupported => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanAvailable() ?? false;
 
+        public override string VulkanStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetVulkanStatus() ?? string.Empty;
+
+
+
         public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
 
         public override string OboeStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? string.Empty;
@@ -506,6 +510,28 @@ namespace osu.Android
 
         public override void SetHost(GameHost host)
         {
+            // Apply Vulkan environment overrides before the graphics device is initialized.
+            if (nativeBridges is AndroidNativeBridgeManager mgr && mgr.IsVulkanAvailable())
+            {
+                try
+                {
+                    string status = mgr.GetVulkanStatus();
+                    if (status.Contains("MAILBOX"))
+                        Environment.SetEnvironmentVariable("VULKAN_PRESENT_MODE", "MAILBOX");
+
+                    var disabledExtensions = new System.Collections.Generic.List<string>();
+                    if (status.Contains("NoID")) disabledExtensions.Add("VK_KHR_present_id");
+                    if (status.Contains("NoWait")) disabledExtensions.Add("VK_KHR_present_wait");
+                    if (status.Contains("NoGPL")) disabledExtensions.Add("VK_EXT_graphics_pipeline_library");
+
+                    if (disabledExtensions.Count > 0)
+                        Environment.SetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS", string.Join(",", disabledExtensions));
+
+                    Debug.WriteLine($"[osu!] Vulkan overrides applied: MODE={Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, DISABLE={Environment.GetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS")}");
+                }
+                catch (Exception e) { Debug.WriteLine($"[osu!] Failed to set Vulkan overrides: {e.Message}"); }
+            }
+
             base.SetHost(host);
 
             if (host.Window != null)

@@ -244,6 +244,9 @@ namespace osu.Game.Graphics.UserInterface
             {
                 status += $" | {host?.ResolvedRenderer.ToString()}";
 
+                if (!string.IsNullOrEmpty(Game.VulkanStatus))
+                    status += $" | {Game.VulkanStatus}";
+
                 if (Game.IsOboeActive)
                     status += $" | Oboe: {Game.OboeStatus} ({Game.OboeLatency:F1}ms)";
             }
