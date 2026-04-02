@@ -54,7 +54,7 @@ namespace osu.Android
 
                         onStarted?.Invoke(bridge.SampleRate);
 
-                        scheduler.Add(new ScheduledCallback(() =>
+                        scheduler.Add(new ScheduledDelegate(() =>
                         {
                             if (oboeBridge is not OboeAudioBridge b) return;
 

@@ -86,8 +86,6 @@ namespace osu.Android
         private OboeAudioRedirector? audioRedirector;
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
-        private IntPtr updateAdpfSession;
-        private IntPtr renderAdpfSession;
 
         /// <summary>
         /// Boxed reference to the native bridge manager.
@@ -221,14 +219,12 @@ namespace osu.Android
                         {
 
 
-                            if (renderAdpfSession != IntPtr.Zero)
                                 Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Render thread");
                         }
                         catch { }
                     });
                 });
 
-                if (updateAdpfSession != IntPtr.Zero)
                     Debug.WriteLine("[osu!] ADPF Performance Hint Session created for Update thread");
             }
             catch { }
@@ -546,32 +542,11 @@ namespace osu.Android
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
-
-                if (updateAdpfSession != IntPtr.Zero)
-                {
-                    OboeAudioBridge.nADPFCloseSession(updateAdpfSession);
-                    updateAdpfSession = IntPtr.Zero;
-                }
-
-                if (renderAdpfSession != IntPtr.Zero)
-                {
-                    OboeAudioBridge.nADPFCloseSession(renderAdpfSession);
-                    renderAdpfSession = IntPtr.Zero;
-                }
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        protected override void UpdateAfterChildren()
-        {
-            if (updateAdpfSession == IntPtr.Zero)
-            {
-                base.UpdateAfterChildren();
-                return;
-            }
-
-            base.UpdateAfterChildren();
-        }
+        protected override void UpdateAfterChildren() => base.UpdateAfterChildren();
 
     }
 
