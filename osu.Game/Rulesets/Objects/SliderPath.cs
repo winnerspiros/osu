@@ -1,16 +1,19 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
+using System;
+
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Utils;
+
 using osu.Game.Rulesets.Objects.Types;
+
+using Newtonsoft.Json;
 using osuTK;
 
 namespace osu.Game.Rulesets.Objects
@@ -169,11 +172,7 @@ namespace osu.Game.Rulesets.Objects
 
             path.Clear();
 
-            int i = 0;
-
-            for (; i < calculatedPath.Count && cumulativeLength[i] < d0; ++i)
-            {
-            }
+            int i = indexOfDistance(d0);
 
             path.Add(interpolateVertices(i, d0));
 

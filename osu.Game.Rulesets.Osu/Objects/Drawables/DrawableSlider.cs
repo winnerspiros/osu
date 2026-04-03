@@ -3,24 +3,26 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
+using System;
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics;
 using osu.Framework.Layout;
-using osu.Game.Audio;
+
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Judgements;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
+using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Skinning;
+
+using JetBrains.Annotations;
 using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
@@ -164,8 +166,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             // Note: base.LoadSamples() isn't called since the slider plays the tail's hitsounds for the time being.
 
-            Samples.Samples = HitObject.TailSamples.Cast<ISampleInfo>().ToArray();
-            slidingSample.Samples = HitObject.CreateSlidingSamples().Cast<ISampleInfo>().ToArray();
+            Samples.Samples = HitObject.TailSamples.ToArray();
+            slidingSample.Samples = HitObject.CreateSlidingSamples().ToArray();
         }
 
         public override void StopAllSamples()
@@ -301,7 +303,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 ApplyResult(static (r, hitObject) =>
                 {
                     int totalTicks = hitObject.NestedHitObjects.Count;
-                    int hitTicks = hitObject.NestedHitObjects.Count(h => h.IsHit);
+                    int hitTicks = 0;
+
+                    for (int i = 0; i < totalTicks; i++)
+                    {
+                        if (hitObject.NestedHitObjects[i].IsHit)
+                            hitTicks++;
+                    }
 
                     if (hitTicks == totalTicks)
                         r.Type = HitResult.Great;
@@ -320,7 +328,18 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 // But the slider needs to still be judged with a reasonable hit/miss result for visual purposes (hit/miss transforms, etc).
                 ApplyResult(static (r, hitObject) =>
                 {
-                    r.Type = hitObject.NestedHitObjects.Any(h => h.Result.IsHit) ? r.Judgement.MaxResult : r.Judgement.MinResult;
+                    bool anyHit = false;
+
+                    for (int i = 0; i < hitObject.NestedHitObjects.Count; i++)
+                    {
+                        if (hitObject.NestedHitObjects[i].Result.IsHit)
+                        {
+                            anyHit = true;
+                            break;
+                        }
+                    }
+
+                    r.Type = anyHit ? r.Judgement.MaxResult : r.Judgement.MinResult;
                 });
             }
         }
