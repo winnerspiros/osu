@@ -72,9 +72,11 @@ namespace osu.Android.Input
 
         private void handlePointer(MotionEvent e, int historyIndex)
         {
-            float x = historyIndex < 0 ? e.GetX() : e.GetHistoricalX(historyIndex);
-            float y = historyIndex < 0 ? e.GetY() : e.GetHistoricalY(historyIndex);
-            float pressure = historyIndex < 0 ? e.GetPressure() : e.GetHistoricalPressure(historyIndex);
+            const int pointer_index = 0;
+
+            float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
+            float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
+            float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
             // Dynamically update tablet bounds.
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
