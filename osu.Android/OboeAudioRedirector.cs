@@ -4,19 +4,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
-using osu.Framework.Bindables;
 
 namespace osu.Android
 {
+    /// <summary>
+    /// Redirects audio from BASS mixers into an unmanaged callback (Oboe).
+    /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
         public bool IsRedirecting => ActiveMasterMixer != 0;
@@ -44,7 +45,6 @@ namespace osu.Android
 
             Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
 
-            // Clean up previous state but keep the silencing if we are already silenced.
             ActiveMasterMixer = 0;
             if (masterMixer != 0)
             {
@@ -98,7 +98,6 @@ namespace osu.Android
 
         private IEnumerable<AudioMixer> getActiveMixers()
         {
-            // Exhaustive search for the activeMixers list in AudioManager.
             Type type = typeof(AudioManager);
 
             while (type != null && type != typeof(object))
@@ -133,7 +132,6 @@ namespace osu.Android
 
             if (!devicesSilenced) return false;
 
-            // Ensure we are working with the correct device context.
             Bass.CurrentDevice = 0;
 
             masterMixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop);
@@ -144,7 +142,6 @@ namespace osu.Android
                 return false;
             }
 
-            // Disable BASS-internal buffering for the lowest possible latency.
             Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0);
 
             int successfullyAdded = 0;
@@ -159,13 +156,11 @@ namespace osu.Android
                     BassMix.MixerRemoveChannel(handle);
                 }
 
-                // If the channel was on another device, move it to the silent device (0).
                 if (Bass.ChannelGetDevice(handle) != 0)
                 {
                     if (!Bass.ChannelSetDevice(handle, 0))
                     {
                         Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
-                        // Try to proceed anyway, as some devices might behave strangely with device 0.
                     }
                 }
 
@@ -178,6 +173,9 @@ namespace osu.Android
                     Console.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
                 }
             }
+
+            // Restore current device to 1 after setup to avoid affecting other audio operations
+            Bass.CurrentDevice = 1;
 
             return successfullyAdded > 0;
         }
@@ -230,7 +228,6 @@ namespace osu.Android
 
                 restoreToParents();
 
-                // Restore any other discovered mixers to the default device.
                 foreach (int handle in mixerHandles)
                 {
                     if (originalParents.ContainsKey(handle)) continue;
@@ -281,14 +278,12 @@ namespace osu.Android
 
             while (type != null && type != typeof(object))
             {
-                // Broad search for anything that looks like a BASS handle.
-                // We check int, long, and IntPtr as different wrappers use different types.
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     if (isHandleType(field.FieldType))
                     {
                         string name = field.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
                         {
                             int h = convertToHandle(field.GetValue(obj));
                             if (h != 0) return h;
@@ -301,10 +296,22 @@ namespace osu.Android
                     if (isHandleType(prop.PropertyType))
                     {
                         string name = prop.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
                         {
                             int h = convertToHandle(prop.GetValue(obj));
                             if (h != 0) return h;
+                        }
+                    }
+                }
+
+                if (type.Name.Contains("Mixer") || type.Name.Contains("Channel") || type.Name.Contains("Stream"))
+                {
+                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                    {
+                        if (field.FieldType == typeof(int))
+                        {
+                            int h = (int)field.GetValue(obj)!;
+                            if (h > 0 && h < 1000000) return h;
                         }
                     }
                 }
@@ -326,7 +333,7 @@ namespace osu.Android
             return 0;
         }
 
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        [UnmanagedCallersOnly(EntryPoint = "provideAudio", CallConvs = new[] { typeof(CallConvCdecl) })]
         private static int provideAudio(IntPtr audioData, int numFrames)
         {
             int mixer = ActiveMasterMixer;

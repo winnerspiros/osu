@@ -123,7 +123,7 @@ namespace osu.Game
         public virtual bool IsVulkanSupported => false;
 
         public virtual bool IsOboeActive => false;
-
+        public virtual bool IsOboeEnabled => false;
         public virtual string OboeStatus => string.Empty;
 
         public virtual double OboeLatency => -1;
