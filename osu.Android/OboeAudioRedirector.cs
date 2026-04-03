@@ -174,6 +174,9 @@ namespace osu.Android
                 }
             }
 
+            // Restore current device to 1 after setup to avoid affecting other audio operations
+            Bass.CurrentDevice = 1;
+
             return successfullyAdded > 0;
         }
 
