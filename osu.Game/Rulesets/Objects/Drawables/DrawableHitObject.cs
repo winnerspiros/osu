@@ -477,11 +477,11 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             AnimationStartTime.Value = initialTransformsTime;
 
-                UpdateInitialTransforms();
+            UpdateInitialTransforms();
 
-                UpdateStartTimeStateTransforms();
+            UpdateStartTimeStateTransforms();
 
-                UpdateHitStateTransforms(newState);
+            UpdateHitStateTransforms(newState);
 
             state.Value = newState;
 
