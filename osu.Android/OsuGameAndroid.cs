@@ -27,9 +27,12 @@ using osu.Game.Screens;
 using osu.Game.Screens.Play;
 using osuTK;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixer;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Threading;
 using osu.Android.Performance;
+using osu.Game.Utils;
+using osu.Game.Updater;
+using osu.Game.Performance;
 
 namespace osu.Android
 {
@@ -81,15 +84,6 @@ namespace osu.Android
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
 
-        /// <summary>
-        /// Boxed reference to the native bridge manager.
-        /// Declared as <c>object?</c> so that the runtime never resolves the concrete
-        /// AndroidNativeBridgeManager type (and its P/Invoke field types) during
-        /// OsuGameAndroid class initialisation — which would trigger
-        /// NativeLibrary.TryLoad before the framework is ready and crash on some
-        /// Samsung devices.
-        /// All access goes through [NoInlining] helpers below.
-        /// </summary>
         private object? nativeBridges;
 
         public OsuGameAndroid(OsuGameActivity activity)
@@ -167,8 +161,6 @@ namespace osu.Android
 
         protected override void LoadComplete()
         {
-            // Pin the current thread (Update thread) to high-performance cores.
-            // On S23 Ultra, cores 3-7 are high-performance. Mask = 0xF8 (11111000 in binary)
             try
             {
                 if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
@@ -176,7 +168,6 @@ namespace osu.Android
 
                 Scheduler.Add(() =>
                 {
-                    // Dispatch to the draw thread to pin it.
                     Host.DrawThread.Scheduler.Add(() =>
                     {
                         try { if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0) Debug.WriteLine("[osu!] Render thread pinned to big cores"); } catch { }
@@ -244,8 +235,6 @@ namespace osu.Android
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                         }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                         {
-                            // Only redirect audio once the Oboe stream has successfully started.
-                            // This prevents silence if the bridge fails to initialize.
                             audioRedirector?.RefreshMixers(sampleRate > 0 ? sampleRate : hardwareSampleRate);
                             Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
                         });
@@ -260,7 +249,6 @@ namespace osu.Android
                 {
                     stopOboeBridge();
                     audioRedirector?.Dispose();
-                    // Re-create the redirector instance so it's fresh if re-enabled.
                     audioRedirector = new OboeAudioRedirector(Audio);
                 }
             }, true);
@@ -278,9 +266,8 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to toggle Vulkan probe: {ex.Message}");
                 }
-            }, false); // Already started in load() if true.
+            }, false);
 
-            // Apply unbuffered touch dispatch.
             try
             {
                 if (OperatingSystem.IsAndroidVersionAtLeast(31))
@@ -387,8 +374,8 @@ namespace osu.Android
         public override string VulkanStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetVulkanStatus() ?? string.Empty;
 
         public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
-        public override bool IsOboeEnabled => lowLatencyAudio.Value;
 
+        public override bool IsOboeEnabled => lowLatencyAudio.Value;
 
         public override string OboeStatus
         {

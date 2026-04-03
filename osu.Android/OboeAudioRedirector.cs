@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixer;
+using osu.Framework.Audio.Mixing;
 
 namespace osu.Android
 {
@@ -19,9 +20,6 @@ namespace osu.Android
     /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
-        /// <summary>
-        /// Gets a value indicating whether the redirector is currently outputting audio to the master mixer.
-        /// </summary>
         public bool IsRedirecting => ActiveMasterMixer != 0;
 
         private readonly AudioManager audioManager;
@@ -47,7 +45,6 @@ namespace osu.Android
 
             Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
 
-            // Clean up previous state but keep the silencing if we are already silenced.
             ActiveMasterMixer = 0;
             if (masterMixer != 0)
             {
@@ -61,17 +58,14 @@ namespace osu.Android
 
             sampleRate = lastHardwareSampleRate;
 
-            // Attempt to capture the framework's main mixers.
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
 
-            // Capture any other active mixers discovered in AudioManager.
             foreach (var mixer in getActiveMixers())
                 addRootMixer(mixer);
 
             if (mixerHandles.Count == 0)
             {
-                // Fallback: search for child mixers if roots couldn't be found via recursion.
                 addMixer(audioManager.TrackMixer);
                 addMixer(audioManager.SampleMixer);
 
@@ -104,7 +98,6 @@ namespace osu.Android
 
         private IEnumerable<AudioMixer> getActiveMixers()
         {
-            // Exhaustive search for the activeMixers list in AudioManager.
             Type type = typeof(AudioManager);
 
             while (type != null && type != typeof(object))
@@ -139,7 +132,6 @@ namespace osu.Android
 
             if (!devicesSilenced) return false;
 
-            // Ensure we are working with the correct device context.
             Bass.CurrentDevice = 0;
 
             masterMixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop);
@@ -150,7 +142,6 @@ namespace osu.Android
                 return false;
             }
 
-            // Disable BASS-internal buffering for the lowest possible latency.
             Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0);
 
             int successfullyAdded = 0;
@@ -165,7 +156,6 @@ namespace osu.Android
                     BassMix.MixerRemoveChannel(handle);
                 }
 
-                // If the channel was on another device, move it to the silent device (0).
                 if (Bass.ChannelGetDevice(handle) != 0)
                 {
                     if (!Bass.ChannelSetDevice(handle, 0))
@@ -235,7 +225,6 @@ namespace osu.Android
 
                 restoreToParents();
 
-                // Restore any other discovered mixers to the default device.
                 foreach (int handle in mixerHandles)
                 {
                     if (originalParents.ContainsKey(handle)) continue;
@@ -286,7 +275,6 @@ namespace osu.Android
 
             while (type != null && type != typeof(object))
             {
-                // Broad search for anything that looks like a BASS handle.
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     if (isHandleType(field.FieldType))
@@ -313,7 +301,6 @@ namespace osu.Android
                     }
                 }
 
-                // If no named match found, try returning any non-zero integer if the type is likely a wrapper.
                 if (type.Name.Contains("Mixer") || type.Name.Contains("Channel") || type.Name.Contains("Stream"))
                 {
                     foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
@@ -343,7 +330,7 @@ namespace osu.Android
             return 0;
         }
 
-        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        [UnmanagedCallersOnly(EntryPoint = "provideAudio", CallConvs = new[] { typeof(CallConvCdecl) })]
         private static int provideAudio(IntPtr audioData, int numFrames)
         {
             int mixer = ActiveMasterMixer;
