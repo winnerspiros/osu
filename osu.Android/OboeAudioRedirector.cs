@@ -43,12 +43,20 @@ namespace osu.Android
                 lastHardwareSampleRate = hardwareSampleRate;
 
             Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
-            restoreDefaultAudio();
+
+            // Clean up previous state but keep the silencing if we are already silenced.
+            ActiveMasterMixer = 0;
+            if (masterMixer != 0)
+            {
+                Bass.StreamFree(masterMixer);
+                masterMixer = 0;
+            }
+
+            restoreToParents();
             mixerHandles.Clear();
             originalParents.Clear();
 
             sampleRate = lastHardwareSampleRate;
-            mixerHandles.Clear();
 
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
@@ -81,8 +89,6 @@ namespace osu.Android
             {
                 Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
                 restoreDefaultAudio();
-            mixerHandles.Clear();
-            originalParents.Clear();
                 return;
             }
 
@@ -92,19 +98,28 @@ namespace osu.Android
 
         private IEnumerable<AudioMixer> getActiveMixers()
         {
-            // Use reflection to access the internal activeMixers list in AudioManager.
-            // In the official framework, it is an internal BindableList<AudioMixer> activeMixers.
-            FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (field == null) yield break;
+            // Exhaustive search for the activeMixers list in AudioManager.
+            Type type = typeof(AudioManager);
 
-            object? val = field.GetValue(audioManager);
-            if (val is IEnumerable enumerable)
+            while (type != null && type != typeof(object))
             {
-                foreach (var item in enumerable)
+                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
-                    if (item is AudioMixer mixer)
-                        yield return mixer;
+                    if (field.FieldType.IsGenericType && field.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
+                    {
+                        object? val = field.GetValue(audioManager);
+                        if (val is IEnumerable enumerable)
+                        {
+                            foreach (var item in enumerable)
+                            {
+                                if (item is AudioMixer mixer)
+                                    yield return mixer;
+                            }
+                            yield break;
+                        }
+                    }
                 }
+                type = type.BaseType!;
             }
         }
 
@@ -129,6 +144,7 @@ namespace osu.Android
                 return false;
             }
 
+            // Disable BASS-internal buffering for the lowest possible latency.
             Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0);
 
             int successfullyAdded = 0;
@@ -137,7 +153,7 @@ namespace osu.Android
             {
                 int parent = BassMix.ChannelGetMixer(handle);
 
-                if (parent != 0)
+                if (parent != 0 && parent != masterMixer)
                 {
                     originalParents[handle] = parent;
                     BassMix.MixerRemoveChannel(handle);
@@ -149,7 +165,7 @@ namespace osu.Android
                     if (!Bass.ChannelSetDevice(handle, 0))
                     {
                         Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
-                        continue;
+                        // Try to proceed anyway, as some devices might behave strangely with device 0.
                     }
                 }
 
@@ -186,6 +202,20 @@ namespace osu.Android
             }
         }
 
+        private void restoreToParents()
+        {
+            foreach (var kvp in originalParents)
+            {
+                int handle = kvp.Key;
+                int parent = kvp.Value;
+
+                BassMix.MixerRemoveChannel(handle);
+                Bass.ChannelSetDevice(handle, 1);
+                BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
+            }
+            originalParents.Clear();
+        }
+
         private void restoreDefaultAudio()
         {
             ActiveMasterMixer = 0;
@@ -198,16 +228,7 @@ namespace osu.Android
                     masterMixer = 0;
                 }
 
-                // Restore hijacked mixers to their original parents.
-                foreach (var kvp in originalParents)
-                {
-                    int handle = kvp.Key;
-                    int parent = kvp.Value;
-
-                    BassMix.MixerRemoveChannel(handle);
-                    Bass.ChannelSetDevice(handle, 1);
-                    BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
-                }
+                restoreToParents();
 
                 // Restore any other discovered mixers to the default device.
                 foreach (int handle in mixerHandles)
@@ -218,7 +239,6 @@ namespace osu.Android
                     Bass.ChannelSetDevice(handle, 1);
                 }
 
-                originalParents.Clear();
                 devicesSilenced = false;
             }
             catch (Exception e)
@@ -261,16 +281,16 @@ namespace osu.Android
 
             while (type != null && type != typeof(object))
             {
+                // Broad search for anything that looks like a BASS handle.
+                // We check int, long, and IntPtr as different wrappers use different types.
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
-                    if (field.FieldType == typeof(int) || field.FieldType == typeof(IntPtr))
+                    if (isHandleType(field.FieldType))
                     {
                         string name = field.Name.ToLowerInvariant();
-
-                        if (name.Contains("handle") || name.Contains("mixer"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
                         {
                             int h = convertToHandle(field.GetValue(obj));
-
                             if (h != 0) return h;
                         }
                     }
@@ -278,14 +298,12 @@ namespace osu.Android
 
                 foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
-                    if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(IntPtr))
+                    if (isHandleType(prop.PropertyType))
                     {
                         string name = prop.Name.ToLowerInvariant();
-
-                        if (name.Contains("handle") || name.Contains("mixer"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
                         {
                             int h = convertToHandle(prop.GetValue(obj));
-
                             if (h != 0) return h;
                         }
                     }
@@ -297,16 +315,14 @@ namespace osu.Android
             return 0;
         }
 
+        private bool isHandleType(Type type) => type == typeof(int) || type == typeof(IntPtr) || type == typeof(long);
+
         private int convertToHandle(object? val)
         {
             if (val == null) return 0;
-
             if (val is int ih) return ih;
-
             if (val is long lh) return (int)lh;
-
             if (val is IntPtr ph) return (int)ph.ToInt64();
-
             return 0;
         }
 
@@ -317,7 +333,7 @@ namespace osu.Android
 
             if (mixer == 0) return 0;
 
-            int bytesToRead = numFrames * 8;
+            int bytesToRead = numFrames * 8; // 2 channels * 4 bytes (float)
             int bytesRead = Bass.ChannelGetData(mixer, audioData, bytesToRead);
 
             if (bytesRead <= 0) return 0;

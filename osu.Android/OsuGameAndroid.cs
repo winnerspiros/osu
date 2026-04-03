@@ -256,7 +256,7 @@ namespace osu.Android
                         {
                             // Only redirect audio once the Oboe stream has successfully started.
                             // This prevents silence if the bridge fails to initialize.
-                            audioRedirector?.RefreshMixers(sampleRate);
+                            audioRedirector?.RefreshMixers(sampleRate > 0 ? sampleRate : hardwareSampleRate);
                             Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
                         });
                     }
