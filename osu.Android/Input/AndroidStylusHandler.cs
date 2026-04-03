@@ -2,10 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using Android.Views;
 using osu.Framework.Bindables;
-using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
@@ -24,11 +22,16 @@ namespace osu.Android.Input
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
-        public IBindable<TabletInfo> Tablet => tablet;
-        public BindableFloat Rotation { get; } = new BindableFloat();
-        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.05f);
+        public IBindable<TabletInfo?> Tablet => tablet;
+        public Bindable<float> Rotation { get; } = new Bindable<float>();
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.05f)
+        {
+            MinValue = 0f,
+            MaxValue = 1f,
+            Precision = 0.005f,
+        };
 
-        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
+        private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         public override bool IsActive => Enabled.Value;
 
@@ -74,9 +77,10 @@ namespace osu.Android.Input
             float pressure = historyIndex < 0 ? e.GetPressure() : e.GetHistoricalPressure(historyIndex);
 
             // Dynamically update tablet bounds.
-            if (x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
+            if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
-                var newSize = new Vector2(Math.Max(x, tablet.Value.Size.X), Math.Max(y, tablet.Value.Size.Y));
+                var currentSize = tablet.Value?.Size ?? Vector2.Zero;
+                var newSize = new Vector2(Math.Max(x, currentSize.X), Math.Max(y, currentSize.Y));
                 tablet.Value = new TabletInfo("S Pen", newSize);
             }
 
