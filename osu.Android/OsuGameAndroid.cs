@@ -15,6 +15,7 @@ using Android.OS;
 using Android.Views;
 using osu.Android.Native;
 using osu.Framework;
+using osu.Android.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -124,6 +125,8 @@ namespace osu.Android
             }
         }
 
+        private AndroidStylusHandler? stylusHandler;
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -131,6 +134,10 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
+
+            stylusHandler = new AndroidStylusHandler();
+            Host.AvailableInputHandlers.Add(stylusHandler);
+            gameActivity.StylusHandler = stylusHandler;
 
             startVulkanProbe();
 
@@ -276,7 +283,8 @@ namespace osu.Android
                     {
                         try
                         {
-                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Touchscreen);
+                            int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
+                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
                         }
                         catch (Exception e)
                         {
@@ -557,6 +565,13 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void UpdateAfterChildren() => base.UpdateAfterChildren();
 
+        public override osu.Game.Overlays.Settings.SettingsSubsection CreateSettingsSubsectionFor(osu.Framework.Input.Handlers.InputHandler handler)
+        {
+            if (handler is AndroidStylusHandler stylus)
+                return new osu.Game.Overlays.Settings.Sections.Input.TabletSettings(stylus);
+
+            return base.CreateSettingsSubsectionFor(handler);
+        }
     }
 
     internal class AndroidBatteryInfo : BatteryInfo
