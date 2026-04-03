@@ -17,6 +17,8 @@ namespace osu.Android
         private object? oboeBridge;
         private object? vulkanProbe;
         private volatile bool disposed;
+        private string? cachedOboeStatus;
+        private string? cachedVulkanStatus;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, IntPtr provider, int sampleRate = 0, Action<int>? onStarted = null)

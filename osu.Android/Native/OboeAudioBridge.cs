@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -79,8 +80,9 @@ namespace osu.Android.Native
             catch { return -1; }
         }
 
-        public bool IsActive
+                public bool IsActive
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
@@ -119,8 +121,9 @@ namespace osu.Android.Native
             }
         }
 
-        public bool IsAAudio
+                public bool IsAAudio
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
@@ -129,8 +132,9 @@ namespace osu.Android.Native
             }
         }
 
-        public bool IsMMap
+                public bool IsMMap
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
@@ -174,5 +178,9 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nOboeIsMMap(IntPtr ptr);
         [DllImport(lib_name)] private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
+        [DllImport(lib_name)] internal static extern IntPtr nADPFCreateSession(long targetDurationNanos);
+        [DllImport(lib_name)] internal static extern void nADPFReportActualDuration(IntPtr sessionPtr, long actualDurationNanos);
+        [DllImport(lib_name)] internal static extern void nADPFUpdateTargetDuration(IntPtr sessionPtr, long targetDurationNanos);
+        [DllImport(lib_name)] internal static extern void nADPFCloseSession(IntPtr sessionPtr);
     }
 }

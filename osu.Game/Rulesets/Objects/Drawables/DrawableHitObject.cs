@@ -3,11 +3,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System;
-
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ListExtensions;
@@ -16,8 +16,6 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Lists;
 using osu.Framework.Utils;
-using osu.Framework;
-
 using osu.Game.Audio;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
@@ -28,8 +26,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
-
-using JetBrains.Annotations;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Drawables
@@ -398,7 +394,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
             if (samples.Length <= 0)
                 return;
 
-            Samples.Samples = samples;
+            Samples.Samples = samples.Cast<ISampleInfo>().ToArray();
         }
 
         private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);
@@ -477,11 +473,14 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             AnimationStartTime.Value = initialTransformsTime;
 
-            UpdateInitialTransforms();
+            using (BeginAbsoluteSequence(initialTransformsTime))
+                UpdateInitialTransforms();
 
-            UpdateStartTimeStateTransforms();
+            using (BeginAbsoluteSequence(StateUpdateTime))
+                UpdateStartTimeStateTransforms();
 
-            UpdateHitStateTransforms(newState);
+            using (BeginAbsoluteSequence(HitStateUpdateTime))
+                UpdateHitStateTransforms(newState);
 
             state.Value = newState;
 
@@ -633,9 +632,6 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         protected override void Update()
         {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (Time.Current < LifetimeStart - 5000 || Time.Current > LifetimeEnd))
-                return;
-
             // We use a flag here to load samples only when they are required to be played.
             // Why in Update and not PlaySamples? Because some hit object implementations may expect LoadSamples to be called to load custom samples
             // (slider slide sound as an example).
