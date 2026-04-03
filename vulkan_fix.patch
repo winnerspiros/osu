@@ -1,0 +1,16 @@
+<<<<<<< SEARCH
+        public OsuGameAndroid(OsuGameActivity activity)
+            : base(null)
+        {
+            gameActivity = activity;
+        }
+=======
+        public OsuGameAndroid(OsuGameActivity activity)
+            : base(null)
+        {
+            gameActivity = activity;
+
+            // Start Vulkan probe as early as possible so it's ready for SetHost.
+            startVulkanProbe();
+        }
+>>>>>>> REPLACE

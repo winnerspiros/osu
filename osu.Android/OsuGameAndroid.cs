@@ -103,6 +103,7 @@ namespace osu.Android
             : base(null)
         {
             gameActivity = activity;
+            startVulkanProbe();
         }
 
         public override string Version
@@ -144,8 +145,6 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
-            // Start Vulkan probe as early as possible so it's ready for RendererSettings.
-            if (vulkanProbeEnabled.Value)
                 startVulkanProbe();
 
             audioRedirector = new OboeAudioRedirector(Audio);

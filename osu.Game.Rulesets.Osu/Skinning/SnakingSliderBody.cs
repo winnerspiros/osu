@@ -164,7 +164,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 if (lastUpdateTime > 0 && Clock.CurrentTime - lastUpdateTime < 16)
                 {
                     double delta = Math.Max(Math.Abs(p0 - (SnakedStart ?? 0)), Math.Abs(p1 - (SnakedEnd ?? 0)));
-                    if (delta < 0.005) return;
+                    if (delta < 0.0001) return;
                 }
                 lastUpdateTime = Clock.CurrentTime;
             }
