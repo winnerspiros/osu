@@ -1,14 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework;
 #nullable disable
 
-using System;
+using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using JetBrains.Annotations;
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ListExtensions;
@@ -17,6 +16,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Lists;
 using osu.Framework.Utils;
+using osu.Framework;
 using osu.Game.Audio;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
@@ -474,13 +474,10 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
             AnimationStartTime.Value = initialTransformsTime;
 
-            using (BeginAbsoluteSequence(initialTransformsTime))
                 UpdateInitialTransforms();
 
-            using (BeginAbsoluteSequence(StateUpdateTime))
                 UpdateStartTimeStateTransforms();
 
-            using (BeginAbsoluteSequence(HitStateUpdateTime))
                 UpdateHitStateTransforms(newState);
 
             state.Value = newState;
