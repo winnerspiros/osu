@@ -305,9 +305,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     int totalTicks = hitObject.NestedHitObjects.Count;
                     int hitTicks = 0;
 
-                    for (int i = 0; i < totalTicks; i++)
+                    foreach (var nested in hitObject.NestedHitObjects)
                     {
-                        if (hitObject.NestedHitObjects[i].IsHit)
+                        if (nested.IsHit)
                             hitTicks++;
                     }
 
@@ -330,9 +330,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 {
                     bool anyHit = false;
 
-                    for (int i = 0; i < hitObject.NestedHitObjects.Count; i++)
+                    foreach (var nested in hitObject.NestedHitObjects)
                     {
-                        if (hitObject.NestedHitObjects[i].Result.IsHit)
+                        if (nested.Result.IsHit)
                         {
                             anyHit = true;
                             break;

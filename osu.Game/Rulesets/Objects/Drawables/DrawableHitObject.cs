@@ -633,7 +633,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
 
         protected override void Update()
         {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (Time.Current < LifetimeStart - 1000 || Time.Current > LifetimeEnd))
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android && (Time.Current < LifetimeStart - 5000 || Time.Current > LifetimeEnd))
                 return;
 
             // We use a flag here to load samples only when they are required to be played.
