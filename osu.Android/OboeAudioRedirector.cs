@@ -4,21 +4,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixing;
-using osu.Framework.Bindables;
+using osu.Framework.Audio.Mixer;
 
 namespace osu.Android
 {
+    /// <summary>
+    /// Redirects audio from BASS mixers into an unmanaged callback (Oboe).
+    /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
+        /// <summary>
+        /// Gets a value indicating whether the redirector is currently outputting audio to the master mixer.
+        /// </summary>
         public bool IsRedirecting => ActiveMasterMixer != 0;
 
         private readonly AudioManager audioManager;
@@ -58,14 +61,17 @@ namespace osu.Android
 
             sampleRate = lastHardwareSampleRate;
 
+            // Attempt to capture the framework's main mixers.
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
 
+            // Capture any other active mixers discovered in AudioManager.
             foreach (var mixer in getActiveMixers())
                 addRootMixer(mixer);
 
             if (mixerHandles.Count == 0)
             {
+                // Fallback: search for child mixers if roots couldn't be found via recursion.
                 addMixer(audioManager.TrackMixer);
                 addMixer(audioManager.SampleMixer);
 
@@ -165,7 +171,6 @@ namespace osu.Android
                     if (!Bass.ChannelSetDevice(handle, 0))
                     {
                         Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
-                        // Try to proceed anyway, as some devices might behave strangely with device 0.
                     }
                 }
 
@@ -282,13 +287,12 @@ namespace osu.Android
             while (type != null && type != typeof(object))
             {
                 // Broad search for anything that looks like a BASS handle.
-                // We check int, long, and IntPtr as different wrappers use different types.
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     if (isHandleType(field.FieldType))
                     {
                         string name = field.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
                         {
                             int h = convertToHandle(field.GetValue(obj));
                             if (h != 0) return h;
@@ -301,10 +305,23 @@ namespace osu.Android
                     if (isHandleType(prop.PropertyType))
                     {
                         string name = prop.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel"))
+                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
                         {
                             int h = convertToHandle(prop.GetValue(obj));
                             if (h != 0) return h;
+                        }
+                    }
+                }
+
+                // If no named match found, try returning any non-zero integer if the type is likely a wrapper.
+                if (type.Name.Contains("Mixer") || type.Name.Contains("Channel") || type.Name.Contains("Stream"))
+                {
+                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                    {
+                        if (field.FieldType == typeof(int))
+                        {
+                            int h = (int)field.GetValue(obj)!;
+                            if (h > 0 && h < 1000000) return h;
                         }
                     }
                 }

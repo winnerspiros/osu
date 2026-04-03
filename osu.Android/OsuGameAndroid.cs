@@ -1,42 +1,35 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
-using System.Diagnostics;
-using Microsoft.Maui.Devices;
-using osu.Android.Performance;
-using osu.Framework.Development;
 
-using Android.Content.PM;
-using osu.Game.Performance;
-using osu.Game.Updater;
-using System.Collections.Specialized;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Debug = System.Diagnostics.Debug;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Context = global::Android.Content.Context;
-using Android.Media;
+using Android.App;
+using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using osu.Android.Native;
+using osu.Framework;
 using osu.Framework.Allocation;
-using AudioManager = osu.Framework.Audio.AudioManager;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Input;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using osu.Game;
 using osu.Game.Configuration;
 using osu.Game.Overlays;
-using osu.Game.Overlays.Notifications;
+using osu.Game.Overlays.Settings;
 using osu.Game.Screens;
-using osu.Game.Utils;
-using Vector2 = osuTK.Vector2;
+using osu.Game.Screens.Play;
+using osuTK;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Mixer;
+using osu.Framework.Threading;
+using osu.Android.Performance;
 
 namespace osu.Android
 {
@@ -145,39 +138,36 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
-                startVulkanProbe();
+            startVulkanProbe();
 
             audioRedirector = new OboeAudioRedirector(Audio);
 
             try
             {
-                // Use reflection to bind to collection changes of the internal activeMixers list in AudioManager.
-                FieldInfo? field = typeof(AudioManager).GetField("activeMixers", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (field != null)
+                Type? audioType = typeof(AudioManager);
+                activeMixersList = audioType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                                            .FirstOrDefault(f => f.FieldType.IsGenericType && f.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
+                                            ?.GetValue(Audio);
+
+                if (activeMixersList != null)
                 {
-                    activeMixersList = field.GetValue(Audio);
-                    object? val = field.GetValue(Audio);
-                    if (val != null)
+                    MethodInfo? bindMethod = activeMixersList.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (bindMethod != null)
                     {
-                        MethodInfo? bindMethod = val.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                        if (bindMethod != null)
-                        {
-                            var del = Delegate.CreateDelegate(bindMethod.GetParameters()[0].ParameterType, this, typeof(OsuGameAndroid).GetMethod(nameof(onActiveMixersChanged), BindingFlags.Instance | BindingFlags.NonPublic)!);
-                            bindMethod.Invoke(val, new object[] { del, true });
-                        }
+                        activeMixersHandler = new NotifyCollectionChangedEventHandler(onActiveMixersChanged);
+                        bindMethod.Invoke(activeMixersList, new object[] { activeMixersHandler });
+                        Debug.WriteLine("[osu!] Oboe redirector: Successfully bound to ActiveMixers collection");
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[osu!] Failed to bind to activeMixers via reflection: {ex.Message}");
-            }
+            catch (Exception e) { Debug.WriteLine($"[osu!] Oboe redirector: Failed to bind to ActiveMixers: {e.Message}"); }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
+
         protected override void LoadComplete()
         {
-                        // Pin the current thread (Update thread) to high-performance cores.
+            // Pin the current thread (Update thread) to high-performance cores.
             // On S23 Ultra, cores 3-7 are high-performance. Mask = 0xF8 (11111000 in binary)
             try
             {
@@ -324,8 +314,7 @@ namespace osu.Android
 
                     if (enabled)
                     {
-                        highPerformanceSession?.Dispose();
-                        highPerformanceSession = highPerformanceSessionManager.BeginSession();
+                        highPerformanceSession ??= highPerformanceSessionManager.BeginSession();
                     }
                     else
                     {
@@ -397,15 +386,22 @@ namespace osu.Android
 
         public override string VulkanStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetVulkanStatus() ?? string.Empty;
 
-
-
         public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
+        public override bool IsOboeEnabled => lowLatencyAudio.Value;
 
-        public override string OboeStatus => (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? string.Empty;
+
+        public override string OboeStatus
+        {
+            get
+            {
+                string status = (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? (IsOboeEnabled ? "Initializing..." : string.Empty);
+                if (IsOboeEnabled && audioRedirector != null && !audioRedirector.IsRedirecting && IsOboeActive)
+                    status += " [No Redirect]";
+                return status;
+            }
+        }
 
         public override double OboeLatency => (nativeBridges as AndroidNativeBridgeManager)?.GetMeasuredAudioLatencyMs() ?? -1;
-
-        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 

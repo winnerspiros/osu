@@ -19,6 +19,7 @@ namespace osu.Android
         private volatile bool disposed;
         private string? cachedOboeStatus;
         private string? cachedVulkanStatus;
+        private string? oboeFailureReason;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, IntPtr provider, int sampleRate = 0, Action<int>? onStarted = null)
@@ -31,6 +32,7 @@ namespace osu.Android
 
             Debug.WriteLine($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
             cachedOboeStatus = null;
+            oboeFailureReason = "Initializing...";
 
             try
             {
@@ -49,6 +51,7 @@ namespace osu.Android
                     {
                         Debug.WriteLine("[osu!] Oboe bridge started successfully");
                         logOboeInfo(bridge);
+                        oboeFailureReason = null;
 
                         onStarted?.Invoke(bridge.SampleRate);
 
@@ -64,16 +67,19 @@ namespace osu.Android
                     }
                     else
                     {
-                        Debug.WriteLine("[osu!] Oboe bridge created but failed to start (Start() returned false)");
+                        oboeFailureReason = bridge.GetLastErrorMessage();
+                        Debug.WriteLine($"[osu!] Oboe bridge created but failed to start: {oboeFailureReason}");
                     }
                 }
                 else
                 {
+                    oboeFailureReason = "Library Load Failed";
                     Debug.WriteLine("[osu!] Oboe bridge creation failed (Create() returned null)");
                 }
             }
             catch (Exception e)
             {
+                oboeFailureReason = "Exception during init";
                 Debug.WriteLine($"[osu!] Oboe bridge init failed with exception: {e.Message}");
             }
         }
@@ -85,6 +91,7 @@ namespace osu.Android
             (oboeBridge as OboeAudioBridge)?.Dispose();
             oboeBridge = null;
             cachedOboeStatus = null;
+            oboeFailureReason = null;
             Debug.WriteLine("[osu!] Oboe bridge stopped");
         }
 
@@ -97,7 +104,12 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.NoInlining)]
         public string GetOboeStatus()
         {
-            if (oboeBridge is not OboeAudioBridge bridge) return string.Empty;
+            if (oboeBridge is not OboeAudioBridge bridge)
+                return oboeFailureReason ?? string.Empty;
+
+            if (!bridge.IsActive && oboeFailureReason != null)
+                return oboeFailureReason;
+
             return cachedOboeStatus ??= $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
         }
 

@@ -74,6 +74,26 @@ namespace osu.Android.Native
         }
 
         public double GetOutputLatencyMs()
+        public string GetLastErrorMessage()
+        {
+            if (disposed || nativePtr == IntPtr.Zero) return "Not initialized";
+            try
+            {
+                IntPtr ptr = nOboeGetLastErrorMessage(nativePtr);
+                return ptr == IntPtr.Zero ? "Unknown" : Marshal.PtrToStringAnsi(ptr) ?? "Unknown";
+            }
+            catch { return "P/Invoke error"; }
+        }
+        public string GetLastErrorMessage()
+        {
+            if (disposed || nativePtr == IntPtr.Zero) return "Not initialized";
+            try
+            {
+                IntPtr ptr = nOboeGetLastErrorMessage(nativePtr);
+                return ptr == IntPtr.Zero ? "Unknown" : Marshal.PtrToStringAnsi(ptr) ?? "Unknown";
+            }
+            catch { return "P/Invoke error"; }
+        }
         {
             if (disposed || nativePtr == IntPtr.Zero) return -1;
             try { return nOboeGetLatencyMs(nativePtr); }
@@ -177,6 +197,8 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nOboeIsAAudio(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nOboeIsMMap(IntPtr ptr);
         [DllImport(lib_name)] private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
+        [DllImport(lib_name)] private static extern IntPtr nOboeGetLastErrorMessage(IntPtr ptr);
+        [DllImport(lib_name)] private static extern IntPtr nOboeGetLastErrorMessage(IntPtr ptr);
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
         [DllImport(lib_name)] internal static extern IntPtr nADPFCreateSession(long targetDurationNanos);
         [DllImport(lib_name)] internal static extern void nADPFReportActualDuration(IntPtr sessionPtr, long actualDurationNanos);
