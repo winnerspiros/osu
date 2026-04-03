@@ -30,6 +30,7 @@ namespace osu.Android
             }
 
             Debug.WriteLine($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
+            cachedOboeStatus = null;
 
             try
             {
@@ -83,6 +84,7 @@ namespace osu.Android
             Debug.WriteLine("[osu!] Stopping Oboe bridge...");
             (oboeBridge as OboeAudioBridge)?.Dispose();
             oboeBridge = null;
+            cachedOboeStatus = null;
             Debug.WriteLine("[osu!] Oboe bridge stopped");
         }
 
@@ -96,7 +98,7 @@ namespace osu.Android
         public string GetOboeStatus()
         {
             if (oboeBridge is not OboeAudioBridge bridge) return string.Empty;
-            return $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
+            return cachedOboeStatus ??= $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
         }
 
         public double GetMeasuredAudioLatencyMs()
@@ -110,6 +112,7 @@ namespace osu.Android
             if (vulkanProbe != null) return;
 
             Debug.WriteLine("[osu!] Starting Vulkan probe...");
+            cachedVulkanStatus = null;
 
             try
             {
@@ -140,13 +143,14 @@ namespace osu.Android
         public string GetVulkanStatus()
         {
             if (vulkanProbe is not VulkanProbe probe) return string.Empty;
-            return $"{(probe.SupportsMailboxPresentMode ? "MAILBOX" : "FIFO")}{(probe.DisablePresentId ? " [NoID]" : "")}{(probe.DisablePresentWait ? " [NoWait]" : "")}{(probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "")}";
+            return cachedVulkanStatus ??= $"{(probe.SupportsMailboxPresentMode ? "MAILBOX" : "FIFO")}{(probe.DisablePresentId ? " [NoID]" : "")}{(probe.DisablePresentWait ? " [NoWait]" : "")}{(probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "")}";
         }
 
         public void StopVulkanProbe()
         {
             (vulkanProbe as VulkanProbe)?.Dispose();
             vulkanProbe = null;
+            cachedVulkanStatus = null;
             Debug.WriteLine("[osu!] Vulkan probe stopped");
         }
 
