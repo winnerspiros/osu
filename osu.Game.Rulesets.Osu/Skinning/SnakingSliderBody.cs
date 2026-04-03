@@ -3,14 +3,17 @@
 
 using System.Collections.Generic;
 using System;
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework;
+
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
+
 using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Skinning

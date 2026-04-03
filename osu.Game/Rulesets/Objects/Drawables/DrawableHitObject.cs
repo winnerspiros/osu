@@ -3,11 +3,11 @@
 
 #nullable disable
 
-using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System;
+
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ListExtensions;
@@ -17,6 +17,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Lists;
 using osu.Framework.Utils;
 using osu.Framework;
+
 using osu.Game.Audio;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
@@ -27,6 +28,8 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
+
+using JetBrains.Annotations;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Drawables

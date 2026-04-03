@@ -4,10 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework;
+
 using osu.Game.Configuration;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
+
 using osuTK.Graphics;
 using osuTK;
 
