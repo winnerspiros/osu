@@ -1,3 +1,4 @@
+using osu.Android.Input;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -18,6 +19,7 @@ using Uri = Android.Net.Uri;
 using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Android.Native;
+using osu.Framework.Logging;
 
 namespace osu.Android
 {
@@ -25,6 +27,7 @@ namespace osu.Android
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "application/x-osu-replay")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-beatmap-archive")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-skin-archive")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-replay")]
@@ -48,6 +51,7 @@ namespace osu.Android
         public ScreenOrientation DefaultOrientation = ScreenOrientation.Unspecified;
 
         public new bool IsTablet { get; private set; }
+        internal AndroidStylusHandler? StylusHandler;
 
         private OsuGameAndroid? game;
 
@@ -83,6 +87,19 @@ namespace osu.Android
             {
                 Window.AddFlags(WindowManagerFlags.Fullscreen);
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+
+                // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
+                if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                {
+                    try
+                    {
+                        Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
+                    }
+                }
             }
 
             if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
@@ -105,6 +122,42 @@ namespace osu.Android
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
+
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if (e != null && isStylusEvent(e))
+            {
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+            return base.OnTouchEvent(e);
+        }
+
+        public override bool OnGenericMotionEvent(MotionEvent? e)
+        {
+            if (e != null && isStylusEvent(e))
+            {
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+            return base.OnGenericMotionEvent(e);
+        }
+
+        private bool isStylusEvent(MotionEvent e)
+        {
+            // Check source first, as it's the most reliable indicator on some devices.
+            if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
+                return true;
+
+            // Check tool type for each pointer.
+            for (int i = 0; i < e.PointerCount; i++)
+            {
+                var toolType = e.GetToolType(i);
+                if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
+                    return true;
+            }
+            return false;
+        }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
