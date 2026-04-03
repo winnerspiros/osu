@@ -55,28 +55,17 @@ bool OboeBridge::open(int32_t sampleRate) {
            ->setFormatConversionAllowed(false)
            ->setCallback(stabilizedCallback_.get());
 
-    LOGI("Oboe stream: attempting open in Exclusive mode with AAudio (sampleRate=%d)", sampleRate);
     oboe::Result result = builder.openStream(stream_);
 
     if (result != oboe::Result::OK) {
-        LOGE("Failed to open Oboe stream in Exclusive mode (%s), falling back to Shared mode", oboe::convertToText(result));
-        builder.setSharingMode(oboe::SharingMode::Shared);
-        // If falling back to Shared, allow conversion to be more resilient
-        builder.setChannelConversionAllowed(true)
-               ->setFormatConversionAllowed(true)
-               ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium);
-        result = builder.openStream(stream_);
-    }
-
-    if (result != oboe::Result::OK) {
-        LOGE("Failed to open Oboe stream with AAudio API (%s), falling back to Unspecified API",
+        LOGE("AAudio open failed (%s), falling back to unspecified API",
              oboe::convertToText(result));
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         result = builder.openStream(stream_);
     }
 
     if (result != oboe::Result::OK) {
-        LOGE("Failed to open Oboe stream with any configuration: %s", oboe::convertToText(result));
+        LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
         return false;
     }
 
@@ -183,6 +172,7 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
+
     OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
 
     if (provider) {
@@ -199,6 +189,7 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
                          * sizeof(float);
         memset(audioData, 0, byteCount);
     }
+
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
@@ -394,5 +385,35 @@ OSU_EXPORT byte nSetThreadAffinity(int coreMask) {
         }
     }
     return (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) ? 1 : 0;
+}
+}
+
+#include <android/performance_hint.h>
+
+extern "C" {
+OSU_EXPORT intptr_t nADPFCreateSession(int64_t targetDurationNanos) {
+    auto manager = APerformanceHint_getManager();
+    if (!manager) return 0;
+
+    int32_t thread_id = gettid();
+    return reinterpret_cast<intptr_t>(APerformanceHint_createSession(manager, &thread_id, 1, targetDurationNanos));
+}
+
+OSU_EXPORT void nADPFReportActualDuration(intptr_t sessionPtr, int64_t actualDurationNanos) {
+    if (sessionPtr) {
+        APerformanceHint_reportActualWorkDuration(reinterpret_cast<APerformanceHintSession*>(sessionPtr), actualDurationNanos);
+    }
+}
+
+OSU_EXPORT void nADPFUpdateTargetDuration(intptr_t sessionPtr, int64_t targetDurationNanos) {
+    if (sessionPtr) {
+        APerformanceHint_updateTargetWorkDuration(reinterpret_cast<APerformanceHintSession*>(sessionPtr), targetDurationNanos);
+    }
+}
+
+OSU_EXPORT void nADPFCloseSession(intptr_t sessionPtr) {
+    if (sessionPtr) {
+        APerformanceHint_closeSession(reinterpret_cast<APerformanceHintSession*>(sessionPtr));
+    }
 }
 }

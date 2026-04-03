@@ -189,12 +189,12 @@ namespace osu.Android
                     // Dispatch to the draw thread to pin it.
                     Host.DrawThread.Scheduler.Add(() =>
                     {
-                        try
-                        {
-                            if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
-                                Debug.WriteLine("[osu!] Render thread pinned to big cores");
-                        }
-                        catch { }
+                        try { if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0) Debug.WriteLine("[osu!] Render thread pinned to big cores"); } catch { }
+                    });
+
+                    Host.InputThread.Scheduler.Add(() =>
+                    {
+                        try { if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0) Debug.WriteLine("[osu!] Input thread pinned to big cores"); } catch { }
                     });
                 });
             }
