@@ -80,9 +80,9 @@ namespace osu.Android.Native
             catch { return -1; }
         }
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsActive
+                public bool IsActive
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
@@ -121,9 +121,9 @@ namespace osu.Android.Native
             }
         }
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsAAudio
+                public bool IsAAudio
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
@@ -132,9 +132,9 @@ namespace osu.Android.Native
             }
         }
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsMMap
+                public bool IsMMap
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (disposed || nativePtr == IntPtr.Zero) return false;
