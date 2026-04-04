@@ -48,7 +48,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
         public void Play()
         {
-            if (bgm.IsRunning)
+            if (bgm.Track == null || bgm.IsRunning)
                 return;
 
             const int track_fade_duration = 3000;
