@@ -391,7 +391,7 @@ namespace osu.Android
                              {
                                  display = displayList.Where(d => d.DisplayId != 0)
                                                    .OrderByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.RefreshRate ?? 0)
-                                                   .ThenByDescending(d => d.Width)
+                                                   .ThenByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.Width ?? 0)
                                                    .FirstOrDefault() ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
                              }
                         }
