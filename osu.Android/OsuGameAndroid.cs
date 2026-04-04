@@ -368,9 +368,39 @@ namespace osu.Android
                 if (window == null || windowManager == null)
                     return;
 
-                var display = OperatingSystem.IsAndroidVersionAtLeast(30)
-                    ? gameActivity.Display
-                    : windowManager.DefaultDisplay;
+                global::Android.Views.Display? display = null;
+
+                if (OperatingSystem.IsAndroidVersionAtLeast(30))
+                {
+                    // Prefer the display associated with the activity (which would be the external monitor in DeX)
+                    display = gameActivity.Display;
+                }
+
+                if (display == null)
+                {
+                    // Fallback to DisplayManager to find an external display
+                    if (gameActivity.GetSystemService(global::Android.Content.Context.DisplayService) is global::Android.Hardware.Display.DisplayManager dm)
+                    {
+                        var displays = dm.GetDisplays();
+
+                        if (gameActivity.IsDeX)
+                        {
+                             // Find the largest external display (most likely the monitor)
+                             var displayList = displays?.ToList();
+                             if (displayList != null)
+                             {
+                                 display = displayList.Where(d => d.DisplayId != 0)
+                                                   .OrderByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.RefreshRate ?? 0)
+                                                   .ThenByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.PhysicalWidth ?? 0)
+                                                   .FirstOrDefault() ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
+                             }
+                        }
+                        else
+                        {
+                             display = displays?.FirstOrDefault(d => d.DisplayId == 0);
+                        }
+                    }
+                }
 
                 if (display == null)
                     return;

@@ -32,9 +32,15 @@ namespace osu.Android.Input
                 e.KeyCode == Keycode.AppSwitch)
                 return false;
 
-            // In DeX, source might include other flags, use HasFlag
-            if (!e.Source.HasFlag(InputSourceType.Keyboard))
-                return false;
+            // In DeX, source might include other flags (like Mouse or Stylus).
+            // We should allow anything that is clearly a keyboard or has a valid keycode.
+            if (!e.Source.HasFlag(InputSourceType.Keyboard) && e.Source != InputSourceType.Unknown)
+            {
+                 // If it's not a keyboard source, only allow if it's from a device that HAS a keyboard
+                 var device = e.Device;
+                 if (device == null || device.KeyboardType == global::Android.Views.InputKeyboardType.None)
+                     return false;
+            }
 
             var key = mapKey(e.KeyCode);
             if (key == Key.Unknown) return false;

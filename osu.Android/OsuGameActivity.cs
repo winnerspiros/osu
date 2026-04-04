@@ -130,7 +130,20 @@ namespace osu.Android
 
         public override bool DispatchKeyEvent(KeyEvent? e)
         {
-            if (e != null && KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e))
+            if (e == null) return false;
+
+            // Intercept mouse back button which often triggers Keycode.Back
+            if (e.KeyCode == Keycode.Back && (e.Source.HasFlag(InputSourceType.Mouse) || e.Source.HasFlag(InputSourceType.Stylus)))
+            {
+                if (e.Action == KeyEventActions.Down)
+                    KeyboardHandler?.HandleKeyEvent(new KeyEvent(KeyEventActions.Down, Keycode.Escape));
+                else if (e.Action == KeyEventActions.Up)
+                    KeyboardHandler?.HandleKeyEvent(new KeyEvent(KeyEventActions.Up, Keycode.Escape));
+
+                return true;
+            }
+
+            if (KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e))
                 return true;
 
             return base.DispatchKeyEvent(e);
@@ -157,6 +170,11 @@ namespace osu.Android
                 handled = MouseHandler?.HandleMotionEvent(e) ?? false;
             }
 
+            // Stylus events should NEVER be passed to base.DispatchTouchEvent, as it triggers
+            // Android's touch-mode which hides the cursor and shows touch effects.
+            if (isStylusEvent(e))
+                return handled;
+
             // In DeX mode, we MUST call base even if "handled" to ensure window focus and system gestures work.
             // However, if we fully consumed it (e.g. gameplay), we return true to prevent UI double-clicks.
             return base.DispatchTouchEvent(e) || handled;
@@ -182,6 +200,11 @@ namespace osu.Android
 
                 handled = MouseHandler?.HandleMotionEvent(e) ?? false;
             }
+
+            // Stylus hover events should not be passed to base to avoid system-level hover effects
+            // and touch-mode triggers.
+            if (isStylusEvent(e))
+                return handled;
 
             return base.DispatchGenericMotionEvent(e) || handled;
         }

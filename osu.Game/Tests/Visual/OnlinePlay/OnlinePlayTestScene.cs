@@ -35,7 +35,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
         private readonly Container content;
         private readonly Container drawableDependenciesContainer;
         private DelegatedDependencyContainer dependencies = null!;
-        private int currentRoomId;
+        private int currentRoomId = 1;
 
         protected OnlinePlayTestScene()
         {
