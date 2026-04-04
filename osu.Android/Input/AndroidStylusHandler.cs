@@ -4,40 +4,27 @@
 using System;
 using Android.Views;
 using osu.Framework.Bindables;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osu.Framework.Logging;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Android.Input
 {
     public class AndroidStylusHandler : InputHandler, ITabletHandler
     {
-        public override string Description => "S Pen / Stylus";
-
-        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
-        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
-        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
-        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
-        public IBindable<TabletInfo?> Tablet => tablet;
-        public Bindable<float> Rotation { get; } = new Bindable<float>();
-        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.05f)
-        {
-            MinValue = 0f,
-            MaxValue = 1f,
-            Precision = 0.005f,
-        };
+        public override string Description => "S Pen / Stylus (Low Latency)";
+        public override bool IsActive => Enabled.Value;
+        public override int Priority => 0;
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
+        public IBindable<TabletInfo?> Tablet => tablet;
 
-        public override bool IsActive => Enabled.Value;
+        public BindableDouble PressureThreshold { get; } = new BindableDouble(0.1) { MinValue = 0.01, MaxValue = 0.9 };
 
-        private bool lastLeftDown;
-        private bool lastRightDown;
-        private bool firstEventReceived;
+        private bool lastTipDown;
+        private bool lastPrimaryDown;
 
         public AndroidStylusHandler()
         {
@@ -45,24 +32,22 @@ namespace osu.Android.Input
             Enabled.Value = true;
         }
 
-        public override bool Initialize(GameHost host)
-        {
-            // Initial tablet info with a sane default. We'll refine this as events arrive.
-            tablet.Value = new TabletInfo("S Pen", new Vector2(2000, 1000));
-            return base.Initialize(host);
-        }
+        public override bool Initialize(GameHost host) => true;
 
         public void HandleMotionEvent(MotionEvent e)
         {
             if (!Enabled.Value) return;
 
-            if (!firstEventReceived)
+            // Handle hover entry/exit separately if needed, but for now we focus on position and buttons.
+            if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
-                Logger.Log($"[osu!] S Pen input detected. Source={e.Source}, ToolType={e.GetToolType(0)}", LoggingTarget.Input);
-                firstEventReceived = true;
+                if (lastTipDown) { PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Tip, false)); lastTipDown = false; }
+                if (lastPrimaryDown) { PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Primary, false)); lastPrimaryDown = false; }
+
+                if (e.ActionMasked != MotionEventActions.HoverExit)
+                    return;
             }
 
-            // Process historical points for maximum accuracy.
             for (int i = 0; i < e.HistorySize; i++)
             {
                 handlePointer(e, i);
@@ -73,12 +58,16 @@ namespace osu.Android.Input
         private void handlePointer(MotionEvent e, int historyIndex)
         {
             const int pointer_index = 0;
+            if (e.PointerCount <= pointer_index) return;
 
             float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
-            // Dynamically update tablet bounds.
+            // Read tilt and orientation if available
+            float tilt = historyIndex < 0 ? e.GetAxisValue(Axis.Tilt, pointer_index) : e.GetHistoricalAxisValue(Axis.Tilt, pointer_index, historyIndex);
+            float orientation = historyIndex < 0 ? e.GetAxisValue(Axis.Orientation, pointer_index) : e.GetHistoricalAxisValue(Axis.Orientation, pointer_index, historyIndex);
+
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
                 var currentSize = tablet.Value?.Size ?? Vector2.Zero;
@@ -86,24 +75,24 @@ namespace osu.Android.Input
                 tablet.Value = new TabletInfo("S Pen", newSize);
             }
 
-            // Report absolute position.
+            // Report position.
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
-            // Map pressure to mouse buttons.
-            bool isLeftDown = pressure >= PressureThreshold.Value;
-            if (isLeftDown != lastLeftDown)
+            bool isTipDown = pressure >= PressureThreshold.Value;
+            if (isTipDown != lastTipDown)
             {
-                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, isLeftDown));
-                lastLeftDown = isLeftDown;
+                PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Tip, isTipDown));
+                lastTipDown = isTipDown;
             }
 
-            // Map side button to Right Click.
-            bool isRightDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
-            if (isRightDown != lastRightDown)
+            bool isPrimaryDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
+            if (isPrimaryDown != lastPrimaryDown)
             {
-                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, isRightDown));
-                lastRightDown = isRightDown;
+                PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Primary, isPrimaryDown));
+                lastPrimaryDown = isPrimaryDown;
             }
+
+            // Optionally could send tilt/orientation if the framework's TabletInfo/State supports it in this version.
         }
     }
 }

@@ -52,6 +52,8 @@ namespace osu.Android
 
         public new bool IsTablet { get; private set; }
         internal AndroidStylusHandler? StylusHandler;
+        internal AndroidKeyboardHandler? KeyboardHandler;
+        internal AndroidMouseHandler? MouseHandler;
 
         private OsuGameAndroid? game;
 
@@ -123,33 +125,61 @@ namespace osu.Android
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
 
-        public override bool OnTouchEvent(MotionEvent? e)
+        public override bool DispatchKeyEvent(KeyEvent? e)
         {
-            if (e != null && isStylusEvent(e))
-            {
-                StylusHandler?.HandleMotionEvent(e);
+            if (e != null && KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e))
                 return true;
-            }
-            return base.OnTouchEvent(e);
+
+            return base.DispatchKeyEvent(e);
         }
 
-        public override bool OnGenericMotionEvent(MotionEvent? e)
+        public override bool DispatchTouchEvent(MotionEvent? e)
         {
-            if (e != null && isStylusEvent(e))
+            if (e == null) return base.DispatchTouchEvent(e);
+
+            if (isStylusEvent(e))
             {
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) RequestUnbufferedDispatch(e);
                 StylusHandler?.HandleMotionEvent(e);
                 return true;
             }
-            return base.OnGenericMotionEvent(e);
+
+            if (isMouseEvent(e))
+            {
+                if (e.ActionMasked == MotionEventActions.Down) RequestUnbufferedDispatch(e);
+                MouseHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            return base.DispatchTouchEvent(e);
+        }
+
+        public override bool DispatchGenericMotionEvent(MotionEvent? e)
+        {
+            if (e == null) return base.DispatchGenericMotionEvent(e);
+
+            if (isStylusEvent(e))
+            {
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) RequestUnbufferedDispatch(e);
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            if (isMouseEvent(e))
+            {
+                if (e.ActionMasked == MotionEventActions.Down) RequestUnbufferedDispatch(e);
+                MouseHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            return base.DispatchGenericMotionEvent(e);
         }
 
         private bool isStylusEvent(MotionEvent e)
         {
-            // Check source first, as it's the most reliable indicator on some devices.
             if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
                 return true;
 
-            // Check tool type for each pointer.
             for (int i = 0; i < e.PointerCount; i++)
             {
                 var toolType = e.GetToolType(i);
@@ -157,6 +187,12 @@ namespace osu.Android
                     return true;
             }
             return false;
+        }
+
+        private bool isMouseEvent(MotionEvent e)
+        {
+            return (e.Source & InputSourceType.Mouse) == InputSourceType.Mouse ||
+                   (e.Source & InputSourceType.Touchpad) == InputSourceType.Touchpad;
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)

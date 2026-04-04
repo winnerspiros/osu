@@ -126,6 +126,8 @@ namespace osu.Android
         }
 
         private AndroidStylusHandler? stylusHandler;
+        private AndroidMouseHandler? mouseHandler;
+        private AndroidKeyboardHandler? keyboardHandler;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -138,6 +140,14 @@ namespace osu.Android
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
             gameActivity.StylusHandler = stylusHandler;
+
+            mouseHandler = new AndroidMouseHandler();
+            Host.AvailableInputHandlers.Add(mouseHandler);
+            gameActivity.MouseHandler = mouseHandler;
+
+            keyboardHandler = new AndroidKeyboardHandler();
+            Host.AvailableInputHandlers.Add(keyboardHandler);
+            gameActivity.KeyboardHandler = keyboardHandler;
 
             startVulkanProbe();
 
