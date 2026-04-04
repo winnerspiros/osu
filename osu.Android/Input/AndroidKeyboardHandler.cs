@@ -26,16 +26,22 @@ namespace osu.Android.Input
         {
             if (!Enabled.Value) return false;
 
-            if (e.KeyCode == Keycode.Back || e.KeyCode == Keycode.Home || e.KeyCode == Keycode.Menu || e.KeyCode == Keycode.VolumeUp || e.KeyCode == Keycode.VolumeDown || e.KeyCode == Keycode.VolumeMute)
+            // System keys should ALWAYS fall through to the OS
+            if (e.KeyCode == Keycode.Back || e.KeyCode == Keycode.Home || e.KeyCode == Keycode.Menu ||
+                e.KeyCode == Keycode.VolumeUp || e.KeyCode == Keycode.VolumeDown || e.KeyCode == Keycode.VolumeMute ||
+                e.KeyCode == Keycode.AppSwitch)
                 return false;
 
-            if ((e.Source & InputSourceType.Keyboard) != InputSourceType.Keyboard)
+            // In DeX, source might include other flags, use HasFlag
+            if (!e.Source.HasFlag(InputSourceType.Keyboard))
                 return false;
 
             var key = mapKey(e.KeyCode);
             if (key == Key.Unknown) return false;
 
             bool isDown = e.Action == KeyEventActions.Down;
+
+            // We want to handle the first press, but skip OS-level repeats to avoid input lag/buffer bloat
             if (e.RepeatCount > 0 && isDown) return true;
 
             PendingInputs.Enqueue(new KeyboardKeyInput(key, isDown));

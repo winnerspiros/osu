@@ -8,6 +8,7 @@ using Android.Content;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
+using Android.Content.Res;
 using Android.Views;
 using Debug = System.Diagnostics.Debug;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ using osu.Framework.Logging;
 
 namespace osu.Android
 {
-    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    [Activity(ResizeableActivity = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
@@ -81,6 +82,7 @@ namespace osu.Android
             base.OnCreate(savedInstanceState);
 
             Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            updateDeXStatus(null);
             Window?.DecorView.Post(() => GetSurface()?.Holder?.AddCallback(this));
 
             handleIntent(Intent);
@@ -137,42 +139,50 @@ namespace osu.Android
         {
             if (e == null) return base.DispatchTouchEvent(e);
 
+            bool handled = false;
+
             if (isStylusEvent(e))
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
-                StylusHandler?.HandleMotionEvent(e);
-                return true;
-            }
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
+                    Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
+                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+            }
+            else if (e.Source.HasFlag(InputSourceType.Mouse))
             {
-                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
-                MouseHandler?.HandleMotionEvent(e);
-                return true;
+                if (e.ActionMasked == MotionEventActions.Down)
+                    Window?.DecorView?.RequestUnbufferedDispatch(e);
+
+                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
             }
 
-            return base.DispatchTouchEvent(e);
+            // In DeX mode, we MUST call base even if "handled" to ensure window focus and system gestures work.
+            // However, if we fully consumed it (e.g. gameplay), we return true to prevent UI double-clicks.
+            return base.DispatchTouchEvent(e) || handled;
         }
 
         public override bool DispatchGenericMotionEvent(MotionEvent? e)
         {
             if (e == null) return base.DispatchGenericMotionEvent(e);
 
+            bool handled = false;
+
             if (isStylusEvent(e))
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
-                StylusHandler?.HandleMotionEvent(e);
-                return true;
-            }
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
+                    Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
+                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+            }
+            else if (e.Source.HasFlag(InputSourceType.Mouse))
             {
-                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
-                MouseHandler?.HandleMotionEvent(e);
-                return true;
+                if (e.ActionMasked == MotionEventActions.Down)
+                    Window?.DecorView?.RequestUnbufferedDispatch(e);
+
+                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
             }
 
-            return base.DispatchGenericMotionEvent(e);
+            return base.DispatchGenericMotionEvent(e) || handled;
         }
 
         public override bool OnTouchEvent(MotionEvent? e)
@@ -312,6 +322,23 @@ namespace osu.Android
                 surfaceGlobalRef = IntPtr.Zero;
             }
             surfaceEvent.Reset();
+        }
+
+
+
+        public override void OnConfigurationChanged(Configuration newConfig)
+        {
+            base.OnConfigurationChanged(newConfig);
+            updateDeXStatus(newConfig);
+            (game as OsuGameAndroid)?.SelectHighestRefreshRate();
+        }
+
+        private void updateDeXStatus(Configuration? config)
+        {
+            bool wasDeX = IsDeX;
+            IsDeX = (config ?? Resources?.Configuration)?.UiMode.HasFlag(UiMode.TypeDesk) ?? false;
+            if (wasDeX != IsDeX)
+                Logger.Log($"[osu!] DeX mode status changed: {IsDeX}", LoggingTarget.Input);
         }
     }
 }

@@ -82,6 +82,7 @@ namespace osu.Android
 
         private OboeAudioRedirector? audioRedirector;
         private IDisposable? highPerformanceSession;
+        private IDisposable? dexPerformanceSession;
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
 
@@ -140,10 +141,12 @@ namespace osu.Android
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
             gameActivity.StylusHandler = stylusHandler;
+            stylusHandler.View = gameActivity.Window?.DecorView;
 
             mouseHandler = new AndroidMouseHandler();
             Host.AvailableInputHandlers.Add(mouseHandler);
             gameActivity.MouseHandler = mouseHandler;
+            mouseHandler.View = gameActivity.Window?.DecorView;
 
             keyboardHandler = new AndroidKeyboardHandler();
             Host.AvailableInputHandlers.Add(keyboardHandler);
@@ -328,7 +331,7 @@ namespace osu.Android
                     }
 
                     if (enabled)
-                        selectHighestRefreshRate();
+                        SelectHighestRefreshRate();
                 }
                 catch (Exception e)
                 {
@@ -337,10 +340,24 @@ namespace osu.Android
             });
         }
 
-        private void selectHighestRefreshRate()
+        public void SelectHighestRefreshRate()
         {
             try
             {
+                if (gameActivity.IsDeX)
+                {
+                    if (dexPerformanceSession == null)
+                    {
+                        dexPerformanceSession = highPerformanceSessionManager.BeginSession();
+                        Logger.Log("[osu!] Permanent high performance session started for DeX mode.", LoggingTarget.Performance);
+                    }
+                }
+                else
+                {
+                    dexPerformanceSession?.Dispose();
+                    dexPerformanceSession = null;
+                }
+
                 if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                     return;
 
@@ -350,7 +367,9 @@ namespace osu.Android
                 if (window == null || windowManager == null)
                     return;
 
-                var display = windowManager.DefaultDisplay;
+                var display = OperatingSystem.IsAndroidVersionAtLeast(30)
+                    ? gameActivity.Display
+                    : windowManager.DefaultDisplay;
 
                 if (display == null)
                     return;
