@@ -226,7 +226,7 @@ try
         return true;
     }
 
-    // Even with a lock file, the actual .so may be locked for reading by another MSBuild process.
+        // Even with a lock file, the actual .so may be locked for reading by another MSBuild process.
     // Retry writing the actual file.
     for (int attempt = 0; attempt < 30; attempt++)
     {
@@ -242,6 +242,7 @@ try
             System.Threading.Thread.Sleep(1000);
         }
     }
+    WasPatched = true;
     Log.LogMessage(MessageImportance.High,
         "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
         System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
