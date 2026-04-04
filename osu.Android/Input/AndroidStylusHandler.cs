@@ -18,6 +18,8 @@ namespace osu.Android.Input
         public override string Description => "S Pen / Stylus (Low Latency)";
         public override bool IsActive => Enabled.Value;
 
+        public View? View { get; set; }
+
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
@@ -34,6 +36,7 @@ namespace osu.Android.Input
 
         private bool lastLeftDown;
         private bool lastRightDown;
+        private bool lastEraserDown;
 
         public AndroidStylusHandler()
         {
@@ -47,18 +50,17 @@ namespace osu.Android.Input
             return base.Initialize(host);
         }
 
-        public void HandleMotionEvent(MotionEvent e)
+        public bool HandleMotionEvent(MotionEvent e)
         {
-            if (!Enabled.Value) return;
+            if (!Enabled.Value) return false;
 
-            // Handle hover entry/exit separately if needed, but for now we focus on position and buttons.
             if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
                 if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
                 if (lastRightDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false)); lastRightDown = false; }
 
                 if (e.ActionMasked != MotionEventActions.HoverExit)
-                    return;
+                    return true;
             }
 
             for (int i = 0; i < e.HistorySize; i++)
@@ -66,6 +68,8 @@ namespace osu.Android.Input
                 handlePointer(e, i);
             }
             handlePointer(e, -1);
+
+            return true;
         }
 
         private void handlePointer(MotionEvent e, int historyIndex)
@@ -77,6 +81,14 @@ namespace osu.Android.Input
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
+            // DeX windowed mode offset correction
+            if (View != null)
+            {
+                 // On some DeX versions, GetX/Y might be screen-relative if the window isn't focused.
+                 // Using GetX/Y is generally safer for windowed mode as Android handles the subtraction,
+                 // but we ensure the View is passed for future coordinate scaling needs.
+            }
+
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
                 var currentSize = tablet.Value?.Size ?? Vector2.Zero;
@@ -87,6 +99,16 @@ namespace osu.Android.Input
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
             bool isLeftDown = pressure >= PressureThreshold.Value;
+            // Fallback for primary button in DeX or if pressure is zero on some devices
+            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.Move)
+            {
+                 if (e.ActionMasked == MotionEventActions.Down) isLeftDown = true;
+            }
+            else if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
+            {
+                 isLeftDown = false;
+            }
+
             if (isLeftDown != lastLeftDown)
             {
                 PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, isLeftDown));
@@ -98,6 +120,14 @@ namespace osu.Android.Input
             {
                 PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, isRightDown));
                 lastRightDown = isRightDown;
+            }
+
+            bool isEraserDown = (e.ButtonState & MotionEventButtonState.StylusSecondary) != 0 || e.GetToolType(pointer_index) == MotionEventToolType.Eraser;
+            if (isEraserDown != lastEraserDown)
+            {
+                // Map eraser to Middle Click or a specific tablet button if framework supports it
+                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Middle, isEraserDown));
+                lastEraserDown = isEraserDown;
             }
         }
     }
