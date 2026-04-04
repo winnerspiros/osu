@@ -9,6 +9,7 @@ using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Android.Input
 {
@@ -31,8 +32,8 @@ namespace osu.Android.Input
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
-        private bool lastTipDown;
-        private bool lastPrimaryDown;
+        private bool lastLeftDown;
+        private bool lastRightDown;
 
         public AndroidStylusHandler()
         {
@@ -50,10 +51,11 @@ namespace osu.Android.Input
         {
             if (!Enabled.Value) return;
 
+            // Handle hover entry/exit separately if needed, but for now we focus on position and buttons.
             if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
-                if (lastTipDown) { PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Tip, false)); lastTipDown = false; }
-                if (lastPrimaryDown) { PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Primary, false)); lastPrimaryDown = false; }
+                if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
+                if (lastRightDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false)); lastRightDown = false; }
 
                 if (e.ActionMasked != MotionEventActions.HoverExit)
                     return;
@@ -84,18 +86,18 @@ namespace osu.Android.Input
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
-            bool isTipDown = pressure >= PressureThreshold.Value;
-            if (isTipDown != lastTipDown)
+            bool isLeftDown = pressure >= PressureThreshold.Value;
+            if (isLeftDown != lastLeftDown)
             {
-                PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Tip, isTipDown));
-                lastTipDown = isTipDown;
+                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, isLeftDown));
+                lastLeftDown = isLeftDown;
             }
 
-            bool isPrimaryDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
-            if (isPrimaryDown != lastPrimaryDown)
+            bool isRightDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
+            if (isRightDown != lastRightDown)
             {
-                PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Primary, isPrimaryDown));
-                lastPrimaryDown = isPrimaryDown;
+                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, isRightDown));
+                lastRightDown = isRightDown;
             }
         }
     }
