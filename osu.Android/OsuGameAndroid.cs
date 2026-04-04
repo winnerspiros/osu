@@ -386,14 +386,18 @@ namespace osu.Android
                         if (gameActivity.IsDeX)
                         {
                              // Find the largest external display (most likely the monitor)
-                             display = displays.Where(d => d.DisplayId != 0)
-                                               .OrderByDescending(d => d.Mode?.RefreshRate ?? 0)
-                                               .ThenByDescending(d => d.Width)
-                                               .FirstOrDefault() ?? displays.FirstOrDefault(d => d.DisplayId == 0);
+                             var displayList = displays?.ToList();
+                             if (displayList != null)
+                             {
+                                 display = displayList.Where(d => d.DisplayId != 0)
+                                                   .OrderByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.RefreshRate ?? 0)
+                                                   .ThenByDescending(d => d.Width)
+                                                   .FirstOrDefault() ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
+                             }
                         }
                         else
                         {
-                             display = displays.FirstOrDefault(d => d.DisplayId == 0);
+                             display = displays?.FirstOrDefault(d => d.DisplayId == 0);
                         }
                     }
                 }

@@ -38,7 +38,7 @@ namespace osu.Android.Input
             {
                  // If it's not a keyboard source, only allow if it's from a device that HAS a keyboard
                  var device = e.Device;
-                 if (device == null || device.KeyboardType == KeyboardType.None)
+                 if (device == null || device.KeyboardType == global::Android.Views.KeyboardType.None)
                      return false;
             }
 
