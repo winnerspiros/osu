@@ -14,11 +14,6 @@ namespace osu.Android.Input
     {
         public override string Description => "Mouse (Low Latency)";
         public override bool IsActive => Enabled.Value;
-        public override int Priority => 1;
-
-        private bool lastLeft;
-        private bool lastRight;
-        private bool lastMiddle;
 
         public AndroidMouseHandler()
         {
@@ -68,5 +63,9 @@ namespace osu.Android.Input
             if (right != lastRight) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, right)); lastRight = right; }
             if (middle != lastMiddle) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Middle, middle)); lastMiddle = middle; }
         }
+
+        private bool lastLeft;
+        private bool lastRight;
+        private bool lastMiddle;
     }
 }

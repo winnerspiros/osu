@@ -4,8 +4,8 @@
 using System;
 using Android.Views;
 using osu.Framework.Bindables;
-using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK;
@@ -16,12 +16,20 @@ namespace osu.Android.Input
     {
         public override string Description => "S Pen / Stylus (Low Latency)";
         public override bool IsActive => Enabled.Value;
-        public override int Priority => 0;
+
+        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
+        public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
+        public IBindable<TabletInfo?> Tablet => tablet;
+        public Bindable<float> Rotation { get; } = new Bindable<float>();
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.1f)
+        {
+            MinValue = 0.01f,
+            MaxValue = 0.9f,
+        };
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
-        public IBindable<TabletInfo?> Tablet => tablet;
-
-        public BindableDouble PressureThreshold { get; } = new BindableDouble(0.1) { MinValue = 0.01, MaxValue = 0.9 };
 
         private bool lastTipDown;
         private bool lastPrimaryDown;
@@ -32,13 +40,16 @@ namespace osu.Android.Input
             Enabled.Value = true;
         }
 
-        public override bool Initialize(GameHost host) => true;
+        public override bool Initialize(GameHost host)
+        {
+            tablet.Value = new TabletInfo("S Pen", new Vector2(2000, 1000));
+            return base.Initialize(host);
+        }
 
         public void HandleMotionEvent(MotionEvent e)
         {
             if (!Enabled.Value) return;
 
-            // Handle hover entry/exit separately if needed, but for now we focus on position and buttons.
             if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
                 if (lastTipDown) { PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Tip, false)); lastTipDown = false; }
@@ -64,10 +75,6 @@ namespace osu.Android.Input
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
-            // Read tilt and orientation if available
-            float tilt = historyIndex < 0 ? e.GetAxisValue(Axis.Tilt, pointer_index) : e.GetHistoricalAxisValue(Axis.Tilt, pointer_index, historyIndex);
-            float orientation = historyIndex < 0 ? e.GetAxisValue(Axis.Orientation, pointer_index) : e.GetHistoricalAxisValue(Axis.Orientation, pointer_index, historyIndex);
-
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
                 var currentSize = tablet.Value?.Size ?? Vector2.Zero;
@@ -75,7 +82,6 @@ namespace osu.Android.Input
                 tablet.Value = new TabletInfo("S Pen", newSize);
             }
 
-            // Report position.
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
             bool isTipDown = pressure >= PressureThreshold.Value;
@@ -91,8 +97,6 @@ namespace osu.Android.Input
                 PendingInputs.Enqueue(new TabletPenButtonInput(TabletPenButton.Primary, isPrimaryDown));
                 lastPrimaryDown = isPrimaryDown;
             }
-
-            // Optionally could send tilt/orientation if the framework's TabletInfo/State supports it in this version.
         }
     }
 }

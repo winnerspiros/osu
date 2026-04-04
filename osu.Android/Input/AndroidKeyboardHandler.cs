@@ -13,7 +13,6 @@ namespace osu.Android.Input
     {
         public override string Description => "Keyboard (Low Latency)";
         public override bool IsActive => Enabled.Value;
-        public override int Priority => 1;
 
         public AndroidKeyboardHandler()
         {
@@ -27,12 +26,9 @@ namespace osu.Android.Input
         {
             if (!Enabled.Value) return false;
 
-            // Do not consume system keys
             if (e.KeyCode == Keycode.Back || e.KeyCode == Keycode.Home || e.KeyCode == Keycode.Menu || e.KeyCode == Keycode.VolumeUp || e.KeyCode == Keycode.VolumeDown || e.KeyCode == Keycode.VolumeMute)
                 return false;
 
-            // Only handle hardware keyboard events.
-            // IME (Soft Keyboard) usually has a different source or is handled via InputConnection.
             if ((e.Source & InputSourceType.Keyboard) != InputSourceType.Keyboard)
                 return false;
 
@@ -40,8 +36,6 @@ namespace osu.Android.Input
             if (key == Key.Unknown) return false;
 
             bool isDown = e.Action == KeyEventActions.Down;
-
-            // Suppress repeat events to avoid flooding the framework with redundant inputs
             if (e.RepeatCount > 0 && isDown) return true;
 
             PendingInputs.Enqueue(new KeyboardKeyInput(key, isDown));
