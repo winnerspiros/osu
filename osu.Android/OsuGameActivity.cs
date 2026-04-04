@@ -52,6 +52,8 @@ namespace osu.Android
 
         public new bool IsTablet { get; private set; }
         internal AndroidStylusHandler? StylusHandler;
+        internal AndroidKeyboardHandler? KeyboardHandler;
+        internal AndroidMouseHandler? MouseHandler;
 
         private OsuGameAndroid? game;
 
@@ -122,6 +124,56 @@ namespace osu.Android
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
+
+        public override bool DispatchKeyEvent(KeyEvent? e)
+        {
+            if (e != null && KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e))
+                return true;
+
+            return base.DispatchKeyEvent(e);
+        }
+
+        public override bool DispatchTouchEvent(MotionEvent? e)
+        {
+            if (e == null) return base.DispatchTouchEvent(e);
+
+            if (isStylusEvent(e))
+            {
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
+            {
+                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
+                MouseHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            return base.DispatchTouchEvent(e);
+        }
+
+        public override bool DispatchGenericMotionEvent(MotionEvent? e)
+        {
+            if (e == null) return base.DispatchGenericMotionEvent(e);
+
+            if (isStylusEvent(e))
+            {
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
+            {
+                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
+                MouseHandler?.HandleMotionEvent(e);
+                return true;
+            }
+
+            return base.DispatchGenericMotionEvent(e);
+        }
 
         public override bool OnTouchEvent(MotionEvent? e)
         {

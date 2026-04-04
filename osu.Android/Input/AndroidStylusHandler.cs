@@ -8,7 +8,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osu.Framework.Logging;
 using osuTK;
 using osuTK.Input;
 
@@ -16,7 +15,8 @@ namespace osu.Android.Input
 {
     public class AndroidStylusHandler : InputHandler, ITabletHandler
     {
-        public override string Description => "S Pen / Stylus";
+        public override string Description => "S Pen / Stylus (Low Latency)";
+        public override bool IsActive => Enabled.Value;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
@@ -24,20 +24,16 @@ namespace osu.Android.Input
         public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
         public IBindable<TabletInfo?> Tablet => tablet;
         public Bindable<float> Rotation { get; } = new Bindable<float>();
-        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.05f)
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.1f)
         {
-            MinValue = 0f,
-            MaxValue = 1f,
-            Precision = 0.005f,
+            MinValue = 0.01f,
+            MaxValue = 0.9f,
         };
 
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
-        public override bool IsActive => Enabled.Value;
-
         private bool lastLeftDown;
         private bool lastRightDown;
-        private bool firstEventReceived;
 
         public AndroidStylusHandler()
         {
@@ -47,7 +43,6 @@ namespace osu.Android.Input
 
         public override bool Initialize(GameHost host)
         {
-            // Initial tablet info with a sane default. We'll refine this as events arrive.
             tablet.Value = new TabletInfo("S Pen", new Vector2(2000, 1000));
             return base.Initialize(host);
         }
@@ -56,13 +51,16 @@ namespace osu.Android.Input
         {
             if (!Enabled.Value) return;
 
-            if (!firstEventReceived)
+            // Handle hover entry/exit separately if needed, but for now we focus on position and buttons.
+            if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
-                Logger.Log($"[osu!] S Pen input detected. Source={e.Source}, ToolType={e.GetToolType(0)}", LoggingTarget.Input);
-                firstEventReceived = true;
+                if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
+                if (lastRightDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false)); lastRightDown = false; }
+
+                if (e.ActionMasked != MotionEventActions.HoverExit)
+                    return;
             }
 
-            // Process historical points for maximum accuracy.
             for (int i = 0; i < e.HistorySize; i++)
             {
                 handlePointer(e, i);
@@ -73,12 +71,12 @@ namespace osu.Android.Input
         private void handlePointer(MotionEvent e, int historyIndex)
         {
             const int pointer_index = 0;
+            if (e.PointerCount <= pointer_index) return;
 
             float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
-            // Dynamically update tablet bounds.
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
                 var currentSize = tablet.Value?.Size ?? Vector2.Zero;
@@ -86,10 +84,8 @@ namespace osu.Android.Input
                 tablet.Value = new TabletInfo("S Pen", newSize);
             }
 
-            // Report absolute position.
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
-            // Map pressure to mouse buttons.
             bool isLeftDown = pressure >= PressureThreshold.Value;
             if (isLeftDown != lastLeftDown)
             {
@@ -97,7 +93,6 @@ namespace osu.Android.Input
                 lastLeftDown = isLeftDown;
             }
 
-            // Map side button to Right Click.
             bool isRightDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
             if (isRightDown != lastRightDown)
             {
