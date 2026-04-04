@@ -927,7 +927,7 @@ namespace osu.Game.Online.Multiplayer
                 var existingItem = Room.Playlist.FirstOrDefault(e => e?.ID == item.ID);
                 if (existingItem != null)
                     Room.Playlist[Room.Playlist.IndexOf(existingItem)] = item;
-                APIRoom.Playlist = APIRoom.Playlist.Select((pi, i) => pi.ID == item.ID ? new PlaylistItem(item) : APIRoom.Playlist[i]).ToArray();
+                APIRoom.Playlist = APIRoom.Playlist.Select((pi, i) => pi?.ID == item.ID ? new PlaylistItem(item) : APIRoom.Playlist[i]).ToArray();
 
                 ItemChanged?.Invoke(item);
                 RoomUpdated?.Invoke();
