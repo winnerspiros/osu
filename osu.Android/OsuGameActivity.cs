@@ -1,7 +1,7 @@
+using osu.Android.Input;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Android.Input;
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
@@ -18,50 +18,109 @@ using System;
 using Uri = Android.Net.Uri;
 using osu.Framework.Android;
 using osu.Game.Database;
-using osu.Game;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Game.Online.Multiplayer;
-using osu.Framework.Platform;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Input;
-using osuTK;
+using osu.Android.Native;
+using osu.Framework.Logging;
 
 namespace osu.Android
 {
-    [Activity(Theme = "@android:style/Theme.NoTitleBar", MainLauncher = true, ScreenOrientation = ScreenOrientation.FullUser, SupportsPictureInPicture = false, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.UiMode)]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataPathPattern = ".*\\.osz")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataPathPattern = ".*\\.osk")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataPathPattern = ".*\\.osr")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataMimeType = "application/x-osu-beatmap-archive")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataMimeType = "application/x-osu-skin-archive")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "content", DataMimeType = "application/x-osu-replay")]
-    [IntentFilter(new[] { Intent.ActionSend, Intent.ActionSendMultiple }, Categories = new[] { Intent.CategoryDefault }, DataMimeType = "application/*")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "chan")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "edit")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "b")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "s")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "beatmapsets")]
-    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, DataScheme = "osu", DataHost = "users")]
-    public class OsuGameActivity : AndroidGameActivity
+    [Activity(ConfigurationChanges = DEFAULT_CONFIG_CHANGES, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "application/x-osu-replay")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-beatmap-archive")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-skin-archive")]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataMimeType = "application/x-osu-replay")]
+    [IntentFilter(new[] { Intent.ActionSend, Intent.ActionSendMultiple }, Categories = new[] { Intent.CategoryDefault }, DataMimeTypes = new[]
     {
+        "application/zip",
+        "application/octet-stream",
+        "application/download",
+        "application/x-zip",
+        "application/x-zip-compressed",
+        // newer official mime types (see https://osu.ppy.sh/wiki/en/osu%21_File_Formats).
+        "application/x-osu-beatmap-archive",
+        "application/x-osu-skin-archive",
+        "application/x-osu-replay",
+    })]
+    [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
+    public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
+    {
+        private static readonly string[] osu_url_schemes = { "osu", "osump" };
+
+        public ScreenOrientation DefaultOrientation = ScreenOrientation.Unspecified;
+
+        public new bool IsTablet { get; private set; }
         internal AndroidStylusHandler? StylusHandler;
         internal AndroidKeyboardHandler? KeyboardHandler;
         internal AndroidMouseHandler? MouseHandler;
 
-        protected override osu.Framework.Game CreateGame() => new OsuGameAndroid(this);
+        private OsuGameAndroid? game;
 
-        protected override void OnCreate(Bundle? savedBundle)
+        private bool gameCreated;
+
+        protected override osu.Framework.Game CreateGame()
         {
-            base.OnCreate(savedBundle);
+            if (gameCreated)
+                throw new InvalidOperationException("Framework tried to create a game twice.");
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
-            {
-                Window!.Attributes!.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
-            }
+            if (game == null)
+                throw new InvalidOperationException("Game was not initialised.");
+
+            gameCreated = true;
+            return game;
+        }
+
+        public OsuGameActivity()
+        {
+            game = new OsuGameAndroid(this);
+        }
+
+        protected override void OnCreate(Bundle? savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+
+            Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            Window?.DecorView.Post(() => GetSurface()?.Holder?.AddCallback(this));
 
             handleIntent(Intent);
+
+            if (Window != null)
+            {
+                Window.AddFlags(WindowManagerFlags.Fullscreen);
+                Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+
+                // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
+                if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                {
+                    try
+                    {
+                        Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
+                    }
+                }
+            }
+
+            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
+            {
+                Point displaySize = new Point();
+#pragma warning disable CA1422
+                WindowManager.DefaultDisplay.GetSize(displaySize);
+#pragma warning restore CA1422
+                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
+                IsTablet = smallestWidthDp >= 600f;
+            }
+
+            RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
+
+            foreach (string asm in new[] { "osu.Game.Rulesets.Osu", "osu.Game.Rulesets.Taiko", "osu.Game.Rulesets.Catch", "osu.Game.Rulesets.Mania" })
+            {
+                try { Assembly.Load(asm); }
+                catch (Exception e) { Debug.WriteLine($"[osu!] Failed to load ruleset assembly {asm}: {e.Message}"); }
+            }
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
@@ -80,14 +139,14 @@ namespace osu.Android
 
             if (isStylusEvent(e))
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Stylus);
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
                 StylusHandler?.HandleMotionEvent(e);
                 return true;
             }
 
-            if (isMouseEvent(e))
+            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
             {
-                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Mouse);
+                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
                 MouseHandler?.HandleMotionEvent(e);
                 return true;
             }
@@ -101,14 +160,14 @@ namespace osu.Android
 
             if (isStylusEvent(e))
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Stylus);
+                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter) Window?.DecorView.RequestUnbufferedDispatch(e);
                 StylusHandler?.HandleMotionEvent(e);
                 return true;
             }
 
-            if (isMouseEvent(e))
+            if ((e.Source & InputSourceType.Mouse) == InputSourceType.Mouse)
             {
-                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView?.RequestUnbufferedDispatch((int)InputSourceType.Mouse);
+                if (e.ActionMasked == MotionEventActions.Down) Window?.DecorView.RequestUnbufferedDispatch(e);
                 MouseHandler?.HandleMotionEvent(e);
                 return true;
             }
@@ -116,25 +175,143 @@ namespace osu.Android
             return base.DispatchGenericMotionEvent(e);
         }
 
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if (e != null && isStylusEvent(e))
+            {
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+            return base.OnTouchEvent(e);
+        }
+
+        public override bool OnGenericMotionEvent(MotionEvent? e)
+        {
+            if (e != null && isStylusEvent(e))
+            {
+                StylusHandler?.HandleMotionEvent(e);
+                return true;
+            }
+            return base.OnGenericMotionEvent(e);
+        }
+
         private bool isStylusEvent(MotionEvent e)
         {
+            // Check source first, as it's the most reliable indicator on some devices.
             if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
                 return true;
 
-            if (e.PointerCount > 0 && e.GetToolType(0) == MotionEventToolType.Stylus)
-                return true;
-
+            // Check tool type for each pointer.
+            for (int i = 0; i < e.PointerCount; i++)
+            {
+                var toolType = e.GetToolType(i);
+                if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
+                    return true;
+            }
             return false;
         }
 
-        private bool isMouseEvent(MotionEvent e)
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
-            return (e.Source & InputSourceType.Mouse) == InputSourceType.Mouse;
+            Microsoft.Maui.ApplicationModel.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
         private void handleIntent(Intent? intent)
         {
-            // Implementation...
+            if (intent == null) return;
+
+            switch (intent.Action)
+            {
+                case Intent.ActionDefault:
+                    if (intent.Scheme == ContentResolver.SchemeContent)
+                    {
+                        if (intent.Data != null) handleImportFromUris(intent.Data);
+                    }
+                    else if (osu_url_schemes.Contains(intent.Scheme))
+                    {
+                        if (intent.DataString != null) game?.HandleLink(intent.DataString);
+                    }
+                    break;
+
+                case Intent.ActionSend:
+                case Intent.ActionSendMultiple:
+                    if (intent.ClipData == null) break;
+                    var uris = new List<Uri>();
+                    for (int i = 0; i < intent.ClipData.ItemCount; i++)
+                    {
+                        var item = intent.ClipData.GetItemAt(i);
+                        if (item?.Uri != null) uris.Add(item.Uri);
+                    }
+                    handleImportFromUris(uris.ToArray());
+                    break;
+            }
+        }
+
+        private void handleImportFromUris(params Uri[] uris) => Task.Factory.StartNew(async () =>
+        {
+            var tasks = new List<ImportTask>();
+            await Task.WhenAll(uris.Select(async uri =>
+            {
+                var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
+                if (task != null) { lock (tasks) { tasks.Add(task); } }
+            })).ConfigureAwait(false);
+            if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
+        }, TaskCreationOptions.LongRunning);
+
+        private readonly System.Threading.ManualResetEventSlim surfaceEvent = new System.Threading.ManualResetEventSlim(false);
+        private IntPtr surfaceGlobalRef;
+
+        public IntPtr GetSurfaceGlobalRef()
+        {
+            if (!surfaceEvent.Wait(5000))
+                Debug.WriteLine("[osu!] Warning: Wait for surface timed out");
+            return surfaceGlobalRef;
+        }
+
+        public SurfaceView? GetSurface() => findSurfaceView(Window?.DecorView);
+
+        private static SurfaceView? findSurfaceView(View? view)
+        {
+            if (view is SurfaceView surfaceView) return surfaceView;
+            if (view is ViewGroup group)
+            {
+                for (int i = 0; i < group.ChildCount; i++)
+                {
+                    var result = findSurfaceView(group.GetChildAt(i));
+                    if (result != null) return result;
+                }
+            }
+            return null;
+        }
+
+        public void SurfaceCreated(ISurfaceHolder holder)
+        {
+            var surface = holder.Surface;
+            if (surface != null && surface.IsValid)
+            {
+                IntPtr handle = surface.Handle;
+                if (handle == IntPtr.Zero) return;
+                {
+                    surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                    surfaceEvent.Set();
+                    Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                }
+            }
+        }
+
+        public void SurfaceChanged(ISurfaceHolder holder, global::Android.Graphics.Format format, int width, int height)
+        {
+        }
+
+        public void SurfaceDestroyed(ISurfaceHolder holder)
+        {
+            if (surfaceGlobalRef != IntPtr.Zero)
+            {
+                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
+                surfaceGlobalRef = IntPtr.Zero;
+            }
+            surfaceEvent.Reset();
         }
     }
 }
