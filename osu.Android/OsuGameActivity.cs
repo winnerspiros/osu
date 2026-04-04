@@ -52,6 +52,7 @@ namespace osu.Android
         public ScreenOrientation DefaultOrientation = ScreenOrientation.Unspecified;
 
         public new bool IsTablet { get; private set; }
+        public bool IsDeX { get; private set; }
         internal AndroidStylusHandler? StylusHandler;
         internal AndroidKeyboardHandler? KeyboardHandler;
         internal AndroidMouseHandler? MouseHandler;

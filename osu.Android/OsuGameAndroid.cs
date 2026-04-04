@@ -14,6 +14,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using osu.Android.Native;
+using osu.Framework.Logging;
 using osu.Framework;
 using osu.Android.Input;
 using osu.Framework.Allocation;
