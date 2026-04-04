@@ -80,6 +80,8 @@ namespace osu.Android.Input
             float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
+            float tiltX = e.GetAxisValue(Axis.Tilt, pointer_index);
+            float tiltY = e.GetAxisValue(Axis.Orientation, pointer_index);
 
             // DeX windowed mode offset correction
             if (View != null)

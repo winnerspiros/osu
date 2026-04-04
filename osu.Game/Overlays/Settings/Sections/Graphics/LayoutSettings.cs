@@ -266,6 +266,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 var fullscreenResolutions = display.NewValue.DisplayModes
                                                    .Where(m => m.Size.Width >= 800 && m.Size.Height >= 600)
                                                    .OrderByDescending(m => Math.Max(m.Size.Height, m.Size.Width))
+                                                   .ThenByDescending(m => m.RefreshRate)
                                                    .Select(m => m.Size)
                                                    .Distinct()
                                                    .ToList();
@@ -361,10 +362,10 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
         private void updateDisplaySettingsVisibility()
         {
-            resolutionFullscreenCanBeShown.Value = windowModeDropdown.Current.Value == WindowMode.Fullscreen && resolutionsFullscreen.Count > 1;
+            resolutionFullscreenCanBeShown.Value = (windowModeDropdown.Current.Value == WindowMode.Fullscreen && resolutionsFullscreen.Count > 1) || RuntimeInfo.OS == RuntimeInfo.Platform.Android;
             resolutionWindowedCanBeShown.Value = windowModeDropdown.Current.Value == WindowMode.Windowed && resolutionsWindowed.Count > 1;
 
-            displayDropdownCanBeShown.Value = displayDropdown.Items.Count() > 1;
+            displayDropdownCanBeShown.Value = displayDropdown.Items.Count() > 1 || RuntimeInfo.OS == RuntimeInfo.Platform.Android;
             minimiseOnFocusLossCanBeShown.Value = RuntimeInfo.IsDesktop && windowModeDropdown.Current.Value == WindowMode.Fullscreen;
             safeAreaConsiderationsCanBeShown.Value = host.Window?.SafeAreaPadding.Value.Total != Vector2.Zero;
         }
