@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Humanizer;
@@ -43,9 +43,9 @@ using osu.Game.Input;
 using osu.Game.Input.Bindings;
 using osu.Game.IO;
 using osu.Game.Localisation;
-using osu.Game.Online.Chat;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.Chat;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
@@ -81,7 +81,6 @@ using osuTK.Graphics;
 using Sentry;
 using IntroScreen = osu.Game.Screens.Menu.IntroScreen;
 using MatchType = osu.Game.Online.Rooms.MatchType;
-using System.Runtime.CompilerServices;
 
 namespace osu.Game
 {
