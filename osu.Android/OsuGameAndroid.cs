@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -28,9 +29,11 @@ using Android.Views;
 using Android.OS;
 using System.IO;
 
+using OSUDebug = System.Diagnostics.Debug;
+
 namespace osu.Android
 {
-    public class OsuGameAndroid : OsuGame
+    public partial class OsuGameAndroid : OsuGame
     {
         [Resolved]
         private OsuConfigManager config { get; set; } = null!;
@@ -48,7 +51,7 @@ namespace osu.Android
         private IEnumerable? activeMixersList;
         private object? activeMixersHandler;
 
-        private readonly Bindable<double> audioOffset = new BindableDouble();
+        private readonly BindableNumber<double> audioOffset = new BindableDouble();
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -60,9 +63,9 @@ namespace osu.Android
         {
             base.LoadComplete();
 
-            highPerformanceSession = new AndroidHighPerformanceSessionManager(this);
+            highPerformanceSession = new AndroidHighPerformanceSessionManager();
 
-            lowLatencyAudio = config.GetBindable<bool>(OsuSetting.LowLatencyAudio);
+            lowLatencyAudio = config.GetBindable<bool>(OsuSetting.AndroidLowLatencyAudio);
             lowLatencyAudio.BindValueChanged(onLowLatencyAudioChanged, true);
 
             config.BindWith(OsuSetting.AudioOffset, audioOffset);
@@ -71,7 +74,7 @@ namespace osu.Android
             if (!gameActivity.IsDeX && !gameActivity.IsTablet)
                 Scheduler.AddDelayed(updateOrientation, 1000, true);
 
-            applyHighestRefreshRate();
+            SelectHighestRefreshRate();
 
             // Observe the AudioManager's active mixers to dynamically refresh the audio redirector's source handles.
             // This ensures new audio sources are captured even after initial startup.
@@ -93,7 +96,7 @@ namespace osu.Android
                             activeMixersHandler = new Action<object, object>((_1, _2) =>
                             {
                                 if (audioRedirector != null && lowLatencyAudio.Value)
-                                    audioRedirector.RefreshMixers();
+                                    audioRedirector.RefreshMixers(hardwareSampleRateCached);
                             });
 
                             bindCollectionChangedMethod.Invoke(activeMixersList, new[] { activeMixersHandler });
@@ -103,9 +106,11 @@ namespace osu.Android
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to bind to active mixers: {e.Message}");
+                OSUDebug.WriteLine($"[osu!] Failed to bind to active mixers: {e.Message}");
             }
         }
+
+        private int hardwareSampleRateCached;
 
         private void onLowLatencyAudioChanged(ValueChangedEvent<bool> enabled)
         {
@@ -125,8 +130,10 @@ namespace osu.Android
                 }
                 catch { }
 
+                hardwareSampleRateCached = hardwareSampleRate;
+
                 if (audioRedirector == null)
-                    audioRedirector = new OboeAudioRedirector(Audio, hardwareSampleRate);
+                    audioRedirector = new OboeAudioRedirector(Audio);
 
                 try
                 {
@@ -134,16 +141,16 @@ namespace osu.Android
                     {
                         double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                         audioOffset.Value = suggested;
-                        Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                        OSUDebug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                     }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate > 0 ? sampleRate : hardwareSampleRate);
-                        Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
+                        OSUDebug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
                     });
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
+                    OSUDebug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
                     lowLatencyAudio.Value = false;
                 }
             }
@@ -155,7 +162,7 @@ namespace osu.Android
             }
         }
 
-        private void applyHighestRefreshRate()
+        public void SelectHighestRefreshRate()
         {
             try
             {
@@ -215,18 +222,18 @@ namespace osu.Android
                         {
                             layoutParams.PreferredDisplayModeId = preferred.ModeId;
                             window.Attributes = layoutParams;
-                            Debug.WriteLine($"[osu!] Highest refresh rate selected: {preferred.RefreshRate}Hz (mode {preferred.ModeId})");
+                            OSUDebug.WriteLine($"[osu!] Highest refresh rate selected: {preferred.RefreshRate}Hz (mode {preferred.ModeId})");
                         }
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"[osu!] Failed to apply preferred display mode: {e.Message}");
+                        OSUDebug.WriteLine($"[osu!] Failed to apply preferred display mode: {e.Message}");
                     }
                 });
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to query supported display modes: {e.Message}");
+                OSUDebug.WriteLine($"[osu!] Failed to query supported display modes: {e.Message}");
             }
         }
 
@@ -348,7 +355,7 @@ namespace osu.Android
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"[osu!] Failed to update orientation: {e.Message}");
+                    OSUDebug.WriteLine($"[osu!] Failed to update orientation: {e.Message}");
                 }
             });
         }
@@ -380,10 +387,10 @@ namespace osu.Android
                     if (disabledExtensions.Count > 0)
                         System.Environment.SetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS", string.Join(",", disabledExtensions));
 
-                    Debug.WriteLine($"[osu!] Performance overrides applied: VULKAN_MODE={System.Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, GL_THREAD=true");
+                    OSUDebug.WriteLine($"[osu!] Performance overrides applied: VULKAN_MODE={System.Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, GL_THREAD=true");
                 }
             }
-            catch (Exception e) { Debug.WriteLine($"[osu!] Failed to set performance overrides: {e.Message}"); }
+            catch (Exception e) { OSUDebug.WriteLine($"[osu!] Failed to set performance overrides: {e.Message}"); }
 
             base.SetHost(host);
 
@@ -420,8 +427,7 @@ namespace osu.Android
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
-                highPerformanceSession?.Dispose();
-                highPerformanceSession = null;
+                // highPerformanceSession is not disposable based on the previous cat output
             }
         }
 
