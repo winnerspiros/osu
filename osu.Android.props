@@ -42,4 +42,17 @@
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
     <DisableFody>true</DisableFody>
   </PropertyGroup>
+
+  <!-- WORKAROUND: Fix NativeAOT ILC failure on .NET 10 Android (early 2026 regression).
+       The SDK incorrectly stamps AssetType="runtime" on non-DLL files (pdb, so, dbg)
+       in the runtime pack, causing the AOT compiler to fail with BadImageFormatException.
+       This target fixes the metadata before the SDK uses it.
+       See: https://github.com/dotnet/runtime/pull/126214 -->
+  <Target Name="FixRuntimePackAssetTypes" AfterTargets="_AddRuntimeLibsToPublishAssets" BeforeTargets="ComputeManagedAssembliesToCompileToNative">
+    <ItemGroup>
+      <RuntimePackAsset Condition="'%(Extension)' != '.dll'">
+        <AssetType>native</AssetType>
+      </RuntimePackAsset>
+    </ItemGroup>
+  </Target>
 </Project>

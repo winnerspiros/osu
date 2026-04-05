@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+using System.Diagnostics.CodeAnalysis;
 
 using System;
 using System.Collections.Generic;
@@ -340,6 +341,7 @@ namespace osu.Game.Database
             completeNotification(notification, processedCount, beatmapIds.Count, failedCount);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ScoreInfo.MaximumStatistics is already part of the trimming-safe path in Realm/Json serialization.")]
         private void processScoresWithMissingStatistics()
         {
             HashSet<Guid> scoreIds = new HashSet<Guid>();

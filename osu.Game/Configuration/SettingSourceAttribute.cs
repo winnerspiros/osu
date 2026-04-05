@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+using System.Diagnostics.CodeAnalysis;
 
 using System;
 using System.Collections.Concurrent;
@@ -42,6 +43,7 @@ namespace osu.Game.Configuration
         /// <remarks>
         /// Must be a type deriving <see cref="SettingsItem{T}"/> with a public parameterless constructor.
         /// </remarks>
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties)]
         public Type? SettingControlType { get; set; }
 
         public SettingSourceAttribute(Type declaringType, string label, string? description = null)
@@ -109,6 +111,9 @@ namespace osu.Game.Configuration
 
     public static partial class SettingSourceExtensions
     {
+        [UnconditionalSuppressMessage("Trimming", "IL2006", Justification = "The ModSettingsEnumDropdown is correctly generated for the bindable type.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "The ModSettingsEnumDropdown is correctly generated for the bindable type.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "The ModSettingsEnumDropdown is correctly generated for the bindable type.")]
         public static IEnumerable<Drawable> CreateSettingsControls(this object obj)
         {
             foreach (var (attr, property) in obj.GetOrderedSettingsSourceProperties())
@@ -260,7 +265,7 @@ namespace osu.Game.Configuration
             return properties;
         }
 
-        private static IEnumerable<(SettingSourceAttribute, PropertyInfo)> getSettingsSourceProperties(Type type)
+        private static IEnumerable<(SettingSourceAttribute, PropertyInfo)> getSettingsSourceProperties([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
         {
             foreach (var property in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
             {
