@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Bindables;
@@ -14,6 +15,7 @@ namespace osu.Game.Utils
         private static readonly MethodInfo get_method = typeof(BindableValueAccessor).GetMethod(nameof(getValue), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo set_method = typeof(BindableValueAccessor).GetMethod(nameof(setValue), BindingFlags.Static | BindingFlags.NonPublic)!;
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Bindables must preserve interfaces for core logic.")]
         public static object GetValue(IBindable bindable)
         {
             Type? bindableWithValueType = bindable.GetType().GetInterfaces().FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IBindable<>));
@@ -23,6 +25,7 @@ namespace osu.Game.Utils
             return get_method.MakeGenericMethod(bindableWithValueType.GenericTypeArguments[0]).Invoke(null, [bindable])!;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Bindables must preserve base types for core logic.")]
         public static void SetValue(IBindable bindable, object value)
         {
             Type? bindableWithValueType = bindable.GetType().EnumerateBaseTypes().SingleOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Bindable<>));
