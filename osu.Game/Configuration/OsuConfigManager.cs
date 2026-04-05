@@ -125,6 +125,7 @@ namespace osu.Game.Configuration
 
             // Graphics
             SetDefault(OsuSetting.ShowFpsDisplay, false);
+            SetDefault(OsuSetting.RefreshRateFullscreen, 0.0);
 
             SetDefault(OsuSetting.ShowStoryboard, true);
             SetDefault(OsuSetting.BeatmapSkins, true);
@@ -499,5 +500,6 @@ namespace osu.Game.Configuration
         AndroidPerformanceMode,
         AndroidLowLatencyAudio,
         AndroidVulkanProbe,
+        RefreshRateFullscreen,
     }
 }

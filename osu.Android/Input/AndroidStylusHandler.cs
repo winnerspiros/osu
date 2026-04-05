@@ -101,15 +101,9 @@ namespace osu.Android.Input
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
             bool isLeftDown = pressure >= PressureThreshold.Value;
-            // Fallback for primary button in DeX or if pressure is zero on some devices
-            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.Move)
-            {
-                 if (e.ActionMasked == MotionEventActions.Down) isLeftDown = true;
-            }
-            else if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
-            {
-                 isLeftDown = false;
-            }
+            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.ButtonPress) isLeftDown = true;
+            else if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.ButtonRelease || e.ActionMasked == MotionEventActions.Cancel) isLeftDown = false;
+            else if (e.ActionMasked == MotionEventActions.Move && (e.ButtonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
 
             if (isLeftDown != lastLeftDown)
             {

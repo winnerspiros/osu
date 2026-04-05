@@ -449,7 +449,7 @@ namespace osu.Android
         {
             get
             {
-                string status = (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? (IsOboeEnabled ? "Initializing..." : string.Empty);
+                string status = (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? (IsOboeEnabled ? "Initializing..." : "Disabled");
                 if (IsOboeEnabled && audioRedirector != null && !audioRedirector.IsRedirecting && IsOboeActive)
                     status += " [No Redirect]";
                 return status;

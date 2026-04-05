@@ -247,8 +247,8 @@ namespace osu.Game.Graphics.UserInterface
                 if (!string.IsNullOrEmpty(Game.VulkanStatus))
                     status += $" | {Game.VulkanStatus}";
 
-                if (Game.IsOboeActive)
-                    status += $" | Oboe: {Game.OboeStatus} ({Game.OboeLatency:F1}ms)";
+                if (Game.IsOboeEnabled)
+                    status += $" | Oboe: {Game.OboeStatus}{(Game.IsOboeActive ? $" ({Game.OboeLatency:F1}ms)" : "")}";
             }
 
             counterDrawFPS.Text = status;

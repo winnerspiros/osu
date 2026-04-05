@@ -36,6 +36,10 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
         private Bindable<Size> sizeFullscreen = null!;
         private Bindable<Size> sizeWindowed = null!;
 
+        private readonly BindableList<double> refreshRates = new BindableList<double>(new[] { 0.0 });
+        private Bindable<double> refreshRate = null!;
+        private readonly BindableBool refreshRateCanBeShown = new BindableBool(true);
+
         private readonly BindableList<Size> resolutionsFullscreen = new BindableList<Size>(new[] { new Size(9999, 9999) });
         private readonly BindableList<Size> resolutionsWindowed = new BindableList<Size>();
         private readonly Bindable<Size> windowedResolution = new Bindable<Size>();
@@ -89,6 +93,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             scalingPositionX = osuConfig.GetBindable<float>(OsuSetting.ScalingPositionX);
             scalingPositionY = osuConfig.GetBindable<float>(OsuSetting.ScalingPositionY);
             scalingBackgroundDim = osuConfig.GetBindable<float>(OsuSetting.ScalingBackgroundDim);
+            refreshRate = osuConfig.GetBindable<double>(OsuSetting.RefreshRateFullscreen);
 
             windowedResolution.Value = sizeWindowed.Value;
 
@@ -130,6 +135,16 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 })
                 {
                     CanBeShown = { BindTarget = resolutionFullscreenCanBeShown },
+                    ShowRevertToDefaultButton = false,
+                },
+                new SettingsItemV2(new RefreshRateDropdown
+                {
+                    Caption = GraphicsSettingsStrings.RefreshRate,
+                    ItemSource = refreshRates,
+                    Current = refreshRate
+                })
+                {
+                    CanBeShown = { BindTarget = refreshRateCanBeShown },
                     ShowRevertToDefaultButton = false,
                 },
                 new SettingsItemV2(resolutionWindowedDropdown = new ResolutionDropdown
@@ -312,6 +327,9 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 windowedPositionX.Value = dBounds.Width - w != 0 ? (dUsable.X - dBounds.X + (dUsable.Width - w) / 2f) / (dBounds.Width - w) : 0;
             });
 
+            sizeFullscreen.BindValueChanged(_ => updateRefreshRates());
+            refreshRate.BindValueChanged(_ => updateRefreshRates());
+
             sizeWindowed.BindValueChanged(size =>
             {
                 if (size.NewValue != windowedResolution.Value)
@@ -360,6 +378,30 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             }, displays);
         }
 
+        private void updateRefreshRates()
+        {
+            var display = currentDisplay.Value;
+            if (display == null)
+            {
+                refreshRates.ReplaceRange(1, refreshRates.Count - 1, Array.Empty<double>());
+                return;
+            }
+
+            var rates = display.DisplayModes
+                               .Where(m => m.Size == sizeFullscreen.Value)
+                               .Select(m => (double)m.RefreshRate)
+                               .OrderByDescending(r => r)
+                               .Distinct()
+                               .ToList();
+
+            refreshRates.ReplaceRange(1, refreshRates.Count - 1, rates);
+
+            if (!refreshRates.Contains(refreshRate.Value))
+                refreshRate.Value = 0;
+
+            updateDisplaySettingsVisibility();
+        }
+
         private void updateDisplaySettingsVisibility()
         {
             resolutionFullscreenCanBeShown.Value = (windowModeDropdown.Current.Value == WindowMode.Fullscreen && resolutionsFullscreen.Count > 1) || RuntimeInfo.OS == RuntimeInfo.Platform.Android;
@@ -368,6 +410,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             displayDropdownCanBeShown.Value = displayDropdown.Items.Count() > 1 || RuntimeInfo.OS == RuntimeInfo.Platform.Android;
             minimiseOnFocusLossCanBeShown.Value = RuntimeInfo.IsDesktop && windowModeDropdown.Current.Value == WindowMode.Fullscreen;
             safeAreaConsiderationsCanBeShown.Value = host.Window?.SafeAreaPadding.Value.Total != Vector2.Zero;
+            refreshRateCanBeShown.Value = resolutionFullscreenCanBeShown.Value && refreshRates.Count > 1;
         }
 
         private void updateScreenModeWarning()
@@ -462,6 +505,17 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             protected override LocalisableString GenerateItemText(Display item)
             {
                 return $"{item.Index}: {item.Name} ({item.Bounds.Width}x{item.Bounds.Height})";
+            }
+        }
+
+        private partial class RefreshRateDropdown : FormDropdown<double>
+        {
+            protected override LocalisableString GenerateItemText(double item)
+            {
+                if (item == 0)
+                    return CommonStrings.Default;
+
+                return $"{item:N1}Hz";
             }
         }
 

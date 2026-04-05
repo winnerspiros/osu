@@ -85,6 +85,11 @@ namespace osu.Android
                 return;
             }
 
+            if (!Bass.GetDeviceInfo(0, out var info) || !info.IsInitialized)
+            {
+                if (!Bass.Init(0, sampleRate) && Bass.LastError != Errors.Already) return;
+            }
+
             if (!setupMasterMixer())
             {
                 Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
@@ -283,7 +288,7 @@ namespace osu.Android
                     if (isHandleType(field.FieldType))
                     {
                         string name = field.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
+                        if (name == "mixerhandle" || name == "handle" || name == "_handle" || name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
                         {
                             int h = convertToHandle(field.GetValue(obj));
                             if (h != 0) return h;

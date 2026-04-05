@@ -52,6 +52,8 @@ namespace osu.Game.Localisation
         /// <summary>
         /// "Resolution"
         /// </summary>
+        public static LocalisableString RefreshRate => new TranslatableString(getKey(@"refresh_rate"), @"Refresh rate");
+
         public static LocalisableString Resolution => new TranslatableString(getKey(@"resolution"), @"Resolution");
 
         /// <summary>
