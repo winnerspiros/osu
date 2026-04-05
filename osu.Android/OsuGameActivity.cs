@@ -103,7 +103,7 @@ namespace osu.Android
                 {
                     try
                     {
-                        ViewConfiguration config = ViewConfiguration.Get(this);
+                        var config = ViewConfiguration.Get(this);
                         if (config != null)
                         {
                              Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
