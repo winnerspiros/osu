@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Collections.Generic.PriorityQueue'2" preserve="all" />
+  </assembly>
+</linker>

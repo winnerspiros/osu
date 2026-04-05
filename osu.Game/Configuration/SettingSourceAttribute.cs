@@ -46,7 +46,7 @@ namespace osu.Game.Configuration
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties)]
         public Type? SettingControlType { get; set; }
 
-        public SettingSourceAttribute(Type declaringType, string label, string? description = null)
+        public SettingSourceAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicNestedTypes | DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicEvents)] Type declaringType, string label, string? description = null)
         {
             Label = getLocalisableStringFromMember(label) ?? string.Empty;
             Description = getLocalisableStringFromMember(description) ?? string.Empty;
@@ -81,7 +81,7 @@ namespace osu.Game.Configuration
             Description = description ?? string.Empty;
         }
 
-        public SettingSourceAttribute(Type declaringType, string label, string description, int orderPosition)
+        public SettingSourceAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicNestedTypes | DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicEvents)] Type declaringType, string label, string description, int orderPosition)
             : this(declaringType, label, description)
         {
             OrderPosition = orderPosition;
@@ -255,6 +255,7 @@ namespace osu.Game.Configuration
             }
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Settings sources rely on reflection over properties.")]
         public static IEnumerable<(SettingSourceAttribute, PropertyInfo)> GetSettingsSourceProperties(this object obj)
         {
             var type = obj.GetType();
