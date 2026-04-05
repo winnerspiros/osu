@@ -10,6 +10,7 @@
 #include <mutex>
 #include <functional>
 #include <memory>
+#include <string>
 
 /// Callback function type for providing PCM audio data to the Oboe stream.
 /// Returns the number of frames actually written to the buffer.
@@ -32,6 +33,7 @@ public:
     int32_t getBufferSizeInFrames() const;
     bool isAAudio() const;
     bool isMMap() const;
+    const char* getLastError() const;
     void setProvider(OboeAudioProvider provider);
 
     // oboe::AudioStreamCallback
@@ -53,6 +55,7 @@ private:
     std::atomic<OboeAudioProvider> provider_{nullptr};
     std::atomic<bool> affinitySet_{false};
     int32_t requestedSampleRate_{0};
+    std::string lastError_{"No error"};
 
     void updateLatency();
     bool reopenAndRestart();

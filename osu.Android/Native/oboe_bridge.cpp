@@ -2,41 +2,39 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #include "oboe_bridge.h"
-#include <oboe/OboeExtensions.h>
-#include <oboe/AudioClock.h>
+#include <android/log.h>
 #include <sched.h>
 #include <unistd.h>
-#include <sys/syscall.h>
-#include <android/log.h>
-#include <cstdint>
 #include <cstring>
-#include <vector>
 #include <algorithm>
-typedef uint8_t byte;
+#include <vector>
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 OboeBridge::OboeBridge() {
-    LOGI("OboeBridge created");
+    LOGI("Oboe bridge created");
 }
 
 OboeBridge::~OboeBridge() {
     stop();
-    LOGI("OboeBridge destroyed");
+    LOGI("Oboe bridge destroyed");
+}
+
+const char* OboeBridge::getLastError() const {
+    return lastError_.c_str();
 }
 
 bool OboeBridge::open(int32_t sampleRate) {
     std::lock_guard<std::mutex> lock(streamLock_);
+
+    if (stream_) {
+        LOGE("Stream already opened");
+        return true;
+    }
+
     requestedSampleRate_ = sampleRate;
-
-    // Low-latency MMAP path requires explicit enabling in Oboe.
-    // MMAP provides direct access to audio hardware buffers, shaving ~1-2ms off latency.
-    oboe::OboeExtensions::setMMapEnabled(true);
-
-    // Initialise StabilizedCallback to even out callback execution time.
-    stabilizedCallback_ = std::make_unique<oboe::StabilizedCallback>(this);
 
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
@@ -44,50 +42,38 @@ bool OboeBridge::open(int32_t sampleRate) {
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
            ->setChannelCount(oboe::ChannelCount::Stereo)
-           ->setSampleRate(sampleRate > 0 ? sampleRate : oboe::kUnspecified)
-           ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::None)
-           ->setContentType(oboe::ContentType::Music)
-           ->setUsage(oboe::Usage::Game)
-           ->setAudioApi(oboe::AudioApi::AAudio)
-           ->setFramesPerCallback(oboe::kUnspecified)
-           ->setBufferCapacityInFrames(oboe::kUnspecified)
-           ->setChannelConversionAllowed(false)
-           ->setFormatConversionAllowed(false)
-           ->setCallback(stabilizedCallback_.get());
+           ->setCallback(this);
+
+    if (sampleRate > 0) {
+        builder.setSampleRate(sampleRate);
+    }
 
     oboe::Result result = builder.openStream(stream_);
 
     if (result != oboe::Result::OK) {
-        LOGE("AAudio open failed (%s), falling back to unspecified API",
-             oboe::convertToText(result));
-        builder.setAudioApi(oboe::AudioApi::Unspecified);
+        // Fallback to shared mode if exclusive failed.
+        LOGI("Failed to open exclusive stream (%s), falling back to Shared mode", oboe::convertToText(result));
         builder.setSharingMode(oboe::SharingMode::Shared);
         result = builder.openStream(stream_);
     }
 
     if (result != oboe::Result::OK) {
+        lastError_ = std::string("Open failed: ") + oboe::convertToText(result);
         LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
         return false;
     }
 
-    // Enable ADPF (Android Dynamic Performance Framework) hint support.
-    // This allows the system to prioritize our audio thread for stable low latency.
+    // Set a performance hint for ADPF if available (Oboe 1.10+)
     stream_->setPerformanceHintEnabled(true);
 
-    // Set buffer size to 2x burst size for initial stability.
-    // LatencyTuner will then attempt to shrink it to 1x burst if stable.
-    stream_->setBufferSizeInFrames(stream_->getFramesPerBurst() * 2);
+    int32_t burstSize = stream_->getFramesPerBurst();
+    stream_->setBufferSizeInFrames(burstSize * 2);
 
-    // Initialise LatencyTuner for dynamic buffer management.
     tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
 
-    LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
-         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
-         stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
+    LOGI("Oboe stream opened: rate=%d, api=%s, sharing=%s, mmap=%s",
          stream_->getSampleRate(),
-         stream_->getFramesPerBurst(),
-         stream_->getBufferSizeInFrames(),
-         stream_->getBufferCapacityInFrames(),
+         stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
          stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared",
          oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
 
@@ -98,6 +84,7 @@ bool OboeBridge::start() {
     std::lock_guard<std::mutex> lock(streamLock_);
 
     if (!stream_) {
+        lastError_ = "Start failed: Stream not opened";
         LOGE("Cannot start: stream not opened");
         return false;
     }
@@ -105,6 +92,7 @@ bool OboeBridge::start() {
     oboe::Result result = stream_->requestStart();
 
     if (result != oboe::Result::OK) {
+        lastError_ = std::string("Start failed: ") + oboe::convertToText(result);
         LOGE("Failed to start Oboe stream: %s", oboe::convertToText(result));
         return false;
     }
@@ -173,7 +161,6 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
-
     OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
 
     if (provider) {
@@ -191,34 +178,26 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         memset(audioData, 0, byteCount);
     }
 
-
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
     if ((count & 127) == 0) {
         updateLatency();
 
-        // Dynamically tune the buffer size to the lowest stable value.
         if (tuner_) {
             tuner_->tune();
         }
 
-        // Attempt to set CPU affinity to high-performance cores.
-        // We do this inside the audio callback to ensure we target the AAudio thread.
         if (!affinitySet_.load(std::memory_order_relaxed)) {
             cpu_set_t cpuset;
             CPU_ZERO(&cpuset);
 
             int num_cores = sysconf(_SC_NPROCESSORS_CONF);
             if (num_cores > 0) {
-                // S23 Ultra (Snapdragon 8 Gen 2) layout: 1 Prime + 2 Gold + 2 Gold + 3 Silver.
-                // Indices are typically: 0-2 (Silver), 3-4 (Gold), 5-6 (Gold), 7 (Prime).
-                // We want to target the Prime (7) and Gold (3-6) cores.
                 if (num_cores >= 8) {
                     for (int i = 3; i < num_cores; ++i) {
                         CPU_SET(i, &cpuset);
                     }
                 } else {
-                    // Fallback for devices with fewer cores.
                     for (int i = num_cores / 2; i < num_cores; ++i) {
                         CPU_SET(i, &cpuset);
                     }
@@ -307,8 +286,14 @@ OSU_EXPORT intptr_t nOboeCreate(int sampleRate) {
     if (!bridge) return 0;
 
     if (!bridge->open(sampleRate)) {
-        delete bridge;
-        return 0;
+        // We don't delete bridge here because the C# side might still call nOboeGetLastErrorMessage
+        // Actually, C# side checks for IntPtr.Zero. If we return 0, it won't have a handle.
+        // So we SHOULD return the bridge even if open fails, so C# can get the error message.
+        // BUT nOboeCreate in OboeAudioBridge.cs returns null if ptr == Zero.
+        // Let's change nOboeCreate to return the bridge even if open fails,
+        // or ensure C# handles it.
+        // Actually, if we return 0, C# says "Not Created".
+        // To fix this, let's return the bridge regardless, and check bridge->isActive() in C#.
     }
 
     return reinterpret_cast<intptr_t>(bridge);
@@ -361,6 +346,11 @@ OSU_EXPORT byte nOboeIsAAudio(intptr_t ptr) {
 OSU_EXPORT byte nOboeIsMMap(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return (bridge && bridge->isMMap()) ? 1 : 0;
+}
+
+OSU_EXPORT const char* nOboeGetLastErrorMessage(intptr_t ptr) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    return bridge ? bridge->getLastError() : "Bridge is null";
 }
 
 OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
