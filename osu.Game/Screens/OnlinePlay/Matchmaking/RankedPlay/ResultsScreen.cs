@@ -554,11 +554,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                     // safety timeout to ensure scoreTicks don't play forever
                     Scheduler.AddDelayed(() =>
                     {
-                        if (playerScoreTickChannel != null)
-                            playerScoreTickChannel.Looping = false;
+                        if (playerScoreTickChannel != null) playerScoreTickChannel.Looping = false;
 
-                        if (opponentScoreTickChannel != null)
-                            opponentScoreTickChannel.Looping = false;
+                        if (opponentScoreTickChannel != null) opponentScoreTickChannel.Looping = false;
                     }, score_text_duration + 500);
 
                     scoreBarProgress.BindValueChanged(e =>
