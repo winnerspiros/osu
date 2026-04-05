@@ -11,6 +11,12 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <cstdint>
+
+#ifndef BYTE_TYPEDEF_DEFINED
+#define BYTE_TYPEDEF_DEFINED
+typedef uint8_t byte;
+#endif
 
 /// Callback function type for providing PCM audio data to the Oboe stream.
 /// Returns the number of frames actually written to the buffer.

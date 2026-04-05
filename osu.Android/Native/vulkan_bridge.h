@@ -7,7 +7,10 @@
 #include <cstdint>
 #include <string>
 
+#ifndef BYTE_TYPEDEF_DEFINED
+#define BYTE_TYPEDEF_DEFINED
 typedef uint8_t byte;
+#endif
 
 /// Lightweight Vulkan capability probe for Android.
 /// Requires Vulkan 1.3 as minimum for full feature detection (dynamic rendering,
