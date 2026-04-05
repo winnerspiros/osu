@@ -10,6 +10,7 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Game.Utils
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Internal methods are safe.")]
     internal static class BindableValueAccessor
     {
         private static readonly MethodInfo get_method = typeof(BindableValueAccessor).GetMethod(nameof(getValue), BindingFlags.Static | BindingFlags.NonPublic)!;
