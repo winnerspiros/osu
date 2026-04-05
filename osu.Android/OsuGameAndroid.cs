@@ -51,7 +51,9 @@ namespace osu.Android
         private IEnumerable? activeMixersList;
         private object? activeMixersHandler;
 
-        private readonly BindableNumber<double> audioOffset = new BindableDouble();
+        private readonly BindableDouble audioOffset = new BindableDouble();
+
+        private int hardwareSampleRateCached;
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -110,8 +112,6 @@ namespace osu.Android
             }
         }
 
-        private int hardwareSampleRateCached;
-
         private void onLowLatencyAudioChanged(ValueChangedEvent<bool> enabled)
         {
             if (enabled.NewValue)
@@ -142,7 +142,7 @@ namespace osu.Android
                         double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                         audioOffset.Value = suggested;
                         OSUDebug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
-                    }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
+                    }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, hardwareSampleRate, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate > 0 ? sampleRate : hardwareSampleRate);
                         OSUDebug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
@@ -263,22 +263,8 @@ namespace osu.Android
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
+        private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, int hardwareSampleRate, Action<int>? onStarted = null)
         {
-            int hardwareSampleRate = 0;
-
-            try
-            {
-                if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
-                {
-                    string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
-
-                    if (!string.IsNullOrEmpty(rateStr))
-                        hardwareSampleRate = int.Parse(rateStr);
-                }
-            }
-            catch { }
-
             nativeBridges ??= new AndroidNativeBridgeManager();
 
             if (nativeBridges is AndroidNativeBridgeManager mgr)
@@ -427,7 +413,6 @@ namespace osu.Android
 
                 if (nativeBridges != null)
                     disposeNativeBridges();
-                // highPerformanceSession is not disposable based on the previous cat output
             }
         }
 
