@@ -36,10 +36,7 @@ jobs:
 
       - name: Ensure Android NDK and CMake are available
         run: |
-          # The ubuntu-latest runner has $ANDROID_HOME pre-installed.
-          # sdkmanager is not on PATH; use the full path.
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          # Install latest stable NDK (r29) + CMake.
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" --install "ndk;29.0.14206865" "cmake;3.22.1" > /dev/null 2>&1
 
@@ -48,7 +45,8 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          for ABI in arm64-v8a armeabi-v7a x86; do
+          # Only build arm64-v8a to minimize APK size
+          for ABI in arm64-v8a; do
             echo "::group::Building osu_native for $ABI"
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
@@ -86,46 +84,55 @@ jobs:
             echo "version=0.0.0" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build Android APK (signed)
-        if: steps.keystore.outputs.has_keystore == 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=true
-          -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
-          -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      - name: Build Android APK
+        run: |
+          # Use optimized publish command with aggressive trimming and RID-specific build
+          PUBLISH_CMD="dotnet publish -c Release osu.Android/osu.Android.csproj -f net10.0-android -r android-arm64 --self-contained true \
+            -p:Version=${{ steps.version.outputs.version }} \
+            -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }} \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:PublishTrimmed=true -p:TrimMode=link -p:AndroidLinkMode=SdkOnly \
+            -p:AndroidEnableResourceShrinking=true \
+            -p:MtouchLink=Full \
+            -p:AndroidCreatePackagePerAbi=false"
 
-      - name: Build Android APK (unsigned)
-        if: steps.keystore.outputs.has_keystore != 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=false
+          if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
+            $PUBLISH_CMD \
+              -p:AndroidKeyStore=true \
+              -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore \
+              -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }} \
+              -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }} \
+              -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          else
+            $PUBLISH_CMD -p:AndroidKeyStore=false
+          fi
 
-      - name: Find APK
+      - name: Find and Optimize APK
         id: find_apk
         run: |
-          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
-          APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+          # The publish output for android-arm64 RID is in a specific folder
+          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/android-arm64/publish"
+          APK=$(find "$PUBLISH_DIR" -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
           fi
+
+          echo "Optimizing APK using zipalign if available..."
+          # zipalign is usually in the build-tools directory of Android SDK
+          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -1)
+          if [ -n "$ZIPALIGN" ]; then
+            $ZIPALIGN -v 4 "$APK" "${APK}.aligned"
+            mv "${APK}.aligned" "$APK"
+            echo "zipalign complete."
+          fi
+
+          echo "Final APK size: $(du -h $APK | cut -f1)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: osu-android-${{ github.ref_name }}
+          name: osu-android-${{ github.ref_name }}-arm64-optimized
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
 

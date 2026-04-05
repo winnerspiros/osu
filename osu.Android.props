@@ -1,7 +1,7 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
-    <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
@@ -24,6 +24,10 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
   </PropertyGroup>
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.

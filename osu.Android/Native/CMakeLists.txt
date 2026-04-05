@@ -9,9 +9,11 @@ set(CMAKE_CXX_STANDARD 17)
 # -ffast-math:   enable SIMD-friendly FP (safe — we only memset + store a double)
 # -ffunction/data-sections + --gc-sections:  dead-code elimination
 # -fvisibility=hidden:  only OSU_EXPORT symbols are visible
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -s")
+# -funroll-loops:  unroll loops for better performance
+# -m64: ensure we are building for 64-bit if arm64-v8a
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -funroll-loops -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -funroll-loops -DNDEBUG")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,--icf=all -s")
 
 # Disable Oboe's flowgraph module — we don't use any audio processing/conversion
 # features (our bridge outputs silence for latency measurement only).
@@ -45,7 +47,6 @@ add_library(osu_native SHARED
     oboe_bridge.cpp
     vulkan_bridge.cpp
 )
-
 
 target_link_libraries(osu_native
     ${OBOE_LIB}

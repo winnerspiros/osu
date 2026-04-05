@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\osu.Android.props" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -9,6 +9,11 @@
     <Version>0.0.0</Version>
     <ApplicationVersion Condition=" '$(ApplicationVersion)' == '' ">1</ApplicationVersion>
     <ApplicationDisplayVersion Condition=" '$(ApplicationDisplayVersion)' == '' ">$(Version)</ApplicationDisplayVersion>
+
+    <!-- Size & Performance Optimizations -->
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+    <EnableLLVM>true</EnableLLVM>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj" />
@@ -26,11 +31,8 @@
     <None Remove="Native\*.h" />
     <None Remove="Native\CMakeLists.txt" />
   </ItemGroup>
-  <!-- Include pre-built native libraries when present (built by the release workflow or local NDK build).
-       When absent, native features (Oboe audio, Vulkan probe) are gracefully disabled at runtime. -->
+  <!-- Include pre-built native libraries when present. We now only build for arm64-v8a to save space. -->
   <ItemGroup>
     <AndroidNativeLibrary Include="libs\arm64-v8a\libosu_native.so" Condition="Exists('libs\arm64-v8a\libosu_native.so')" Abi="arm64-v8a" />
-    <AndroidNativeLibrary Include="libs\armeabi-v7a\libosu_native.so" Condition="Exists('libs\armeabi-v7a\libosu_native.so')" Abi="armeabi-v7a" />
-    <AndroidNativeLibrary Include="libs\x86\libosu_native.so" Condition="Exists('libs\x86\libosu_native.so')" Abi="x86" />
   </ItemGroup>
 </Project>
