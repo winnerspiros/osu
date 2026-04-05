@@ -23,6 +23,7 @@ using osu.Game.Overlays;
 using osu.Game.Screens;
 using osu.Game.Utils;
 using osu.Game.Overlays.Notifications;
+using osu.Game.Updater;
 using Android.Views;
 using Android.OS;
 using System.IO;
@@ -55,7 +56,7 @@ namespace osu.Android
             gameActivity = activity;
         }
 
-        public override void LoadComplete()
+        protected override void LoadComplete()
         {
             base.LoadComplete();
 
