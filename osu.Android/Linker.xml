@@ -7,7 +7,14 @@
     <type fullname="MessagePack.Resolvers.DynamicUnionResolver" preserve="all" />
     <type fullname="MessagePack.Resolvers.DynamicObjectResolver" preserve="all" />
   </assembly>
-  <assembly fullname="AutoMapper">
-    <type fullname="AutoMapper.Configuration.ProxyBase" preserve="all" />
+  <assembly fullname="osu.Framework">
+    <type fullname="osu.Framework.Audio.AudioManager">
+        <field name="ActiveMixers" />
+    </type>
+    <type fullname="osu.Framework.Bindables.IBindableList`1">
+        <method name="BindCollectionChanged" />
+        <method name="UnbindCollectionChanged" />
+    </type>
+    <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
   </assembly>
 </linker>

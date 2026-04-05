@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -61,6 +62,7 @@ namespace osu.Android
             gameActivity = activity;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -388,6 +390,7 @@ namespace osu.Android
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
         protected override void Dispose(bool isDisposing)
         {
             try
