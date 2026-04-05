@@ -50,6 +50,11 @@ namespace osu.Game.Localisation
         public static LocalisableString ScreenMode => new TranslatableString(getKey(@"screen_mode"), @"Screen mode");
 
         /// <summary>
+        /// "Refresh rate"
+        /// </summary>
+        public static LocalisableString RefreshRate => new TranslatableString(getKey(@"refresh_rate"), @"Refresh rate");
+
+        /// <summary>
         /// "Resolution"
         /// </summary>
         public static LocalisableString Resolution => new TranslatableString(getKey(@"resolution"), @"Resolution");

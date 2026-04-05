@@ -71,17 +71,14 @@ namespace osu.Android.Input
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
-            bool primaryActionDown = e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.ButtonPress;
-            bool primaryActionUp = e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.ButtonRelease;
-
             bool left = (e.ButtonState & MotionEventButtonState.Primary) != 0;
-            if (primaryActionDown) left = true;
-            else if (primaryActionUp) left = false;
-
             bool right = (e.ButtonState & MotionEventButtonState.Secondary) != 0;
             bool middle = (e.ButtonState & MotionEventButtonState.Tertiary) != 0;
             bool back = (e.ButtonState & MotionEventButtonState.Back) != 0;
             bool forward = (e.ButtonState & MotionEventButtonState.Forward) != 0;
+
+            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.ButtonPress) left = true;
+            if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.ButtonRelease) left = false;
 
             if (left != lastLeft) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, left)); lastLeft = left; }
             if (right != lastRight) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, right)); lastRight = right; }

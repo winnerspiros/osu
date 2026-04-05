@@ -61,6 +61,7 @@ bool OboeBridge::open(int32_t sampleRate) {
         LOGE("AAudio open failed (%s), falling back to unspecified API",
              oboe::convertToText(result));
         builder.setAudioApi(oboe::AudioApi::Unspecified);
+        builder.setSharingMode(oboe::SharingMode::Shared);
         result = builder.openStream(stream_);
     }
 

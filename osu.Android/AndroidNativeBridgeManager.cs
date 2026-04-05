@@ -43,7 +43,9 @@ namespace osu.Android
                     if (provider != IntPtr.Zero)
                         bridge.SetProvider(provider);
 
+                    try { SetThreadAffinity(0xF8); } catch { }
                     bool started = bridge.Start();
+                    if (!started) { System.Threading.Thread.Sleep(100); started = bridge.Start(); }
 
                     if (started)
                     {
@@ -97,7 +99,8 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.NoInlining)]
         public string GetOboeStatus()
         {
-            if (oboeBridge is not OboeAudioBridge bridge) return string.Empty;
+            if (oboeBridge is not OboeAudioBridge bridge) return "Not Created";
+            if (!bridge.IsActive) return "Failed: " + bridge.GetLastErrorMessage();
             return cachedOboeStatus ??= $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
         }
 

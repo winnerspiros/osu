@@ -34,7 +34,7 @@ namespace osu.Android.Input
 
             // In DeX, source might include other flags (like Mouse or Stylus).
             // We should allow anything that is clearly a keyboard or has a valid keycode.
-            if (!e.Source.HasFlag(InputSourceType.Keyboard) && e.Source != InputSourceType.Unknown)
+            if (!e.Source.HasFlag(InputSourceType.Keyboard) && !e.Source.HasFlag(InputSourceType.Mouse) && !e.Source.HasFlag(InputSourceType.Stylus) && e.Source != InputSourceType.Unknown)
             {
                  // If it's not a keyboard source, only allow if it's from a device that HAS a keyboard
                  var device = e.Device;
