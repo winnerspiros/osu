@@ -17,6 +17,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.Backgrounds;
 using osuTK;
 using osuTK.Graphics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace osu.Game.Screens
 {
@@ -54,6 +55,7 @@ namespace osu.Game.Screens
             this.FadeIn(transition_time, Easing.OutExpo);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Screens are manually validated to have parameterless constructors.")]
         public ScreenWhiteBox()
         {
             FillFlowContainer childModeButtons;

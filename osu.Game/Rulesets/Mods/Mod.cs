@@ -146,6 +146,7 @@ namespace osu.Game.Rulesets.Mods
         /// <summary>
         /// Creates a copy of this <see cref="Mod"/> initialised to a default state.
         /// </summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Mods are annotated at the class level.")]
         public virtual Mod DeepClone()
         {
             var result = (Mod)Activator.CreateInstance(GetType())!;
@@ -260,6 +261,7 @@ namespace osu.Game.Rulesets.Mods
         /// <summary>
         /// Reset all custom settings for this mod back to their defaults.
         /// </summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Mods are annotated at the class level.")]
         public virtual void ResetSettingsToDefaults() => CopyFrom((Mod)Activator.CreateInstance(GetType())!);
 
         private class ModSettingsEqualityComparer : IEqualityComparer<IBindable>
