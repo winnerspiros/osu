@@ -1,5 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
+using System.Diagnostics.CodeAnalysis;
 
 #nullable disable
 
@@ -49,6 +50,7 @@ namespace osu.Game.Input.Bindings
                 throw new InvalidOperationException($"{nameof(variant)} can not be null when a non-null {nameof(ruleset)} is provided.");
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Realm objects are safe for AsQueryable.")]
         protected override void LoadComplete()
         {
             realmSubscription = realm.RegisterForNotifications(queryRealmKeyBindings, (sender, _) =>
