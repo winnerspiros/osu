@@ -15,7 +15,6 @@
   </assembly>
   <assembly fullname="osu.Framework">
     <type fullname="osu.Framework.Audio.AudioManager">
-        <field name="ActiveMixers" />
         <property name="ActiveMixers" />
         <field name="TrackMixer" />
         <field name="SampleMixer" />
