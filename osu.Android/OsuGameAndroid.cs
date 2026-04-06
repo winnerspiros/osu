@@ -62,7 +62,7 @@ namespace osu.Android
             gameActivity = activity;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -390,7 +390,7 @@ namespace osu.Android
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
         protected override void Dispose(bool isDisposing)
         {
             try
