@@ -101,6 +101,7 @@ namespace osu.Android
             ActiveMasterMixer = masterMixer;
             Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
         }
+
         // Trimming warnings suppressed because AudioManager.ActiveMixers and related types are manually preserved in Linker.xml.
         [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         private IEnumerable<AudioMixer> getActiveMixers()
@@ -143,13 +144,6 @@ namespace osu.Android
                     }
                 }
 
-                type = type.BaseType!;
-            }
-        }
-                            yield break;
-                        }
-                    }
-                }
                 type = type.BaseType!;
             }
         }
@@ -304,7 +298,7 @@ namespace osu.Android
                 mixerHandles.Add(handle);
         }
 
-                // Trimming warnings suppressed because source handles (BASS mixer/stream/channel) are identified via reflection over types preserved in Linker.xml.
+        // Trimming warnings suppressed because source handles (BASS mixer/stream/channel) are identified via reflection over types preserved in Linker.xml.
         [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         private int findHandle(object obj)
         {
