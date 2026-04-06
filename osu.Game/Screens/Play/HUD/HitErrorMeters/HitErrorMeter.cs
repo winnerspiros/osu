@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -18,7 +18,7 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
     {
         protected HitWindows HitWindows { get; private set; }
 
-        [Resolved]
+        [Resolved(canBeNull: true)]
         private ScoreProcessor processor { get; set; }
 
         [Resolved]
@@ -44,7 +44,8 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
 
             gameplayClockContainer?.OnSeek += Clear;
 
-            processor.NewJudgement += processorNewJudgement;
+            if (processor != null)
+                processor.NewJudgement += processorNewJudgement;
         }
 
         // Scheduled as meter implementations are likely going to change/add drawables when reacting to this.
@@ -71,7 +72,8 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
         {
             base.Dispose(isDisposing);
 
-            processor?.NewJudgement -= processorNewJudgement;
+            if (processor != null)
+                processor.NewJudgement -= processorNewJudgement;
 
             gameplayClockContainer?.OnSeek -= Clear;
         }
