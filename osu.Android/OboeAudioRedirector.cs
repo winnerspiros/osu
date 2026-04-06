@@ -101,8 +101,8 @@ namespace osu.Android
             ActiveMasterMixer = masterMixer;
             Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
         }
-
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2106", Justification = "Preserved in Linker.xml")]
+        // Trimming warnings suppressed because AudioManager.ActiveMixers and related types are manually preserved in Linker.xml.
+        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         private IEnumerable<AudioMixer> getActiveMixers()
         {
             Type type = typeof(AudioManager);
@@ -121,6 +121,31 @@ namespace osu.Android
                                 if (item is AudioMixer mixer)
                                     yield return mixer;
                             }
+                            yield break;
+                        }
+                    }
+                }
+
+                foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                {
+                    if (prop.CanRead && prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericArguments().Contains(typeof(AudioMixer)))
+                    {
+                        object? val = prop.GetValue(audioManager);
+                        if (val is IEnumerable enumerable)
+                        {
+                            foreach (var item in enumerable)
+                            {
+                                if (item is AudioMixer mixer)
+                                    yield return mixer;
+                            }
+                            yield break;
+                        }
+                    }
+                }
+
+                type = type.BaseType!;
+            }
+        }
                             yield break;
                         }
                     }
@@ -279,7 +304,8 @@ namespace osu.Android
                 mixerHandles.Add(handle);
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2106", Justification = "Preserved in Linker.xml")]
+                // Trimming warnings suppressed because source handles (BASS mixer/stream/channel) are identified via reflection over types preserved in Linker.xml.
+        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         private int findHandle(object obj)
         {
             Type? type = obj.GetType();
