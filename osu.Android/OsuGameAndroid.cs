@@ -62,7 +62,7 @@ namespace osu.Android
             gameActivity = activity;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2106", Justification = "Preserved in Linker.xml")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -85,11 +85,12 @@ namespace osu.Android
             try
             {
                 Type audioManagerType = typeof(osu.Framework.Audio.AudioManager);
-                var activeMixersField = audioManagerType.GetField("ActiveMixers", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                MemberInfo? activeMixersMember = (MemberInfo?)audioManagerType.GetField("ActiveMixers", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) ??
+                                                 audioManagerType.GetProperty("ActiveMixers", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                if (activeMixersField != null)
+                if (activeMixersMember != null)
                 {
-                    activeMixersList = activeMixersField.GetValue(Audio) as IEnumerable;
+                    activeMixersList = (activeMixersMember is FieldInfo field ? field.GetValue(Audio) : ((PropertyInfo)activeMixersMember).GetValue(Audio)) as IEnumerable;
 
                     if (activeMixersList != null)
                     {
@@ -390,7 +391,7 @@ namespace osu.Android
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
-        [UnconditionalSuppressMessage("Trimming", "IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2106", Justification = "Preserved in Linker.xml")]
         protected override void Dispose(bool isDisposing)
         {
             try

@@ -7,14 +7,39 @@
     <type fullname="MessagePack.Resolvers.DynamicUnionResolver" preserve="all" />
     <type fullname="MessagePack.Resolvers.DynamicObjectResolver" preserve="all" />
   </assembly>
+  <assembly fullname="ManagedBass">
+    <type fullname="ManagedBass.Bass" preserve="all" />
+  </assembly>
+  <assembly fullname="ManagedBass.Mix">
+    <type fullname="ManagedBass.Mix.BassMix" preserve="all" />
+  </assembly>
   <assembly fullname="osu.Framework">
     <type fullname="osu.Framework.Audio.AudioManager">
         <field name="ActiveMixers" />
+        <property name="ActiveMixers" />
+        <field name="TrackMixer" />
+        <field name="SampleMixer" />
     </type>
     <type fullname="osu.Framework.Bindables.IBindableList`1">
         <method name="BindCollectionChanged" />
         <method name="UnbindCollectionChanged" />
     </type>
+    <type fullname="osu.Framework.Bindables.BindableList`1">
+        <method name="BindCollectionChanged" />
+        <method name="UnbindCollectionChanged" />
+    </type>
     <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
+    <type fullname="osu.Framework.Platform.Android.AndroidGameActivity" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Game">
+    <type fullname="osu.Game.OsuGameBase" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.Beatmap" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Ruleset" preserve="all" />
+    <type fullname="osu.Game.Skinning.Skin" preserve="all" />
+    <type fullname="osu.Game.Configuration.OsuConfigManager" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Android">
+    <type fullname="osu.Android.OsuGameActivity" preserve="all" />
+    <type fullname="osu.Android.OsuGameAndroid" preserve="all" />
   </assembly>
 </linker>
