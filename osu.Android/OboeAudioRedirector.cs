@@ -102,7 +102,7 @@ namespace osu.Android
             Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
         private IEnumerable<AudioMixer> getActiveMixers()
         {
             Type type = typeof(AudioManager);
@@ -279,7 +279,7 @@ namespace osu.Android
                 mixerHandles.Add(handle);
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075", Justification = "Preserved in Linker.xml")]
         private int findHandle(object obj)
         {
             Type? type = obj.GetType();
