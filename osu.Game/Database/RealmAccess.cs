@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -43,6 +44,7 @@ namespace osu.Game.Database
     /// <summary>
     /// A factory which provides safe access to the realm storage backend.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Dynamic binder is used for Realm migrations")]
     public class RealmAccess : IDisposable
     {
         private readonly Storage storage;

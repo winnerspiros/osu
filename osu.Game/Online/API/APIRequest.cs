@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading;
 using Newtonsoft.Json;
@@ -18,6 +19,7 @@ namespace osu.Game.Online.API
     /// An API request with a well-defined response type.
     /// </summary>
     /// <typeparam name="T">Type of the response (used for deserialisation).</typeparam>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
     public abstract class APIRequest<T> : APIRequest where T : class
     {
         protected override WebRequest CreateWebRequest() => new OsuJsonWebRequest<T>(Uri);
@@ -66,6 +68,7 @@ namespace osu.Game.Online.API
     /// <summary>
     /// AN API request with no specified response type.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
     public abstract class APIRequest
     {
         protected abstract string Target { get; }

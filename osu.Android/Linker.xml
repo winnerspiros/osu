@@ -1,6 +1,8 @@
 <linker>
   <assembly fullname="System.Runtime">
     <type fullname="System.Collections.Generic.PriorityQueue`2" preserve="all" />
+    <type fullname="System.Collections.Generic.IEnumerable`1" preserve="all" />
+    <type fullname="System.Collections.IEnumerable" preserve="all" />
   </assembly>
   <assembly fullname="MessagePack">
     <type fullname="MessagePack.Internal.PriorityQueue`1" preserve="all" />
@@ -36,7 +38,18 @@
     <type fullname="osu.Game.Rulesets.Ruleset" preserve="all" />
     <type fullname="osu.Game.Skinning.Skin" preserve="all" />
     <type fullname="osu.Game.Configuration.OsuConfigManager" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Mods.Mod" preserve="all" />
+    <type fullname="osu.Game.Rulesets.RulesetInfo" preserve="all" />
+    <type fullname="osu.Game.Rulesets.RulesetStore" preserve="all" />
+    <type fullname="osu.Game.Online.Rooms.Room" preserve="all" />
+    <type fullname="osu.Game.Online.Rooms.PlaylistItem" preserve="all" />
+    <type fullname="osu.Game.Online.API.Requests.Responses.APIUser" preserve="all" />
+    <type fullname="osu.Game.Scoring.ScoreInfo" preserve="all" />
   </assembly>
+  <assembly fullname="osu.Game.Rulesets.Osu" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Taiko" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Catch" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Mania" preserve="all" />
   <assembly fullname="osu.Android">
     <type fullname="osu.Android.OsuGameActivity" preserve="all" />
     <type fullname="osu.Android.OsuGameAndroid" preserve="all" />
