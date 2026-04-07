@@ -53,5 +53,6 @@
   <assembly fullname="osu.Android">
     <type fullname="osu.Android.OsuGameActivity" preserve="all" />
     <type fullname="osu.Android.OsuGameAndroid" preserve="all" />
+    <type fullname="osu.Android.OboeAudioRedirector" preserve="all" />
   </assembly>
 </linker>
