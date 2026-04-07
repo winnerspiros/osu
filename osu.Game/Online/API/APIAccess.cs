@@ -29,8 +29,8 @@ using osu.Game.Online.Notifications.WebSocket;
 
 namespace osu.Game.Online.API
 {
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
-        public partial class APIAccess : CompositeComponent, IAPIProvider
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
+    public partial class APIAccess : CompositeComponent, IAPIProvider
     {
         private readonly OsuGameBase game;
         private readonly OsuConfigManager config;
