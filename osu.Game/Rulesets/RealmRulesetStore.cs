@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ using osu.Game.Database;
 
 namespace osu.Game.Rulesets
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Rulesets are preserved in Linker.xml")]
     public class RealmRulesetStore : RulesetStore
     {
         private readonly RealmAccess realmAccess;

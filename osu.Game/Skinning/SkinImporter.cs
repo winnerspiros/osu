@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,7 @@ using Realms;
 
 namespace osu.Game.Skinning
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
     public class SkinImporter : RealmArchiveModelImporter<SkinInfo>
     {
         private const string skin_info_file = "skininfo.json";

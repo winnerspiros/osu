@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -376,7 +377,8 @@ namespace osu.Game.Scoring.Legacy
         /// <returns>The <see cref="WorkingBeatmap"/>.</returns>
         protected abstract WorkingBeatmap GetBeatmap(string md5Hash);
 
-        public class BeatmapNotFoundException : Exception
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
+    public class BeatmapNotFoundException : Exception
         {
             public string Hash { get; }
 
