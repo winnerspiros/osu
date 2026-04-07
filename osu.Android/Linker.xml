@@ -16,6 +16,7 @@
     <type fullname="ManagedBass.Mix.BassMix" preserve="all" />
   </assembly>
   <assembly fullname="osu.Framework">
+    <namespace fullname="osu.Framework.Audio" preserve="all" />
     <type fullname="osu.Framework.Audio.AudioManager">
         <property name="ActiveMixers" />
         <field name="TrackMixer" />
@@ -53,5 +54,9 @@
   <assembly fullname="osu.Android">
     <type fullname="osu.Android.OsuGameActivity" preserve="all" />
     <type fullname="osu.Android.OsuGameAndroid" preserve="all" />
+    <type fullname="osu.Android.OboeAudioRedirector" preserve="all" />
   </assembly>
+  <assembly fullname="AutoMapper" preserve="all" />
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+  <assembly fullname="Realm" preserve="all" />
 </linker>
