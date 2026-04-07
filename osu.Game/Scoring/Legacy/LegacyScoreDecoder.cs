@@ -28,6 +28,7 @@ using SharpCompress.Compressors.LZMA;
 
 namespace osu.Game.Scoring.Legacy
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
     public abstract class LegacyScoreDecoder
     {
         private IBeatmap currentBeatmap;
@@ -377,8 +378,7 @@ namespace osu.Game.Scoring.Legacy
         /// <returns>The <see cref="WorkingBeatmap"/>.</returns>
         protected abstract WorkingBeatmap GetBeatmap(string md5Hash);
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
-    public class BeatmapNotFoundException : Exception
+        public class BeatmapNotFoundException : Exception
         {
             public string Hash { get; }
 
