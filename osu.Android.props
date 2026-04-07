@@ -23,7 +23,6 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
-    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>full</TrimMode>
     <AndroidLinkMode>Full</AndroidLinkMode>
