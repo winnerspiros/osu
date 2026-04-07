@@ -27,6 +27,7 @@
     <TrimMode>full</TrimMode>
     <AndroidLinkMode>Full</AndroidLinkMode>
     <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
