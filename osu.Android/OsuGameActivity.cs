@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics.CodeAnalysis;
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
@@ -45,6 +46,7 @@ namespace osu.Android
         "application/x-osu-replay",
     })]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
+    [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
@@ -73,7 +75,9 @@ namespace osu.Android
             return game;
         }
 
-        public OsuGameActivity()
+
+        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
+            : base(handle, transfer)
         {
             game = new OsuGameAndroid(this);
 

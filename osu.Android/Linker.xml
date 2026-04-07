@@ -32,6 +32,7 @@
     </type>
     <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
     <type fullname="osu.Framework.Platform.Android.AndroidGameActivity" preserve="all" />
+    <type fullname="osu.Framework.Android.AndroidGameActivity" preserve="all" />
   </assembly>
   <assembly fullname="osu.Game">
     <type fullname="osu.Game.OsuGameBase" preserve="all" />
@@ -52,9 +53,7 @@
   <assembly fullname="osu.Game.Rulesets.Catch" preserve="all" />
   <assembly fullname="osu.Game.Rulesets.Mania" preserve="all" />
   <assembly fullname="osu.Android">
-    <type fullname="osu.Android.OsuGameActivity" preserve="all" />
-    <type fullname="osu.Android.OsuGameAndroid" preserve="all" />
-    <type fullname="osu.Android.OboeAudioRedirector" preserve="all" />
+    <type fullname="*" preserve="all" />
   </assembly>
   <assembly fullname="AutoMapper" preserve="all" />
   <assembly fullname="Newtonsoft.Json" preserve="all" />
