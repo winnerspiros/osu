@@ -1,0 +1,64 @@
+<linker>
+  <assembly fullname="System.Collections">
+    <type fullname="System.Collections.Generic.PriorityQueue`2" preserve="all" />
+  </assembly>
+  <assembly fullname="System.Runtime">
+    <type fullname="System.Collections.Generic.IEnumerable`1" preserve="all" />
+    <type fullname="System.Collections.IEnumerable" preserve="all" />
+    <type fullname="System.Runtime.CompilerServices.Unsafe" preserve="all" />
+  </assembly>
+  <assembly fullname="System.Memory" preserve="all" />
+  <assembly fullname="System.Formats.Asn1" preserve="all" />
+  <assembly fullname="MessagePack">
+    <type fullname="MessagePack.Resolvers.DynamicUnionResolver" preserve="all" />
+    <type fullname="MessagePack.Resolvers.DynamicObjectResolver" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Framework">
+    <namespace fullname="osu.Framework.Audio" preserve="all" />
+    <namespace fullname="osu.Framework.Bindables" preserve="all" />
+    <type fullname="osu.Framework.Audio.AudioManager">
+        <property name="ActiveMixers" />
+        <field name="TrackMixer" />
+        <field name="SampleMixer" />
+    </type>
+    <type fullname="osu.Framework.Bindables.IBindableList`1">
+        <method name="BindCollectionChanged" />
+    </type>
+    <type fullname="osu.Framework.Bindables.BindableList`1">
+        <method name="BindCollectionChanged" />
+    </type>
+    <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Framework.Android">
+    <namespace fullname="osu.Framework.Android" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Game">
+    <type fullname="osu.Game.OsuGameBase" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.Beatmap" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Ruleset" preserve="all" />
+    <type fullname="osu.Game.Skinning.Skin" preserve="all" />
+    <type fullname="osu.Game.Configuration.OsuConfigManager" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Mods.Mod" preserve="all" />
+    <type fullname="osu.Game.Rulesets.RulesetInfo" preserve="all" />
+    <type fullname="osu.Game.Rulesets.RulesetStore" preserve="all" />
+    <type fullname="osu.Game.Online.Rooms.Room" preserve="all" />
+    <type fullname="osu.Game.Online.Rooms.PlaylistItem" preserve="all" />
+    <type fullname="osu.Game.Online.API.Requests.Responses.APIUser" preserve="all" />
+    <type fullname="osu.Game.Scoring.ScoreInfo" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Game.Resources">
+    <type fullname="osu.Game.Resources.OsuResources" preserve="all" />
+  </assembly>
+  <assembly fullname="osu.Game.Rulesets.Osu" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Taiko" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Catch" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Mania" preserve="all" />
+  <assembly fullname="osu.Android">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  <assembly fullname="AutoMapper" preserve="all" />
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+  <assembly fullname="Realm" preserve="all" />
+  <assembly fullname="SharpCompress" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Essentials" preserve="all" />
+</linker>

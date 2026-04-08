@@ -139,7 +139,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             ScoreInfo scoreBeingDeleted = null!;
             AddStep("open menu for top score", () =>
             {
-                var leaderboardScore = leaderboard.ChildrenOfType<BeatmapLeaderboardScore>().First();
+                var leaderboardScore = leaderboard.ChildrenOfType<BeatmapLeaderboardScore>().FirstOrDefault();
 
                 scoreBeingDeleted = leaderboardScore.Score;
 
@@ -153,7 +153,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("click delete option", () =>
             {
                 InputManager.MoveMouseTo(leaderboard.ChildrenOfType<DrawableOsuMenuItem>()
-                                                    .First(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase)));
+                                                    .FirstOrDefault(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase)));
                 InputManager.Click(MouseButton.Left);
             });
 
@@ -162,7 +162,7 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             AddStep("click delete button", () =>
             {
-                InputManager.MoveMouseTo(dialogOverlay.ChildrenOfType<DialogButton>().First());
+                InputManager.MoveMouseTo(dialogOverlay.ChildrenOfType<DialogButton>().FirstOrDefault());
                 InputManager.PressButton(MouseButton.Left);
             });
 

@@ -165,11 +165,11 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("load screen", () => LoadScreen(new TestPlaylistsScreen(screen = new TestPlaylistsRoomSubScreen(room))));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
-            AddStep("select first item", () => screen.SelectedItem.Value = room.Playlist[0]);
+            AddStep("select first item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(0));
             AddUntilStep("first beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
             AddUntilStep("osu ruleset selected", () => Ruleset.Value.Equals(new OsuRuleset().RulesetInfo));
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("second beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[1]));
             AddUntilStep("taiko ruleset selected", () => Ruleset.Value.Equals(new TaikoRuleset().RulesetInfo));
         }
@@ -212,7 +212,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user beatmap style", () => screen.UserBeatmap.Value = importedSet.Beatmaps[1]);
             AddUntilStep("user beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[1]));
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user beatmap style reset", () => screen.UserBeatmap.Value == null);
             AddUntilStep("second beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
         }
@@ -334,7 +334,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user ruleset style", () => screen.UserRuleset.Value = new ManiaRuleset().RulesetInfo);
             AddUntilStep("user ruleset selected", () => Ruleset.Value.Equals(new ManiaRuleset().RulesetInfo));
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user ruleset style reset", () => screen.UserRuleset.Value == null);
             AddUntilStep("second ruleset selected", () => Ruleset.Value.Equals(new TaikoRuleset().RulesetInfo));
         }
@@ -377,7 +377,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user ruleset style", () => screen.UserRuleset.Value = new ManiaRuleset().RulesetInfo);
             AddUntilStep("user ruleset selected", () => Ruleset.Value.Equals(new ManiaRuleset().RulesetInfo));
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user ruleset style preserved", () => screen.UserRuleset.Value!.Equals(new ManiaRuleset().RulesetInfo));
             AddUntilStep("user ruleset selected", () => Ruleset.Value.Equals(new ManiaRuleset().RulesetInfo));
         }
@@ -421,7 +421,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user mods", () => screen.UserMods.Value = [new OsuModDoubleTime()]);
             AddUntilStep("user mods selected", () => SelectedMods.Value.OfType<OsuModDoubleTime>().Any());
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user mod style reset", () => !screen.UserMods.Value.Any());
             AddUntilStep("mods reset", () => !SelectedMods.Value.Any());
         }
@@ -467,7 +467,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user mods", () => screen.UserMods.Value = [new OsuModDoubleTime()]);
             AddUntilStep("user mods selected", () => SelectedMods.Value.OfType<OsuModDoubleTime>().Any());
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user mod style preserved", () => screen.UserMods.Value.OfType<OsuModDoubleTime>().Any());
             AddUntilStep("mods preserved", () => SelectedMods.Value.OfType<OsuModDoubleTime>().Any());
         }
@@ -513,7 +513,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user mods", () => screen.UserMods.Value = [new CatchModDoubleTime()]);
             AddUntilStep("user mods selected", () => SelectedMods.Value.OfType<CatchModDoubleTime>().Any());
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user mod style reset", () => !screen.UserMods.Value.Any());
             AddUntilStep("mods reset", () => !SelectedMods.Value.Any());
         }
@@ -561,7 +561,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set user mods", () => screen.UserMods.Value = [new TaikoModDoubleTime()]);
             AddUntilStep("user mods selected", () => SelectedMods.Value.OfType<TaikoModDoubleTime>().Any());
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user mod style preserved", () => screen.UserMods.Value.OfType<TaikoModDoubleTime>().Any());
             AddUntilStep("mods preserved", () => SelectedMods.Value.OfType<TaikoModDoubleTime>().Any());
         }
@@ -648,16 +648,16 @@ namespace osu.Game.Tests.Visual.Playlists
                 screen.UserRuleset.Value = new TaikoRuleset().RulesetInfo;
             });
             AddUntilStep("beatmap/ruleset set", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[1]) && Ruleset.Value.Equals(new TaikoRuleset().RulesetInfo));
-            AddStep("select second playlist item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second playlist item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user style reset", () => screen.UserBeatmap.Value == null && screen.UserRuleset.Value == null);
             AddUntilStep("beatmap/ruleset set", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]) && Ruleset.Value.Equals(new OsuRuleset().RulesetInfo));
 
-            AddStep("select first playlist item", () => screen.SelectedItem.Value = room.Playlist[0]);
+            AddStep("select first playlist item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(0));
 
             // Set mods (DT+HR), validate by selecting second playlist item where only DT is allowed.
             AddStep("set user mods style", () => screen.UserMods.Value = [new OsuModDoubleTime(), new OsuModHardRock()]);
             AddUntilStep("mods set", () => SelectedMods.Value.OfType<OsuModDoubleTime>().Any() && SelectedMods.Value.OfType<OsuModHardRock>().Any());
-            AddStep("select second playlist item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddStep("select second playlist item", () => screen.SelectedItem.Value = room.Playlist.ElementAt(1));
             AddUntilStep("user mods validated", () => screen.UserMods.Value.Count == 1 && screen.UserMods.Value.OfType<OsuModDoubleTime>().Any());
             AddUntilStep("mods set", () => SelectedMods.Value.Count == 1 && SelectedMods.Value.OfType<OsuModDoubleTime>().Any());
         }
