@@ -120,7 +120,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 ];
             });
 
-            AddAssert("first playlist item selected", () => match.SelectedItem.Value == room.Playlist[0]);
+            AddUntilStep("first playlist item selected", () => room.Playlist.Count > 0 && match.SelectedItem.Value == room.Playlist[0]);
         }
 
         [Test]

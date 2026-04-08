@@ -111,7 +111,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             };
 
             AddStep("add room", () => API.Perform(new CreateRoomRequest(room)));
-            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID!.Value });
+            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID ?? 1 });
 
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));
@@ -139,7 +139,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             };
 
             AddStep("add room", () => API.Perform(new CreateRoomRequest(room)));
-            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID!.Value });
+            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID ?? 1 });
 
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));

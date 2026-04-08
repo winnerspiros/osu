@@ -82,7 +82,7 @@ namespace osu.Android
         }
 
         protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
-            : base(handle, transfer)
+            : base()
         {
             initialise();
         }
