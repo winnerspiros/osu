@@ -103,7 +103,7 @@ namespace osu.Android
         }
 
         // Trimming warnings suppressed because AudioManager.ActiveMixers and related types are manually preserved in Linker.xml.
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026;IL2067;IL2070;IL2072;IL2075;IL2080;IL2106", Justification = "Preserved in Linker.xml")]
         private IEnumerable<AudioMixer> getActiveMixers()
         {
             Type type = typeof(AudioManager);
@@ -299,7 +299,7 @@ namespace osu.Android
         }
 
         // Trimming warnings suppressed because source handles (BASS mixer/stream/channel) are identified via reflection over types preserved in Linker.xml.
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026;IL2067;IL2070;IL2072;IL2075;IL2080;IL2106", Justification = "Preserved in Linker.xml")]
         private int findHandle(object obj)
         {
             Type? type = obj.GetType();
