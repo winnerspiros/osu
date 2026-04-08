@@ -15,7 +15,6 @@
   </PropertyGroup>
   <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB.
        See build/PatchElfPageSize.targets for details.
-       TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
   <Import Project="$(MSBuildThisFileDirectory)build\PatchElfPageSize.targets" />
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
        Suppress trim analysis warnings because the project uses reflection extensively
