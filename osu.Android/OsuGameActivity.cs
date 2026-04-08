@@ -46,8 +46,6 @@ namespace osu.Android
         "application/x-osu-replay",
     })]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
-    [Preserve(AllMembers = true)]
-    [UnconditionalSuppressMessage("Trimming", "IL2026, IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
@@ -83,7 +81,7 @@ namespace osu.Android
         }
 
         protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
-            : base(handle, transfer)
+            : base()
         {
             initialise();
         }
