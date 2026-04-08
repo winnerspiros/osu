@@ -1,6 +1,8 @@
 <linker>
-  <assembly fullname="System.Runtime">
+  <assembly fullname="System.Collections">
     <type fullname="System.Collections.Generic.PriorityQueue`2" preserve="all" />
+  </assembly>
+  <assembly fullname="System.Runtime">
     <type fullname="System.Collections.Generic.IEnumerable`1" preserve="all" />
     <type fullname="System.Collections.IEnumerable" preserve="all" />
     <type fullname="System.Runtime.CompilerServices.Unsafe" preserve="all" />
@@ -8,20 +10,12 @@
   <assembly fullname="System.Memory" preserve="all" />
   <assembly fullname="System.Formats.Asn1" preserve="all" />
   <assembly fullname="MessagePack">
-    <type fullname="MessagePack.Internal.PriorityQueue`1" preserve="all" />
     <type fullname="MessagePack.Resolvers.DynamicUnionResolver" preserve="all" />
     <type fullname="MessagePack.Resolvers.DynamicObjectResolver" preserve="all" />
-  </assembly>
-  <assembly fullname="ManagedBass">
-    <type fullname="ManagedBass.Bass" preserve="all" />
-  </assembly>
-  <assembly fullname="ManagedBass.Mix">
-    <type fullname="ManagedBass.Mix.BassMix" preserve="all" />
   </assembly>
   <assembly fullname="osu.Framework">
     <namespace fullname="osu.Framework.Audio" preserve="all" />
     <namespace fullname="osu.Framework.Bindables" preserve="all" />
-    <namespace fullname="osu.Framework.Platform.Android" preserve="all" />
     <type fullname="osu.Framework.Audio.AudioManager">
         <property name="ActiveMixers" />
         <field name="TrackMixer" />
@@ -29,15 +23,16 @@
     </type>
     <type fullname="osu.Framework.Bindables.IBindableList`1">
         <method name="BindCollectionChanged" />
-        <method name="UnbindCollectionChanged" />
     </type>
     <type fullname="osu.Framework.Bindables.BindableList`1">
         <method name="BindCollectionChanged" />
-        <method name="UnbindCollectionChanged" />
     </type>
     <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
   </assembly>
-  <assembly fullname="osu.Framework.Android" preserve="all" />
+  <assembly fullname="osu.Framework.Android">
+    <namespace fullname="osu.Framework.Platform.Android" preserve="all" />
+    <namespace fullname="osu.Framework.Android" preserve="all" />
+  </assembly>
   <assembly fullname="osu.Game">
     <type fullname="osu.Game.OsuGameBase" preserve="all" />
     <type fullname="osu.Game.Beatmaps.Beatmap" preserve="all" />
@@ -65,10 +60,6 @@
   <assembly fullname="Veldrid" preserve="all" />
   <assembly fullname="Veldrid.SPIRV" preserve="all" />
   <assembly fullname="ppy.Veldrid.SPIRV" preserve="all" />
-  <assembly fullname="Veldrid.Vk">
-    <type fullname="Veldrid.Vk.VkGraphicsDevice" preserve="all" />
-    <type fullname="Veldrid.Vk.VkCommandList" preserve="all" />
-  </assembly>
   <assembly fullname="AutoMapper" preserve="all" />
   <assembly fullname="Newtonsoft.Json" preserve="all" />
   <assembly fullname="Realm" preserve="all" />
