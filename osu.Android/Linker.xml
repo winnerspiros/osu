@@ -30,7 +30,6 @@
     <type fullname="osu.Framework.Audio.Mixing.AudioMixer" preserve="all" />
   </assembly>
   <assembly fullname="osu.Framework.Android">
-    <namespace fullname="osu.Framework.Platform.Android" preserve="all" />
     <namespace fullname="osu.Framework.Android" preserve="all" />
   </assembly>
   <assembly fullname="osu.Game">
@@ -57,8 +56,6 @@
   <assembly fullname="osu.Android">
     <type fullname="*" preserve="all" />
   </assembly>
-  <assembly fullname="Veldrid" preserve="all" />
-  <assembly fullname="Veldrid.SPIRV" preserve="all" />
   <assembly fullname="ppy.Veldrid.SPIRV" preserve="all" />
   <assembly fullname="AutoMapper" preserve="all" />
   <assembly fullname="Newtonsoft.Json" preserve="all" />
