@@ -56,7 +56,6 @@
   <assembly fullname="osu.Android">
     <type fullname="*" preserve="all" />
   </assembly>
-  <assembly fullname="ppy.Veldrid.SPIRV" preserve="all" />
   <assembly fullname="AutoMapper" preserve="all" />
   <assembly fullname="Newtonsoft.Json" preserve="all" />
   <assembly fullname="Realm" preserve="all" />
