@@ -188,8 +188,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("create song select", () =>
             {
-                room.Playlist.First().RulesetID = 2;
-                songSelect = new TestMultiplayerMatchSongSelect(room, room.Playlist.First());
+                room.Playlist.Single().RulesetID = 2;
+                songSelect = new TestMultiplayerMatchSongSelect(room, room.Playlist.Single());
                 songSelect.OnLoadComplete += _ => Ruleset.Value = new TaikoRuleset().RulesetInfo;
                 LoadScreen(songSelect);
             });

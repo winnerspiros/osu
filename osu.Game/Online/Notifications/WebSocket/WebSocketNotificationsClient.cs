@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -18,7 +17,6 @@ namespace osu.Game.Online.Notifications.WebSocket
     /// <summary>
     /// A notifications client which receives events via a websocket.
     /// </summary>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Newtonsoft.Json requires reflection")]
     public class WebSocketNotificationsClient : PersistentEndpointClient
     {
         public event Action<SocketMessage>? MessageReceived;

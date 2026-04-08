@@ -88,7 +88,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         public DailyChallengeIntro(Room room)
         {
             this.room = room;
-            item = room.Playlist.FirstOrDefault() ?? new PlaylistItem(new osu.Game.Beatmaps.BeatmapInfo());
+            item = room.Playlist.Single();
 
             ValidForResume = false;
 

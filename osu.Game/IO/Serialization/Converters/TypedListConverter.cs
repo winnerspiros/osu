@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -40,10 +39,6 @@ namespace osu.Game.IO.Serialization.Converters
             this.requiresTypeVersion = requiresTypeVersion;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Project uses reflection extensively for serialization.")]
-        [UnconditionalSuppressMessage("Trimming", "IL3050", Justification = "Project uses reflection extensively for serialization.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "Types are preserved globally or by convention.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Types are preserved globally or by convention.")]
         public override IReadOnlyList<T> ReadJson(JsonReader reader, Type objectType, IReadOnlyList<T> existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             var list = new List<T>();
@@ -81,8 +76,6 @@ namespace osu.Game.IO.Serialization.Converters
             return list;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Project uses reflection extensively for serialization.")]
-        [UnconditionalSuppressMessage("Trimming", "IL3050", Justification = "Project uses reflection extensively for serialization.")]
         public override void WriteJson(JsonWriter writer, IReadOnlyList<T> value, JsonSerializer serializer)
         {
             var lookupTable = new List<string>();

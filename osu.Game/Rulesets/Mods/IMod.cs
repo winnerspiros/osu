@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
@@ -83,7 +82,6 @@ namespace osu.Game.Rulesets.Mods
         /// <summary>
         /// Create a fresh <see cref="Mod"/> instance based on this mod.
         /// </summary>
-        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Mods are annotated at the class level.")]
         Mod CreateInstance() => (Mod)Activator.CreateInstance(GetType())!;
 
         /// <summary>
