@@ -56,6 +56,7 @@ namespace osu.Android
 
         private int hardwareSampleRateCached;
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026, IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
         {
@@ -63,7 +64,7 @@ namespace osu.Android
         }
 
         // Trimming warnings suppressed because reflection is used to bind to AudioManager.ActiveMixers, which is manually preserved in Linker.xml.
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026, IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -393,7 +394,7 @@ namespace osu.Android
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 
         // Trimming warnings suppressed because reflection is used to unbind from AudioManager.ActiveMixers, which is manually preserved in Linker.xml.
-        [UnconditionalSuppressMessage("Trimming", "IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026, IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         protected override void Dispose(bool isDisposing)
         {
             try
