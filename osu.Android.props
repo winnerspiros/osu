@@ -24,8 +24,8 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>full</TrimMode>
-    <AndroidLinkMode>Full</AndroidLinkMode>
+    <TrimMode>partial</TrimMode>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
