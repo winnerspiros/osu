@@ -81,6 +81,12 @@ namespace osu.Android
             initialise();
         }
 
+        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
+            : base()
+        {
+            initialise();
+        }
+
         [UnconditionalSuppressMessage("Trimming", "IL2026, IL2067, IL2070, IL2072, IL2075, IL2080, IL2106", Justification = "Preserved in Linker.xml")]
         private void initialise()
         {

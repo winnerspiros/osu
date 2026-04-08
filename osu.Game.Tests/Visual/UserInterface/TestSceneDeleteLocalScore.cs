@@ -150,11 +150,15 @@ namespace osu.Game.Tests.Visual.UserInterface
             // Ensure the context menu has finished showing
             AddStep("finish transforms", () => leaderboard.FinishTransforms(true));
 
-            AddStep("click delete option", () =>
+            AddUntilStep("click delete option", () =>
             {
-                InputManager.MoveMouseTo(leaderboard.ChildrenOfType<DrawableOsuMenuItem>()
-                                                    .First(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase)));
+                var item = leaderboard.ChildrenOfType<DrawableOsuMenuItem>()
+                                       .FirstOrDefault(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase));
+                if (item == null) return false;
+
+                InputManager.MoveMouseTo(item);
                 InputManager.Click(MouseButton.Left);
+                return true;
             });
 
             // Ensure the dialog has finished showing

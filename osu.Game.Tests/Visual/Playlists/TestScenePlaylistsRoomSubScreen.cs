@@ -165,15 +165,26 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("load screen", () => LoadScreen(new TestPlaylistsScreen(screen = new TestPlaylistsRoomSubScreen(room))));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
-            AddStep("select first item", () => screen.SelectedItem.Value = room.Playlist[0]);
+            AddUntilStep("select first item", () =>
+            {
+                if (room.Playlist.Count == 0) return false;
+
+                screen.SelectedItem.Value = room.Playlist[0];
+                return true;
+            });
             AddUntilStep("first beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
             AddUntilStep("osu ruleset selected", () => Ruleset.Value.Equals(new OsuRuleset().RulesetInfo));
 
-            AddStep("select second item", () => screen.SelectedItem.Value = room.Playlist[1]);
+            AddUntilStep("select second item", () =>
+            {
+                if (room.Playlist.Count < 2) return false;
+
+                screen.SelectedItem.Value = room.Playlist[1];
+                return true;
+            });
             AddUntilStep("second beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[1]));
             AddUntilStep("taiko ruleset selected", () => Ruleset.Value.Equals(new TaikoRuleset().RulesetInfo));
         }
-
         /// <summary>
         /// Tests that the beatmap style is reset when the selected item is changed.
         /// </summary>
