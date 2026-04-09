@@ -86,12 +86,14 @@ jobs:
 
       - name: Build Android APK
         run: |
-          # Use optimized publish command with aggressive trimming and RID-specific build
+          # Use publish command with AOT enabled but trimming DISABLED to ensure reflection stability.
           PUBLISH_CMD="dotnet publish -c Release osu.Android/osu.Android.csproj -f net10.0-android -r android-arm64 --self-contained true \
             -p:Version=${{ steps.version.outputs.version }} \
             -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }} \
             -p:ApplicationVersion=${{ github.run_number }} \
-            -p:AndroidCreatePackagePerAbi=false"
+            -p:AndroidCreatePackagePerAbi=false \
+            -p:PublishTrimmed=false \
+            -p:AndroidLinkMode=None"
 
           if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
             $PUBLISH_CMD \
@@ -104,7 +106,7 @@ jobs:
             $PUBLISH_CMD -p:AndroidKeyStore=false
           fi
 
-      - name: Find and Optimize APK
+      - name: Find APK and Verify
         id: find_apk
         run: |
           # The publish output for android-arm64 RID is in a specific folder
@@ -114,22 +116,13 @@ jobs:
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
           fi
 
-          echo "Optimizing APK using zipalign if available..."
-          # zipalign is usually in the build-tools directory of Android SDK
-          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -1)
-          if [ -n "$ZIPALIGN" ]; then
-            $ZIPALIGN -v 4 "$APK" "${APK}.aligned"
-            mv "${APK}.aligned" "$APK"
-            echo "zipalign complete."
-          fi
-
           echo "Final APK size: $(du -h $APK | cut -f1)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: osu-android-${{ github.ref_name }}-arm64-optimized
+          name: osu-android-${{ github.ref_name }}-arm64
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
 
