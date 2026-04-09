@@ -113,7 +113,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             this.room = room;
 
-            playlistItem = room.Playlist.FirstOrDefault() ?? new PlaylistItem(new BeatmapInfo());
+            playlistItem = room.Playlist.Single();
             Padding = new MarginPadding { Horizontal = -HORIZONTAL_OVERFLOW_PADDING };
 
             beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(playlistItem);

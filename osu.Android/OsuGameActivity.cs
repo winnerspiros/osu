@@ -1,3 +1,4 @@
+using osu.Android.Input;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -20,7 +21,6 @@ using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Android.Native;
 using osu.Framework.Logging;
-using osu.Android.Input;
 
 namespace osu.Android
 {
@@ -76,11 +76,6 @@ namespace osu.Android
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
-
-            // Initialize input handlers
-            StylusHandler = new AndroidStylusHandler();
-            KeyboardHandler = new AndroidKeyboardHandler();
-            MouseHandler = new AndroidMouseHandler();
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -103,19 +98,22 @@ namespace osu.Android
                 {
                     try
                     {
-                        var config = ViewConfiguration.Get(this);
-                        if (config != null)
-                        {
-                             Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                        }
+                        Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
                     }
-                    catch { }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
+                    }
                 }
             }
 
-            if (Resources?.Configuration != null)
+            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
             {
-                float smallestWidthDp = Resources.Configuration.SmallestScreenWidthDp;
+                Point displaySize = new Point();
+#pragma warning disable CA1422
+                WindowManager.DefaultDisplay.GetSize(displaySize);
+#pragma warning restore CA1422
+                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
                 IsTablet = smallestWidthDp >= 600f;
             }
 
@@ -349,6 +347,8 @@ namespace osu.Android
             }
             surfaceEvent.Reset();
         }
+
+
 
         public override void OnConfigurationChanged(Configuration newConfig)
         {
