@@ -99,7 +99,7 @@ jobs:
           -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
           -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }} -p:PublishTrimmed=false -p:AndroidLinkMode=None
 
       - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
@@ -110,7 +110,7 @@ jobs:
           -p:Version=${{ steps.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
           -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=false
+          -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
 
       - name: Find APK
         id: find_apk

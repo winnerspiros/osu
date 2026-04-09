@@ -3,7 +3,7 @@
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+    <MandroidI18n>CJK;West;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
@@ -21,6 +21,10 @@
        Suppress trim analysis warnings because the project uses reflection extensively
        (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidEnableResourceShrinking>false</AndroidEnableResourceShrinking>
+
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
@@ -38,4 +42,14 @@
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
     <DisableFody>true</DisableFody>
   </PropertyGroup>
+
+  <!-- Workaround for .NET 10 Android AOT regression where non-managed files (e.g. .pdb, .so, .dbg)
+       in the runtime pack are misclassified as runtime assets, causing AOT compiler crashes. -->
+  <Target Name="FixRuntimePackAssetTypes" BeforeTargets="_ComputeAotArguments">
+    <ItemGroup>
+      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll'">
+        <AssetType>Native</AssetType>
+      </RuntimePackAsset>
+    </ItemGroup>
+  </Target>
 </Project>
