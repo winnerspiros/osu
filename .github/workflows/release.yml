@@ -91,9 +91,6 @@ jobs:
             -p:Version=${{ steps.version.outputs.version }} \
             -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }} \
             -p:ApplicationVersion=${{ github.run_number }} \
-            -p:PublishTrimmed=true -p:TrimMode=link -p:AndroidLinkMode=SdkOnly \
-            -p:AndroidEnableResourceShrinking=true \
-            -p:MtouchLink=Full \
             -p:AndroidCreatePackagePerAbi=false"
 
           if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then

@@ -24,10 +24,8 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>link</TrimMode>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-    <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidEnableResourceShrinking>false</AndroidEnableResourceShrinking>
   </PropertyGroup>
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
