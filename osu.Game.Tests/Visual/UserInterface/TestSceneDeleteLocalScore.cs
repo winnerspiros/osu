@@ -136,15 +136,17 @@ namespace osu.Game.Tests.Visual.UserInterface
         [Test]
         public void TestDeleteViaRightClick()
         {
-            ScoreInfo scoreBeingDeleted = null!;
+            ScoreInfo? scoreBeingDeleted = null;
             AddStep("open menu for top score", () =>
             {
                 var leaderboardScore = leaderboard.ChildrenOfType<BeatmapLeaderboardScore>().FirstOrDefault();
 
-                scoreBeingDeleted = leaderboardScore.Score;
-
-                InputManager.MoveMouseTo(leaderboardScore);
-                InputManager.Click(MouseButton.Right);
+                if (leaderboardScore != null)
+                {
+                    scoreBeingDeleted = leaderboardScore.Score;
+                    InputManager.MoveMouseTo(leaderboardScore);
+                    InputManager.Click(MouseButton.Right);
+                }
             });
 
             // Ensure the context menu has finished showing
@@ -152,9 +154,14 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             AddStep("click delete option", () =>
             {
-                InputManager.MoveMouseTo(leaderboard.ChildrenOfType<DrawableOsuMenuItem>()
-                                                    .FirstOrDefault(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase)));
-                InputManager.Click(MouseButton.Left);
+                var deleteItem = leaderboard.ChildrenOfType<DrawableOsuMenuItem>()
+                                            .FirstOrDefault(i => string.Equals(i.Item.Text.Value.ToString(), "delete", System.StringComparison.OrdinalIgnoreCase));
+
+                if (deleteItem != null)
+                {
+                    InputManager.MoveMouseTo(deleteItem);
+                    InputManager.Click(MouseButton.Left);
+                }
             });
 
             // Ensure the dialog has finished showing
@@ -162,12 +169,20 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             AddStep("click delete button", () =>
             {
-                InputManager.MoveMouseTo(dialogOverlay.ChildrenOfType<DialogButton>().FirstOrDefault());
-                InputManager.PressButton(MouseButton.Left);
+                var deleteButton = dialogOverlay.ChildrenOfType<DialogButton>().FirstOrDefault();
+                if (deleteButton != null)
+                {
+                    InputManager.MoveMouseTo(deleteButton);
+                    InputManager.PressButton(MouseButton.Left);
+                }
             });
 
             AddUntilStep("wait for fetch", () => scores.Any());
-            AddUntilStep("score removed from leaderboard", () => scores.All(s => s.OnlineID != scoreBeingDeleted.OnlineID));
+            AddUntilStep("score removed from leaderboard", () =>
+            {
+                if (scoreBeingDeleted == null) return false;
+                return scores.All(s => s.OnlineID != scoreBeingDeleted.OnlineID);
+            });
 
             // "Clean up"
             AddStep("release left mouse button", () => InputManager.ReleaseButton(MouseButton.Left));
