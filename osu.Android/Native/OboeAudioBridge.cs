@@ -57,6 +57,17 @@ namespace osu.Android.Native
             catch { return null; }
         }
 
+        public static string? GetGlobalError()
+        {
+            if (!native_loaded) return "Native library not loaded";
+            try
+            {
+                IntPtr ptr = nOboeGetGlobalError();
+                return ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
+            }
+            catch { return "P/Invoke error"; }
+        }
+
         private OboeAudioBridge(IntPtr ptr) => nativePtr = ptr;
 
         public bool Start()
@@ -189,6 +200,7 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nOboeIsMMap(IntPtr ptr);
         [DllImport(lib_name)] private static extern void nOboeSetProvider(IntPtr ptr, IntPtr provider);
         [DllImport(lib_name)] private static extern IntPtr nOboeGetLastErrorMessage(IntPtr ptr);
+        [DllImport(lib_name)] private static extern IntPtr nOboeGetGlobalError();
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
         [DllImport(lib_name)] internal static extern IntPtr nADPFCreateSession(long targetDurationNanos);
         [DllImport(lib_name)] internal static extern void nADPFReportActualDuration(IntPtr sessionPtr, long actualDurationNanos);
