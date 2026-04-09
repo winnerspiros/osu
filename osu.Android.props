@@ -3,7 +3,7 @@
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <MandroidI18n>CJK;West;</MandroidI18n>
+    <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
@@ -15,6 +15,7 @@
   </PropertyGroup>
   <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB.
        See build/PatchElfPageSize.targets for details.
+       TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
   <Import Project="$(MSBuildThisFileDirectory)build\PatchElfPageSize.targets" />
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
        Suppress trim analysis warnings because the project uses reflection extensively
@@ -22,11 +23,11 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
+    <TrimMode>link</TrimMode>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
-    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
@@ -41,17 +42,4 @@
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
     <DisableFody>true</DisableFody>
   </PropertyGroup>
-
-  <!-- WORKAROUND: Fix NativeAOT ILC failure on .NET 10 Android (early 2026 regression).
-       The SDK incorrectly stamps AssetType="runtime" on non-DLL files (pdb, so, dbg)
-       in the runtime pack, causing the AOT compiler to fail with BadImageFormatException.
-       This target fixes the metadata before the SDK uses it.
-       See: https://github.com/dotnet/runtime/pull/126214 -->
-  <Target Name="FixRuntimePackAssetTypes" AfterTargets="_AddRuntimeLibsToPublishAssets" BeforeTargets="ComputeManagedAssembliesToCompileToNative">
-    <ItemGroup>
-      <RuntimePackAsset Condition="'%(Extension)' != '.dll'">
-        <AssetType>native</AssetType>
-      </RuntimePackAsset>
-    </ItemGroup>
-  </Target>
 </Project>

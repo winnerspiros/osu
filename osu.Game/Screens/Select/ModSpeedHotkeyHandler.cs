@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -46,7 +45,6 @@ namespace osu.Game.Screens.Select
             lastActiveRateAdjustMod = (ModRateAdjust?)selectedMods.Value.OfType<ModRateAdjust>().SingleOrDefault()?.DeepClone() ?? lastActiveRateAdjustMod;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Rate adjust mods have known properties.")]
         public bool ChangeSpeed(double delta, IEnumerable<Mod> availableMods)
         {
             double targetSpeed = (selectedMods.Value.OfType<ModRateAdjust>().SingleOrDefault()?.SpeedChange.Value ?? 1) + delta;

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -29,9 +28,6 @@ using osu.Game.Skinning;
 namespace osu.Game.Tests.Beatmaps
 {
     [TestFixture]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Test class")]
-    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Test class")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Test class")]
     public abstract class BeatmapConversionTest<TConvertMapping, TConvertValue>
         where TConvertMapping : ConvertMapping<TConvertValue>, IEquatable<TConvertMapping>, new()
         where TConvertValue : IEquatable<TConvertValue>
@@ -254,9 +250,6 @@ namespace osu.Game.Tests.Beatmaps
         }
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Test class")]
-    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Test class")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Test class")]
     public abstract class BeatmapConversionTest<TConvertValue> : BeatmapConversionTest<ConvertMapping<TConvertValue>, TConvertValue>
         where TConvertValue : IEquatable<TConvertValue>
     {

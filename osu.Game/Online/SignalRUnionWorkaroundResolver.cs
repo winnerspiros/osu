@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
@@ -24,7 +23,6 @@ namespace osu.Game.Online
 
         private static readonly IReadOnlyDictionary<Type, IMessagePackFormatter> formatter_map = createFormatterMap();
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "SignalR workarounds")]
         private static IReadOnlyDictionary<Type, IMessagePackFormatter> createFormatterMap()
         {
             IEnumerable<(Type derivedType, Type baseType)> baseMap = SignalRWorkaroundTypes.BASE_TYPE_MAPPING;
