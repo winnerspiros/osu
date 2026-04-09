@@ -12,11 +12,14 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+
 typedef uint8_t byte;
 
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+static std::string globalLastError;
 
 OboeBridge::OboeBridge() {
     LOGI("OboeBridge created");
@@ -25,6 +28,10 @@ OboeBridge::OboeBridge() {
 OboeBridge::~OboeBridge() {
     stop();
     LOGI("OboeBridge destroyed");
+}
+
+const char* OboeBridge::getLastErrorMessage() const {
+    return lastErrorMsg_.c_str();
 }
 
 bool OboeBridge::open(int32_t sampleRate) {
@@ -58,15 +65,19 @@ bool OboeBridge::open(int32_t sampleRate) {
     oboe::Result result = builder.openStream(stream_);
 
     if (result != oboe::Result::OK) {
-        LOGE("AAudio open failed (%s), falling back to unspecified API",
+        LOGE("AAudio open failed (%s), falling back to unspecified API with conversions",
              oboe::convertToText(result));
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         builder.setSharingMode(oboe::SharingMode::Shared);
+        builder.setFormatConversionAllowed(true);
+        builder.setChannelConversionAllowed(true);
         result = builder.openStream(stream_);
     }
 
     if (result != oboe::Result::OK) {
-        LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
+        lastErrorMsg_ = oboe::convertToText(result);
+        globalLastError = "Failed to open stream: " + lastErrorMsg_;
+        LOGE("Failed to open Oboe stream: %s", lastErrorMsg_.c_str());
         return false;
     }
 
@@ -78,16 +89,13 @@ bool OboeBridge::open(int32_t sampleRate) {
     // LatencyTuner will then attempt to shrink it to 1x burst if stable.
     stream_->setBufferSizeInFrames(stream_->getFramesPerBurst() * 2);
 
-    // Initialise LatencyTuner for dynamic buffer management.
     tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
 
-    LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
-         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
-         stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
+    LOGI("Oboe stream opened: rate=%d, burst=%d, buffer=%d, api=%s, sharing=%s, mmap=%s",
          stream_->getSampleRate(),
          stream_->getFramesPerBurst(),
          stream_->getBufferSizeInFrames(),
-         stream_->getBufferCapacityInFrames(),
+         stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
          stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared",
          oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
 
@@ -98,14 +106,16 @@ bool OboeBridge::start() {
     std::lock_guard<std::mutex> lock(streamLock_);
 
     if (!stream_) {
-        LOGE("Cannot start: stream not opened");
+        lastErrorMsg_ = "Stream not opened";
+        LOGE("Cannot start: %s", lastErrorMsg_.c_str());
         return false;
     }
 
     oboe::Result result = stream_->requestStart();
 
     if (result != oboe::Result::OK) {
-        LOGE("Failed to start Oboe stream: %s", oboe::convertToText(result));
+        lastErrorMsg_ = oboe::convertToText(result);
+        LOGE("Failed to start Oboe stream: %s", lastErrorMsg_.c_str());
         return false;
     }
 
@@ -173,7 +183,6 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
 oboe::DataCallbackResult OboeBridge::onAudioReady(
     oboe::AudioStream* stream, void* audioData, int32_t numFrames) {
 
-
     OboeAudioProvider provider = provider_.load(std::memory_order_acquire);
 
     if (provider) {
@@ -190,7 +199,6 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
                          * sizeof(float);
         memset(audioData, 0, byteCount);
     }
-
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
@@ -210,15 +218,11 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
             int num_cores = sysconf(_SC_NPROCESSORS_CONF);
             if (num_cores > 0) {
-                // S23 Ultra (Snapdragon 8 Gen 2) layout: 1 Prime + 2 Gold + 2 Gold + 3 Silver.
-                // Indices are typically: 0-2 (Silver), 3-4 (Gold), 5-6 (Gold), 7 (Prime).
-                // We want to target the Prime (7) and Gold (3-6) cores.
                 if (num_cores >= 8) {
                     for (int i = 3; i < num_cores; ++i) {
                         CPU_SET(i, &cpuset);
                     }
                 } else {
-                    // Fallback for devices with fewer cores.
                     for (int i = num_cores / 2; i < num_cores; ++i) {
                         CPU_SET(i, &cpuset);
                     }
@@ -302,9 +306,13 @@ void OboeBridge::updateLatency() {
 extern "C" {
 
 OSU_EXPORT intptr_t nOboeCreate(int sampleRate) {
+    globalLastError = "";
     auto* bridge = new (std::nothrow) OboeBridge();
 
-    if (!bridge) return 0;
+    if (!bridge) {
+        globalLastError = "Out of memory";
+        return 0;
+    }
 
     if (!bridge->open(sampleRate)) {
         delete bridge;
@@ -366,6 +374,15 @@ OSU_EXPORT byte nOboeIsMMap(intptr_t ptr) {
 OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     if (bridge) bridge->setProvider(provider);
+}
+
+OSU_EXPORT const char* nOboeGetLastErrorMessage(intptr_t ptr) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    return bridge ? bridge->getLastErrorMessage() : "Invalid pointer";
+}
+
+OSU_EXPORT const char* nOboeGetGlobalError() {
+    return globalLastError.empty() ? nullptr : globalLastError.c_str();
 }
 
 } // extern "C"
