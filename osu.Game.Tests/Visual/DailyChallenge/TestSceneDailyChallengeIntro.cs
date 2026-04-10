@@ -75,7 +75,6 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             AddStep("push screen", () => {
                 if (room != null) LoadScreen(new DailyChallengeIntro(room));
             });
-            // We don't assert the set flag here because of the long animation sequence in Intro.
         }
 
         private void startChallenge(string suffix)

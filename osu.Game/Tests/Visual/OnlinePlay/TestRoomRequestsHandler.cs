@@ -62,6 +62,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                 case JoinRoomRequest joinRoomRequest:
                 {
                     var room = ServerSideRooms.FirstOrDefault(r => r.RoomID == joinRoomRequest.Room.RoomID);
+                    if (room == null) return false;
 
                     if (joinRoomRequest.Password != room.Password)
                     {
@@ -69,7 +70,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                         return true;
                     }
 
-                    joinRoomRequest.TriggerSuccess(createResponseRoom(room, true));
+                    { var response = createResponseRoom(room, true); if (response != null) joinRoomRequest.TriggerSuccess(response); }
                     return true;
                 }
 
@@ -154,13 +155,13 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                     var roomsWithoutParticipants = new List<Room>();
 
                     foreach (var r in ServerSideRooms)
-                        roomsWithoutParticipants.Add(createResponseRoom(r, false));
+                        { var response = createResponseRoom(r, false); if (response != null) roomsWithoutParticipants.Add(response); }
 
                     getRoomsRequest.TriggerSuccess(roomsWithoutParticipants);
                     return true;
 
                 case GetRoomRequest getRoomRequest:
-                    getRoomRequest.TriggerSuccess(createResponseRoom(ServerSideRooms.FirstOrDefault(r => r.RoomID == getRoomRequest.RoomId), true));
+                    { var response = createResponseRoom(ServerSideRooms.FirstOrDefault(r => r.RoomID == getRoomRequest.RoomId), true); if (response != null) getRoomRequest.TriggerSuccess(response); }
                     return true;
 
                 case CreateRoomScoreRequest createRoomScoreRequest:
@@ -184,7 +185,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
                 case GetBeatmapRequest getBeatmapRequest:
                 {
-                    getBeatmapRequest.TriggerSuccess(createResponseBeatmaps(getBeatmapRequest.OnlineID).FirstOrDefault());
+                    { var beatmap = createResponseBeatmaps(getBeatmapRequest.OnlineID).FirstOrDefault(); if (beatmap != null) getBeatmapRequest.TriggerSuccess(beatmap); }
                     return true;
                 }
 
@@ -279,7 +280,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             serverSideRooms.Add(room);
         }
 
-        private Room createResponseRoom(Room? room, bool withParticipants)
+        private Room? createResponseRoom(Room? room, bool withParticipants)
         {
             if (room == null) return null;
             var responseRoom = cloneRoom(room);
