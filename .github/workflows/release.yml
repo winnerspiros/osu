@@ -89,7 +89,7 @@ jobs:
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
         run: >
-          dotnet publish -c Release
+          dotnet publish -c Release -p:PublishTrimmed=false -p:AndroidLinkMode=None
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
@@ -99,18 +99,18 @@ jobs:
           -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
           -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }} -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
 
       - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
         run: >
-          dotnet publish -c Release
+          dotnet publish -c Release -p:PublishTrimmed=false -p:AndroidLinkMode=None
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
           -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          -p:AndroidKeyStore=false
 
       - name: Find APK
         id: find_apk

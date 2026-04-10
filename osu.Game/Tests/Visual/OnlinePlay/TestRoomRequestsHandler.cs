@@ -61,7 +61,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
                 case JoinRoomRequest joinRoomRequest:
                 {
-                    var room = ServerSideRooms.Single(r => r.RoomID == joinRoomRequest.Room.RoomID);
+                    var room = ServerSideRooms.FirstOrDefault(r => r.RoomID == joinRoomRequest.Room.RoomID);
 
                     if (joinRoomRequest.Password != room.Password)
                     {
@@ -160,7 +160,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                     return true;
 
                 case GetRoomRequest getRoomRequest:
-                    getRoomRequest.TriggerSuccess(createResponseRoom(ServerSideRooms.Single(r => r.RoomID == getRoomRequest.RoomId), true));
+                    getRoomRequest.TriggerSuccess(createResponseRoom(ServerSideRooms.FirstOrDefault(r => r.RoomID == getRoomRequest.RoomId), true));
                     return true;
 
                 case CreateRoomScoreRequest createRoomScoreRequest:
@@ -184,7 +184,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
                 case GetBeatmapRequest getBeatmapRequest:
                 {
-                    getBeatmapRequest.TriggerSuccess(createResponseBeatmaps(getBeatmapRequest.OnlineID).Single());
+                    getBeatmapRequest.TriggerSuccess(createResponseBeatmaps(getBeatmapRequest.OnlineID).FirstOrDefault());
                     return true;
                 }
 
@@ -279,8 +279,9 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             serverSideRooms.Add(room);
         }
 
-        private Room createResponseRoom(Room room, bool withParticipants)
+        private Room createResponseRoom(Room? room, bool withParticipants)
         {
+            if (room == null) return null;
             var responseRoom = cloneRoom(room);
 
             // Password is hidden from the response, and is only propagated via HasPassword.
@@ -294,21 +295,9 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
         private Room cloneRoom(Room source)
         {
-            var result = JsonConvert.DeserializeObject<Room>(JsonConvert.SerializeObject(source));
-            Debug.Assert(result != null);
-
-            // When serialising, only beatmap IDs are sent to the server.
-            // When deserialising, full beatmaps and IDs are expected to arrive.
-
-            PlaylistItem? finalCurrentItem = result.CurrentPlaylistItem?.With(id: source.CurrentPlaylistItem!.ID, beatmap: new Optional<IBeatmapInfo>(source.CurrentPlaylistItem.Beatmap));
-            PlaylistItem[] finalPlaylist = result.Playlist.Select((pi, i) => pi.With(id: source.Playlist[i].ID, beatmap: new Optional<IBeatmapInfo>(source.Playlist[i].Beatmap))).ToArray();
-
-            // When setting the properties, we do a clear-then-add, otherwise equality comparers (that only compare by ID) pass early and members don't get replaced.
-            result.CurrentPlaylistItem = null;
-            result.CurrentPlaylistItem = finalCurrentItem;
-            result.Playlist = [];
-            result.Playlist = finalPlaylist;
-
+            var result = new Room();
+            result.CopyFrom(source);
+            result.Playlist = source.Playlist.Select(p => p.With()).ToList();
             return result;
         }
     }

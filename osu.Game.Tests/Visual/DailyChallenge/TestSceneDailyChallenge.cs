@@ -52,7 +52,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
@@ -74,7 +74,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = []
                     }
                 ],
-                EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
@@ -106,18 +106,18 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
             AddStep("add room", () => API.Perform(new CreateRoomRequest(room)));
-            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID!.Value });
+            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = (room.RoomID ?? 0) });
 
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));
             AddUntilStep("wait for screen", () => screen.IsCurrentScreen());
             AddStep("daily challenge ended", () => metadataClient.DailyChallengeInfo.Value = null);
-            AddAssert("notification posted", () => notificationOverlay.AllNotifications.OfType<SimpleNotification>().Any(n => n.Text == DailyChallengeStrings.ChallengeEndedNotification));
+            AddUntilStep("notification posted", () => notificationOverlay.AllNotifications.OfType<SimpleNotification>().Any(n => n.Text == DailyChallengeStrings.ChallengeEndedNotification));
         }
 
         [Test]
@@ -134,12 +134,12 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
             AddStep("add room", () => API.Perform(new CreateRoomRequest(room)));
-            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = room.RoomID!.Value });
+            AddStep("set daily challenge info", () => metadataClient.DailyChallengeInfo.Value = new DailyChallengeInfo { RoomID = (room.RoomID ?? 0) });
 
             Screens.OnlinePlay.DailyChallenge.DailyChallenge screen = null!;
             AddStep("push screen", () => LoadScreen(screen = new Screens.OnlinePlay.DailyChallenge.DailyChallenge(room)));

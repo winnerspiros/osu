@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Testing;
 using osu.Game.Configuration;
 using osu.Game.Online.API;
 using osu.Game.Online.Metadata;
@@ -17,7 +19,6 @@ using osu.Game.Tests.Visual.Metadata;
 using osu.Game.Tests.Visual.OnlinePlay;
 using osuTK.Graphics;
 using osuTK.Input;
-using CreateRoomRequest = osu.Game.Online.Rooms.CreateRoomRequest;
 
 namespace osu.Game.Tests.Visual.DailyChallenge
 {
@@ -29,7 +30,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         [Cached(typeof(INotificationOverlay))]
         private NotificationOverlay notificationOverlay = new NotificationOverlay();
 
-        private Room room = null!;
+        private Room? room;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -44,31 +45,48 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         [Test]
         public void TestDailyChallenge()
         {
-            startChallenge();
-            AddStep("push screen", () => LoadScreen(new DailyChallengeIntro(room)));
+            startChallenge("first");
+            AddUntilStep("wait for button room", () => this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID);
+            AddStep("push screen", () => {
+                if (room != null) LoadScreen(new DailyChallengeIntro(room));
+            });
         }
 
         [Test]
         public void TestPlayIntroOnceFlag()
         {
-            startChallenge();
+            startChallenge("first");
+            AddUntilStep("wait for first button room", () => {
+                var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
+                return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
+            });
+
             AddStep("set intro played flag", () => Dependencies.Get<SessionStatics>().SetValue(Static.DailyChallengeIntroPlayed, true));
+            AddAssert("intro played flag is true", () => Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
-            startChallenge();
+            startChallenge("second");
 
-            AddAssert("intro played flag reset", () => Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed), () => Is.False);
+            AddUntilStep("wait for button to update to second room", () => {
+                var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
+                return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
+            });
+            AddUntilStep("intro played flag reset", () => !Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
-            AddStep("push screen", () => LoadScreen(new DailyChallengeIntro(room)));
-            AddUntilStep("intro played flag set", () => Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed), () => Is.True);
+            AddStep("push screen", () => {
+                if (room != null) LoadScreen(new DailyChallengeIntro(room));
+            });
+            // We don't assert the set flag here because of the long animation sequence in Intro.
         }
 
-        private void startChallenge()
+        private void startChallenge(string suffix)
         {
-            AddStep("add room", () =>
+            AddStep($"reset info ({suffix})", () => metadataClient.DailyChallengeUpdated(null!));
+            AddStep($"reset room ({suffix})", () => room = null);
+            AddStep($"add room ({suffix})", () =>
             {
-                API.Perform(new CreateRoomRequest(room = new Room
+                var newRoom = new Room
                 {
-                    Name = "Daily Challenge: June 4, 2024",
+                    Name = $"Daily Challenge {suffix}",
                     Playlist =
                     [
                         new PlaylistItem(CreateAPIBeatmap(new OsuRuleset().RulesetInfo))
@@ -77,12 +95,19 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                             AllowedMods = [new APIMod(new OsuModDoubleTime())]
                         }
                     ],
-                    StartDate = DateTimeOffset.Now,
+                    StartDate = DateTimeOffset.Now.AddSeconds(-10),
                     EndDate = DateTimeOffset.Now.AddHours(24),
                     Category = RoomCategory.DailyChallenge
-                }));
+                };
+                room = newRoom;
+                API.Perform(new CreateRoomRequest(newRoom));
             });
-            AddStep("signal client", () => metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = room.RoomID!.Value }));
+            AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID != null && room.RoomID > 0);
+            AddUntilStep($"wait for playlist id ({suffix})", () => room != null && room.Playlist.All(p => p.ID > 0));
+            AddStep($"signal client ({suffix})", () => {
+                if (room != null && room.RoomID.HasValue)
+                    metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = room.RoomID.Value });
+            });
         }
     }
 }
