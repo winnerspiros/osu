@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
                 MissingStartTime.UnbindFrom(parentHold.MissingStartTime);
         }
 
-        public bool UpdateResult() => base.UpdateResult(true);
+        public bool UpdateResult() => UpdateResult(true);
 
         protected override void UpdateHitStateTransforms(ArmedState state)
         {

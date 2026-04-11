@@ -3,7 +3,7 @@
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+    <MandroidI18n>CJK;West;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
@@ -24,6 +24,9 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidEnableResourceShrinking>false</AndroidEnableResourceShrinking>
   </PropertyGroup>
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
@@ -38,4 +41,13 @@
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
     <DisableFody>true</DisableFody>
   </PropertyGroup>
+
+  <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack -->
+  <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets">
+    <ItemGroup>
+      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll'">
+        <AssetType>native</AssetType>
+      </RuntimePackAsset>
+    </ItemGroup>
+  </Target>
 </Project>

@@ -17,7 +17,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         TestMultiplayerClient MultiplayerClient { get; }
 
         /// <summary>
-        /// The cached <see cref="osu.Game.Online.Spectator.SpectatorClient"/>.
+        /// The cached <see cref="Online.Spectator.SpectatorClient"/>.
         /// </summary>
         TestSpectatorClient SpectatorClient { get; }
     }
