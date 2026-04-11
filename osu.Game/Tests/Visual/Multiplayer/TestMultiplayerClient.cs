@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public new MultiplayerRoom Room => throw new InvalidOperationException($"Accessing the client-side room via {nameof(TestMultiplayerClient)} is unsafe. "
                                                                                + $"Use {nameof(ClientRoom)} if this was intended.");
 
-        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.User?.Id == API.LocalUser.Value.Id);
+        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.UserID == API.LocalUser.Value.Id);
 
         public Action<MultiplayerRoom>? RoomSetupAction;
 
