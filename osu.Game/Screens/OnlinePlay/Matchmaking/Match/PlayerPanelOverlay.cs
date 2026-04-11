@@ -111,6 +111,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         private void onUserJoined(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
+            if (user.User == null)
+                return;
+
             panels.Add(new PlayerPanel(user)
             {
                 Anchor = Anchor.Centre,
