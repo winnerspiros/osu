@@ -288,7 +288,7 @@ namespace osu.Game.Online.Multiplayer
             // Populate users.
             await PopulateUsers(joinedRoom.Users).ConfigureAwait(false);
             if (joinedRoom.Host != null)
-                await PopulateUsers([joinedRoom.Host]).ConfigureAwait(false);
+                await PopulateUsers(new[] { joinedRoom.Host }).ConfigureAwait(false);
 
             // Update the stored room (must be done on update thread for thread-safety).
             await runOnUpdateThreadAsync(() =>

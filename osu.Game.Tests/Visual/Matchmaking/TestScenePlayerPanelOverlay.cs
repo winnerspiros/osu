@@ -118,13 +118,13 @@ namespace osu.Game.Tests.Visual.Matchmaking
                 });
             });
 
-            AddUntilStep("two panels displayed", () => this.ChildrenOfType<PlayerPanel>().Count(), () => Is.EqualTo(2));
+            AddUntilStep("two panels displayed", () => list.Panels.Count(p => !p.HasQuit), () => Is.EqualTo(2));
             AddAssert("no panels quit", () => this.ChildrenOfType<PlayerPanel>().Count(p => p.HasQuit), () => Is.EqualTo(0));
 
             AddStep("remove a user", () => MultiplayerClient.RemoveUser(new APIUser { Id = 1 }));
 
-            AddUntilStep("one panel quit", () => this.ChildrenOfType<PlayerPanel>().Count(p => p.HasQuit), () => Is.EqualTo(1));
-            AddAssert("two panels still displayed", () => this.ChildrenOfType<PlayerPanel>().Count(), () => Is.EqualTo(2));
+            AddUntilStep("one panel quit", () => list.Panels.Count(p => p.HasQuit), () => Is.EqualTo(1));
+            AddAssert("two panels still displayed", () => list.Panels.Count, () => Is.EqualTo(2));
         }
 
         [Test]

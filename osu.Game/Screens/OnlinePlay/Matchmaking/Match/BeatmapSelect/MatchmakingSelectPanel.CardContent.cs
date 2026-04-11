@@ -55,7 +55,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
 
                 public bool AddUser(APIUser user)
                 {
-                    if (avatars.Any(a => a.User.Id == user.Id))
+                    if (user == null || avatars.Any(a => a.User?.Id == user.Id))
                         return false;
 
                     var avatar = new SelectionAvatar(user, user.Equals(api.LocalUser.Value));
