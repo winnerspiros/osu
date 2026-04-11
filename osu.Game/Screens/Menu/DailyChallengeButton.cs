@@ -145,7 +145,7 @@ namespace osu.Game.Screens.Menu
             if (info.Value == null)
             {
                 Room = null;
-                cover.OnlineInfo = TooltipContent = null; lastDailyChallengeRoomID = null;
+                cover.OnlineInfo = TooltipContent = null;
             }
             else
             {
