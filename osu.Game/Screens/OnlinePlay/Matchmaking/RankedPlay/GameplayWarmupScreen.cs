@@ -73,8 +73,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [BackgroundDependencyLoader]
         private void load()
         {
-            APIBeatmap beatmap = beatmapLookupCache.GetBeatmapAsync(Client.Room!.CurrentPlaylistItem.BeatmapID).GetResultSafely()!;
-            lastLookupResult.Value = SongSelect.BeatmapSetLookupResult.Completed(beatmap.BeatmapSet);
+            APIBeatmap? beatmap = null;
+            var item = Client.Room?.CurrentPlaylistItem;
+            if (item != null)
+            {
+                beatmap = beatmapLookupCache.GetBeatmapAsync(item.BeatmapID).GetResultSafely();
+                if (beatmap?.BeatmapSet != null)
+                    lastLookupResult.Value = SongSelect.BeatmapSetLookupResult.Completed(beatmap.BeatmapSet);
+            }
 
             var matchState = Client.Room?.MatchState as RankedPlayRoomState;
             Debug.Assert(matchState != null);
@@ -134,7 +140,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     AutoSizeAxes = Axes.Y,
                                     Spacing = new Vector2(0f, 4f),
                                     Direction = FillDirection.Vertical,
-                                    Children =
+                                    Children = beatmap == null ? [] :
                                     [
                                         new ShearAligningWrapper(new TitleWedge(beatmap))
                                         {
