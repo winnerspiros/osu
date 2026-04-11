@@ -356,13 +356,13 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
             var item = playlistItem;
             if (item != null)
-                this.Push(new PlaylistItemScoreResultsScreen(id, (room?.RoomID ?? 0), item));
+                this.Push(new PlaylistItemScoreResultsScreen(id, (room.RoomID ?? 0), item));
         }
 
         private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
         {
             var item = playlistItem;
-            if (room != null && (e.RoomID != room.RoomID || e.PlaylistItemID != item?.ID))
+            if (e.RoomID != room.RoomID || e.PlaylistItemID != item?.ID)
                 return;
 
             userLookupCache.GetUserAsync(e.UserID).ContinueWith(t =>
