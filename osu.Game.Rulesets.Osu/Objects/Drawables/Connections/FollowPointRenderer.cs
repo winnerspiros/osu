@@ -4,15 +4,13 @@
 #nullable disable
 
 using System.Collections.Generic;
-
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics;
-
-using osu.Game.Rulesets.Objects.Pooling;
+using osu.Framework.Graphics.Pooling;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Pooling;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
 {

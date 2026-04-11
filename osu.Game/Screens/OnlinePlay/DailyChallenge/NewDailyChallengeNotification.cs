@@ -46,7 +46,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         protected override void Update()
         {
             base.Update();
-            if (card != null) card.Width = Content.DrawWidth;
+            card?.Width = Content.DrawWidth;
         }
     }
 }

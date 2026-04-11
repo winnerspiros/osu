@@ -3,21 +3,18 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System;
-
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Utils;
-
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
-
-using JetBrains.Annotations;
-using osuTK.Graphics;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {

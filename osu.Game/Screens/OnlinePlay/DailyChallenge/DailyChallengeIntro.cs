@@ -96,7 +96,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         protected override BackgroundScreen CreateBackground() => new DailyChallengeIntroBackgroundScreen(colourProvider);
 
-                protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
             var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
             dependencies.CacheAs<OnlinePlayBeatmapAvailabilityTracker>(beatmapAvailabilityTracker);

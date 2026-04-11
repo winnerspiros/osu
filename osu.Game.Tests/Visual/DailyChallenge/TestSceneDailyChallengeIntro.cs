@@ -47,8 +47,10 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         {
             startChallenge("first");
             AddUntilStep("wait for button room", () => this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID);
-            AddStep("push screen", () => {
-                if (room != null) LoadScreen(new DailyChallengeIntro(room));
+            AddStep("push screen", () =>
+            {
+                if (room != null)
+                    LoadScreen(new DailyChallengeIntro(room));
             });
         }
 
@@ -56,7 +58,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         public void TestPlayIntroOnceFlag()
         {
             startChallenge("first");
-            AddUntilStep("wait for first button room", () => {
+            AddUntilStep("wait for first button room", () =>
+            {
                 var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
                 return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
             });
@@ -66,14 +69,17 @@ namespace osu.Game.Tests.Visual.DailyChallenge
 
             startChallenge("second");
 
-            AddUntilStep("wait for button to update to second room", () => {
+            AddUntilStep("wait for button to update to second room", () =>
+            {
                 var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
                 return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
             });
             AddUntilStep("intro played flag reset", () => !Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
-            AddStep("push screen", () => {
-                if (room != null) LoadScreen(new DailyChallengeIntro(room));
+            AddStep("push screen", () =>
+            {
+                if (room != null)
+                    LoadScreen(new DailyChallengeIntro(room));
             });
         }
 
@@ -103,7 +109,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             });
             AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID != null && room.RoomID > 0);
             AddUntilStep($"wait for playlist id ({suffix})", () => room != null && room.Playlist.All(p => p.ID > 0));
-            AddStep($"signal client ({suffix})", () => {
+            AddStep($"signal client ({suffix})", () =>
+            {
                 if (room != null && room.RoomID.HasValue)
                     metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = room.RoomID.Value });
             });

@@ -52,7 +52,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10),
+                EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
@@ -74,7 +75,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = []
                     }
                 ],
-                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10),
+                EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
@@ -106,7 +108,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10),
+                EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 
@@ -134,7 +137,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         AllowedMods = [new APIMod(new OsuModDoubleTime())]
                     }
                 ],
-                StartDate = DateTimeOffset.Now.AddSeconds(-10), EndDate = DateTimeOffset.Now.AddHours(12),
+                StartDate = DateTimeOffset.Now.AddSeconds(-10),
+                EndDate = DateTimeOffset.Now.AddHours(12),
                 Category = RoomCategory.DailyChallenge
             };
 

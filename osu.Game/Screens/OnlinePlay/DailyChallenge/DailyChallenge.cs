@@ -118,7 +118,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(playlistItem ?? new PlaylistItem(new BeatmapInfo()));
         }
 
-                protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
             var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
             dependencies.CacheAs<OnlinePlayBeatmapAvailabilityTracker>(beatmapAvailabilityTracker);
