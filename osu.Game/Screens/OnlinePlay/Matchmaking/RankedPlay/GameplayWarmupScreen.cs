@@ -140,16 +140,19 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     AutoSizeAxes = Axes.Y,
                                     Spacing = new Vector2(0f, 4f),
                                     Direction = FillDirection.Vertical,
-                                    Children = beatmap == null ? System.Array.Empty<Drawable>() : [
-                                        new ShearAligningWrapper(new TitleWedge(beatmap))
-                                        {
-                                            Shear = -OsuGame.SHEAR,
-                                        },
-                                        new ShearAligningWrapper(new MetadataWedge(beatmap))
-                                        {
-                                            Shear = -OsuGame.SHEAR,
-                                        },
-                                    ]
+                                    Children = beatmap == null
+                                        ? System.Array.Empty<Drawable>()
+                                        :
+                                        [
+                                            new ShearAligningWrapper(new TitleWedge(beatmap))
+                                            {
+                                                Shear = -OsuGame.SHEAR,
+                                            },
+                                            new ShearAligningWrapper(new MetadataWedge(beatmap))
+                                            {
+                                                Shear = -OsuGame.SHEAR,
+                                            },
+                                        ]
                                 }
                             }
                         }
