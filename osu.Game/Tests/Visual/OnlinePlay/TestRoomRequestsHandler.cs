@@ -170,6 +170,10 @@ namespace osu.Game.Tests.Visual.OnlinePlay
         {
             var result = new Room();
             result.CopyFrom(source);
+            result.RoomID = source.RoomID;
+            result.StartDate = source.StartDate;
+            result.EndDate = source.EndDate;
+            result.Host = source.Host;
             result.Playlist = source.Playlist.Select(p => p.With()).ToList();
             return result;
         }

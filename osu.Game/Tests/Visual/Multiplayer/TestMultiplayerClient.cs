@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public new MultiplayerRoom Room => throw new InvalidOperationException($"Accessing the client-side room via {nameof(TestMultiplayerClient)} is unsafe. "
                                                                                + $"Use {nameof(ClientRoom)} if this was intended.");
 
-        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.User?.Id == API.LocalUser.Value.Id);
+        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.UserID == API.LocalUser.Value.Id);
 
         public Action<MultiplayerRoom>? RoomSetupAction;
 
@@ -762,7 +762,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             switch (room.Settings.QueueMode)
             {
                 default:
-                    orderedActiveItems = ServerRoom.Playlist.Where(item => !item.Expired).OrderBy(item => item.ID).ToList();
+                    orderedActiveItems = ServerRoom.Playlist
+                                                   .Where(item => !item.Expired)
+                                                   .OrderBy(item => item.PlaylistOrder)
+                                                   .ThenBy(item => item.ID)
+                                                   .ToList();
                     break;
 
                 case QueueMode.AllPlayersRoundRobin:
@@ -776,14 +780,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     }
 
                     orderedActiveItems = itemsByPriority
-                                         // Order by each user's priority.
                                          .OrderBy(i => i.priority)
-                                         // Many users will have the same priority of items, so attempt to break the tie by maintaining previous ordering.
-                                         // Suppose there are two users: User1 and User2. User1 adds two items, and then User2 adds a third. If the previous order is not maintained,
-                                         // then after playing the first item by User1, their second item will become priority=0 and jump to the front of the queue (because it was added first).
                                          .ThenBy(i => i.item.PlaylistOrder)
-                                         // If there are still ties (normally shouldn't happen), break ties by making items added earlier go first.
-                                         // This could happen if e.g. the item orders get reset.
                                          .ThenBy(i => i.item.ID)
                                          .Select(i => i.item)
                                          .ToList();
@@ -811,9 +809,25 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private T clone<T>(T incoming)
         {
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
-            return MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
-        }
+            var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
 
+            if (incoming is MultiplayerRoomUser sourceUser && result is MultiplayerRoomUser targetUser)
+                targetUser.User = sourceUser.User;
+
+            if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
+            {
+                foreach (var user in targetRoom.Users)
+                    user.User = sourceRoom.Users.FirstOrDefault(u => u.UserID == user.UserID)?.User;
+
+                targetRoom.Host?.User = sourceRoom.Host?.User;
+            }
+            else if (incoming is MultiplayerRoomUser sourceSingleUser && result is MultiplayerRoomUser targetSingleUser)
+            {
+                targetSingleUser.User = sourceSingleUser.User;
+            }
+
+            return result;
+        }
         public override Task DisconnectInternal()
         {
             isConnected.Value = false;

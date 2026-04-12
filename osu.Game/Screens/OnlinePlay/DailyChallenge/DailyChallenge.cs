@@ -324,7 +324,11 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 IsValidMod = _ => false
             });
 
-            if (playlistItem?.AllowedMods.Any() == true)
+            var item = playlistItem;
+
+            if (item == null) return;
+
+            if (item.AllowedMods.Any())
             {
                 footerButtons.Insert(-1, new UserModSelectButton
                 {
@@ -336,8 +340,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     Action = () => userModsSelectOverlay.Show(),
                 });
 
-                var rulesetInstance = rulesets.GetRuleset(playlistItem.RulesetID)!.CreateInstance();
-                var allowedMods = playlistItem.AllowedMods.Select(m => m.ToMod(rulesetInstance));
+                var rulesetInstance = rulesets.GetRuleset(item.RulesetID)!.CreateInstance();
+                var allowedMods = item.AllowedMods.Select(m => m.ToMod(rulesetInstance));
                 userModsSelectOverlay.IsValidMod = leaderboard.IsValidMod = m => allowedMods.Any(a => a.GetType() == m.GetType());
             }
 
@@ -349,13 +353,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void presentScore(long id)
         {
-            if (this.IsCurrentScreen())
-                if (playlistItem != null) this.Push(new PlaylistItemScoreResultsScreen(id, (room?.RoomID ?? 0), playlistItem));
+            if (this.IsCurrentScreen() && playlistItem != null)
+                this.Push(new PlaylistItemScoreResultsScreen(id, room.RoomID ?? 0, playlistItem));
         }
 
         private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
         {
-            if (room != null && (e.RoomID != room.RoomID || e.PlaylistItemID != playlistItem?.ID))
+            var playlistItemLocal = playlistItem;
+            if (e.RoomID != room.RoomID || e.PlaylistItemID != playlistItemLocal?.ID)
                 return;
 
             userLookupCache.GetUserAsync(e.UserID).ContinueWith(t =>
@@ -442,7 +447,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 }
 
                 MultiplayerPlaylistItemStats[] stats = t.GetResultSafely();
-                var itemStats = stats.SingleOrDefault(item => item.PlaylistItemID == playlistItem?.ID);
+                var playlistItemLocal = playlistItem;
+                var itemStats = stats.SingleOrDefault(item => item.PlaylistItemID == playlistItemLocal?.ID);
 
                 if (itemStats == null) return;
 
@@ -526,16 +532,20 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void updateMods()
         {
-            if (!this.IsCurrentScreen())
+            if (!this.IsCurrentScreen() || playlistItem == null)
                 return;
 
-            if (playlistItem != null) Mods.Value = userMods.Value.Concat(playlistItem.RequiredMods.Select(m => m.ToMod(Ruleset.Value.CreateInstance()))).ToList();
+            Mods.Value = userMods.Value.Concat(playlistItem.RequiredMods.Select(m => m.ToMod(Ruleset.Value.CreateInstance()))).ToList();
         }
 
         private void startPlay()
         {
             sampleStart?.Play();
-            var item = playlistItem; if (item != null) this.Push(new PlayerLoader(() => new DailyChallengePlayer(room, item)
+
+            if (playlistItem == null)
+                return;
+
+            this.Push(new PlayerLoader(() => new DailyChallengePlayer(room, playlistItem)
             {
                 Exited = () => Scheduler.AddOnce(() => leaderboard.RefetchScores())
             }));
@@ -553,12 +563,12 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         public void PresentBeatmap(WorkingBeatmap beatmap, RulesetInfo ruleset)
         {
-            if (!this.IsCurrentScreen())
+            if (!this.IsCurrentScreen() || playlistItem == null)
                 return;
 
             // We can only handle the current daily challenge beatmap.
             // If the import was for a different beatmap, pass the duty off to global handling.
-            if (playlistItem?.Beatmap.BeatmapSet != null && beatmap.BeatmapSetInfo.OnlineID != playlistItem.Beatmap.BeatmapSet.OnlineID)
+            if (playlistItem.Beatmap.BeatmapSet != null && beatmap.BeatmapSetInfo.OnlineID != playlistItem.Beatmap.BeatmapSet.OnlineID)
             {
                 this.Exit();
                 game?.PresentBeatmap(beatmap.BeatmapSetInfo, b => b.ID == beatmap.BeatmapInfo.ID);
