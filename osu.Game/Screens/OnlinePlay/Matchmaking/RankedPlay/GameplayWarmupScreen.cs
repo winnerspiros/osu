@@ -74,6 +74,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private void load()
         {
             APIBeatmap? beatmap = null;
+
             var item = Client.Room?.CurrentPlaylistItem;
             if (item != null)
             {
@@ -140,7 +141,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     AutoSizeAxes = Axes.Y,
                                     Spacing = new Vector2(0f, 4f),
                                     Direction = FillDirection.Vertical,
-                                    Children = beatmap == null ? [] :
+                                    Children = beatmap == null
+                                        ? System.Array.Empty<Drawable>()
+                                        :
                                     [
                                         new ShearAligningWrapper(new TitleWedge(beatmap))
                                         {
