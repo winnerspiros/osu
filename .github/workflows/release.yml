@@ -92,7 +92,7 @@ jobs:
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
         run: >
-          dotnet publish -c Release -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          dotnet publish -c Release -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
@@ -107,7 +107,7 @@ jobs:
       - name: Build Android APK (signed with default debug key)
         if: steps.keystore.outputs.has_keystore != 'true'
         run: >
-          dotnet publish -c Release -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          dotnet publish -c Release -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
@@ -117,7 +117,7 @@ jobs:
       - name: Find APK
         id: find_apk
         run: |
-          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
+          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
