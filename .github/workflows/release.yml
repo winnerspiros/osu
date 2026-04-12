@@ -92,7 +92,7 @@ jobs:
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
         run: >
-          dotnet publish -c Release -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          dotnet publish -c Release
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
@@ -104,24 +104,33 @@ jobs:
           -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
           -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
 
-      - name: Build Android APK (signed with default debug key)
+      - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
         run: >
-          dotnet publish -c Release -p:AndroidKeyStore=false -p:PublishTrimmed=false -p:AndroidLinkMode=None
+          dotnet publish -c Release
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version=${{ steps.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
           -p:ApplicationVersion=${{ github.run_number }}
+          -p:AndroidKeyStore=false
 
       - name: Find APK
         id: find_apk
         run: |
-          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android"
+          # The signed/final APK is inside the publish/ directory in net10.0-android
+          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
+            # Fallback to the parent directory if publish/ doesn't exist for some reason
+            PUBLISH_DIR="osu.Android/bin/Release/net10.0-android"
+            APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+          fi
+          if [ -z "$APK" ]; then
+            # Last resort: recursive find
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
           fi
+          echo "Found APK at: $APK"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
