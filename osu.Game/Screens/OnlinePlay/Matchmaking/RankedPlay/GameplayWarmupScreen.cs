@@ -11,14 +11,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
-using osu.Framework.Logging;
+
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
-using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
@@ -141,10 +140,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     AutoSizeAxes = Axes.Y,
                                     Spacing = new Vector2(0f, 4f),
                                     Direction = FillDirection.Vertical,
-                                    Children = beatmap == null
-                                        ? System.Array.Empty<Drawable>()
-                                        :
-                                    [
+                                    Children = beatmap == null ? System.Array.Empty<Drawable>() : [
                                         new ShearAligningWrapper(new TitleWedge(beatmap))
                                         {
                                             Shear = -OsuGame.SHEAR,
@@ -166,7 +162,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             base.LoadComplete();
 
-            MultiplayerPlaylistItem item = Client.Room!.CurrentPlaylistItem;
+            var item = Client.Room?.CurrentPlaylistItem;
+            if (item == null) return;
 
             RulesetInfo ruleset = rulesets.GetRuleset(item.RulesetID)!;
             Ruleset rulesetInstance = ruleset.CreateInstance();
@@ -209,16 +206,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 }
             }
 
-            if (card == null)
+            card ??= new RankedPlayCard(matchInfo.LastPlayedCard)
             {
-                Logger.Log($"Played card {matchInfo.LastPlayedCard.Card.ID} was not on the screen.", level: LogLevel.Error);
-
-                card = new RankedPlayCard(matchInfo.LastPlayedCard)
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                };
-            }
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+            };
 
             cardColumn.Add(card);
 

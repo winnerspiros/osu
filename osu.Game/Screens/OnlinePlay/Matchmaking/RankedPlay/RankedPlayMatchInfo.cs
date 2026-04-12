@@ -102,7 +102,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             client.RankedPlayCardRemoved += onCardRemoved;
             client.RankedPlayCardPlayed += onCardPlayed;
 
-            var roomState = (RankedPlayRoomState)client.Room!.MatchState!;
+            if (client.Room?.MatchState is not RankedPlayRoomState roomState)
+                return;
 
             onMatchRoomStateChanged(roomState);
 

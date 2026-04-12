@@ -7,7 +7,6 @@ using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Matchmaking.Events;
@@ -119,7 +118,7 @@ namespace osu.Game.Tests.Visual.Matchmaking
             });
 
             AddUntilStep("two panels displayed", () => list.Panels.Count(p => !p.HasQuit), () => Is.EqualTo(2));
-            AddAssert("no panels quit", () => this.ChildrenOfType<PlayerPanel>().Count(p => p.HasQuit), () => Is.EqualTo(0));
+            AddAssert("no panels quit", () => list.Panels.Count(p => p.HasQuit), () => Is.EqualTo(0));
 
             AddStep("remove a user", () => MultiplayerClient.RemoveUser(new APIUser { Id = 1 }));
 

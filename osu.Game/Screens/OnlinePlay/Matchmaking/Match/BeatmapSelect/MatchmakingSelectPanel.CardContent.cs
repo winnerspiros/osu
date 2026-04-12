@@ -53,7 +53,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
                     userAddedSample = audio.Samples.Get(@"Multiplayer/player-ready");
                 }
 
-                public bool AddUser(APIUser user)
+                public bool AddUser(APIUser? user)
                 {
                     if (user == null || avatars.Any(a => a.User?.Id == user.Id))
                         return false;
