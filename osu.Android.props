@@ -21,7 +21,7 @@
        Suppress trim analysis warnings because the project uses reflection extensively
        (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <RunAOTCompilation>true</RunAOTCompilation>
+    <RunAOTCompilation>false</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>false</PublishTrimmed>
