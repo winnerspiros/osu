@@ -49,7 +49,7 @@
       <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll'">
         <AssetType>native</AssetType>
       </RuntimePackAsset>
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll' and '%(ResolvedFileToPublish.AssetType)' == ''">
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll'">
         <AssetType>native</AssetType>
       </ResolvedFileToPublish>
     </ItemGroup>
