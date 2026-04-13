@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
-    <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <MandroidI18n>CJK;West;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <TrimmerRootAssembly Include="Microsoft.CSharp" />
+    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
   </ItemGroup>
 
   <ItemGroup>
