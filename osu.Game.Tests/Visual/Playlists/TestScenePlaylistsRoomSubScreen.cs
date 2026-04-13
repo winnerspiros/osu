@@ -165,7 +165,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("load screen", () => LoadScreen(new TestPlaylistsScreen(screen = new TestPlaylistsRoomSubScreen(room))));
             AddUntilStep("wait for load", () => screen.IsLoaded);
 
-            AddStep("select first item", () => screen.SelectedItem.Value = room.Playlist[0]);
+            AddStep("select first item", () => screen.SelectedItem.Value = room.Playlist.FirstOrDefault());
             AddUntilStep("first beatmap selected", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]));
             AddUntilStep("osu ruleset selected", () => Ruleset.Value.Equals(new OsuRuleset().RulesetInfo));
 
@@ -652,7 +652,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddUntilStep("user style reset", () => screen.UserBeatmap.Value == null && screen.UserRuleset.Value == null);
             AddUntilStep("beatmap/ruleset set", () => Beatmap.Value.BeatmapInfo.Equals(importedSet.Beatmaps[0]) && Ruleset.Value.Equals(new OsuRuleset().RulesetInfo));
 
-            AddStep("select first playlist item", () => screen.SelectedItem.Value = room.Playlist[0]);
+            AddStep("select first playlist item", () => screen.SelectedItem.Value = room.Playlist.FirstOrDefault());
 
             // Set mods (DT+HR), validate by selecting second playlist item where only DT is allowed.
             AddStep("set user mods style", () => screen.UserMods.Value = [new OsuModDoubleTime(), new OsuModHardRock()]);

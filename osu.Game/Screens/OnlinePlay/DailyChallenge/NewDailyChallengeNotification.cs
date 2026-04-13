@@ -29,7 +29,9 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         private void load(OsuGame? game, SessionStatics statics)
         {
             Text = DailyChallengeStrings.ChallengeLiveNotification;
-            Content.Add(card = new BeatmapCardNano((APIBeatmapSet)room.Playlist.Single().Beatmap.BeatmapSet!));
+            var item = room.Playlist.FirstOrDefault();
+            if (item != null)
+                Content.Add(card = new BeatmapCardNano((APIBeatmapSet)item.Beatmap.BeatmapSet!));
             Activated = () =>
             {
                 if (statics.Get<bool>(Static.DailyChallengeIntroPlayed))
