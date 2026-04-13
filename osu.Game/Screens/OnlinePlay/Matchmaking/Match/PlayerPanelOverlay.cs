@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -23,8 +22,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
     {
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
-
-        public IReadOnlyList<PlayerPanel> Panels => panels.Children;
 
         private Container<PlayerPanel> panels = null!;
         private PlayerPanelCellContainer gridLayout = null!;
@@ -114,8 +111,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         private void onUserJoined(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
-            if (user.User == null) return;
-
             panels.Add(new PlayerPanel(user)
             {
                 Anchor = Anchor.Centre,
@@ -128,8 +123,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         private void onUserLeft(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
-            var panel = panels.FirstOrDefault(p => p.RoomUser.Equals(user));
-            panel?.HasQuit = true;
+            panels.Single(p => p.RoomUser.Equals(user)).HasQuit = true;
             updateDisplay();
         });
 

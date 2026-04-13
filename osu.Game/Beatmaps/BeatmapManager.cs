@@ -316,7 +316,7 @@ namespace osu.Game.Beatmaps
 
         /// <summary>
         /// Perform a lookup query on available <see cref="BeatmapInfo"/>s.
-        /// Use this overload instead of <see cref="QueryBeatmap(Expression{Func{BeatmapInfo,bool}})"/>
+        /// Use this overload instead of <see cref="QueryBeatmap(System.Linq.Expressions.Expression{System.Func{osu.Game.Beatmaps.BeatmapInfo,bool}})"/>
         /// when Realm is unable to transform an expression to the internal Realm query syntax.
         /// </summary>
         /// <param name="query">The query.</param>

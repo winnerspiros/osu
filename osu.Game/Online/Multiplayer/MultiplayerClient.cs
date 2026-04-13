@@ -182,7 +182,7 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// The <see cref="MultiplayerRoomUser"/> corresponding to the local player, if available.
         /// </summary>
-        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.OnlineID);
+        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.SingleOrDefault(u => u.User?.Id == API.LocalUser.Value.Id);
 
         /// <summary>
         /// Whether the <see cref="LocalUser"/> is the host in <see cref="Room"/>.
@@ -288,7 +288,7 @@ namespace osu.Game.Online.Multiplayer
             // Populate users.
             await PopulateUsers(joinedRoom.Users).ConfigureAwait(false);
             if (joinedRoom.Host != null)
-                await PopulateUsers(new[] { joinedRoom.Host }).ConfigureAwait(false);
+                await PopulateUsers([joinedRoom.Host]).ConfigureAwait(false);
 
             // Update the stored room (must be done on update thread for thread-safety).
             await runOnUpdateThreadAsync(() =>
@@ -310,8 +310,8 @@ namespace osu.Game.Online.Multiplayer
                 // The server will null out the end date upon the host joining the room, but the null value is never communicated to the client.
                 APIRoom.EndDate = null;
 
-                var localUser = LocalUser;
-                if (localUser != null) addUserToAPIRoom(localUser);
+                Debug.Assert(LocalUser != null);
+                addUserToAPIRoom(LocalUser);
 
                 foreach (var user in joinedRoom.Users)
                     updateUserPlayingState(user.UserID, user.State);

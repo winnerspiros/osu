@@ -35,7 +35,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         public override bool? ApplyModTrackAdjustments => true;
 
         private readonly Room room;
-        private readonly PlaylistItem? item;
+        private readonly PlaylistItem item;
 
         private Container introContent = null!;
         private Container topTitleDisplay = null!;
@@ -56,6 +56,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
 
+        [Cached(typeof(OnlinePlayBeatmapAvailabilityTracker))]
         private readonly DailyChallengeBeatmapAvailabilityTracker beatmapAvailabilityTracker;
 
         private bool shouldBePlayingMusic;
@@ -87,21 +88,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         public DailyChallengeIntro(Room room)
         {
             this.room = room;
-            item = room.Playlist.FirstOrDefault();
+            item = room.Playlist.Single();
 
             ValidForResume = false;
 
-            beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(item ?? new PlaylistItem(new BeatmapInfo()));
+            beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(item);
         }
 
         protected override BackgroundScreen CreateBackground() => new DailyChallengeIntroBackgroundScreen(colourProvider);
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-        {
-            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
-            dependencies.CacheAs<OnlinePlayBeatmapAvailabilityTracker>(beatmapAvailabilityTracker);
-            return dependencies;
-        }
 
         [BackgroundDependencyLoader]
         private void load(RulesetStore rulesets, BeatmapDifficultyCache difficultyCache, BeatmapModelDownloader beatmapDownloader, OsuConfigManager config, AudioManager audio)
@@ -109,8 +103,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             const float horizontal_info_size = 500f;
 
             StarRatingDisplay starRatingDisplay;
-
-            if (item == null) return;
 
             IBeatmapInfo beatmap = item.Beatmap;
             Ruleset ruleset = rulesets.GetRuleset(item.Beatmap.Ruleset.ShortName)!.CreateInstance();
@@ -361,7 +353,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             beatmapAvailabilityTracker.Availability.BindValueChanged(availability =>
             {
                 if (shouldBePlayingMusic && availability.NewValue.State == DownloadState.LocallyAvailable)
-                    if (item != null) DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
+                    DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
             }, true);
 
             this.FadeInFromZero(400, Easing.OutQuint);
@@ -457,8 +449,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                             Schedule(() =>
                             {
                                 shouldBePlayingMusic = true;
-                                if (item != null) DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
-                                if (item != null) ApplyToBackground(bs => ((RoomBackgroundScreen)bs).SelectedItem.Value = item);
+                                DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
+                                ApplyToBackground(bs => ((RoomBackgroundScreen)bs).SelectedItem.Value = item);
                                 playBeatmapImpactSample();
                             });
                         }

@@ -105,7 +105,7 @@ namespace osu.Game.Beatmaps
         /// <param name="newBeatmap">The updated beatmap model.</param>
         public void Invalidate(IBeatmapInfo oldBeatmap, IBeatmapInfo newBeatmap)
         {
-            Invalidate(lookup => lookup.BeatmapInfo.Equals(oldBeatmap));
+            base.Invalidate(lookup => lookup.BeatmapInfo.Equals(oldBeatmap));
 
             lock (bindableUpdateLock)
             {

@@ -65,7 +65,7 @@ namespace osu.Game.Screens.Play
                             {
                                 Task.Run(importFailedScore).ContinueWith(t =>
                                 {
-                                    importedScore = realm.Run(r => r.Find<ScoreInfo>(t.GetResultSafely().ID)?.ToLive(realm));
+                                    importedScore = realm.Run<Live<ScoreInfo>?>(r => r.Find<ScoreInfo>(t.GetResultSafely().ID)?.ToLive(realm));
                                     Schedule(() => state.Value = importedScore != null ? DownloadState.LocallyAvailable : DownloadState.NotDownloaded);
                                 }).FireAndForget();
                             }

@@ -59,11 +59,6 @@ namespace osu.Android
 
         private OsuGameAndroid? game;
 
-        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
-            : base()
-        {
-        }
-
         private bool gameCreated;
 
         protected override osu.Framework.Game CreateGame()
