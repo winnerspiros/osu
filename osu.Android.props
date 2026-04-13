@@ -28,7 +28,6 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
-    <AndroidLinkMode>None</AndroidLinkMode>
     <AndroidEnableResourceShrinking>false</AndroidEnableResourceShrinking>
   </PropertyGroup>
 
@@ -36,7 +35,7 @@
     <!-- Force Microsoft.CSharp into the trimmer input graph (.NET 10+).          -->
     <!-- A bare TrimmerRootAssembly is ignored if the assembly is not in the      -->
     <!-- linker's input set; adding this reference ensures it is included.       -->
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" NoWarn="NU1510" />
     <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
   </ItemGroup>
 
