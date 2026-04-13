@@ -98,7 +98,7 @@ jobs:
             -p:Version="${{ steps.version.outputs.version }}" \
             -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
-            -p:AndroidKeyStore=true \
+            -p:AndroidKeyStore="true" \
             -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore" \
             -p:AndroidSigningKeyAlias="${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}" \
             -p:AndroidSigningKeyPass="${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}" \
@@ -113,7 +113,7 @@ jobs:
             -p:Version="${{ steps.version.outputs.version }}" \
             -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
-            -p:AndroidKeyStore=false
+            -p:AndroidKeyStore="false"
 
       - name: Find APK
         id: find_apk
