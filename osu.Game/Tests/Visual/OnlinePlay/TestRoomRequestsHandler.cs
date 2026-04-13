@@ -296,6 +296,9 @@ namespace osu.Game.Tests.Visual.OnlinePlay
         {
             var result = JsonConvert.DeserializeObject<Room>(JsonConvert.SerializeObject(source));
             Debug.Assert(result != null);
+            result.RoomID = source.RoomID;
+            result.StartDate = source.StartDate;
+            result.EndDate = source.EndDate;
 
             // When serialising, only beatmap IDs are sent to the server.
             // When deserialising, full beatmaps and IDs are expected to arrive.

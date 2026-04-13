@@ -61,7 +61,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             int index = content.IndexOf(drawable);
 
-            if (index > 0)
+            if (index >= 0)
                 navigationFlow.Remove(navigationFlow[index], true);
 
             return base.Remove(drawable, disposeImmediately);

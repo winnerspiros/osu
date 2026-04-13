@@ -811,7 +811,18 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private T clone<T>(T incoming)
         {
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
-            return MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
+            var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
+
+            if (result is MultiplayerRoom room)
+            {
+                if (room.Host != null)
+                    room.Host.User = ServerRoom!.Users.Single(u => u.UserID == room.Host.UserID).User;
+
+                foreach (var user in room.Users)
+                    user.User = ServerRoom!.Users.Single(u => u.UserID == user.UserID).User;
+            }
+
+            return result;
         }
 
         public override Task DisconnectInternal()

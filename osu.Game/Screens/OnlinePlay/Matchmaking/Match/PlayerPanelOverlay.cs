@@ -123,7 +123,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 
         private void onUserLeft(MultiplayerRoomUser user) => Scheduler.Add(() =>
         {
-            panels.Single(p => p.RoomUser.Equals(user)).HasQuit = true;
+            var panel = panels.FirstOrDefault(p => p.RoomUser.Equals(user)); if (panel != null) panel.HasQuit = true;
             updateDisplay();
         });
 
