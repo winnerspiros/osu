@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
@@ -13,10 +13,12 @@
          the patch in some build orderings. This suppression is harmless since we do fix them. -->
     <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
   </PropertyGroup>
+
   <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB.
        See build/PatchElfPageSize.targets for details.
        TODO: Remove once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries. -->
   <Import Project="$(MSBuildThisFileDirectory)build\PatchElfPageSize.targets" />
+
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
        Suppress trim analysis warnings because the project uses reflection extensively
        (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
@@ -29,6 +31,11 @@
     <AndroidLinkMode>None</AndroidLinkMode>
     <AndroidEnableResourceShrinking>false</AndroidEnableResourceShrinking>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <TrimmerRootAssembly Include="Microsoft.CSharp" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
          NuGet silently falls back to those assets when the app targets net10.0-android (API 36).
@@ -37,13 +44,14 @@
          TODO: Remove this comment once ppy.osu.Framework.Android ships net10.0-android assets. -->
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
   </ItemGroup>
+
   <PropertyGroup>
     <!-- Fody does not handle Android build well, and warns when unchanged.
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
     <DisableFody>true</DisableFody>
   </PropertyGroup>
 
-    <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
+  <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
        This is critical for Android 16 (API 36) which has stricter manifest/parsing rules. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish">
     <ItemGroup>
