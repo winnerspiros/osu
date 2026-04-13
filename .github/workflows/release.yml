@@ -51,7 +51,7 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          for ABI in arm64-v8a armeabi-v7a x86; do
+          for ABI in arm64-v8a armeabi-v7a; do
             echo "::group::Building osu_native for $ABI"
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
