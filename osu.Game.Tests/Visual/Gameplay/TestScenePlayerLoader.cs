@@ -648,7 +648,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         }
 
         /// <summary>
-        /// Mutable dummy BatteryInfo class for <see cref="TestLowBatteryNotification"/>
+        /// Mutable dummy BatteryInfo class for <see cref="TestScenePlayerLoader.TestLowBatteryNotification"/>
         /// </summary>
         /// <inheritdoc/>
         private class LocalBatteryInfo : BatteryInfo

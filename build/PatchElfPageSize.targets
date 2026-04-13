@@ -265,11 +265,10 @@ finally
     Patches any 64-bit .so in the NuGet cache that has sub-16 KB LOAD alignment.
     The patch is idempotent — already-aligned files are skipped.
   -->
-    <Target Name="PatchAndroidNativeLibPageSize" BeforeTargets="Build">
+  <Target Name="PatchAndroidNativeLibPageSize" BeforeTargets="Build">
     <ItemGroup>
-      <_NativeLibs Include="$(NuGetPackageRoot)/**/*.so" />
-      <_NativeLibs Include="$(MSBuildThisFileDirectory)../osu.Android/libs/**/*.so" />
+      <_NuGetNativeLibs Include="$(NuGetPackageRoot)/**/runtimes/android-*/native/*.so" />
     </ItemGroup>
-    <PatchElfPageSize FilePath="%(Identity)" Condition="'@(_NativeLibs)' != ''" />
+    <PatchElfPageSize FilePath="%(Identity)" Condition="'@(_NuGetNativeLibs)' != ''" />
   </Target>
 </Project>

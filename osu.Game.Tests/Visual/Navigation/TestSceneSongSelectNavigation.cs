@@ -275,7 +275,7 @@ namespace osu.Game.Tests.Visual.Navigation
         /// <summary>
         /// Note: This test was written to demonstrate the failure described at https://github.com/ppy/osu/issues/35023,
         /// but because the failure scenario there entailed a race condition, it was possible for the test to pass regardless
-        /// unless <see cref="Screens.Select.SongSelect.SELECTION_DEBOUNCE"/> was increased.
+        /// unless <see cref="osu.Game.Screens.Select.SongSelect.SELECTION_DEBOUNCE"/> was increased.
         /// </summary>
         [Test]
         public void TestPresentFromResults()

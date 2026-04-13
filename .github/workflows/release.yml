@@ -51,7 +51,7 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          for ABI in arm64-v8a armeabi-v7a; do
+          for ABI in arm64-v8a armeabi-v7a x86; do
             echo "::group::Building osu_native for $ABI"
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
@@ -91,46 +91,49 @@ jobs:
 
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=true
-          -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
-          -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+        run: |
+          dotnet publish -c Release \
+            osu.Android/osu.Android.csproj \
+            -f net10.0-android \
+            -p:Version="${{ steps.version.outputs.version }}" \
+            -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
+            -p:ApplicationVersion="${{ github.run_number }}" \
+            -p:AndroidKeyStore=true \
+            -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore" \
+            -p:AndroidSigningKeyAlias="${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}" \
+            -p:AndroidSigningKeyPass="${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}" \
+            -p:AndroidSigningStorePass="${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}"
 
       - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=false
+        run: |
+          dotnet publish -c Release \
+            osu.Android/osu.Android.csproj \
+            -f net10.0-android \
+            -p:Version="${{ steps.version.outputs.version }}" \
+            -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
+            -p:ApplicationVersion="${{ github.run_number }}" \
+            -p:AndroidKeyStore=false
 
       - name: Find APK
         id: find_apk
         run: |
-          # The signed/final APK is inside the publish/ directory in net10.0-android
+          # Strictly prioritize the publish/ directory where the signed APK resides
           PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
+          echo "Searching for APK in: $PUBLISH_DIR"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+
           if [ -z "$APK" ]; then
-            # Fallback to the parent directory if publish/ doesn't exist for some reason
-            PUBLISH_DIR="osu.Android/bin/Release/net10.0-android"
-            APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK" ]; then
-            # Last resort: recursive find
+            echo "::warning::Signed APK not found in publish directory. Falling back to bin/Release (MAY BE UNSIGNED!)"
             APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
           fi
-          echo "Found APK at: $APK"
+
+          if [ -z "$APK" ]; then
+            echo "::error::No APK found anywhere in bin/Release!"
+            sh -c "false"
+          fi
+
+          echo "Final APK found at: $APK"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
