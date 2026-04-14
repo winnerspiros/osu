@@ -94,6 +94,7 @@ jobs:
         run: |
           dotnet publish -c Release \
             osu.Android/osu.Android.csproj \
+            -f net10.0-android \
             -p:Version="${{ steps.version.outputs.version }}" \
             -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
@@ -108,6 +109,7 @@ jobs:
         run: |
           dotnet publish -c Release \
             osu.Android/osu.Android.csproj \
+            -f net10.0-android \
             -p:Version="${{ steps.version.outputs.version }}" \
             -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
             -p:ApplicationVersion="${{ github.run_number }}" \
