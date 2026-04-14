@@ -815,7 +815,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             if (result is MultiplayerRoom room)
             {
-                room.Host?.User = ServerRoom!.Users.Single(u => u.UserID == room.Host.UserID).User;
+                if (room.Host is { } host) host.User = ServerRoom!.Users.Single(u => u.UserID == host.UserID).User;
 
                 foreach (var user in room.Users)
                     user.User = ServerRoom!.Users.Single(u => u.UserID == user.UserID).User;
