@@ -1,9 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Screens;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Screens;
+using osu.Framework.Graphics;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
 using osu.Game.Localisation;
@@ -18,8 +19,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
     {
         private readonly Room room;
 
-        private BeatmapCardNano? card;
-
         public NewDailyChallengeNotification(Room room)
         {
             this.room = room;
@@ -33,7 +32,13 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             var item = room.Playlist.FirstOrDefault();
 
             if (item?.Beatmap.BeatmapSet is APIBeatmapSet beatmapSet)
-                Content.Add(card = new BeatmapCardNano(beatmapSet));
+            {
+                Content.Add(new BeatmapCardNano(beatmapSet)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Width = 1,
+                });
+            }
 
             Activated = () =>
             {
@@ -44,14 +49,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
                 return true;
             };
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (card is not null)
-                card.Width = Content.DrawWidth;
         }
     }
 }
