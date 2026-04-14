@@ -1,6 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
+    <TargetPlatformVersion>35.0</TargetPlatformVersion>
+    <TargetFrameworkVersion>v35.0</TargetFrameworkVersion>
     <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
