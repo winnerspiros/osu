@@ -129,7 +129,6 @@
                 if (lockStream != null) { lockStream.Dispose(); try { System.IO.File.Delete(lockFile); } catch { } }
             }
         }
-        return true;
       ]]></Code>
     </Task>
   </UsingTask>
