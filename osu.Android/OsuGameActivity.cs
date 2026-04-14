@@ -47,6 +47,10 @@ namespace osu.Android
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
+        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer) : base()
+        {
+        }
+
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
 
         public ScreenOrientation DefaultOrientation = ScreenOrientation.Unspecified;

@@ -1,17 +1,3 @@
-<!--
-  PatchElfPageSize.targets
-  ========================
-  Patches Android native libraries from NuGet packages that still ship with 4 KB
-  ELF LOAD-segment alignment so they satisfy the Android 16 (API 36+) requirement
-  for 16 KB page sizes.
-
-  The task rewrites the ELF file in-place: it inserts padding between LOAD segments
-  so that  file_offset % 0x4000 == virtual_address % 0x4000  and sets each LOAD
-  segment's p_align to 0x4000.  The patched file is byte-identical on a second run
-  (idempotent).
-
-  Import this file from any Android .props / .csproj that needs the fix.
--->
 <Project>
   <UsingTask TaskName="PatchElfPageSize" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
@@ -21,250 +7,131 @@
     </ParameterGroup>
     <Task>
       <Code Type="Fragment" Language="cs"><![CDATA[
-WasPatched = false;
-int pageSize = TargetPageSize > 0 ? TargetPageSize : 0x4000; // 16 KB default
+        WasPatched = false;
+        int pageSize = TargetPageSize > 0 ? TargetPageSize : 0x4000;
 
-if (!System.IO.File.Exists(FilePath))
-    return true;
-
-byte[] data = System.IO.File.ReadAllBytes(FilePath);
-
-// ── Validate ELF magic ──────────────────────────────────────────────
-if (data.Length < 64 || data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F')
-    return true;
-
-int eiClass = data[4]; // 1 = 32-bit, 2 = 64-bit
-bool is64 = eiClass == 2;
-bool isLE = data[5] == 1;
-
-// Only 64-bit little-endian ELFs need 16 KB alignment (Android arm64/x64).
-if (!is64 || !isLE)
-    return true;
-
-// ── Helper lambdas ──────────────────────────────────────────────────
-System.Func<byte[], int, ulong> RU64 = (b, o) =>
-    (ulong)b[o] | ((ulong)b[o+1] << 8) | ((ulong)b[o+2] << 16) | ((ulong)b[o+3] << 24) |
-    ((ulong)b[o+4] << 32) | ((ulong)b[o+5] << 40) | ((ulong)b[o+6] << 48) | ((ulong)b[o+7] << 56);
-
-System.Func<byte[], int, uint> RU32 = (b, o) =>
-    (uint)b[o] | ((uint)b[o+1] << 8) | ((uint)b[o+2] << 16) | ((uint)b[o+3] << 24);
-
-System.Action<byte[], int, ulong> WU64 = (b, o, v) =>
-{
-    b[o]   = (byte)(v);       b[o+1] = (byte)(v >> 8);
-    b[o+2] = (byte)(v >> 16); b[o+3] = (byte)(v >> 24);
-    b[o+4] = (byte)(v >> 32); b[o+5] = (byte)(v >> 40);
-    b[o+6] = (byte)(v >> 48); b[o+7] = (byte)(v >> 56);
-};
-
-// ── Parse ELF header ────────────────────────────────────────────────
-ulong e_phoff = RU64(data, 32);
-ulong e_shoff = RU64(data, 40);
-int e_phentsize = (int)(data[54] | (data[55] << 8));
-int e_phnum     = (int)(data[56] | (data[57] << 8));
-int e_shentsize = (int)(data[58] | (data[59] << 8));
-int e_shnum     = (int)(data[60] | (data[61] << 8));
-
-// ── Collect LOAD segments ───────────────────────────────────────────
-const uint PT_LOAD = 1;
-bool alreadyAligned = true;
-var loadIndices = new System.Collections.Generic.List<int>();
-
-for (int i = 0; i < e_phnum; i++)
-{
-    int hdr = (int)e_phoff + i * e_phentsize;
-    if (RU32(data, hdr) == PT_LOAD)
-    {
-        loadIndices.Add(i);
-        if (RU64(data, hdr + 48) < (ulong)pageSize)
-            alreadyAligned = false;
-    }
-}
-
-if (alreadyAligned)
-    return true;
-
-// ── Build a new file with proper padding ────────────────────────────
-var segInfos = new System.Collections.Generic.List<System.Tuple<int, ulong, ulong, ulong>>();
-foreach (int idx in loadIndices)
-{
-    int hdr = (int)e_phoff + idx * e_phentsize;
-    segInfos.Add(System.Tuple.Create(idx,
-        RU64(data, hdr + 8),  // p_offset
-        RU64(data, hdr + 32), // p_filesz
-        RU64(data, hdr + 16)  // p_vaddr
-    ));
-}
-segInfos.Sort((a, b) => a.Item2.CompareTo(b.Item2));
-
-var ms = new System.IO.MemoryStream(data.Length + pageSize * loadIndices.Count);
-int currentOld = 0;
-var deltas = new System.Collections.Generic.List<System.Tuple<ulong, long>>();
-
-foreach (var seg in segInfos)
-{
-    int oldOff = (int)seg.Item2;
-    ulong vaddr = seg.Item4;
-    int filesz  = (int)seg.Item3;
-
-    if (oldOff > currentOld)
-        ms.Write(data, currentOld, oldOff - currentOld);
-
-    long newOff = ms.Position;
-    ulong requiredMod = vaddr % (ulong)pageSize;
-    ulong currentMod  = (ulong)newOff % (ulong)pageSize;
-
-    if (currentMod != requiredMod)
-    {
-        long pad = (requiredMod >= currentMod)
-            ? (long)(requiredMod - currentMod)
-            : (long)((ulong)pageSize - currentMod + requiredMod);
-        for (long p = 0; p < pad; p++) ms.WriteByte(0);
-        newOff = ms.Position;
-    }
-
-    deltas.Add(System.Tuple.Create((ulong)oldOff, newOff - oldOff));
-    ms.Write(data, oldOff, filesz);
-    currentOld = oldOff + filesz;
-}
-
-if (currentOld < data.Length)
-    ms.Write(data, currentOld, data.Length - currentOld);
-
-byte[] newData = ms.ToArray();
-
-// ── Offset translation helper ───────────────────────────────────────
-System.Func<ulong, ulong> translate = (ulong old) =>
-{
-    long d = 0;
-    foreach (var t in deltas)
-    {
-        if (old >= t.Item1) d = t.Item2;
-        else break;
-    }
-    return (ulong)((long)old + d);
-};
-
-// ── Patch ELF header: e_shoff ───────────────────────────────────────
-ulong newShoff = translate(e_shoff);
-WU64(newData, 40, newShoff);
-
-// ── Patch program headers ───────────────────────────────────────────
-for (int i = 0; i < e_phnum; i++)
-{
-    int oldHdr = (int)e_phoff + i * e_phentsize;
-    int newHdr = (int)translate((ulong)oldHdr);
-
-    WU64(newData, newHdr + 8, translate(RU64(data, oldHdr + 8))); // p_offset
-
-    if (RU32(data, oldHdr) == PT_LOAD)
-        WU64(newData, newHdr + 48, (ulong)pageSize); // p_align
-}
-
-// ── Patch section headers ───────────────────────────────────────────
-for (int i = 0; i < e_shnum; i++)
-{
-    int oldSh = (int)e_shoff + i * e_shentsize;
-    int newSh = (int)newShoff + i * e_shentsize;
-    WU64(newData, newSh + 24, translate(RU64(data, oldSh + 24))); // sh_offset
-}
-
-// ── Write patched file (with lock to handle parallel builds) ────────
-string lockFile = FilePath + ".patch-lock";
-System.IO.FileStream lockStream = null;
-try
-{
-    // Acquire an exclusive lock file to prevent concurrent writes.
-    // Retry up to 30 times with 1-second delays (handles parallel MSBuild nodes).
-    for (int attempt = 0; attempt < 30; attempt++)
-    {
-        try
+        if (System.IO.File.Exists(FilePath))
         {
-            lockStream = new System.IO.FileStream(lockFile,
-                System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite,
-                System.IO.FileShare.None);
-            break;
-        }
-        catch (System.IO.IOException)
-        {
-            System.Threading.Thread.Sleep(1000);
-        }
-    }
+            string lockFile = FilePath + ".patch-lock";
+            System.IO.FileStream lockStream = null;
 
-    if (lockStream == null)
-    {
-        Log.LogMessage(MessageImportance.High,
-            "PatchElfPageSize: could not acquire lock for {0}, skipping (another build node may be patching it)",
-            System.IO.Path.GetFileName(FilePath));
-        return true;
-    }
-
-    // Re-read and re-check: another node may have already patched while we waited.
-    byte[] freshData = System.IO.File.ReadAllBytes(FilePath);
-    bool stillNeeds = false;
-    if (freshData.Length >= 64 && freshData[0] == 0x7F && freshData[4] == 2 && freshData[5] == 1)
-    {
-        ulong freshPhoff = RU64(freshData, 32);
-        int freshPhentsz = (int)(freshData[54] | (freshData[55] << 8));
-        int freshPhnum   = (int)(freshData[56] | (freshData[57] << 8));
-        for (int i = 0; i < freshPhnum; i++)
-        {
-            int h = (int)freshPhoff + i * freshPhentsz;
-            if (RU32(freshData, h) == PT_LOAD && RU64(freshData, h + 48) < (ulong)pageSize)
+            try
             {
-                stillNeeds = true;
-                break;
+                for (int attempt = 0; attempt < 120; attempt++)
+                {
+                    try { lockStream = new System.IO.FileStream(lockFile, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None); break; }
+                    catch (System.IO.IOException) { System.Threading.Thread.Sleep(1000); }
+                }
+
+                if (lockStream != null && System.IO.File.Exists(FilePath))
+                {
+                    byte[] data = null;
+                    for (int attempt = 0; attempt < 10; attempt++)
+                    {
+                        try { data = System.IO.File.ReadAllBytes(FilePath); break; }
+                        catch (System.IO.IOException) { System.Threading.Thread.Sleep(1000); }
+                    }
+
+                    if (data != null && data.Length >= 64 && data[0] == 0x7F && data[1] == (byte)'E' && data[2] == (byte)'L' && data[3] == (byte)'F' && data[4] == 2 && data[5] == 1)
+                    {
+                        System.Func<byte[], int, ulong> RU64 = (b, o) => (ulong)b[o] | ((ulong)b[o+1] << 8) | ((ulong)b[o+2] << 16) | ((ulong)b[o+3] << 24) | ((ulong)b[o+4] << 32) | ((ulong)b[o+5] << 40) | ((ulong)b[o+6] << 48) | ((ulong)b[o+7] << 56);
+                        System.Func<byte[], int, uint> RU32 = (b, o) => (uint)b[o] | ((uint)b[o+1] << 8) | ((uint)b[o+2] << 16) | ((uint)b[o+3] << 24);
+                        System.Action<byte[], int, ulong> WU64 = (b, o, v) => { b[o]=(byte)v; b[o+1]=(byte)(v>>8); b[o+2]=(byte)(v>>16); b[o+3]=(byte)(v>>24); b[o+4]=(byte)(v>>32); b[o+5]=(byte)(v>>40); b[o+6]=(byte)(v>>48); b[o+7]=(byte)(v>>56); };
+
+                        ulong e_phoff = RU64(data, 32);
+                        int e_phentsize = (int)(data[54] | (data[55] << 8));
+                        int e_phnum = (int)(data[56] | (data[57] << 8));
+                        ulong e_shoff = RU64(data, 40);
+                        int e_shentsize = (int)(data[58] | (data[59] << 8));
+                        int e_shnum = (int)(data[60] | (data[61] << 8));
+
+                        const uint PT_LOAD = 1;
+                        bool needsPatch = false;
+                        for (int i = 0; i < e_phnum; i++)
+                        {
+                            int hdr = (int)e_phoff + i * e_phentsize;
+                            if (RU32(data, hdr) == PT_LOAD && RU64(data, hdr + 48) < (ulong)pageSize) { needsPatch = true; break; }
+                        }
+
+                        if (needsPatch)
+                        {
+                            var segInfos = new System.Collections.Generic.List<System.Tuple<int, ulong, ulong, ulong>>();
+                            var loadIndices = new System.Collections.Generic.List<int>();
+                            for (int i = 0; i < e_phnum; i++)
+                            {
+                                int hdr = (int)e_phoff + i * e_phentsize;
+                                if (RU32(data, hdr) == PT_LOAD)
+                                {
+                                    loadIndices.Add(i);
+                                    segInfos.Add(System.Tuple.Create(i, RU64(data, hdr + 8), RU64(data, hdr + 32), RU64(data, hdr + 16)));
+                                }
+                            }
+                            segInfos.Sort((a, b) => a.Item2.CompareTo(b.Item2));
+
+                            var ms = new System.IO.MemoryStream(data.Length + pageSize * loadIndices.Count);
+                            int currentOld = 0;
+                            var deltas = new System.Collections.Generic.List<System.Tuple<ulong, long>>();
+
+                            foreach (var seg in segInfos)
+                            {
+                                int oldOff = (int)seg.Item2;
+                                ulong vaddr = seg.Item4;
+                                int filesz = (int)seg.Item3;
+                                if (oldOff > currentOld) ms.Write(data, currentOld, oldOff - currentOld);
+                                long newOff = ms.Position;
+                                ulong requiredMod = vaddr % (ulong)pageSize;
+                                ulong currentMod = (ulong)newOff % (ulong)pageSize;
+                                if (currentMod != requiredMod)
+                                {
+                                    long pad = (requiredMod >= currentMod) ? (long)(requiredMod - currentMod) : (long)((ulong)pageSize - currentMod + requiredMod);
+                                    for (long p = 0; p < pad; p++) ms.WriteByte(0);
+                                    newOff = ms.Position;
+                                }
+                                deltas.Add(System.Tuple.Create((ulong)oldOff, newOff - oldOff));
+                                ms.Write(data, oldOff, filesz);
+                                currentOld = oldOff + filesz;
+                            }
+                            if (currentOld < data.Length) ms.Write(data, currentOld, data.Length - currentOld);
+                            byte[] newData = ms.ToArray();
+
+                            System.Func<ulong, ulong> translate = (ulong old) => { long d = 0; foreach (var t in deltas) { if (old >= t.Item1) d = t.Item2; else break; } return (ulong)((long)old + d); };
+
+                            ulong newShoff = translate(e_shoff);
+                            WU64(newData, 40, newShoff);
+
+                            for (int i = 0; i < e_phnum; i++)
+                            {
+                                int oldHdr = (int)e_phoff + i * e_phentsize;
+                                int newHdr = (int)translate((ulong)oldHdr);
+                                WU64(newData, newHdr + 8, translate(RU64(data, oldHdr + 8)));
+                                if (RU32(data, oldHdr) == PT_LOAD) WU64(newData, newHdr + 48, (ulong)pageSize);
+                            }
+
+                            for (int i = 0; i < e_shnum; i++)
+                            {
+                                int oldSh = (int)e_shoff + i * e_shentsize;
+                                int newSh = (int)newShoff + i * e_shentsize;
+                                WU64(newData, newSh + 24, translate(RU64(data, oldSh + 24)));
+                            }
+
+                            for (int attempt = 0; attempt < 20; attempt++)
+                            {
+                                try { System.IO.File.WriteAllBytes(FilePath, newData); WasPatched = true; break; }
+                                catch (System.IO.IOException) { System.Threading.Thread.Sleep(1000); }
+                            }
+                            if (WasPatched) Log.LogMessage(MessageImportance.High, "PatchElfPageSize: successfully patched {0}", System.IO.Path.GetFileName(FilePath));
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (lockStream != null) { lockStream.Dispose(); try { System.IO.File.Delete(lockFile); } catch { } }
             }
         }
-    }
-
-    if (!stillNeeds)
-    {
-        Log.LogMessage(MessageImportance.Low,
-            "PatchElfPageSize: {0} was already patched by another build node",
-            System.IO.Path.GetFileName(FilePath));
-        return true;
-    }
-
-        // Even with a lock file, the actual .so may be locked for reading by another MSBuild process.
-    // Retry writing the actual file.
-    for (int attempt = 0; attempt < 30; attempt++)
-    {
-        try
-        {
-            System.IO.File.WriteAllBytes(FilePath, newData);
-            WasPatched = true;
-            break;
-        }
-        catch (System.IO.IOException)
-        {
-            if (attempt == 29) throw;
-            System.Threading.Thread.Sleep(1000);
-        }
-    }
-    WasPatched = true;
-    Log.LogMessage(MessageImportance.High,
-        "PatchElfPageSize: patched {0} (align 0x1000 -> 0x{1:X}, +{2} bytes)",
-        System.IO.Path.GetFileName(FilePath), pageSize, newData.Length - data.Length);
-}
-finally
-{
-    if (lockStream != null)
-    {
-        lockStream.Dispose();
-        try { System.IO.File.Delete(lockFile); } catch { }
-    }
-}
-]]></Code>
+      ]]></Code>
     </Task>
   </UsingTask>
-
-  <!--
-    Target: PatchAndroidNativeLibPageSize
-    Runs early in the build, before the page-size validation.
-    Patches any 64-bit .so in the NuGet cache that has sub-16 KB LOAD alignment.
-    The patch is idempotent — already-aligned files are skipped.
-  -->
   <Target Name="PatchAndroidNativeLibPageSize" BeforeTargets="Build">
     <ItemGroup>
       <_NuGetNativeLibs Include="$(NuGetPackageRoot)/**/runtimes/android-*/native/*.so" />

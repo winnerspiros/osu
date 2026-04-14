@@ -147,7 +147,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             ((IMultiplayerClient)this).UserLeft(clone(new MultiplayerRoomUser(user.Id)));
 
             if (ServerRoom.Users.Any())
-                TransferHost(ServerRoom.Users.First().UserID);
+                TransferHost(ServerRoom.Users.FirstOrDefault()?.UserID ?? 0);
         }
 
         public void ChangeRoomState(MultiplayerRoomState newState)
@@ -241,7 +241,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             if (password != ServerAPIRoom.Password)
                 throw new InvalidOperationException("Invalid password.");
 
-            lastPlaylistItemId = ServerAPIRoom.Playlist.Max(item => item.ID);
+            lastPlaylistItemId = ServerAPIRoom.Playlist.Any() ? ServerAPIRoom.Playlist.Max(item => item.ID) : 0;
 
             var localUser = new MultiplayerRoomUser(api.LocalUser.Value.Id)
             {
@@ -741,7 +741,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
             Debug.Assert(ServerRoom != null);
 
             // Pick the next non-expired playlist item by playlist order, or default to the most-recently-expired item.
-            MultiplayerPlaylistItem nextItem = upcomingItems.FirstOrDefault() ?? ServerRoom.Playlist.OrderByDescending(i => i.PlayedAt).First();
+            MultiplayerPlaylistItem? nextItem = upcomingItems.FirstOrDefault() ?? ServerRoom.Playlist.OrderByDescending(i => i.PlayedAt).FirstOrDefault();
+
+            if (nextItem == null)
+                return;
 
             currentIndex = ServerRoom.Playlist.IndexOf(nextItem);
 
@@ -811,7 +814,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
         private T clone<T>(T incoming)
         {
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
-            return MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
+            var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
+
+            if (result is MultiplayerRoom room)
+            {
+                if (room.Host is { } host) host.User = ServerRoom!.Users.FirstOrDefault(u => u.UserID == host.UserID)?.User;
+
+                foreach (var user in room.Users) user.User = ServerRoom!.Users.FirstOrDefault(u => u.UserID == user.UserID)?.User;
+            }
+
+            return result;
         }
 
         public override Task DisconnectInternal()

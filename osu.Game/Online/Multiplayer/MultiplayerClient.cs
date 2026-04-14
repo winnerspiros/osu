@@ -182,7 +182,7 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// The <see cref="MultiplayerRoomUser"/> corresponding to the local player, if available.
         /// </summary>
-        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.SingleOrDefault(u => u.User?.Id == API.LocalUser.Value.Id);
+        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.Id);
 
         /// <summary>
         /// Whether the <see cref="LocalUser"/> is the host in <see cref="Room"/>.
@@ -306,7 +306,7 @@ namespace osu.Game.Online.Multiplayer
                 APIRoom.ChannelId = joinedRoom.ChannelID;
                 APIRoom.Host = joinedRoom.Host?.User;
                 APIRoom.Playlist = joinedRoom.Playlist.Select(item => new PlaylistItem(item)).ToArray();
-                APIRoom.CurrentPlaylistItem = APIRoom.Playlist.Single(item => item.ID == joinedRoom.Settings.PlaylistItemId);
+                APIRoom.CurrentPlaylistItem = APIRoom.Playlist.FirstOrDefault(item => item.ID == joinedRoom.Settings.PlaylistItemId);
                 // The server will null out the end date upon the host joining the room, but the null value is never communicated to the client.
                 APIRoom.EndDate = null;
 
@@ -1015,7 +1015,7 @@ namespace osu.Game.Online.Multiplayer
             APIRoom.Type = Room.Settings.MatchType;
             APIRoom.QueueMode = Room.Settings.QueueMode;
             APIRoom.AutoStartDuration = Room.Settings.AutoStartDuration;
-            APIRoom.CurrentPlaylistItem = APIRoom.Playlist.Single(item => item.ID == settings.PlaylistItemId);
+            APIRoom.CurrentPlaylistItem = APIRoom.Playlist.FirstOrDefault(item => item.ID == settings.PlaylistItemId);
             APIRoom.AutoSkip = Room.Settings.AutoSkip;
 
             SettingsChanged?.Invoke(settings);
