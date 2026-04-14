@@ -743,7 +743,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
             // Pick the next non-expired playlist item by playlist order, or default to the most-recently-expired item.
             MultiplayerPlaylistItem? nextItem = upcomingItems.FirstOrDefault() ?? ServerRoom.Playlist.OrderByDescending(i => i.PlayedAt).FirstOrDefault();
 
-if (nextItem == null) return;
+            if (nextItem == null)
+                return;
+
             currentIndex = ServerRoom.Playlist.IndexOf(nextItem);
 
             long lastItem = room.Settings.PlaylistItemId;
