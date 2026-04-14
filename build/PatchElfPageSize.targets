@@ -18,6 +18,7 @@ System.IO.FileStream lockStream = null;
 
 try
 {
+    // Try to acquire an exclusive lock file with a long timeout (2 minutes).
     for (int attempt = 0; attempt < 120; attempt++)
     {
         try
@@ -31,10 +32,17 @@ try
         }
     }
 
-    if (lockStream == null) return true;
+    if (lockStream == null)
+    {
+        Log.LogMessage(MessageImportance.High, "PatchElfPageSize: timed out waiting for lock on {0}, skipping.", System.IO.Path.GetFileName(FilePath));
+        return true;
+    }
+
+    // Re-verify existence after acquiring lock.
+    if (!System.IO.File.Exists(FilePath)) return true;
 
     byte[] data = null;
-    for (int attempt = 0; attempt < 20; attempt++)
+    for (int attempt = 0; attempt < 10; attempt++)
     {
         try
         {
@@ -50,7 +58,7 @@ try
     if (data == null || data.Length < 64 || data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F')
         return true;
 
-    if (data[4] != 2 || data[5] != 1) return true;
+    if (data[4] != 2 || data[5] != 1) return true; // 64-bit little-endian only.
 
     System.Func<byte[], int, ulong> RU64 = (b, o) => (ulong)b[o] | ((ulong)b[o+1] << 8) | ((ulong)b[o+2] << 16) | ((ulong)b[o+3] << 24) | ((ulong)b[o+4] << 32) | ((ulong)b[o+5] << 40) | ((ulong)b[o+6] << 48) | ((ulong)b[o+7] << 56);
     System.Func<byte[], int, uint> RU32 = (b, o) => (uint)b[o] | ((uint)b[o+1] << 8) | ((uint)b[o+2] << 16) | ((uint)b[o+3] << 24);
@@ -64,18 +72,18 @@ try
     int e_shnum = (int)(data[60] | (data[61] << 8));
 
     const uint PT_LOAD = 1;
-    bool stillNeeds = false;
+    bool needsPatch = false;
     for (int i = 0; i < e_phnum; i++)
     {
         int hdr = (int)e_phoff + i * e_phentsize;
         if (RU32(data, hdr) == PT_LOAD && RU64(data, hdr + 48) < (ulong)pageSize)
         {
-            stillNeeds = true;
+            needsPatch = true;
             break;
         }
     }
 
-    if (!stillNeeds) return true;
+    if (!needsPatch) return true;
 
     var loadIndices = new System.Collections.Generic.List<int>();
     for (int i = 0; i < e_phnum; i++)
@@ -151,7 +159,7 @@ try
             System.Threading.Thread.Sleep(1000);
         }
     }
-    if (WasPatched) Log.LogMessage(MessageImportance.High, "PatchElfPageSize: patched {0}", System.IO.Path.GetFileName(FilePath));
+    if (WasPatched) Log.LogMessage(MessageImportance.High, "PatchElfPageSize: successfully patched {0}", System.IO.Path.GetFileName(FilePath));
 }
 finally
 {
