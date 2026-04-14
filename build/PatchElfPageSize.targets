@@ -18,8 +18,7 @@ System.IO.FileStream lockStream = null;
 
 try
 {
-    // Acquire an exclusive lock file.
-    for (int attempt = 0; attempt < 60; attempt++)
+    for (int attempt = 0; attempt < 120; attempt++)
     {
         try
         {
@@ -34,11 +33,8 @@ try
 
     if (lockStream == null) return true;
 
-    // Re-verify existence inside lock.
-    if (!System.IO.File.Exists(FilePath)) return true;
-
     byte[] data = null;
-    for (int attempt = 0; attempt < 10; attempt++)
+    for (int attempt = 0; attempt < 20; attempt++)
     {
         try
         {
@@ -47,7 +43,7 @@ try
         }
         catch (System.IO.IOException)
         {
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
         }
     }
 
@@ -68,20 +64,25 @@ try
     int e_shnum = (int)(data[60] | (data[61] << 8));
 
     const uint PT_LOAD = 1;
-    bool alreadyAligned = true;
-    var loadIndices = new System.Collections.Generic.List<int>();
-
+    bool stillNeeds = false;
     for (int i = 0; i < e_phnum; i++)
     {
         int hdr = (int)e_phoff + i * e_phentsize;
-        if (RU32(data, hdr) == PT_LOAD)
+        if (RU32(data, hdr) == PT_LOAD && RU64(data, hdr + 48) < (ulong)pageSize)
         {
-            loadIndices.Add(i);
-            if (RU64(data, hdr + 48) < (ulong)pageSize) alreadyAligned = false;
+            stillNeeds = true;
+            break;
         }
     }
 
-    if (alreadyAligned) return true;
+    if (!stillNeeds) return true;
+
+    var loadIndices = new System.Collections.Generic.List<int>();
+    for (int i = 0; i < e_phnum; i++)
+    {
+        int hdr = (int)e_phoff + i * e_phentsize;
+        if (RU32(data, hdr) == PT_LOAD) loadIndices.Add(i);
+    }
 
     var segInfos = new System.Collections.Generic.List<System.Tuple<int, ulong, ulong, ulong>>();
     foreach (int idx in loadIndices)
@@ -137,7 +138,7 @@ try
         WU64(newData, newSh + 24, translate(RU64(data, oldSh + 24)));
     }
 
-    for (int attempt = 0; attempt < 10; attempt++)
+    for (int attempt = 0; attempt < 20; attempt++)
     {
         try
         {
@@ -147,7 +148,7 @@ try
         }
         catch (System.IO.IOException)
         {
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
         }
     }
     if (WasPatched) Log.LogMessage(MessageImportance.High, "PatchElfPageSize: patched {0}", System.IO.Path.GetFileName(FilePath));
