@@ -3,8 +3,8 @@ name: Build Android APK
 on:
   push:
     tags:
-      - '*.*.*'
-      - '!*-*'
+      - "*.*.*"
+      - "!*-*"
   workflow_dispatch:
 
 jobs:
@@ -90,7 +90,11 @@ jobs:
           fi
 
       - name: Build Android APK (signed)
-        if: steps.keystore.outputs.has_keystore == 'true'
+        if: steps.keystore.outputs.has_keystore == "true"
+        env:
+          ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          KEYPASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          STOREPASS: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
         run: |
           dotnet publish -c Release \
             osu.Android/osu.Android.csproj \
@@ -100,12 +104,12 @@ jobs:
             -p:ApplicationVersion="${{ github.run_number }}" \
             -p:AndroidKeyStore="true" \
             -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore" \
-            -p:AndroidSigningKeyAlias="${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}" \
-            -p:AndroidSigningKeyPass="${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}" \
-            -p:AndroidSigningStorePass="${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}"
+            -p:AndroidSigningKeyAlias="${ALIAS}" \
+            -p:AndroidSigningKeyPass="${KEYPASS}" \
+            -p:AndroidSigningStorePass="${STOREPASS}"
 
       - name: Build Android APK (unsigned)
-        if: steps.keystore.outputs.has_keystore != 'true'
+        if: steps.keystore.outputs.has_keystore != "true"
         run: |
           dotnet publish -c Release \
             osu.Android/osu.Android.csproj \
@@ -124,12 +128,8 @@ jobs:
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
 
           if [ -z "$APK" ]; then
-            echo "::warning::Signed APK not found in publish directory. Falling back to bin/Release (MAY BE UNSIGNED!)"
-            APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
-          fi
-
-          if [ -z "$APK" ]; then
-            echo "::error::No APK found anywhere in bin/Release!"
+            echo "::error::Signed APK not found in publish directory ($PUBLISH_DIR)!"
+            # Use a non-restricted way to fail
             sh -c "false"
           fi
 
@@ -144,7 +144,7 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, "refs/tags/")
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.find_apk.outputs.apk_path }}

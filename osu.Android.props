@@ -42,7 +42,7 @@
     <DisableFody>true</DisableFody>
   </PropertyGroup>
 
-  <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish">
+  <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList">
     <ItemGroup>
       <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll'">
         <AssetType>native</AssetType>
