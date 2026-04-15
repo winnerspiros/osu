@@ -134,8 +134,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 return;
             }
 
-            var roomDuration = room.EndDate.Value - room.StartDate.Value;
-            var remaining = room.EndDate.Value - DateTimeOffset.Now;
+            var roomDuration = (room.EndDate ?? DateTimeOffset.Now) - (room.StartDate ?? DateTimeOffset.Now);
+            var remaining = (room.EndDate ?? DateTimeOffset.Now) - DateTimeOffset.Now;
 
             timeText.Text = remaining.ToString(@"hh\:mm\:ss");
             progress.Progress = remaining.TotalSeconds / roomDuration.TotalSeconds;
