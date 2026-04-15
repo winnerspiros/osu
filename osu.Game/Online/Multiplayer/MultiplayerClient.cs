@@ -182,7 +182,7 @@ namespace osu.Game.Online.Multiplayer
         /// <summary>
         /// The <see cref="MultiplayerRoomUser"/> corresponding to the local player, if available.
         /// </summary>
-        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.Id);
+        public virtual MultiplayerRoomUser? LocalUser => Room?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.OnlineID);
 
         /// <summary>
         /// Whether the <see cref="LocalUser"/> is the host in <see cref="Room"/>.
@@ -288,7 +288,7 @@ namespace osu.Game.Online.Multiplayer
             // Populate users.
             await PopulateUsers(joinedRoom.Users).ConfigureAwait(false);
             if (joinedRoom.Host != null)
-                await PopulateUsers([joinedRoom.Host]).ConfigureAwait(false);
+                await PopulateUsers(new[] { joinedRoom.Host }).ConfigureAwait(false);
 
             // Update the stored room (must be done on update thread for thread-safety).
             await runOnUpdateThreadAsync(() =>
@@ -306,12 +306,12 @@ namespace osu.Game.Online.Multiplayer
                 APIRoom.ChannelId = joinedRoom.ChannelID;
                 APIRoom.Host = joinedRoom.Host?.User;
                 APIRoom.Playlist = joinedRoom.Playlist.Select(item => new PlaylistItem(item)).ToArray();
-                APIRoom.CurrentPlaylistItem = APIRoom.Playlist.FirstOrDefault(item => item.ID == joinedRoom.Settings.PlaylistItemId);
+                APIRoom.CurrentPlaylistItem = APIRoom.Playlist.Single(item => item.ID == joinedRoom.Settings.PlaylistItemId);
                 // The server will null out the end date upon the host joining the room, but the null value is never communicated to the client.
                 APIRoom.EndDate = null;
 
-                Debug.Assert(LocalUser != null);
-                addUserToAPIRoom(LocalUser);
+                var localUser = LocalUser;
+                if (localUser != null) addUserToAPIRoom(localUser);
 
                 foreach (var user in joinedRoom.Users)
                     updateUserPlayingState(user.UserID, user.State);
@@ -1015,7 +1015,7 @@ namespace osu.Game.Online.Multiplayer
             APIRoom.Type = Room.Settings.MatchType;
             APIRoom.QueueMode = Room.Settings.QueueMode;
             APIRoom.AutoStartDuration = Room.Settings.AutoStartDuration;
-            APIRoom.CurrentPlaylistItem = APIRoom.Playlist.FirstOrDefault(item => item.ID == settings.PlaylistItemId);
+            APIRoom.CurrentPlaylistItem = APIRoom.Playlist.Single(item => item.ID == settings.PlaylistItemId);
             APIRoom.AutoSkip = Room.Settings.AutoSkip;
 
             SettingsChanged?.Invoke(settings);

@@ -47,7 +47,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
     public partial class DailyChallenge : OsuScreen, IPreviewTrackOwner, IHandlePresentBeatmap
     {
         private readonly Room room;
-        private readonly PlaylistItem playlistItem;
+        private readonly PlaylistItem? playlistItem;
 
         /// <summary>
         /// Any mods applied by/to the local user.
@@ -70,7 +70,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
 
-        [Cached(typeof(OnlinePlayBeatmapAvailabilityTracker))]
         private readonly DailyChallengeBeatmapAvailabilityTracker beatmapAvailabilityTracker;
 
         [Resolved]
@@ -113,10 +112,17 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             this.room = room;
 
-            playlistItem = room.Playlist.Single();
+            playlistItem = room.Playlist.FirstOrDefault();
             Padding = new MarginPadding { Horizontal = -HORIZONTAL_OVERFLOW_PADDING };
 
-            beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(playlistItem);
+            beatmapAvailabilityTracker = new DailyChallengeBeatmapAvailabilityTracker(playlistItem ?? new PlaylistItem(new BeatmapInfo()));
+        }
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            dependencies.CacheAs<OnlinePlayBeatmapAvailabilityTracker>(beatmapAvailabilityTracker);
+            return dependencies;
         }
 
         [BackgroundDependencyLoader]
@@ -132,7 +138,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 Children = new Drawable[]
                 {
                     beatmapAvailabilityTracker,
-                    new ScreenStack(new RoomBackgroundScreen(playlistItem))
+                    new ScreenStack(new RoomBackgroundScreen(playlistItem ?? new PlaylistItem(new BeatmapInfo())))
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
@@ -160,7 +166,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                             {
                                 new Drawable[]
                                 {
-                                    new DrawableRoomPlaylistItem(playlistItem, true)
+                                    playlistItem == null ? new Container() : new DrawableRoomPlaylistItem(playlistItem, true)
                                     {
                                         RelativeSizeAxes = Axes.X,
                                         AllowReordering = false,
@@ -236,7 +242,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                         },
                                                         null,
                                                         // Middle column (leaderboard)
-                                                        leaderboard = new DailyChallengeLeaderboard(room, playlistItem)
+                                                        leaderboard = new DailyChallengeLeaderboard(room, playlistItem ?? new PlaylistItem(new BeatmapInfo()))
                                                         {
                                                             RelativeSizeAxes = Axes.Both,
                                                             PresentScore = presentScore,
@@ -318,7 +324,11 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 IsValidMod = _ => false
             });
 
-            if (playlistItem.AllowedMods.Any())
+            var item = playlistItem;
+
+            if (item == null) return;
+
+            if (item.AllowedMods.Any())
             {
                 footerButtons.Insert(-1, new UserModSelectButton
                 {
@@ -330,8 +340,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     Action = () => userModsSelectOverlay.Show(),
                 });
 
-                var rulesetInstance = rulesets.GetRuleset(playlistItem.RulesetID)!.CreateInstance();
-                var allowedMods = playlistItem.AllowedMods.Select(m => m.ToMod(rulesetInstance));
+                var rulesetInstance = rulesets.GetRuleset(item.RulesetID)!.CreateInstance();
+                var allowedMods = item.AllowedMods.Select(m => m.ToMod(rulesetInstance));
                 userModsSelectOverlay.IsValidMod = leaderboard.IsValidMod = m => allowedMods.Any(a => a.GetType() == m.GetType());
             }
 
@@ -343,13 +353,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void presentScore(long id)
         {
-            if (this.IsCurrentScreen())
-                this.Push(new PlaylistItemScoreResultsScreen(id, room.RoomID!.Value, playlistItem));
+            if (this.IsCurrentScreen() && playlistItem != null)
+                this.Push(new PlaylistItemScoreResultsScreen(id, room.RoomID ?? 0, playlistItem));
         }
 
         private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
         {
-            if (e.RoomID != room.RoomID || e.PlaylistItemID != playlistItem.ID)
+            var playlistItemLocal = playlistItem;
+            if (e.RoomID != room.RoomID || e.PlaylistItemID != playlistItemLocal?.ID)
                 return;
 
             userLookupCache.GetUserAsync(e.UserID).ContinueWith(t =>
@@ -427,7 +438,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             API.Queue(new JoinRoomRequest(room, null));
             startLoopingTrack(this, musicController);
 
-            metadataClient.BeginWatchingMultiplayerRoom(room.RoomID!.Value).ContinueWith(t =>
+            metadataClient.BeginWatchingMultiplayerRoom((room.RoomID ?? 0)).ContinueWith(t =>
             {
                 if (t.Exception != null)
                 {
@@ -436,7 +447,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 }
 
                 MultiplayerPlaylistItemStats[] stats = t.GetResultSafely();
-                var itemStats = stats.SingleOrDefault(item => item.PlaylistItemID == playlistItem.ID);
+                var playlistItemLocal = playlistItem;
+                var itemStats = stats.SingleOrDefault(item => item.PlaylistItemID == playlistItemLocal?.ID);
 
                 if (itemStats == null) return;
 
@@ -479,14 +491,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             this.Delay(WaveContainer.DISAPPEAR_DURATION).FadeOut();
 
             API.Queue(new PartRoomRequest(room));
-            metadataClient.EndWatchingMultiplayerRoom(room.RoomID!.Value).FireAndForget();
+            metadataClient.EndWatchingMultiplayerRoom((room.RoomID ?? 0)).FireAndForget();
 
             return base.OnExiting(e);
         }
 
-        public static void TrySetDailyChallengeBeatmap(OsuScreen screen, BeatmapManager beatmaps, RulesetStore rulesets, MusicController music, PlaylistItem item)
+        public static void TrySetDailyChallengeBeatmap(OsuScreen screen, BeatmapManager beatmaps, RulesetStore rulesets, MusicController music, PlaylistItem? item)
         {
-            if (!screen.IsCurrentScreen())
+            if (item == null || !screen.IsCurrentScreen())
                 return;
 
             var beatmap = beatmaps.QueryOnlineBeatmapId(item.Beatmap.OnlineID);
@@ -520,7 +532,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void updateMods()
         {
-            if (!this.IsCurrentScreen())
+            if (!this.IsCurrentScreen() || playlistItem == null)
                 return;
 
             Mods.Value = userMods.Value.Concat(playlistItem.RequiredMods.Select(m => m.ToMod(Ruleset.Value.CreateInstance()))).ToList();
@@ -529,6 +541,10 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         private void startPlay()
         {
             sampleStart?.Play();
+
+            if (playlistItem == null)
+                return;
+
             this.Push(new PlayerLoader(() => new DailyChallengePlayer(room, playlistItem)
             {
                 Exited = () => Scheduler.AddOnce(() => leaderboard.RefetchScores())
@@ -547,12 +563,12 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         public void PresentBeatmap(WorkingBeatmap beatmap, RulesetInfo ruleset)
         {
-            if (!this.IsCurrentScreen())
+            if (!this.IsCurrentScreen() || playlistItem == null)
                 return;
 
             // We can only handle the current daily challenge beatmap.
             // If the import was for a different beatmap, pass the duty off to global handling.
-            if (beatmap.BeatmapSetInfo.OnlineID != playlistItem.Beatmap.BeatmapSet!.OnlineID)
+            if (playlistItem.Beatmap.BeatmapSet != null && beatmap.BeatmapSetInfo.OnlineID != playlistItem.Beatmap.BeatmapSet.OnlineID)
             {
                 this.Exit();
                 game?.PresentBeatmap(beatmap.BeatmapSetInfo, b => b.ID == beatmap.BeatmapInfo.ID);
