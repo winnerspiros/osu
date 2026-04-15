@@ -3,8 +3,8 @@ name: Build Android APK
 on:
   push:
     tags:
-      - "*.*.*"
-      - "!*-*"
+      - '*.*.*'
+      - '!*-*'
   workflow_dispatch:
 
 jobs:
@@ -30,9 +30,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
-
-      - name: Update .NET workloads
-        run: dotnet workload update
 
       - name: Install .NET Android workload
         run: dotnet workload install android
@@ -91,49 +88,38 @@ jobs:
 
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
-        env:
-          ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          KEYPASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          STOREPASS: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-        run: |
-          dotnet publish -c Release \
-            osu.Android/osu.Android.csproj \
-            -f net10.0-android \
-            -p:Version="${{ steps.version.outputs.version }}" \
-            -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
-            -p:ApplicationVersion="${{ github.run_number }}" \
-            -p:AndroidKeyStore="true" \
-            -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore" \
-            -p:AndroidSigningKeyAlias="${ALIAS}" \
-            -p:AndroidSigningKeyPass="${KEYPASS}" \
-            -p:AndroidSigningStorePass="${STOREPASS}"
+        run: >
+          dotnet publish -c Release
+          osu.Android/osu.Android.csproj
+          -f net10.0-android
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
+          -p:ApplicationVersion=${{ github.run_number }}
+          -p:AndroidKeyStore=true
+          -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
+          -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
 
       - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
-        run: |
-          dotnet publish -c Release \
-            osu.Android/osu.Android.csproj \
-            -f net10.0-android \
-            -p:Version="${{ steps.version.outputs.version }}" \
-            -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}" \
-            -p:ApplicationVersion="${{ github.run_number }}" \
-            -p:AndroidKeyStore="false"
+        run: >
+          dotnet publish -c Release
+          osu.Android/osu.Android.csproj
+          -f net10.0-android
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
+          -p:ApplicationVersion=${{ github.run_number }}
+          -p:AndroidKeyStore=false
 
       - name: Find APK
         id: find_apk
         run: |
-          # Strictly prioritize the publish/ directory where the signed APK resides
           PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
-          echo "Searching for APK in: $PUBLISH_DIR"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
-
           if [ -z "$APK" ]; then
-            echo "::error::Signed APK not found in publish directory ($PUBLISH_DIR)!"
-            # Use a non-restricted way to fail
-            sh -c "false"
+            APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
           fi
-
-          echo "Final APK found at: $APK"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact

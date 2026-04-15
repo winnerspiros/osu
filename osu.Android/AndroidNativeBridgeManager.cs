@@ -99,12 +99,7 @@ namespace osu.Android
         [MethodImpl(MethodImplOptions.NoInlining)]
         public string GetOboeStatus()
         {
-            if (oboeBridge is not OboeAudioBridge bridge)
-            {
-                string? globalError = OboeAudioBridge.GetGlobalError();
-                return globalError != null ? $"Failed: {globalError}" : "Not Created";
-            }
-
+            if (oboeBridge is not OboeAudioBridge bridge) return "Not Created";
             if (!bridge.IsActive) return "Failed: " + bridge.GetLastErrorMessage();
             return cachedOboeStatus ??= $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
         }
