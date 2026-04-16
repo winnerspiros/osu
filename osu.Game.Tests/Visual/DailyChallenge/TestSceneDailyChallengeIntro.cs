@@ -58,20 +58,14 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         public void TestPlayIntroOnceFlag()
         {
             startChallenge("first");
-            AddUntilStep("wait for first button room", () =>
-            {
-                return this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID;
-            });
+            AddUntilStep("wait for first button room", () => this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID);
 
             AddStep("set intro played flag", () => Dependencies.Get<SessionStatics>().SetValue(Static.DailyChallengeIntroPlayed, true));
             AddAssert("intro played flag is true", () => Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
             startChallenge("second");
 
-            AddUntilStep("wait for button to update to second room", () =>
-            {
-                return this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID;
-            });
+            AddUntilStep("wait for button to update to second room", () => this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID);
             AddUntilStep("intro played flag reset", () => !Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
             AddStep("push screen", () =>

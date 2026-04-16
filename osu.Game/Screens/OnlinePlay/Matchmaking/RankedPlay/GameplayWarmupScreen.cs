@@ -75,6 +75,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             APIBeatmap? beatmap = null;
 
             var item = Client.Room?.CurrentPlaylistItem;
+
             if (item != null)
             {
                 beatmap = beatmapLookupCache.GetBeatmapAsync(item.BeatmapID).GetResultSafely();
