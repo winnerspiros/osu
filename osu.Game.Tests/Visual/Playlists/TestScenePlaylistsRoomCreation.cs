@@ -64,7 +64,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 room.Name = "my awesome room";
                 room.Host = API.LocalUser.Value;
                 room.RecentParticipants = [room.Host];
-                room.EndDate = DateTimeOffset.UtcNow.AddMinutes(5);
+                room.EndDate = DateTimeOffset.Now.AddMinutes(5);
                 room.Playlist =
                 [
                     new PlaylistItem(importedBeatmap.Beatmaps.First())
@@ -91,7 +91,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 room.MaxAttempts = 5;
                 room.Host = API.LocalUser.Value;
                 room.RecentParticipants = [room.Host];
-                room.EndDate = DateTimeOffset.UtcNow.AddMinutes(5);
+                room.EndDate = DateTimeOffset.Now.AddMinutes(5);
                 room.Playlist =
                 [
                     new PlaylistItem(importedBeatmap.Beatmaps.First())
@@ -178,7 +178,7 @@ namespace osu.Game.Tests.Visual.Playlists
                         RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                     }
                 ];
-                room.EndDate = DateTimeOffset.UtcNow.AddHours(1);
+                room.EndDate = DateTimeOffset.Now.AddHours(1);
             });
 
             AddAssert("match has default beatmap", () => match.Beatmap.IsDefault);
