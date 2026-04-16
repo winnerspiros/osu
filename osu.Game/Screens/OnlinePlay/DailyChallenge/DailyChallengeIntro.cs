@@ -459,6 +459,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                 shouldBePlayingMusic = true;
                                 if (item != null)
                                     DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
+
                                 if (item != null)
                                     ApplyToBackground(bs => ((RoomBackgroundScreen)bs).SelectedItem.Value = item);
                                 playBeatmapImpactSample();

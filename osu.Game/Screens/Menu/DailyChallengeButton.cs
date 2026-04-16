@@ -161,16 +161,19 @@ namespace osu.Game.Screens.Menu
                     if (room.StartDate != null && room.RoomID != lastDailyChallengeRoomID)
                     {
                         lastDailyChallengeRoomID = room.RoomID;
-                                                // new challenge is live, reset intro played static.
+
+                        // new challenge is live, reset intro played static.
                         statics.SetValue(Static.DailyChallengeIntroPlayed, false);
-                                                // we only want to notify the user if the new challenge just went live.
+
+                        // we only want to notify the user if the new challenge just went live.
                         if (room.StartDate != null && Math.Abs((DateTimeOffset.Now - (room.StartDate ?? DateTimeOffset.Now)).TotalSeconds) < 1800)
-                        notificationOverlay?.Post(new NewDailyChallengeNotification(room));
+                            notificationOverlay?.Post(new NewDailyChallengeNotification(room));
                     }
 
                     updateCountdown();
                     Scheduler.AddDelayed(updateCountdown, 1000, true);
                 };
+
                 api.Queue(roomRequest);
             }
         }
