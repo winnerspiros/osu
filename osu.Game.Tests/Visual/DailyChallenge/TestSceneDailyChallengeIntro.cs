@@ -99,12 +99,12 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                 room = newRoom;
                 API.Perform(new CreateRoomRequest(newRoom));
             });
-            AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID != null && room.RoomID > 0);
+            AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID > 0 == true);
             AddUntilStep($"wait for playlist id ({suffix})", () => room?.Playlist.All(p => p.ID > 0) == true);
             AddStep($"signal client ({suffix})", () =>
             {
-                if (room != null && room.RoomID.HasValue)
-                    metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = room.RoomID.Value });
+                if (room?.RoomID is long roomId)
+                    metadataClient.DailyChallengeUpdated(new DailyChallengeInfo { RoomID = roomId });
             });
         }
     }
