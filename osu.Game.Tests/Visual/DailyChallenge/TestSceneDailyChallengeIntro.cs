@@ -99,8 +99,8 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                 room = newRoom;
                 API.Perform(new CreateRoomRequest(newRoom));
             });
-            AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID > 0 == true);
-            AddUntilStep($"wait for playlist id ({suffix})", () => room?.Playlist.All(p => p.ID > 0) == true);
+            AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID is > 0);
+            AddUntilStep($"wait for playlist id ({suffix})", () => room?.Playlist.All(p => p.ID > 0) is true);
             AddStep($"signal client ({suffix})", () =>
             {
                 if (room?.RoomID is long roomId)
