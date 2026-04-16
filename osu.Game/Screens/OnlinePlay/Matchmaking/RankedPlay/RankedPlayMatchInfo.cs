@@ -72,7 +72,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public RankedPlayRoomState RoomState { get; private set; } = null!;
 
-        public bool IsOwnTurn => RoomState != null && client.LocalUser != null && RoomState.ActiveUserId == client.LocalUser.UserID;
+        public bool IsOwnTurn => RoomState.ActiveUserId == client.LocalUser?.UserID;
 
         public int CurrentRound => RoomState.CurrentRound;
 

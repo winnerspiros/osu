@@ -60,8 +60,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             startChallenge("first");
             AddUntilStep("wait for first button room", () =>
             {
-                var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
-                return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
+                return this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID;
             });
 
             AddStep("set intro played flag", () => Dependencies.Get<SessionStatics>().SetValue(Static.DailyChallengeIntroPlayed, true));
@@ -71,8 +70,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
 
             AddUntilStep("wait for button to update to second room", () =>
             {
-                var btn = this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault();
-                return btn != null && btn.Room != null && btn.Room.RoomID == room?.RoomID;
+                return this.ChildrenOfType<DailyChallengeButton>().FirstOrDefault()?.Room?.RoomID == room?.RoomID;
             });
             AddUntilStep("intro played flag reset", () => !Dependencies.Get<SessionStatics>().Get<bool>(Static.DailyChallengeIntroPlayed));
 
@@ -108,7 +106,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                 API.Perform(new CreateRoomRequest(newRoom));
             });
             AddUntilStep($"wait for room id ({suffix})", () => room?.RoomID != null && room.RoomID > 0);
-            AddUntilStep($"wait for playlist id ({suffix})", () => room != null && room.Playlist.All(p => p.ID > 0));
+            AddUntilStep($"wait for playlist id ({suffix})", () => room?.Playlist.All(p => p.ID > 0) == true);
             AddStep($"signal client ({suffix})", () =>
             {
                 if (room != null && room.RoomID.HasValue)

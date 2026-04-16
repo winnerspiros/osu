@@ -360,8 +360,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
             beatmapAvailabilityTracker.Availability.BindValueChanged(availability =>
             {
-                if (shouldBePlayingMusic && availability.NewValue.State == DownloadState.LocallyAvailable)
-                    if (item != null) DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
+                if (shouldBePlayingMusic && availability.NewValue.State == DownloadState.LocallyAvailable && item != null)
+                    DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
             }, true);
 
             this.FadeInFromZero(400, Easing.OutQuint);
@@ -457,7 +457,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                             Schedule(() =>
                             {
                                 shouldBePlayingMusic = true;
-                                if (item != null) DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
+                                if (item != null)
+                        DailyChallenge.TrySetDailyChallengeBeatmap(this, beatmapManager, rulesets, musicController, item);
                                 if (item != null) ApplyToBackground(bs => ((RoomBackgroundScreen)bs).SelectedItem.Value = item);
                                 playBeatmapImpactSample();
                             });

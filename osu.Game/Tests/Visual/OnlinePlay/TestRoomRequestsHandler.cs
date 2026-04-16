@@ -112,6 +112,12 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                                 User = localUser,
                                 Accuracy = 1,
                                 TotalScore = 1000000,
+                            },
+                            new APIUserScoreAggregate
+                            {
+                                User = new APIUser { Username = "other user" },
+                                Accuracy = 0.5,
+                                TotalScore = 500000,
                             }
                         ]
                     });
@@ -154,8 +160,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             room.RoomID = currentRoomId++;
             room.Host = user;
 
-            if (room.StartDate == null)
-                room.StartDate = DateTimeOffset.Now;
+            room.StartDate ??= DateTimeOffset.Now;
 
             foreach (var item in room.Playlist)
             {

@@ -150,11 +150,11 @@ namespace osu.Game.Screens.Menu
             else
             {
                 if (info.Value is not DailyChallengeInfo infoValue) return;
+
                 var roomRequest = new GetRoomRequest(infoValue.RoomID);
 
                 roomRequest.Success += room =>
-                {
-                    if (room == null) return;
+            {
                     Room = room;
                     cover.OnlineInfo = TooltipContent = room.Playlist.FirstOrDefault()?.Beatmap.BeatmapSet as APIBeatmapSet;
 
