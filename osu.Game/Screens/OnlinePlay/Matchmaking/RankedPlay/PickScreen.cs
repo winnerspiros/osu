@@ -49,11 +49,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private DateTimeOffset stageEndTime;
         private TimeSpan stageDuration;
 
-        /// <summary>
-        /// Whether the local user has played a card themselves.
-        /// </summary>
-        private bool hasPlayedCard;
-
         public PickScreen()
         {
             StageCaption = "It's your turn to play a card!";
@@ -125,10 +120,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         }
 
         private bool shouldPlayWarningSample
-            => matchInfo.Stage.Value == RankedPlayStage.CardPlay
-               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
-               && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-               && !hasPlayedCard;
+        {
+            get => matchInfo.Stage.Value == RankedPlayStage.CardPlay
+                   && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
+                   && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
+                   && !field;
+            set;
+        }
 
         protected override void Update()
         {
@@ -224,7 +222,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             if (selection != null)
             {
-                hasPlayedCard = true;
+                shouldPlayWarningSample = true;
                 playerHand.SelectionMode = HandSelectionMode.Disabled;
 
                 Client.PlayCard(selection.Card).FireAndForget();

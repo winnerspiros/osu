@@ -576,17 +576,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         private partial class PointPath : SmoothPath
         {
-            private Vector2[] points = [];
-
             public Vector2[] Points
             {
-                get => points;
+                get;
                 set
                 {
-                    points = value;
+                    field = value;
                     verticesCache.Invalidate();
                 }
-            }
+            } = [];
 
             private Vector2 offset;
 

@@ -149,9 +149,6 @@ namespace osu.Game.Rulesets.Objects
             }
         }
 
-        private bool optimiseCatmull;
-
-
         /// <summary>
         /// Whether to optimise Catmull path segments, usually resulting in removing bulbs around stacked knots.
         /// </summary>
