@@ -112,8 +112,15 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                                 User = localUser,
                                 Accuracy = 1,
                                 TotalScore = 1000000,
+                            },
+                            new APIUserScoreAggregate
+                            {
+                                User = new APIUser { Username = "other user" },
+                                Accuracy = 0.5,
+                                TotalScore = 500000,
                             }
                         ]
+                    });
                     });
                     return true;
 

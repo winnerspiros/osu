@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public new MultiplayerRoom Room => throw new InvalidOperationException($"Accessing the client-side room via {nameof(TestMultiplayerClient)} is unsafe. "
                                                                                + $"Use {nameof(ClientRoom)} if this was intended.");
 
-        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.UserID == API.LocalUser.Value.Id);
+        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.Id);
 
         public Action<MultiplayerRoom>? RoomSetupAction;
 
@@ -811,8 +811,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
             var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
 
-            if (incoming is MultiplayerRoomUser sourceUser && result is MultiplayerRoomUser targetUser)
-                targetUser.User = sourceUser.User;
+            if (incoming is MultiplayerRoomUser { User: { } } sourceUser && result is MultiplayerRoomUser targetUser) targetUser.User = sourceUser.User;
 
             if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
             {
