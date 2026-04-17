@@ -120,13 +120,20 @@ jobs:
         run: |
           if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
             CONFIG="Release"
+            APK=$(find "osu.Android/bin/$CONFIG/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
+            if [ -z "$APK" ]; then
+              APK=$(find "osu.Android/bin/$CONFIG" -name "*-Signed.apk" | head -1)
+            fi
           else
             CONFIG="Debug"
+            APK=$(find "osu.Android/bin/$CONFIG/net10.0-android/publish" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+            if [ -z "$APK" ]; then
+              APK=$(find "osu.Android/bin/$CONFIG" -name "*.apk" | head -1)
+            fi
           fi
-          PUBLISH_DIR="osu.Android/bin/$CONFIG/net10.0-android/publish"
-          APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
-            APK=$(find "osu.Android/bin/$CONFIG" -name "*.apk" | head -1)
+            echo "Failed to locate expected APK for CONFIG=$CONFIG" >&2
+            exit 1
           fi
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
