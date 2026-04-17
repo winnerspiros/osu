@@ -432,7 +432,9 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     break;
 
                 case StopCountdownRequest stopCountdown:
-                    await StopCountdown(ServerRoom.ActiveCountdowns.First(c => c.ID == stopCountdown.ID)).ConfigureAwait(false);
+                    var countdownToRemove = ServerRoom.ActiveCountdowns.FirstOrDefault(c => c.ID == stopCountdown.ID);
+                    if (countdownToRemove != null)
+                        await StopCountdown(countdownToRemove).ConfigureAwait(false);
                     break;
 
                 case RollRequest rollRequest:
