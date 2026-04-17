@@ -1,17 +1,36 @@
 ﻿<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
-    <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
+    <!-- arm64-v8a covers 99%+ of modern Android devices.
+         armeabi-v7a is kept for older 32-bit devices.
+         x86 removed — only used by legacy emulators; modern x86_64 emulators
+         run arm64 binaries via native translation (no dedicated x86 build needed). -->
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <!-- CJK and Mideast encodings are needed for song metadata display.
+         Rare covers supplementary Unicode blocks. West is the default Latin set. -->
     <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-    <!-- Suppress XA0141 page-size warnings during build. The actual .so files are patched
-         to 16 KB alignment by build/PatchElfPageSize.targets, but the SDK check runs before
-         the patch in some build orderings. This suppression is harmless since we do fix them. -->
+    <!-- Suppress XA0141 page-size warnings. ELF patching is disabled for all configurations
+         (see PatchElfPageSizeEnabled below) to prevent APK signature corruption.
+         The XA0141 warning is therefore expected and harmless.
+         AndroidPageSize16KBCompatibilityCheck=false should suppress the check, but Android SDK
+         36.1.53 still emits XA0141 in some build orderings, so we also add it to NoWarn. -->
     <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
+    <NoWarn>$(NoWarn);XA0141</NoWarn>
+    <!-- Disable ELF alignment patching for ALL configurations.
+         The custom PatchElfPageSize task can run concurrently with the Android packaging step
+         because MSBuild's BeforeTargets="Build" fires for every ABI sub-build, which often
+         overlaps with the main APK assembly pass.  Patching .so files in the NuGet cache while
+         they are being read and packed into the APK can corrupt the ZIP/signing structures,
+         producing an APK with a null certificate array (INSTALL_PARSE_FAILED_NO_CERTIFICATES).
+         TODO: Re-enable once ppy.Veldrid.SPIRV ships 16 KB-aligned native libraries so no
+               patching is needed at all, or once the build targets are re-sequenced so
+               patching always completes before packaging starts. -->
+    <PatchElfPageSizeEnabled>false</PatchElfPageSizeEnabled>
   </PropertyGroup>
 
   <!-- Patch NuGet-provided .so files that ship with 4 KB ELF alignment to 16 KB.
@@ -26,10 +45,18 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
-    <!-- Disable ELF patching in Release to prevent signature corruption -->
-    <PatchElfPageSizeEnabled>false</PatchElfPageSizeEnabled>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+    <!-- Strip IL bodies from AOT-compiled assemblies.  The runtime uses the native .so code
+         instead, and IL is only kept for non-AOT methods.  This can save 20-30 MB. -->
+    <AndroidStripILAfterAOT>true</AndroidStripILAfterAOT>
+    <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
+         but the download/APK size is significantly smaller. -->
+    <AndroidEnableAssemblyCompression>true</AndroidEnableAssemblyCompression>
+    <!-- Don't ship PDB files in the APK — they add ~15-20 MB.
+         Stack traces still work via embedded metadata. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -56,10 +83,13 @@
   </PropertyGroup>
 
   <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
-       This is critical for Android 16 (API 36) which has stricter manifest/parsing rules.
-       We hook into multiple stages to ensure all native assets (including BASS and native bridge)
-       are correctly identified before the optimization/signing phases. -->
-  <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList">
+       This is critical for Android 16 (API 36) Release/AOT builds where the linker expects
+       all non-managed assets to be marked as native before the optimization/signing phases.
+       Scoped to Release only — running this during Debug builds can interfere with how the
+       Android SDK classifies signing-related items, leading to APKs with null certificate
+       arrays (INSTALL_PARSE_FAILED_NO_CERTIFICATES). -->
+  <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList"
+          Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
       <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
         <AssetType>native</AssetType>

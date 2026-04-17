@@ -48,7 +48,9 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          for ABI in arm64-v8a armeabi-v7a x86; do
+          # Only build arm64 and arm32.  x86 removed to reduce APK size —
+          # modern emulators use x86_64 or ARM translation.
+          for ABI in arm64-v8a armeabi-v7a; do
             echo "::group::Building osu_native for $ABI"
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
@@ -86,6 +88,9 @@ jobs:
             echo "version=0.0.0" >> "$GITHUB_OUTPUT"
           fi
 
+      # Always build Release for full optimization (trimming, AOT, compression).
+      # When a keystore is available we sign with it; otherwise the SDK produces
+      # a debug-signed Release APK that can be sideloaded for testing.
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
         env:
@@ -105,10 +110,10 @@ jobs:
           -p:AndroidSigningKeyPass="$ANDROID_KEY_PASS"
           -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
 
-      - name: Build Android APK (unsigned)
+      - name: Build Android APK (unsigned Release)
         if: steps.keystore.outputs.has_keystore != 'true'
         run: >
-          dotnet publish -c Debug
+          dotnet publish -c Release
           osu.Android/osu.Android.csproj
           -f net10.0-android
           -p:Version="${{ steps.version.outputs.version }}"
@@ -118,16 +123,29 @@ jobs:
       - name: Find APK
         id: find_apk
         run: |
+          # Both paths build Release.  Signed builds produce *-Signed.apk; unsigned
+          # builds produce the base APK name.  Search publish dir first, then fallback.
           if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
-            CONFIG="Release"
+            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
+            if [ -z "$APK" ]; then
+              APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
+            fi
           else
-            CONFIG="Debug"
+            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+            if [ -z "$APK" ]; then
+              APK=$(find "osu.Android/bin/Release" -name "*.apk" | head -1)
+            fi
           fi
-          PUBLISH_DIR="osu.Android/bin/$CONFIG/net10.0-android/publish"
-          APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
+
           if [ -z "$APK" ]; then
-            APK=$(find "osu.Android/bin/$CONFIG" -name "*.apk" | head -1)
+            echo "::error::Failed to locate APK. Listing bin directory:"
+            find osu.Android/bin -name "*.apk" -o -name "*.aab" 2>/dev/null || true
+            exit 1
           fi
+
+          APK_SIZE=$(stat -c %s "$APK" 2>/dev/null || stat -f %z "$APK" 2>/dev/null || wc -c < "$APK")
+          APK_SIZE_MB=$((APK_SIZE / 1048576))
+          echo "Found APK: $APK ($APK_SIZE_MB MB)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
