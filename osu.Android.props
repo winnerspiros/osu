@@ -56,13 +56,15 @@
   </PropertyGroup>
 
   <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
-       This is critical for Android 16 (API 36) which has stricter manifest/parsing rules. -->
+       This is critical for Android 16 (API 36) which has stricter manifest/parsing rules.
+       We hook into multiple stages to ensure all native assets (including BASS and native bridge)
+       are correctly identified before the optimization/signing phases. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList">
     <ItemGroup>
-      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll'">
+      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
         <AssetType>native</AssetType>
       </RuntimePackAsset>
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll'">
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
         <AssetType>native</AssetType>
       </ResolvedFileToPublish>
     </ItemGroup>

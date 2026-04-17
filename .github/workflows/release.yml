@@ -88,37 +88,45 @@ jobs:
 
       - name: Build Android APK (signed)
         if: steps.keystore.outputs.has_keystore == 'true'
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          ANDROID_KEY_PASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          ANDROID_STORE_PASS: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
           -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
+          -p:Version="${{ steps.version.outputs.version }}"
+          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
+          -p:ApplicationVersion="${{ github.run_number }}"
           -p:AndroidKeyStore=true
-          -p:AndroidSigningKeyStore=${{ github.workspace }}/osu.Android/osu.keystore
-          -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          -p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          -p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore"
+          -p:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
+          -p:AndroidSigningKeyPass="$ANDROID_KEY_PASS"
+          -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
 
       - name: Build Android APK (unsigned)
         if: steps.keystore.outputs.has_keystore != 'true'
         run: >
-          dotnet publish -c Release
+          dotnet publish -c Debug
           osu.Android/osu.Android.csproj
           -f net10.0-android
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ steps.version.outputs.version }}
-          -p:ApplicationVersion=${{ github.run_number }}
-          -p:AndroidKeyStore=false
+          -p:Version="${{ steps.version.outputs.version }}"
+          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
+          -p:ApplicationVersion="${{ github.run_number }}"
 
       - name: Find APK
         id: find_apk
         run: |
-          PUBLISH_DIR="osu.Android/bin/Release/net10.0-android/publish"
+          if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
+            CONFIG="Release"
+          else
+            CONFIG="Debug"
+          fi
+          PUBLISH_DIR="osu.Android/bin/$CONFIG/net10.0-android/publish"
           APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
-            APK=$(find osu.Android/bin/Release -name "*.apk" | head -1)
+            APK=$(find "osu.Android/bin/$CONFIG" -name "*.apk" | head -1)
           fi
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
