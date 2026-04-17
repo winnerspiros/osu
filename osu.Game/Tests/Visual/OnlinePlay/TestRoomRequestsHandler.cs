@@ -121,7 +121,6 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                             }
                         ]
                     });
-                    });
                     return true;
 
                 case IndexPlaylistScoresRequest indexPlaylistScoresRequest:
