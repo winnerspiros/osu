@@ -1,8 +1,13 @@
 ﻿<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
-    <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers>
+    <!-- arm64-v8a covers 99%+ of modern Android devices.
+         armeabi-v7a is kept for older 32-bit devices.
+         x86 removed — only used by legacy emulators; modern emulators use x86_64 or arm translation. -->
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <!-- CJK and Mideast encodings are needed for song metadata display.
+         Rare covers supplementary Unicode blocks. West is the default Latin set. -->
     <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
@@ -38,6 +43,16 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+    <!-- Strip IL bodies from AOT-compiled assemblies.  The runtime uses the native .so code
+         instead, and IL is only kept for non-AOT methods.  This can save 20-30 MB. -->
+    <AndroidStripILAfterAOT>true</AndroidStripILAfterAOT>
+    <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
+         but the download/APK size is significantly smaller. -->
+    <AndroidEnableAssemblyCompression>true</AndroidEnableAssemblyCompression>
+    <!-- Don't ship PDB files in the APK — they add ~15-20 MB.
+         Stack traces still work via embedded metadata. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
