@@ -48,9 +48,8 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          # Only build arm64 and arm32.  x86 removed to reduce APK size —
-          # modern emulators use x86_64 or ARM translation.
-          for ABI in arm64-v8a armeabi-v7a; do
+          # arm64 only — matches RuntimeIdentifiers in osu.Android.props.
+          for ABI in arm64-v8a; do
             echo "::group::Building osu_native for $ABI"
             "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
               -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
