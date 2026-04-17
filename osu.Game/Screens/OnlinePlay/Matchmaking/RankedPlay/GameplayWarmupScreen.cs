@@ -11,13 +11,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
-
+using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
+using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
@@ -72,16 +73,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         [BackgroundDependencyLoader]
         private void load()
         {
-            APIBeatmap? beatmap = null;
-
-            var item = Client.Room?.CurrentPlaylistItem;
-
-            if (item != null)
-            {
-                beatmap = beatmapLookupCache.GetBeatmapAsync(item.BeatmapID).GetResultSafely();
-                if (beatmap?.BeatmapSet != null)
-                    lastLookupResult.Value = SongSelect.BeatmapSetLookupResult.Completed(beatmap.BeatmapSet);
-            }
+            APIBeatmap beatmap = beatmapLookupCache.GetBeatmapAsync(Client.Room!.CurrentPlaylistItem.BeatmapID).GetResultSafely()!;
+            lastLookupResult.Value = SongSelect.BeatmapSetLookupResult.Completed(beatmap.BeatmapSet);
 
             var matchState = Client.Room?.MatchState as RankedPlayRoomState;
             Debug.Assert(matchState != null);
@@ -141,19 +134,17 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     AutoSizeAxes = Axes.Y,
                                     Spacing = new Vector2(0f, 4f),
                                     Direction = FillDirection.Vertical,
-                                    Children = beatmap == null
-                                        ? System.Array.Empty<Drawable>()
-                                        :
-                                        [
-                                            new ShearAligningWrapper(new TitleWedge(beatmap))
-                                            {
-                                                Shear = -OsuGame.SHEAR,
-                                            },
-                                            new ShearAligningWrapper(new MetadataWedge(beatmap))
-                                            {
-                                                Shear = -OsuGame.SHEAR,
-                                            },
-                                        ]
+                                    Children =
+                                    [
+                                        new ShearAligningWrapper(new TitleWedge(beatmap))
+                                        {
+                                            Shear = -OsuGame.SHEAR,
+                                        },
+                                        new ShearAligningWrapper(new MetadataWedge(beatmap))
+                                        {
+                                            Shear = -OsuGame.SHEAR,
+                                        },
+                                    ]
                                 }
                             }
                         }
@@ -166,8 +157,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             base.LoadComplete();
 
-            var item = Client.Room?.CurrentPlaylistItem;
-            if (item == null) return;
+            MultiplayerPlaylistItem item = Client.Room!.CurrentPlaylistItem;
 
             RulesetInfo ruleset = rulesets.GetRuleset(item.RulesetID)!;
             Ruleset rulesetInstance = ruleset.CreateInstance();
@@ -210,11 +200,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 }
             }
 
-            card ??= new RankedPlayCard(matchInfo.LastPlayedCard)
+            if (card == null)
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
+                Logger.Log($"Played card {matchInfo.LastPlayedCard.Card.ID} was not on the screen.", level: LogLevel.Error);
+
+                card = new RankedPlayCard(matchInfo.LastPlayedCard)
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                };
+            }
 
             cardColumn.Add(card);
 

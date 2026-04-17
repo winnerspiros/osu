@@ -149,9 +149,7 @@ namespace osu.Game.Screens.Menu
             }
             else
             {
-                if (info.Value is not DailyChallengeInfo infoValue) return;
-
-                var roomRequest = new GetRoomRequest(infoValue.RoomID);
+                var roomRequest = new GetRoomRequest(info.Value.Value.RoomID);
 
                 roomRequest.Success += room =>
                 {
@@ -166,14 +164,13 @@ namespace osu.Game.Screens.Menu
                         statics.SetValue(Static.DailyChallengeIntroPlayed, false);
 
                         // we only want to notify the user if the new challenge just went live.
-                        if (room.StartDate != null && Math.Abs((DateTimeOffset.Now - (room.StartDate ?? DateTimeOffset.Now)).TotalSeconds) < 1800)
+                        if (Math.Abs((DateTimeOffset.Now - room.StartDate.Value).TotalSeconds) < 1800)
                             notificationOverlay?.Post(new NewDailyChallengeNotification(room));
                     }
 
                     updateCountdown();
                     Scheduler.AddDelayed(updateCountdown, 1000, true);
                 };
-
                 api.Queue(roomRequest);
             }
         }

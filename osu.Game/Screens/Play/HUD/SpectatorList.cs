@@ -45,8 +45,8 @@ namespace osu.Game.Screens.Play.HUD
         [Resolved]
         private SpectatorClient client { get; set; } = null!;
 
-        [Resolved(CanBeNull = true)]
-        private GameplayState? gameplayState { get; set; }
+        [Resolved]
+        private GameplayState gameplayState { get; set; } = null!;
 
         [Resolved]
         private MultiplayerClient multiplayerClient { get; set; } = null!;
@@ -87,10 +87,7 @@ namespace osu.Game.Screens.Play.HUD
         {
             base.LoadComplete();
 
-            var state = gameplayState;
-
-            if (state != null)
-                ((IBindable<LocalUserPlayingState>)userPlayingState).BindTo(state.PlayingState);
+            ((IBindable<LocalUserPlayingState>)userPlayingState).BindTo(gameplayState.PlayingState);
 
             multiplayerPlayers.BindTo(multiplayerClient.CurrentMatchPlayingUserIds);
             multiplayerPlayers.BindCollectionChanged((_, _) => removePlayersFromMultiplayerRoom());
