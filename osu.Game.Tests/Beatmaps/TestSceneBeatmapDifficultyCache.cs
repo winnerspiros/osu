@@ -64,7 +64,8 @@ namespace osu.Game.Tests.Beatmaps
             AddUntilStep($"star difficulty -> {BASE_STARS}", () => starDifficultyBindable.Value.Stars == BASE_STARS);
         }
 
-        [Test, Retry(3)]
+        [Test]
+        [FlakyTest] // one fix attempted in https://github.com/ppy/osu/pull/37178, didn't work
         public void TestInvalidationFlow()
         {
             BeatmapInfo postEditBeatmapInfo = null;

@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -14,8 +16,10 @@ using osu.Framework.Logging;
 using osu.Framework.Screens;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.Rooms;
@@ -43,7 +47,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public RankedPlaySubScreen? ActiveSubScreen { get; private set; }
 
-        protected override BackgroundScreen CreateBackground() => new RankedPlayBackgroundScreen
+        private RankedPlayBackgroundScreen rankedPlayBackground = null!;
+
+        protected override BackgroundScreen CreateBackground() => rankedPlayBackground = new RankedPlayBackgroundScreen
         {
             ShowBeatmapBackground = { BindTarget = showBeatmapBackground }
         };
@@ -57,7 +63,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
+        private UserLookupCache users { get; set; } = null!;
+
+        [Resolved]
         private IDialogOverlay dialogOverlay { get; set; } = null!;
+
+        [Resolved]
+        private IOverlayManager overlayManager { get; set; } = null!;
 
         [Resolved]
         private AudioManager audio { get; set; } = null!;
@@ -69,8 +81,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private QueueController? controller { get; set; }
 
         private readonly MultiplayerRoom room;
+
+        private APIUser localUser = null!;
+        private APIUser opponentUser = null!;
+
+        private readonly Container stageOverlayContainer;
         private readonly Container<RankedPlaySubScreen> screenContainer;
         private readonly RankedPlayChatDisplay chat;
+
+        private RankedPlayBottomOrnament ornament = null!;
+        private IDisposable? ornamentOverlayRegistration;
 
         private IBindable<RankedPlayStage> stage = null!;
 
@@ -121,7 +141,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     Bottom = 10,
                                     Right = 10
                                 },
-                                Alpha = 0,
+                                State = { Value = Visibility.Hidden }
                             },
                             new HamburgerMenu
                             {
@@ -129,6 +149,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             }
                         }
                     }
+                },
+                stageOverlayContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
                 },
                 overlayContainer = new CardDetailsOverlayContainer(),
                 particleContainer = new SongPreviewParticleContainer(),
@@ -141,6 +165,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             stage = matchInfo.Stage.GetBoundCopy();
             sampleStart = audio.Samples.Get(@"SongSelect/confirm-selection");
+
+            LoadComponent(ornament = new RankedPlayBottomOrnament
+            {
+                Anchor = Anchor.BottomCentre,
+                Origin = Anchor.BottomCentre,
+            });
         }
 
         protected override void LoadComplete()
@@ -151,29 +181,36 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             client.UserStateChanged += onUserStateChanged;
             client.LoadRequested += onLoadRequested;
 
+            Scheduler.AddDelayed(() => ornament.Show(), VsSequence.INTRO_LENGTH);
+
             int localUserId = api.LocalUser.Value.OnlineID;
             int opponentUserId = ((RankedPlayRoomState)client.Room!.MatchState!).Users.Keys.Single(it => it != localUserId);
 
+            localUser = users.GetUserAsync(localUserId).GetResultSafely()!;
+            opponentUser = users.GetUserAsync(opponentUserId).GetResultSafely()!;
+
             AddRangeInternal([
-                new RankedPlayCornerPiece(RankedPlayColourScheme.Blue, Anchor.BottomLeft)
+                new RankedPlayCornerPiece(RankedPlayColourScheme.BLUE, Anchor.BottomLeft)
                 {
                     State = { BindTarget = cornerPieceVisibility },
-                    Child = new RankedPlayUserDisplay(localUserId, Anchor.BottomLeft, RankedPlayColourScheme.Blue)
+                    Child = new RankedPlayUserDisplay(localUser, Anchor.BottomLeft, RankedPlayColourScheme.BLUE)
                     {
                         RelativeSizeAxes = Axes.Both,
                         Health = { BindTarget = matchInfo.PlayerHealth }
                     }
                 },
-                new RankedPlayCornerPiece(RankedPlayColourScheme.Red, Anchor.TopRight)
+                new RankedPlayCornerPiece(RankedPlayColourScheme.RED, Anchor.TopRight)
                 {
                     State = { BindTarget = cornerPieceVisibility },
-                    Child = new RankedPlayUserDisplay(opponentUserId, Anchor.TopRight, RankedPlayColourScheme.Red)
+                    Child = new RankedPlayUserDisplay(opponentUser, Anchor.TopRight, RankedPlayColourScheme.RED)
                     {
                         RelativeSizeAxes = Axes.Both,
                         Health = { BindTarget = matchInfo.OpponentHealth }
                     }
                 },
             ]);
+
+            ornamentOverlayRegistration = overlayManager.RegisterBlockingOverlay(ornament);
 
             stage.BindValueChanged(e => onStageChanged(e.NewValue));
         }
@@ -199,6 +236,31 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
                 cornerPieceVisibility.BindTo(screen.CornerPieceVisibility);
                 showBeatmapBackground.Value = screen.ShowBeatmapBackground;
+
+                if (screen.ShowStageOverlay)
+                {
+                    APIUser? pickingUser = null;
+                    double? multiplier = matchInfo.Stage.Value < RankedPlayStage.CardPlay ? null : matchInfo.RoomState.DamageMultiplier;
+                    RankedPlayColourScheme colourScheme = RankedPlayColourScheme.BLUE;
+
+                    if (matchInfo.Stage.Value == RankedPlayStage.CardPlay && matchInfo.RoomState.ActiveUser != null)
+                    {
+                        pickingUser = matchInfo.IsOwnTurn ? localUser : opponentUser;
+                        colourScheme = matchInfo.IsOwnTurn ? RankedPlayColourScheme.BLUE : RankedPlayColourScheme.RED;
+                    }
+
+                    stageOverlayContainer.Add(new RankedPlayStageOverlay(screen.StageHeading, colourScheme)
+                    {
+                        PickingUser = pickingUser,
+                        Multiplier = multiplier,
+                    });
+
+                    rankedPlayBackground.ColourScheme = colourScheme;
+                }
+                else
+                {
+                    rankedPlayBackground.ColourScheme = null;
+                }
             };
         }
 
@@ -226,17 +288,19 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void onStageChanged(RankedPlayStage stage)
         {
-            chat.Appear();
-
             if (stage is RankedPlayStage.GameplayWarmup or RankedPlayStage.Gameplay)
                 backgroundMusic.Stop();
             else
                 backgroundMusic.Play();
 
+            if (stage is RankedPlayStage.RoundWarmup && matchInfo.CurrentRound == 1)
+                chat.State.Value = Visibility.Hidden;
+            else
+                chat.State.Value = Visibility.Visible;
+
             switch (stage)
             {
                 case RankedPlayStage.RoundWarmup when matchInfo.CurrentRound == 1:
-                    chat.Disappear();
                     ShowScreen(new IntroScreen());
                     break;
 
@@ -286,7 +350,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public override void OnSuspending(ScreenTransitionEvent e)
         {
-            chat.Disappear();
             backgroundMusic.Stop();
             previewTrackManager.StopAnyPlaying(this);
 
@@ -310,6 +373,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 previewTrackManager.StopAnyPlaying(this);
 
                 client.LeaveRoom().FireAndForget();
+
+                ornamentOverlayRegistration?.Dispose();
+                ornamentOverlayRegistration = null;
 
                 if (retryRequested)
                     controller?.RejoinQueue();
@@ -336,7 +402,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         {
             base.OnResuming(e);
 
-            chat.Appear();
             if (e.Last is not MultiplayerPlayerLoader playerLoader)
                 return;
 
@@ -360,6 +425,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             client.RoomUpdated -= onRoomUpdated;
             client.UserStateChanged -= onUserStateChanged;
             client.LoadRequested -= onLoadRequested;
+
+            ornamentOverlayRegistration?.Dispose();
+            ornamentOverlayRegistration = null;
 
             base.Dispose(isDisposing);
         }
