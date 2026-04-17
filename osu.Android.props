@@ -77,19 +77,18 @@
     <DisableFody>true</DisableFody>
   </PropertyGroup>
 
-  <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
-       This is critical for Android 16 (API 36) Release/AOT builds where the linker expects
-       all non-managed assets to be marked as native before the optimization/signing phases.
-       Scoped to Release only — running this during Debug builds can interfere with how the
-       Android SDK classifies signing-related items, leading to APKs with null certificate
-       arrays (INSTALL_PARSE_FAILED_NO_CERTIFICATES). -->
+  <!-- Fix for .NET 10 Android AOT misclassifying native .so assets in runtime pack.
+       Only .so files need the AssetType override — the previous broader filter
+       (all non-DLL, non-PDB) incorrectly reclassified signing metadata and config
+       files, which corrupted the APK signature (INSTALL_PARSE_FAILED_NO_CERTIFICATES).
+       Scoped to Release only to avoid interfering with Debug builds. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList"
           Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
-      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
+      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' == '.so'">
         <AssetType>native</AssetType>
       </RuntimePackAsset>
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.so'">
         <AssetType>native</AssetType>
       </ResolvedFileToPublish>
     </ItemGroup>

@@ -148,6 +148,55 @@ jobs:
           echo "Found APK: $APK ($APK_SIZE_MB MB)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
+      # .NET 10 Android SDK may skip debug-signing for Release publish builds.
+      # Verify the APK is signed; if not, sign it with apksigner using the debug
+      # keystore so the APK can be sideloaded without INSTALL_PARSE_FAILED_NO_CERTIFICATES.
+      - name: Verify and sign APK if needed
+        run: |
+          APK="${{ steps.find_apk.outputs.apk_path }}"
+          APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          ZIPALIGN="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/zipalign"
+
+          if "$APKSIGNER" verify "$APK" 2>/dev/null; then
+            echo "APK is already signed ✓"
+          else
+            echo "::warning::APK is not signed. Signing with debug keystore..."
+
+            # Generate debug keystore if it doesn't exist
+            DEBUG_KS="$HOME/.android/debug.keystore"
+            if [ ! -f "$DEBUG_KS" ]; then
+              mkdir -p "$HOME/.android"
+              keytool -genkeypair -v \
+                -keystore "$DEBUG_KS" \
+                -storepass android \
+                -keypass android \
+                -alias androiddebugkey \
+                -keyalg RSA -keysize 2048 -validity 10000 \
+                -dname "CN=Android Debug,O=Android,C=US"
+            fi
+
+            # Zipalign first (required before apksigner v2 signing)
+            ALIGNED_APK="${APK%.apk}-aligned.apk"
+            "$ZIPALIGN" -f -p 4 "$APK" "$ALIGNED_APK"
+            mv "$ALIGNED_APK" "$APK"
+
+            # Sign with debug keystore (v1 + v2 + v3 schemes)
+            "$APKSIGNER" sign \
+              --ks "$DEBUG_KS" \
+              --ks-pass pass:android \
+              --key-pass pass:android \
+              --ks-key-alias androiddebugkey \
+              "$APK"
+
+            # Verify signature
+            if "$APKSIGNER" verify --print-certs "$APK"; then
+              echo "APK signed successfully ✓"
+            else
+              echo "::error::APK signing failed"
+              exit 1
+            fi
+          fi
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:

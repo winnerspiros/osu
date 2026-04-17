@@ -49,6 +49,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private const int card_play_samples = 2;
         private Sample?[]? cardPlaySamples;
+
+        /// <summary>
+        /// Whether the local user has discarded cards.
+        /// </summary>
+        private bool hasDiscardedCards;
+
         private Sample? timeRunningOutSample;
         private SampleChannel? timeRunningOutSampleChannel;
 
@@ -147,13 +153,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         }
 
         private bool shouldPlayWarningSample
-        {
-            get => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
-                   && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
-                   && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-                   && !field;
-            set;
-        }
+            => matchInfo.Stage.Value == RankedPlayStage.CardDiscard
+               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
+               && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
+               && !hasDiscardedCards;
 
         protected override void Update()
         {
