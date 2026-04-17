@@ -3,7 +3,8 @@
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <!-- arm64-v8a covers 99%+ of modern Android devices.
          armeabi-v7a is kept for older 32-bit devices.
-         x86 removed — only used by legacy emulators; modern emulators use x86_64 or arm translation. -->
+         x86 removed — only used by legacy emulators; modern x86_64 emulators
+         run arm64 binaries via native translation (no dedicated x86 build needed). -->
     <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <!-- CJK and Mideast encodings are needed for song metadata display.

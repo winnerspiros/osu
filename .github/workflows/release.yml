@@ -143,7 +143,7 @@ jobs:
             exit 1
           fi
 
-          APK_SIZE=$(stat -c %s "$APK" 2>/dev/null || stat -f %z "$APK")
+          APK_SIZE=$(stat -c %s "$APK" 2>/dev/null || stat -f %z "$APK" 2>/dev/null || wc -c < "$APK")
           APK_SIZE_MB=$((APK_SIZE / 1048576))
           echo "Found APK: $APK ($APK_SIZE_MB MB)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
