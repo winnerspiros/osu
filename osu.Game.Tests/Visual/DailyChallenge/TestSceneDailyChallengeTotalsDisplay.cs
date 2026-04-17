@@ -76,8 +76,6 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                         CoverUrl = TestResources.COVER_IMAGE_3,
                     }, RNG.Next(1_000_000), RNG.Next(11, 1000));
 
-                    var testScore = TestResources.CreateTestScoreInfo();
-                    testScore.TotalScore = RNG.Next(1_000_000);
 
                     totals.AddNewScore(ev);
                 }

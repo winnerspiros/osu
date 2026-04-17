@@ -65,7 +65,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         public new MultiplayerRoom Room => throw new InvalidOperationException($"Accessing the client-side room via {nameof(TestMultiplayerClient)} is unsafe. "
                                                                                + $"Use {nameof(ClientRoom)} if this was intended.");
 
-        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.SingleOrDefault(u => u.User?.Id == API.LocalUser.Value.Id);
+        public new MultiplayerRoomUser? LocalUser => ServerRoom?.Users.FirstOrDefault(u => u.UserID == API.LocalUser.Value.Id);
 
         public Action<MultiplayerRoom>? RoomSetupAction;
 
@@ -147,7 +147,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             ((IMultiplayerClient)this).UserLeft(clone(new MultiplayerRoomUser(user.Id)));
 
             if (ServerRoom.Users.Any())
-                TransferHost(ServerRoom.Users.FirstOrDefault()?.UserID ?? 0);
+                TransferHost(ServerRoom.Users.First().UserID);
         }
 
         public void ChangeRoomState(MultiplayerRoomState newState)
@@ -241,7 +241,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             if (password != ServerAPIRoom.Password)
                 throw new InvalidOperationException("Invalid password.");
 
-            lastPlaylistItemId = ServerAPIRoom.Playlist.Any() ? ServerAPIRoom.Playlist.Max(item => item.ID) : 0;
+            lastPlaylistItemId = ServerAPIRoom.Playlist.Max(item => item.ID);
 
             var localUser = new MultiplayerRoomUser(api.LocalUser.Value.Id)
             {
@@ -741,10 +741,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             Debug.Assert(ServerRoom != null);
 
             // Pick the next non-expired playlist item by playlist order, or default to the most-recently-expired item.
-            MultiplayerPlaylistItem? nextItem = upcomingItems.FirstOrDefault() ?? ServerRoom.Playlist.OrderByDescending(i => i.PlayedAt).FirstOrDefault();
-
-            if (nextItem == null)
-                return;
+            MultiplayerPlaylistItem nextItem = upcomingItems.FirstOrDefault() ?? ServerRoom.Playlist.OrderByDescending(i => i.PlayedAt).First();
 
             currentIndex = ServerRoom.Playlist.IndexOf(nextItem);
 
@@ -765,7 +762,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
             switch (room.Settings.QueueMode)
             {
                 default:
-                    orderedActiveItems = ServerRoom.Playlist.Where(item => !item.Expired).OrderBy(item => item.ID).ToList();
+                    orderedActiveItems = ServerRoom.Playlist
+                                                   .Where(item => !item.Expired)
+                                                   .OrderBy(item => item.PlaylistOrder)
+                                                   .ThenBy(item => item.ID)
+                                                   .ToList();
                     break;
 
                 case QueueMode.AllPlayersRoundRobin:
@@ -779,14 +780,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     }
 
                     orderedActiveItems = itemsByPriority
-                                         // Order by each user's priority.
                                          .OrderBy(i => i.priority)
-                                         // Many users will have the same priority of items, so attempt to break the tie by maintaining previous ordering.
-                                         // Suppose there are two users: User1 and User2. User1 adds two items, and then User2 adds a third. If the previous order is not maintained,
-                                         // then after playing the first item by User1, their second item will become priority=0 and jump to the front of the queue (because it was added first).
                                          .ThenBy(i => i.item.PlaylistOrder)
-                                         // If there are still ties (normally shouldn't happen), break ties by making items added earlier go first.
-                                         // This could happen if e.g. the item orders get reset.
                                          .ThenBy(i => i.item.ID)
                                          .Select(i => i.item)
                                          .ToList();
@@ -816,16 +811,22 @@ namespace osu.Game.Tests.Visual.Multiplayer
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
             var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
 
-            if (result is MultiplayerRoom room)
-            {
-                if (room.Host is { } host) host.User = ServerRoom!.Users.FirstOrDefault(u => u.UserID == host.UserID)?.User;
+            if (incoming is MultiplayerRoomUser { User: { } } sourceUser && result is MultiplayerRoomUser targetUser) targetUser.User = sourceUser.User;
 
-                foreach (var user in room.Users) user.User = ServerRoom!.Users.FirstOrDefault(u => u.UserID == user.UserID)?.User;
+            if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
+            {
+                foreach (var user in targetRoom.Users)
+                    user.User = sourceRoom.Users.FirstOrDefault(u => u.UserID == user.UserID)?.User;
+
+                targetRoom.Host?.User = sourceRoom.Host?.User;
+            }
+            else if (incoming is MultiplayerRoomUser sourceSingleUser && result is MultiplayerRoomUser targetSingleUser)
+            {
+                targetSingleUser.User = sourceSingleUser.User;
             }
 
             return result;
         }
-
         public override Task DisconnectInternal()
         {
             isConnected.Value = false;

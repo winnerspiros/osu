@@ -82,23 +82,28 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private readonly List<RankedPlayCardWithPlaylistItem> opponentCards = new List<RankedPlayCardWithPlaylistItem>();
         private readonly Bindable<RankedPlayStage> stage = new Bindable<RankedPlayStage>();
 
+        private APIUser player = null!;
+
         [Resolved]
         private MultiplayerClient client { get; set; } = null!;
 
-        private APIUser player = null!;
+
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            player = client.LocalUser!.User!;
+            var localUser = client.LocalUser;
+            if (localUser?.User != null) player = localUser.User;
+            else player = new APIUser { Id = localUser?.UserID ?? -1, Username = "Unknown" };
 
             client.MatchRoomStateChanged += onMatchRoomStateChanged;
             client.RankedPlayCardAdded += onCardAdded;
             client.RankedPlayCardRemoved += onCardRemoved;
             client.RankedPlayCardPlayed += onCardPlayed;
 
-            var roomState = (RankedPlayRoomState)client.Room!.MatchState!;
+            if (client.Room?.MatchState is not RankedPlayRoomState roomState)
+                return;
 
             onMatchRoomStateChanged(roomState);
 
