@@ -26,6 +26,8 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <!-- Disable ELF patching in Release to prevent signature corruption -->
+    <PatchElfPageSizeEnabled>false</PatchElfPageSizeEnabled>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
   </PropertyGroup>

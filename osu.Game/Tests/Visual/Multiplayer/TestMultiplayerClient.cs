@@ -487,7 +487,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
             Debug.Assert(ServerRoom != null);
             Debug.Assert(LocalUser != null);
 
-            var existing = ServerRoom.ActiveCountdowns.FirstOrDefault(c => c.ID == countdown.ID); if (existing != null) ServerRoom.ActiveCountdowns.Remove(existing);
+            var existing = ServerRoom.ActiveCountdowns.FirstOrDefault(c => c.ID == countdown.ID);
+
+            if (existing != null)
+                ServerRoom.ActiveCountdowns.Remove(existing);
             await ((IMultiplayerClient)this).MatchEvent(clone(new CountdownStoppedEvent(countdown.ID))).ConfigureAwait(false);
         }
 
