@@ -269,6 +269,6 @@ finally
     <ItemGroup>
       <_NuGetNativeLibs Include="$(NuGetPackageRoot)/**/runtimes/android-*/native/*.so" />
     </ItemGroup>
-    <PatchElfPageSize FilePath="%(Identity)" Condition="'@(_NuGetNativeLibs)' != ''" />
+    <PatchElfPageSize FilePath="%(Identity)" Condition="'$(PatchElfPageSizeEnabled)' != 'false' AND '@(_NuGetNativeLibs)' != ''" />
   </Target>
 </Project>

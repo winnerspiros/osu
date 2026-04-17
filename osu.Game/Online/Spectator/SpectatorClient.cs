@@ -214,8 +214,10 @@ namespace osu.Game.Online.Spectator
             Schedule(() =>
             {
                 if (isPlaying)
-                    throw new InvalidOperationException($"Cannot invoke {nameof(BeginPlaying)} when already playing");
-
+                {
+                    Logger.Log($"Cannot invoke {nameof(BeginPlaying)} when already playing. Ignoring.");
+                    return;
+                }
                 isPlaying = true;
 
                 // transfer state at point of beginning play
