@@ -16,8 +16,11 @@
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <!-- Suppress XA0141 page-size warnings. ELF patching is disabled for all configurations
          (see PatchElfPageSizeEnabled below) to prevent APK signature corruption.
-         The XA0141 warning is therefore expected and harmless. -->
+         The XA0141 warning is therefore expected and harmless.
+         AndroidPageSize16KBCompatibilityCheck=false should suppress the check, but Android SDK
+         36.1.53 still emits XA0141 in some build orderings, so we also add it to NoWarn. -->
     <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
+    <NoWarn>$(NoWarn);XA0141</NoWarn>
     <!-- Disable ELF alignment patching for ALL configurations.
          The custom PatchElfPageSize task can run concurrently with the Android packaging step
          because MSBuild's BeforeTargets="Build" fires for every ABI sub-build, which often
