@@ -144,6 +144,25 @@ namespace osu.Android
             Host.AvailableInputHandlers.Add(stylusHandler);
             gameActivity.StylusHandler = stylusHandler;
 
+            // Pass actual display dimensions to the stylus handler so the tablet area
+            // matches the real digitizer/screen size (not a hardcoded placeholder).
+            try
+            {
+                if (gameActivity.WindowManager?.DefaultDisplay != null)
+                {
+                    var displaySize = new global::Android.Graphics.Point();
+#pragma warning disable CA1422
+                    gameActivity.WindowManager.DefaultDisplay.GetRealSize(displaySize);
+#pragma warning restore CA1422
+                    if (displaySize.X > 0 && displaySize.Y > 0)
+                        stylusHandler.SetDisplaySize(displaySize.X, displaySize.Y);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to get display size for stylus handler: {e.Message}");
+            }
+
             mouseHandler = new AndroidMouseHandler();
             Host.AvailableInputHandlers.Add(mouseHandler);
             gameActivity.MouseHandler = mouseHandler;

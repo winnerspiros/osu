@@ -337,14 +337,14 @@ namespace osu.Android
                 IntPtr handle = surface.Handle;
                 if (handle == IntPtr.Zero) return;
 
-                // Release previous reference to prevent JNI global reference leak on rapid surface recreation.
-                if (surfaceGlobalRef != IntPtr.Zero)
-                {
-                    global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
-                    surfaceGlobalRef = IntPtr.Zero;
-                }
+                IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
 
-                surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                // Atomically swap the old reference to prevent race with SurfaceDestroyed.
+                IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, newRef);
+
+                if (oldRef != IntPtr.Zero)
+                    global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
                 surfaceEvent.Set();
                 Debug.WriteLine("[osu!] Native surface JNI global reference created");
             }
@@ -356,11 +356,11 @@ namespace osu.Android
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
-            if (surfaceGlobalRef != IntPtr.Zero)
-            {
-                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
-                surfaceGlobalRef = IntPtr.Zero;
-            }
+            IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, IntPtr.Zero);
+
+            if (oldRef != IntPtr.Zero)
+                global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
             surfaceEvent.Reset();
         }
 

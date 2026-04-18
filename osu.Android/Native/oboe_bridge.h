@@ -55,6 +55,7 @@ private:
     std::atomic<bool> affinitySet_{false};
     int32_t requestedSampleRate_{0};
     std::string lastError_;
+    mutable std::mutex errorLock_;
 
     void updateLatency();
     bool reopenAndRestart();

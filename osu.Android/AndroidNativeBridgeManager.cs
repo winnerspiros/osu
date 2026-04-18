@@ -46,7 +46,18 @@ namespace osu.Android
                         if (provider != IntPtr.Zero)
                             bridge.SetProvider(provider);
 
-                        try { SetThreadAffinity(Environment.ProcessorCount > 4 ? 0xF0 : 0x0C); }
+                        // Calculate dynamic big-core mask for audio thread, matching the pattern in OsuGameAndroid.LoadComplete
+                        int audioAffinityMask;
+                        int cores = Environment.ProcessorCount;
+                        int bigStart = Math.Max(cores / 2, 1);
+                        audioAffinityMask = 0;
+
+                        for (int i = bigStart; i < Math.Min(cores, 32); i++)
+                            audioAffinityMask |= 1 << i;
+
+                        if (audioAffinityMask == 0) audioAffinityMask = (1 << cores) - 1;
+
+                        try { SetThreadAffinity(audioAffinityMask); }
                         catch (Exception e) { Debug.WriteLine($"[osu!] Audio thread affinity failed: {e.Message}"); }
 
                         bool started = bridge.Start();

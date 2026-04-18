@@ -60,7 +60,7 @@ bool OboeBridge::open(int32_t sampleRate) {
     if (result != oboe::Result::OK) {
         LOGE("AAudio open failed (%s), falling back to unspecified API",
              oboe::convertToText(result));
-        lastError_ = std::string("AAudio: ") + oboe::convertToText(result);
+        { std::lock_guard<std::mutex> eLock(errorLock_); lastError_ = std::string("AAudio: ") + oboe::convertToText(result); }
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         builder.setSharingMode(oboe::SharingMode::Shared);
         result = builder.openStream(stream_);
@@ -68,7 +68,7 @@ bool OboeBridge::open(int32_t sampleRate) {
 
     if (result != oboe::Result::OK) {
         LOGE("Failed to open Oboe stream: %s", oboe::convertToText(result));
-        lastError_ = std::string("Open failed: ") + oboe::convertToText(result);
+        { std::lock_guard<std::mutex> eLock(errorLock_); lastError_ = std::string("Open failed: ") + oboe::convertToText(result); }
         return false;
     }
 
@@ -108,7 +108,7 @@ bool OboeBridge::start() {
 
     if (result != oboe::Result::OK) {
         LOGE("Failed to start Oboe stream: %s", oboe::convertToText(result));
-        lastError_ = std::string("Start failed: ") + oboe::convertToText(result);
+        { std::lock_guard<std::mutex> eLock(errorLock_); lastError_ = std::string("Start failed: ") + oboe::convertToText(result); }
         return false;
     }
 
@@ -174,6 +174,7 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
 }
 
 const char* OboeBridge::getLastError() const {
+    std::lock_guard<std::mutex> lock(errorLock_);
     return lastError_.empty() ? nullptr : lastError_.c_str();
 }
 
