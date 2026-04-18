@@ -5,5 +5,11 @@
         <provider android:name="androidx.core.content.FileProvider" android:authorities="sh.ppy.osulazer.fileprovider" android:grantUriPermissions="true" android:exported="false">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/filepaths" />
         </provider>
-    <meta-data android:name="com.samsung.android.keepalive.density" android:value="true" /><meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true" /></application>
+        <meta-data android:name="com.samsung.android.keepalive.density" android:value="true" />
+        <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true" />
+        <!-- Register as a game for Samsung Game Launcher / Game Booster.
+             This enables vendor-specific optimizations (performance boost, thermal management,
+             display refresh rate priority) on Samsung devices automatically. -->
+        <meta-data android:name="com.samsung.android.game.biz" android:value="true" />
+    </application>
 </manifest>

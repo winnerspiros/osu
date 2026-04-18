@@ -147,10 +147,34 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
         if (strcmp(ext.extensionName, "VK_EXT_surface_maintenance1") == 0) deviceInfo_.supportsSurfaceMaintenance1 = true;
     }
 
+    // ── Vendor-specific GPU quirks ──────────────────────────────────────
+    // Qualcomm Adreno 7xx series: known flickering with PresentId/PresentWait
+    // and broken Graphics Pipeline Library compilation on some driver versions.
     if (deviceInfo_.vendorId == 0x5143 && (deviceInfo_.deviceName.find("740") != std::string::npos ||
                                           deviceInfo_.deviceName.find("750") != std::string::npos ||
                                           deviceInfo_.deviceName.find("Adreno") != std::string::npos)) {
-        LOGI("Adreno 7xx GPU detected: applying aggressive performance and flickering overrides");
+        LOGI("Adreno 7xx GPU detected: applying performance and flickering overrides");
+        deviceInfo_.disablePresentId = true;
+        deviceInfo_.disablePresentWait = true;
+        deviceInfo_.disableGraphicsPipelineLibrary = true;
+    }
+
+    // ARM Mali (Samsung Exynos, MediaTek Dimensity, Google Tensor):
+    // Vendor ID 0x13B5 = ARM. Early Mali-G710/G715/G720 drivers have buggy
+    // Graphics Pipeline Library support that causes shader compilation stalls.
+    if (deviceInfo_.vendorId == 0x13B5) {
+        if (deviceInfo_.deviceName.find("Mali") != std::string::npos) {
+            LOGI("ARM Mali GPU detected: applying vendor quirks");
+            // Mali GPUs commonly report GPL support but the implementation
+            // causes stalls on pipeline creation. Disable to avoid hitching.
+            deviceInfo_.disableGraphicsPipelineLibrary = true;
+        }
+    }
+
+    // Imagination Technologies PowerVR (older Samsung, some MediaTek):
+    // Vendor ID 0x1010 = ImgTec. Disable advanced features for stability.
+    if (deviceInfo_.vendorId == 0x1010) {
+        LOGI("PowerVR GPU detected: disabling advanced Vulkan features");
         deviceInfo_.disablePresentId = true;
         deviceInfo_.disablePresentWait = true;
         deviceInfo_.disableGraphicsPipelineLibrary = true;

@@ -147,14 +147,16 @@ namespace osu.Android
             // matches the real digitizer/screen size (not a hardcoded placeholder).
             try
             {
-                if (gameActivity.WindowManager?.DefaultDisplay != null)
+                var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
+
+                if (metrics != null)
                 {
-                    var displaySize = new global::Android.Graphics.Point();
-#pragma warning disable CA1422
-                    gameActivity.WindowManager.DefaultDisplay.GetRealSize(displaySize);
-#pragma warning restore CA1422
-                    if (displaySize.X > 0 && displaySize.Y > 0)
-                        stylusHandler.SetDisplaySize(displaySize.X, displaySize.Y);
+                    var bounds = metrics.Bounds;
+                    int displayWidth = bounds.Width();
+                    int displayHeight = bounds.Height();
+
+                    if (displayWidth > 0 && displayHeight > 0)
+                        stylusHandler.SetDisplaySize(displayWidth, displayHeight);
                 }
             }
             catch (Exception e)
@@ -197,22 +199,26 @@ namespace osu.Android
 
         protected override void LoadComplete()
         {
-            // Calculate big-core affinity mask dynamically based on device core count.
-            // On big.LITTLE architectures, the upper half of cores are typically performance cores.
-            int coreCount = System.Environment.ProcessorCount;
-            int bigCoreStart = Math.Max(coreCount / 2, 1);
-            int affinityMask = 0;
-
-            for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
-                affinityMask |= 1 << i;
+            // Use sysfs-based CPU topology for accurate big-core detection across all SoC vendors.
+            // Falls back to generic upper-half heuristic if native library unavailable.
+            int affinityMask = AndroidNativeBridgeManager.GetBigCoreMask();
 
             if (affinityMask == 0)
-                affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+            {
+                int coreCount = System.Environment.ProcessorCount;
+                int bigCoreStart = Math.Max(coreCount / 2, 1);
+
+                for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
+                    affinityMask |= 1 << i;
+
+                if (affinityMask == 0)
+                    affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+            }
 
             try
             {
                 if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
-                    Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X}, cores {bigCoreStart}-{coreCount - 1})", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X})", LoggingTarget.Performance);
 
                 // Set update thread to urgent display priority (-8) for minimum scheduling latency.
                 global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
@@ -549,6 +555,22 @@ namespace osu.Android
                         layoutParams.PreferredDisplayModeId = mode.ModeId;
                         window.Attributes = layoutParams;
                         currentRefreshRate = (int)mode.RefreshRate;
+
+                        // Set frame rate at the surface level for better compositor scheduling.
+                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE (1) tells Android we render at a
+                        // fixed rate; CHANGE_FRAME_RATE_ALWAYS (1) allows non-seamless transitions.
+                        try
+                        {
+                            var surface = gameActivity.GetSurface()?.Holder?.Surface;
+
+                            if (surface != null && surface.IsValid)
+                                surface.SetFrameRate(mode.RefreshRate, 1, 1);
+                        }
+                        catch
+                        {
+                            // Surface.SetFrameRate may not be available on all binding versions.
+                        }
+
                         Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
                     }
                 }
@@ -761,7 +783,6 @@ namespace osu.Android
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void UpdateAfterChildren() => base.UpdateAfterChildren();
 
         public override osu.Game.Overlays.Settings.SettingsSubsection CreateSettingsSubsectionFor(osu.Framework.Input.Handlers.InputHandler handler)

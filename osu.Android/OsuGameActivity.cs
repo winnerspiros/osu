@@ -4,7 +4,6 @@
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
-using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Content.Res;
@@ -120,15 +119,8 @@ namespace osu.Android
                 }
             }
 
-            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
-            {
-                Point displaySize = new Point();
-#pragma warning disable CA1422
-                WindowManager.DefaultDisplay.GetSize(displaySize);
-#pragma warning restore CA1422
-                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
-                IsTablet = smallestWidthDp >= 600f;
-            }
+            if (Resources?.Configuration != null)
+                IsTablet = Resources.Configuration.SmallestScreenWidthDp >= 600;
 
             RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
 
@@ -368,8 +360,6 @@ namespace osu.Android
 
             surfaceEvent.Reset();
         }
-
-
 
         public override void OnConfigurationChanged(Configuration newConfig)
         {

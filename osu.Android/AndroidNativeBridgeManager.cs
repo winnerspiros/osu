@@ -46,16 +46,20 @@ namespace osu.Android
                         if (provider != IntPtr.Zero)
                             bridge.SetProvider(provider);
 
-                        // Calculate dynamic big-core mask for audio thread, matching the pattern in OsuGameAndroid.LoadComplete
-                        int audioAffinityMask;
-                        int cores = System.Environment.ProcessorCount;
-                        int bigStart = Math.Max(cores / 2, 1);
-                        audioAffinityMask = 0;
+                        // Use sysfs-based CPU topology for smart big-core detection.
+                        // Falls back to generic upper-half heuristic if native library unavailable.
+                        int audioAffinityMask = GetBigCoreMask();
 
-                        for (int i = bigStart; i < Math.Min(cores, 32); i++)
-                            audioAffinityMask |= 1 << i;
+                        if (audioAffinityMask == 0)
+                        {
+                            int cores = System.Environment.ProcessorCount;
+                            int bigStart = Math.Max(cores / 2, 1);
 
-                        if (audioAffinityMask == 0) audioAffinityMask = (1 << Math.Min(cores, 31)) - 1;
+                            for (int i = bigStart; i < Math.Min(cores, 32); i++)
+                                audioAffinityMask |= 1 << i;
+
+                            if (audioAffinityMask == 0) audioAffinityMask = (1 << Math.Min(cores, 31)) - 1;
+                        }
 
                         try { SetThreadAffinity(audioAffinityMask); }
                         catch (Exception e) { Debug.WriteLine($"[osu!] Audio thread affinity failed: {e.Message}"); }
@@ -113,6 +117,19 @@ namespace osu.Android
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool SetThreadAffinity(int coreMask) => OboeAudioBridge.nSetThreadAffinity(coreMask) != 0;
+
+        /// <summary>
+        /// Returns a bitmask of high-performance CPU cores detected via sysfs topology.
+        /// Uses /sys/devices/system/cpu/cpuN/cpufreq/cpuinfo_max_freq to identify cores
+        /// whose max frequency is >= 70% of the fastest core (Prime + Gold on big.LITTLE SoCs).
+        /// Returns 0 if sysfs is unavailable; callers should use a fallback heuristic.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int GetBigCoreMask()
+        {
+            try { return OboeAudioBridge.nGetBigCoreMask(); }
+            catch { return 0; }
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public bool IsOboeActive() => (oboeBridge as OboeAudioBridge)?.IsActive ?? false;
