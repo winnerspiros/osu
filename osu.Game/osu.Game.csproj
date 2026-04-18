@@ -38,7 +38,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="ppy.osu.Framework" Version="2026.416.0" />
+    <!-- Use winnerspiros/osu-framework fork (net10.0, optimized) via submodule instead of ppy NuGet package -->
+    <ProjectReference Include="..\submodules\osu-framework\osu.Framework\osu.Framework.csproj" />
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.411.0" />
     <PackageReference Include="Sentry" Version="6.2.0" />
     <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->

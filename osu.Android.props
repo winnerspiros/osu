@@ -71,7 +71,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.416.0" />
+    <!-- Use winnerspiros/osu-framework fork (net10.0-android, optimized) via submodule instead of ppy NuGet package -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

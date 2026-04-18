@@ -29,6 +29,7 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.416.0" />
+    <!-- Use winnerspiros/osu-framework fork (net10.0-ios, optimized) via submodule instead of ppy NuGet package -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.iOS\osu.Framework.iOS.csproj" />
   </ItemGroup>
 </Project>
