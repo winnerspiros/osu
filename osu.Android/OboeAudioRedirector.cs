@@ -306,13 +306,24 @@ namespace osu.Android
         /// <summary>
         /// Gets the BASS handle from an AudioMixer via reflection.
         /// BassAudioMixer is internal to the framework, so we access its Handle property via reflection.
+        /// The PropertyInfo is cached after first lookup since all AudioMixers share the same runtime type.
         /// </summary>
+        private static PropertyInfo? cachedHandleProperty;
+        private static Type? cachedHandleType;
+
         private static int getHandle(AudioMixer mixer)
         {
             try
             {
-                var handleProp = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (handleProp?.GetValue(mixer) is int h)
+                var mixerType = mixer.GetType();
+
+                if (cachedHandleType != mixerType)
+                {
+                    cachedHandleProperty = mixerType.GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    cachedHandleType = mixerType;
+                }
+
+                if (cachedHandleProperty?.GetValue(mixer) is int h)
                     return h;
             }
             catch

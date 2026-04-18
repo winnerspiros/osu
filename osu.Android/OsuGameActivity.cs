@@ -94,35 +94,29 @@ namespace osu.Android
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
                 // Use full display area including camera cutout/notch for maximum render space.
-                if (OperatingSystem.IsAndroidVersionAtLeast(28) && Window.Attributes != null)
+                if (Window.Attributes != null)
                     Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
 
                 // Request unbuffered touch dispatch early for minimum input latency.
-                if (OperatingSystem.IsAndroidVersionAtLeast(21))
+                try
                 {
-                    try
-                    {
-                        var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
-                        Window.DecorView?.RequestUnbufferedDispatch(dummy);
-                        dummy?.Recycle();
-                    }
-                    catch { /* best-effort; will also be requested per-event in dispatch methods */ }
+                    var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
+                    Window.DecorView?.RequestUnbufferedDispatch(dummy);
+                    dummy?.Recycle();
                 }
+                catch { /* best-effort; will also be requested per-event in dispatch methods */ }
 
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
-                if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                try
                 {
-                    try
-                    {
-                        var decorView = Window.DecorView;
+                    var decorView = Window.DecorView;
 
-                        if (decorView != null)
-                            decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
-                    }
+                    if (decorView != null)
+                        decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
                 }
             }
 

@@ -343,21 +343,18 @@ namespace osu.Android
 
             try
             {
-                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                gameActivity.RunOnUiThread(() =>
                 {
-                    gameActivity.RunOnUiThread(() =>
+                    try
                     {
-                        try
-                        {
-                            int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
-                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
-                        }
-                    });
-                }
+                        int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
+                        gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+                    }
+                });
             }
             catch (Exception e)
             {
@@ -423,27 +420,13 @@ namespace osu.Android
                     if (window == null)
                         return;
 
-                    if (OperatingSystem.IsAndroidVersionAtLeast(30))
-                    {
-                        var controller = window.InsetsController;
+                    // minSdkVersion=33 guarantees API 30+ — use modern WindowInsetsController API.
+                    var controller = window.InsetsController;
 
-                        if (controller != null)
-                        {
-                            controller.Hide(global::Android.Views.WindowInsets.Type.SystemBars());
-                            controller.SystemBarsBehavior = (int)global::Android.Views.WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
-                        }
-                    }
-                    else
+                    if (controller != null)
                     {
-#pragma warning disable CA1422
-                        window.DecorView.SystemUiFlags =
-                            SystemUiFlags.ImmersiveSticky
-                            | SystemUiFlags.LayoutStable
-                            | SystemUiFlags.LayoutHideNavigation
-                            | SystemUiFlags.LayoutFullscreen
-                            | SystemUiFlags.HideNavigation
-                            | SystemUiFlags.Fullscreen;
-#pragma warning restore CA1422
+                        controller.Hide(global::Android.Views.WindowInsets.Type.SystemBars());
+                        controller.SystemBarsBehavior = (int)global::Android.Views.WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
                     }
 
                     Logger.Log("[osu!] DeX immersive fullscreen applied", LoggingTarget.Performance);
@@ -581,14 +564,9 @@ namespace osu.Android
             if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                 return null;
 
-            global::Android.Views.Display? display = null;
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(30))
-            {
-                // On API 30+, Activity.Display returns the display the activity is currently on.
-                // In DeX, this is the external monitor.
-                display = gameActivity.Display;
-            }
+            // minSdkVersion=33 guarantees API 30+ — Activity.Display is always available.
+            // In DeX, this returns the external monitor display.
+            global::Android.Views.Display? display = gameActivity.Display;
 
             if (display == null)
             {
@@ -599,11 +577,10 @@ namespace osu.Android
                     if (gameActivity.IsDeX && displays != null)
                     {
                         // In DeX, prefer external displays (ID != 0) sorted by highest refresh rate.
-                        var displayList = displays.ToList();
-                        display = displayList.Where(d => d.DisplayId != 0)
-                                             .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
-                                             .FirstOrDefault()
-                                  ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
+                        display = displays.Where(d => d.DisplayId != 0)
+                                          .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
+                                          .FirstOrDefault()
+                               ?? displays.FirstOrDefault(d => d.DisplayId == 0);
                     }
                     else
                     {
