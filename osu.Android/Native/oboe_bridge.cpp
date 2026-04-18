@@ -30,7 +30,7 @@ typedef uint8_t byte;
 //   - Dimensity 9000/9300: correctly identifies high-freq clusters
 //   - Google Tensor G3: correctly identifies A715 + X3 (skips A510)
 // Threshold: cores with max freq >= 70% of the fastest core are "big".
-static int cachedBigCoreMask = -1; // -1 = not yet computed
+static std::atomic<int> cachedBigCoreMask{-1}; // -1 = not yet computed
 
 static int computeBigCoreMask() {
     int numCores = sysconf(_SC_NPROCESSORS_CONF);
@@ -272,10 +272,10 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         // Uses sysfs-based topology detection for accurate big-core identification
         // across all SoC vendors (Snapdragon, Exynos, Dimensity, Tensor).
         if (!affinitySet_.load(std::memory_order_relaxed)) {
-            int bigMask = cachedBigCoreMask;
+            int bigMask = cachedBigCoreMask.load(std::memory_order_relaxed);
             if (bigMask < 0) {
                 bigMask = computeBigCoreMask();
-                cachedBigCoreMask = bigMask;
+                cachedBigCoreMask.store(bigMask, std::memory_order_relaxed);
             }
 
             if (bigMask > 0) {
@@ -467,9 +467,12 @@ OSU_EXPORT byte nSetThreadAffinity(int coreMask) {
 }
 
 OSU_EXPORT int nGetBigCoreMask() {
-    if (cachedBigCoreMask < 0)
-        cachedBigCoreMask = computeBigCoreMask();
-    return cachedBigCoreMask;
+    int mask = cachedBigCoreMask.load(std::memory_order_relaxed);
+    if (mask < 0) {
+        mask = computeBigCoreMask();
+        cachedBigCoreMask.store(mask, std::memory_order_relaxed);
+    }
+    return mask;
 }
 }
 
