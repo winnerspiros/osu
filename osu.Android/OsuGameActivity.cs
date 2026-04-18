@@ -93,6 +93,14 @@ namespace osu.Android
                 Window.AddFlags(WindowManagerFlags.Fullscreen);
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
+                // Request unbuffered touch dispatch early for minimum input latency.
+                // This applies to all subsequent touch events for this window.
+                if (OperatingSystem.IsAndroidVersionAtLeast(21))
+                {
+                    try { Window.DecorView?.RequestUnbufferedDispatch(MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0)); }
+                    catch { /* best-effort; will also be requested per-event in dispatch methods */ }
+                }
+
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
                 if (OperatingSystem.IsAndroidVersionAtLeast(24))
                 {
@@ -153,70 +161,51 @@ namespace osu.Android
         {
             if (e == null) return base.DispatchTouchEvent(e);
 
-            bool handled = false;
+            bool isStylus = isStylusEvent(e);
 
-            if (isStylusEvent(e))
+            if (isStylus)
             {
                 if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+                bool handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+                return handled;
             }
-            else if (e.Source.HasFlag(InputSourceType.Mouse))
+
+            if (e.Source.HasFlag(InputSourceType.Mouse))
             {
                 if (e.ActionMasked == MotionEventActions.Down)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
+                if (MouseHandler?.HandleMotionEvent(e) ?? false)
+                    return true;
             }
 
-            // Stylus events should NEVER be passed to base.DispatchTouchEvent, as it triggers
-            // Android's touch-mode which hides the cursor and shows touch effects.
-            if (isStylusEvent(e))
-                return handled;
-
-            // Mouse events handled by our custom handler should NOT be passed to base, as the
-            // framework's default AndroidGameView.OnTouchEvent would also process them, causing
-            // double cursor movement and double clicks.
-            if (handled && e.Source.HasFlag(InputSourceType.Mouse))
-                return true;
-
-            // Regular touch (finger) and unhandled events fall through to the framework's default handler.
-            return base.DispatchTouchEvent(e) || handled;
+            return base.DispatchTouchEvent(e);
         }
 
         public override bool DispatchGenericMotionEvent(MotionEvent? e)
         {
             if (e == null) return base.DispatchGenericMotionEvent(e);
 
-            bool handled = false;
+            bool isStylus = isStylusEvent(e);
 
-            if (isStylusEvent(e))
+            if (isStylus)
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
+                if (e.ActionMasked == MotionEventActions.HoverEnter)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
-            }
-            else if (e.Source.HasFlag(InputSourceType.Mouse))
-            {
-                if (e.ActionMasked == MotionEventActions.Down)
-                    Window?.DecorView?.RequestUnbufferedDispatch(e);
-
-                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
-            }
-
-            // Stylus hover events should not be passed to base to avoid system-level hover effects
-            // and touch-mode triggers.
-            if (isStylusEvent(e))
+                bool handled = StylusHandler?.HandleMotionEvent(e) ?? false;
                 return handled;
+            }
 
-            // Mouse events handled by our custom handler should NOT be passed to base to prevent
-            // double-processing by the framework's default motion handler.
-            if (handled && e.Source.HasFlag(InputSourceType.Mouse))
-                return true;
+            if (e.Source.HasFlag(InputSourceType.Mouse))
+            {
+                if (MouseHandler?.HandleMotionEvent(e) ?? false)
+                    return true;
+            }
 
-            return base.DispatchGenericMotionEvent(e) || handled;
+            return base.DispatchGenericMotionEvent(e);
         }
 
         public override bool OnTouchEvent(MotionEvent? e)
@@ -239,19 +228,21 @@ namespace osu.Android
             return base.OnGenericMotionEvent(e);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private bool isStylusEvent(MotionEvent e)
         {
-            // Check source first, as it's the most reliable indicator on some devices.
+            // Source flag check is cheapest and short-circuits for the common case.
             if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
                 return true;
 
-            // Check tool type for each pointer.
+            // Fallback: check tool type per pointer for devices that don't set the source flag.
             for (int i = 0; i < e.PointerCount; i++)
             {
                 var toolType = e.GetToolType(i);
                 if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
                     return true;
             }
+
             return false;
         }
 

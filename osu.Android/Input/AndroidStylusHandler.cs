@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Runtime.CompilerServices;
 using Android.Views;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Handlers;
@@ -46,6 +47,8 @@ namespace osu.Android.Input
         private float areaLeft, areaTop, areaWidth, areaHeight;
         private float outLeft, outTop, outWidth, outHeight;
         private float rotSin, rotCos;
+
+        private const float deg_to_rad = MathF.PI / 180f;
 
         public AndroidStylusHandler()
         {
@@ -114,11 +117,12 @@ namespace osu.Android.Input
             outWidth = oSize.X;
             outHeight = oSize.Y;
 
-            float radians = MathF.PI / 180f * Rotation.Value;
+            float radians = deg_to_rad * Rotation.Value;
             rotSin = MathF.Sin(radians);
             rotCos = MathF.Cos(radians);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleMotionEvent(MotionEvent e)
         {
             if (!Enabled.Value) return false;
@@ -141,6 +145,7 @@ namespace osu.Android.Input
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void handlePointer(MotionEvent e, int historyIndex)
         {
             const int pointer_index = 0;

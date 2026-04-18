@@ -94,7 +94,6 @@ namespace osu.Android
             : base(null)
         {
             gameActivity = activity;
-            startVulkanProbe();
         }
 
         public override string Version
@@ -170,8 +169,6 @@ namespace osu.Android
             keyboardHandler = new AndroidKeyboardHandler();
             Host.AvailableInputHandlers.Add(keyboardHandler);
             gameActivity.KeyboardHandler = keyboardHandler;
-
-            startVulkanProbe();
 
             audioRedirector = new OboeAudioRedirector(Audio);
 
@@ -333,7 +330,7 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to toggle Vulkan probe: {ex.Message}");
                 }
-            }, false);
+            }, true);
 
             try
             {

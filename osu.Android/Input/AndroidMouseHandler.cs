@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Runtime.CompilerServices;
 using Android.Views;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
@@ -29,6 +30,7 @@ namespace osu.Android.Input
 
         public override bool Initialize(GameHost host) => true;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleMotionEvent(MotionEvent e)
         {
             if (!Enabled.Value) return false;
@@ -45,14 +47,13 @@ namespace osu.Android.Input
             }
 
             for (int i = 0; i < e.HistorySize; i++)
-            {
                 handlePointer(e, i);
-            }
-            handlePointer(e, -1);
 
+            handlePointer(e, -1);
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void handlePointer(MotionEvent e, int historyIndex)
         {
             const int pointer_index = 0;
