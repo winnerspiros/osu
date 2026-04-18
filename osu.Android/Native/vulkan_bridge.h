@@ -59,7 +59,6 @@ private:
     bool queryDevice();
     void queryMemory(VkPhysicalDevice device);
     void queryQueueFamilies(VkPhysicalDevice device);
-    void queryMailboxSupport(VkPhysicalDevice device);
     void queryVulkan13Features(VkPhysicalDevice device);
     void queryModernExtensions(VkPhysicalDevice device);
     void cleanup();

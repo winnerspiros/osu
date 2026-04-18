@@ -14,8 +14,6 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Dialog;
 
-
-
 namespace osu.Game.Overlays.Settings.Sections.Graphics
 {
     public partial class RendererSettings : SettingsSubsection

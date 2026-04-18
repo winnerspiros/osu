@@ -24,8 +24,13 @@ namespace osu.Android
         public bool IsRedirecting => ActiveMasterMixer != 0;
 
         private readonly AudioManager audioManager;
-        private readonly List<int> mixerHandles = new List<int>();
+        private readonly HashSet<int> mixerHandles = new HashSet<int>();
         private readonly Dictionary<int, int> originalParents = new Dictionary<int, int>();
+
+        // Cached reflection field for AudioManager's active mixers collection.
+        // Avoids repeated reflection walks on every RefreshMixers() call.
+        private System.Reflection.FieldInfo? cachedMixerField;
+        private bool mixerFieldSearched;
 
         private int masterMixer;
         private bool devicesSilenced;
@@ -108,27 +113,40 @@ namespace osu.Android
 
         private IEnumerable<AudioMixer> getActiveMixers()
         {
-            Type type = typeof(AudioManager);
-
-            while (type != null && type != typeof(object))
+            if (!mixerFieldSearched)
             {
-                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                mixerFieldSearched = true;
+                Type? type = typeof(AudioManager);
+
+                while (type != null && type != typeof(object))
                 {
-                    if (field.FieldType.IsGenericType && field.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
+                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                     {
-                        object? val = field.GetValue(audioManager);
-                        if (val is IEnumerable enumerable)
+                        if (field.FieldType.IsGenericType && field.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
                         {
-                            foreach (var item in enumerable)
-                            {
-                                if (item is AudioMixer mixer)
-                                    yield return mixer;
-                            }
-                            yield break;
+                            cachedMixerField = field;
+                            break;
                         }
                     }
+
+                    if (cachedMixerField != null) break;
+
+                    type = type.BaseType!;
                 }
-                type = type.BaseType!;
+            }
+
+            if (cachedMixerField == null)
+                yield break;
+
+            object? val = cachedMixerField.GetValue(audioManager);
+
+            if (val is IEnumerable enumerable)
+            {
+                foreach (var item in enumerable)
+                {
+                    if (item is AudioMixer mixer)
+                        yield return mixer;
+                }
             }
         }
 
@@ -236,11 +254,14 @@ namespace osu.Android
                     masterMixer = 0;
                 }
 
+                // Snapshot which handles were restored to their original parents before clearing.
+                var restoredHandles = new HashSet<int>(originalParents.Keys);
                 restoreToParents();
 
+                // Only move handles that weren't already restored to their parents.
                 foreach (int handle in mixerHandles)
                 {
-                    if (originalParents.ContainsKey(handle)) continue;
+                    if (restoredHandles.Contains(handle)) continue;
 
                     BassMix.MixerRemoveChannel(handle);
                     Bass.ChannelSetDevice(handle, 1);
@@ -269,8 +290,7 @@ namespace osu.Android
             while ((parent = BassMix.ChannelGetMixer(current)) != 0)
                 current = parent;
 
-            if (!mixerHandles.Contains(current))
-                mixerHandles.Add(current);
+            mixerHandles.Add(current);
         }
 
         private void addMixer(AudioMixer? mixer)
@@ -279,20 +299,31 @@ namespace osu.Android
 
             int handle = getHandle(mixer);
 
-            if (handle != 0 && !mixerHandles.Contains(handle))
+            if (handle != 0)
                 mixerHandles.Add(handle);
         }
 
         /// <summary>
         /// Gets the BASS handle from an AudioMixer via reflection.
         /// BassAudioMixer is internal to the framework, so we access its Handle property via reflection.
+        /// The PropertyInfo is cached after first lookup since all AudioMixers share the same runtime type.
         /// </summary>
+        private static PropertyInfo? cachedHandleProperty;
+        private static Type? cachedHandleType;
+
         private static int getHandle(AudioMixer mixer)
         {
             try
             {
-                var handleProp = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (handleProp?.GetValue(mixer) is int h)
+                var mixerType = mixer.GetType();
+
+                if (cachedHandleType != mixerType)
+                {
+                    cachedHandleProperty = mixerType.GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    cachedHandleType = mixerType;
+                }
+
+                if (cachedHandleProperty?.GetValue(mixer) is int h)
                     return h;
             }
             catch

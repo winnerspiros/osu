@@ -147,14 +147,16 @@ namespace osu.Android
             // matches the real digitizer/screen size (not a hardcoded placeholder).
             try
             {
-                if (gameActivity.WindowManager?.DefaultDisplay != null)
+                var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
+
+                if (metrics != null)
                 {
-                    var displaySize = new global::Android.Graphics.Point();
-#pragma warning disable CA1422
-                    gameActivity.WindowManager.DefaultDisplay.GetRealSize(displaySize);
-#pragma warning restore CA1422
-                    if (displaySize.X > 0 && displaySize.Y > 0)
-                        stylusHandler.SetDisplaySize(displaySize.X, displaySize.Y);
+                    var bounds = metrics.Bounds;
+                    int displayWidth = bounds.Width();
+                    int displayHeight = bounds.Height();
+
+                    if (displayWidth > 0 && displayHeight > 0)
+                        stylusHandler.SetDisplaySize(displayWidth, displayHeight);
                 }
             }
             catch (Exception e)
@@ -197,22 +199,26 @@ namespace osu.Android
 
         protected override void LoadComplete()
         {
-            // Calculate big-core affinity mask dynamically based on device core count.
-            // On big.LITTLE architectures, the upper half of cores are typically performance cores.
-            int coreCount = System.Environment.ProcessorCount;
-            int bigCoreStart = Math.Max(coreCount / 2, 1);
-            int affinityMask = 0;
-
-            for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
-                affinityMask |= 1 << i;
+            // Use sysfs-based CPU topology for accurate big-core detection across all SoC vendors.
+            // Falls back to generic upper-half heuristic if native library unavailable.
+            int affinityMask = AndroidNativeBridgeManager.GetBigCoreMask();
 
             if (affinityMask == 0)
-                affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+            {
+                int coreCount = System.Environment.ProcessorCount;
+                int bigCoreStart = Math.Max(coreCount / 2, 1);
+
+                for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
+                    affinityMask |= 1 << i;
+
+                if (affinityMask == 0)
+                    affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+            }
 
             try
             {
                 if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
-                    Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X}, cores {bigCoreStart}-{coreCount - 1})", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X})", LoggingTarget.Performance);
 
                 // Set update thread to urgent display priority (-8) for minimum scheduling latency.
                 global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
@@ -281,15 +287,6 @@ namespace osu.Android
             if (gameActivity.IsDeX)
                 applyDeXImmersiveMode();
 
-            try
-            {
-                applyPerformanceOptimizations(performanceMode.Value);
-                Debug.WriteLine("[osu!] Performance optimizations applied in LoadComplete");
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
-            }
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
             performanceMode.BindValueChanged(e =>
@@ -352,21 +349,18 @@ namespace osu.Android
 
             try
             {
-                if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                gameActivity.RunOnUiThread(() =>
                 {
-                    gameActivity.RunOnUiThread(() =>
+                    try
                     {
-                        try
-                        {
-                            int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
-                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
-                        }
-                    });
-                }
+                        int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
+                        gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+                    }
+                });
             }
             catch (Exception e)
             {
@@ -432,27 +426,13 @@ namespace osu.Android
                     if (window == null)
                         return;
 
-                    if (OperatingSystem.IsAndroidVersionAtLeast(30))
-                    {
-                        var controller = window.InsetsController;
+                    // minSdkVersion=33 guarantees API 30+ — use modern WindowInsetsController API.
+                    var controller = window.InsetsController;
 
-                        if (controller != null)
-                        {
-                            controller.Hide(global::Android.Views.WindowInsets.Type.SystemBars());
-                            controller.SystemBarsBehavior = (int)global::Android.Views.WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
-                        }
-                    }
-                    else
+                    if (controller != null)
                     {
-#pragma warning disable CA1422
-                        window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
-                            SystemUiFlags.ImmersiveSticky
-                            | SystemUiFlags.LayoutStable
-                            | SystemUiFlags.LayoutHideNavigation
-                            | SystemUiFlags.LayoutFullscreen
-                            | SystemUiFlags.HideNavigation
-                            | SystemUiFlags.Fullscreen);
-#pragma warning restore CA1422
+                        controller.Hide(global::Android.Views.WindowInsets.Type.SystemBars());
+                        controller.SystemBarsBehavior = (int)global::Android.Views.WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
                     }
 
                     Logger.Log("[osu!] DeX immersive fullscreen applied", LoggingTarget.Performance);
@@ -575,6 +555,22 @@ namespace osu.Android
                         layoutParams.PreferredDisplayModeId = mode.ModeId;
                         window.Attributes = layoutParams;
                         currentRefreshRate = (int)mode.RefreshRate;
+
+                        // Set frame rate at the surface level for better compositor scheduling.
+                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE (1) tells Android we render at a
+                        // fixed rate; CHANGE_FRAME_RATE_ALWAYS (1) allows non-seamless transitions.
+                        try
+                        {
+                            var surface = gameActivity.GetSurface()?.Holder?.Surface;
+
+                            if (surface != null && surface.IsValid)
+                                surface.SetFrameRate(mode.RefreshRate, 1, 1);
+                        }
+                        catch
+                        {
+                            // Surface.SetFrameRate may not be available on all binding versions.
+                        }
+
                         Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
                     }
                 }
@@ -590,14 +586,9 @@ namespace osu.Android
             if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                 return null;
 
-            global::Android.Views.Display? display = null;
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(30))
-            {
-                // On API 30+, Activity.Display returns the display the activity is currently on.
-                // In DeX, this is the external monitor.
-                display = gameActivity.Display;
-            }
+            // minSdkVersion=33 guarantees API 30+ — Activity.Display is always available.
+            // In DeX, this returns the external monitor display.
+            global::Android.Views.Display? display = gameActivity.Display;
 
             if (display == null)
             {
@@ -608,11 +599,10 @@ namespace osu.Android
                     if (gameActivity.IsDeX && displays != null)
                     {
                         // In DeX, prefer external displays (ID != 0) sorted by highest refresh rate.
-                        var displayList = displays.ToList();
-                        display = displayList.Where(d => d.DisplayId != 0)
-                                             .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
-                                             .FirstOrDefault()
-                                  ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
+                        display = displays.Where(d => d.DisplayId != 0)
+                                          .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
+                                          .FirstOrDefault()
+                               ?? displays.FirstOrDefault(d => d.DisplayId == 0);
                     }
                     else
                     {
@@ -663,7 +653,7 @@ namespace osu.Android
                     string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                     if (!string.IsNullOrEmpty(rateStr))
-                        hardwareSampleRate = int.Parse(rateStr);
+                        int.TryParse(rateStr, out hardwareSampleRate);
                 }
             }
             catch { }
@@ -788,10 +778,11 @@ namespace osu.Android
                     disposeNativeBridges();
                 highPerformanceSession?.Dispose();
                 highPerformanceSession = null;
+                dexPerformanceSession?.Dispose();
+                dexPerformanceSession = null;
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         protected override void UpdateAfterChildren() => base.UpdateAfterChildren();
 
         public override osu.Game.Overlays.Settings.SettingsSubsection CreateSettingsSubsectionFor(osu.Framework.Input.Handlers.InputHandler handler)

@@ -32,17 +32,19 @@ namespace osu.Android
         {
             // there are more performant overloads of this method, but this one is the most backwards-compatible
             // (dates back to API 1).
+            string filename;
 
-            var cursor = contentResolver.Query(uri, null, null, null, null);
+            using (var cursor = contentResolver.Query(uri, null, null, null, null))
+            {
+                if (cursor == null)
+                    return null;
 
-            if (cursor == null)
-                return null;
+                if (!cursor.MoveToFirst())
+                    return null;
 
-            if (!cursor.MoveToFirst())
-                return null;
-
-            int filenameColumn = cursor.GetColumnIndex(IOpenableColumns.DisplayName);
-            string filename = cursor.GetString(filenameColumn) ?? uri.Path ?? string.Empty;
+                int filenameColumn = cursor.GetColumnIndex(IOpenableColumns.DisplayName);
+                filename = cursor.GetString(filenameColumn) ?? uri.Path ?? string.Empty;
+            }
 
             // SharpCompress requires archive streams to be seekable, which the stream opened by
             // OpenInputStream() seems to not necessarily be.
@@ -52,7 +54,10 @@ namespace osu.Android
             using (var stream = contentResolver.OpenInputStream(uri))
             {
                 if (stream == null)
+                {
+                    copy.Dispose();
                     return null;
+                }
 
                 await stream.CopyToAsync(copy).ConfigureAwait(false);
             }

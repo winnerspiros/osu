@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Android.Views;
@@ -16,8 +17,9 @@ namespace osu.Android.Input
         public override string Description => "Keyboard (Low Latency)";
         public override bool IsActive => Enabled.Value;
 
-        // Static dictionary for O(1) key mapping instead of 80+ case switch.
-        private static readonly Dictionary<Keycode, Key> key_map = new Dictionary<Keycode, Key>
+        // FrozenDictionary for maximum-performance O(1) key mapping.
+        // Built once at startup; faster than Dictionary for read-only lookups.
+        private static readonly FrozenDictionary<Keycode, Key> key_map = new Dictionary<Keycode, Key>
         {
             { Keycode.A, Key.A }, { Keycode.B, Key.B }, { Keycode.C, Key.C }, { Keycode.D, Key.D },
             { Keycode.E, Key.E }, { Keycode.F, Key.F }, { Keycode.G, Key.G }, { Keycode.H, Key.H },
@@ -50,7 +52,7 @@ namespace osu.Android.Input
             { Keycode.Backslash, Key.BackSlash }, { Keycode.Semicolon, Key.Semicolon },
             { Keycode.Apostrophe, Key.Quote }, { Keycode.Comma, Key.Comma },
             { Keycode.Period, Key.Period }, { Keycode.Slash, Key.Slash },
-        };
+        }.ToFrozenDictionary();
 
         public AndroidKeyboardHandler()
         {

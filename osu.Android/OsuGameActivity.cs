@@ -4,7 +4,6 @@
 using Android.App;
 using Android.Content.PM;
 using Android.Content;
-using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Content.Res;
@@ -94,47 +93,34 @@ namespace osu.Android
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
                 // Use full display area including camera cutout/notch for maximum render space.
-                if (OperatingSystem.IsAndroidVersionAtLeast(28) && Window.Attributes != null)
+                if (Window.Attributes != null)
                     Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
 
                 // Request unbuffered touch dispatch early for minimum input latency.
-                if (OperatingSystem.IsAndroidVersionAtLeast(21))
+                try
                 {
-                    try
-                    {
-                        var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
-                        Window.DecorView?.RequestUnbufferedDispatch(dummy);
-                        dummy?.Recycle();
-                    }
-                    catch { /* best-effort; will also be requested per-event in dispatch methods */ }
+                    var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
+                    Window.DecorView?.RequestUnbufferedDispatch(dummy);
+                    dummy?.Recycle();
                 }
+                catch { /* best-effort; will also be requested per-event in dispatch methods */ }
 
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
-                if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                try
                 {
-                    try
-                    {
-                        var decorView = Window.DecorView;
+                    var decorView = Window.DecorView;
 
-                        if (decorView != null)
-                            decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
-                    }
+                    if (decorView != null)
+                        decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
                 }
             }
 
-            if (WindowManager?.DefaultDisplay != null && Resources?.DisplayMetrics != null)
-            {
-                Point displaySize = new Point();
-#pragma warning disable CA1422
-                WindowManager.DefaultDisplay.GetSize(displaySize);
-#pragma warning restore CA1422
-                float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
-                IsTablet = smallestWidthDp >= 600f;
-            }
+            if (Resources?.Configuration != null)
+                IsTablet = Resources.Configuration.SmallestScreenWidthDp >= 600;
 
             RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
 
@@ -294,16 +280,25 @@ namespace osu.Android
             }
         }
 
-        private void handleImportFromUris(params Uri[] uris) => Task.Factory.StartNew(async () =>
+        private void handleImportFromUris(params Uri[] uris) => Task.Run(async () =>
         {
-            var tasks = new List<ImportTask>();
-            await Task.WhenAll(uris.Select(async uri =>
+            try
             {
-                var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
-                if (task != null) { lock (tasks) { tasks.Add(task); } }
-            })).ConfigureAwait(false);
-            if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
-        }, TaskCreationOptions.LongRunning);
+                var tasks = new List<ImportTask>();
+
+                await Task.WhenAll(uris.Select(async uri =>
+                {
+                    var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
+                    if (task != null) { lock (tasks) { tasks.Add(task); } }
+                })).ConfigureAwait(false);
+
+                if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to import from URIs: {e}");
+            }
+        });
 
         private readonly System.Threading.ManualResetEventSlim surfaceEvent = new System.Threading.ManualResetEventSlim(false);
         private IntPtr surfaceGlobalRef;
@@ -365,8 +360,6 @@ namespace osu.Android
 
             surfaceEvent.Reset();
         }
-
-
 
         public override void OnConfigurationChanged(Configuration newConfig)
         {

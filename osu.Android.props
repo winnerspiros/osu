@@ -13,6 +13,10 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <!-- Enable optimized marshal methods for faster managed↔native interop.
+         .NET 10 generates efficient bridging code at build time instead of the
+         slower runtime-generated trampolines. -->
+    <AndroidEnableMarshalMethods>true</AndroidEnableMarshalMethods>
     <!-- Suppress XA0141 page-size warnings. ELF patching is disabled for all configurations
          (see PatchElfPageSizeEnabled below) to prevent APK signature corruption.
          The XA0141 warning is therefore expected and harmless.
@@ -43,6 +47,9 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <!-- Use LLVM backend for AOT — produces higher-quality native code than the default
+         Mono AOT compiler.  Critical for a rhythm game where frame-level timing matters. -->
+    <EnableLLVM>true</EnableLLVM>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
@@ -67,7 +74,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.416.0" />
+    <!-- Use winnerspiros/osu-framework fork (net10.0-android, optimized) via submodule instead of ppy NuGet package -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -9,6 +9,7 @@
 #include <sys/syscall.h>
 #include <android/log.h>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <vector>
 #include <algorithm>
@@ -17,6 +18,62 @@ typedef uint8_t byte;
 #define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+// ============================================================
+// Smart CPU topology detection via sysfs
+// ============================================================
+// Reads /sys/devices/system/cpu/cpuN/cpufreq/cpuinfo_max_freq for each core
+// to identify actual performance cores. This is far more accurate than the
+// generic "upper half" heuristic across all SoC vendors:
+//   - Snapdragon 8 Gen 2/3: correctly identifies Gold + Prime (skips Silver)
+//   - Exynos 2200/2400: correctly identifies A710/A720 + X2/X4 (skips A510/A520)
+//   - Dimensity 9000/9300: correctly identifies high-freq clusters
+//   - Google Tensor G3: correctly identifies A715 + X3 (skips A510)
+// Threshold: cores with max freq >= 70% of the fastest core are "big".
+static std::atomic<int> cachedBigCoreMask{-1}; // -1 = not yet computed
+
+static int computeBigCoreMask() {
+    int numCores = sysconf(_SC_NPROCESSORS_CONF);
+    if (numCores <= 0 || numCores > 32) return 0;
+
+    long freqs[32] = {};
+    long maxFreq = 0;
+
+    for (int i = 0; i < numCores; i++) {
+        char path[96];
+        snprintf(path, sizeof(path),
+                 "/sys/devices/system/cpu/cpu%d/cpufreq/cpuinfo_max_freq", i);
+        FILE* f = fopen(path, "r");
+        if (f) {
+            if (fscanf(f, "%ld", &freqs[i]) != 1)
+                freqs[i] = 0;
+            fclose(f);
+            if (freqs[i] > maxFreq) maxFreq = freqs[i];
+        }
+    }
+
+    if (maxFreq == 0) return 0;
+
+    // Include cores whose max freq is >= 70% of the fastest core.
+    // This captures Prime + Gold on all major SoC families.
+    long threshold = maxFreq * 70 / 100;
+    int mask = 0;
+
+    for (int i = 0; i < numCores; i++) {
+        if (freqs[i] >= threshold)
+            mask |= (1 << i);
+    }
+
+    LOGI("CPU topology: %d cores, max=%ldkHz, threshold=%ldkHz, bigMask=0x%x",
+         numCores, maxFreq, threshold, mask);
+
+    for (int i = 0; i < numCores; i++) {
+        LOGI("  cpu%d: %ldkHz %s", i, freqs[i],
+             (freqs[i] >= threshold) ? "(BIG)" : "(little)");
+    }
+
+    return mask;
+}
 
 OboeBridge::OboeBridge() {
     LOGI("OboeBridge created");
@@ -145,27 +202,27 @@ bool OboeBridge::isActive() const {
 }
 
 int32_t OboeBridge::getSampleRate() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getSampleRate() : 0;
 }
 
 int32_t OboeBridge::getFramesPerBurst() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getFramesPerBurst() : 0;
 }
 
 int32_t OboeBridge::getBufferSizeInFrames() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getBufferSizeInFrames() : 0;
 }
 
 bool OboeBridge::isAAudio() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ && stream_->getAudioApi() == oboe::AudioApi::AAudio;
 }
 
 bool OboeBridge::isMMap() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ && oboe::OboeExtensions::isMMapUsed(stream_.get());
 }
 
@@ -212,30 +269,38 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
         // Attempt to set CPU affinity to high-performance cores.
         // We do this inside the audio callback to ensure we target the AAudio thread.
+        // Uses sysfs-based topology detection for accurate big-core identification
+        // across all SoC vendors (Snapdragon, Exynos, Dimensity, Tensor).
         if (!affinitySet_.load(std::memory_order_relaxed)) {
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
+            int bigMask = cachedBigCoreMask.load(std::memory_order_relaxed);
+            if (bigMask < 0) {
+                bigMask = computeBigCoreMask();
+                cachedBigCoreMask.store(bigMask, std::memory_order_relaxed);
+            }
 
-            int num_cores = sysconf(_SC_NPROCESSORS_CONF);
-            if (num_cores > 0) {
-                // S23 Ultra (Snapdragon 8 Gen 2) layout: 1 Prime + 2 Gold + 2 Gold + 3 Silver.
-                // Indices are typically: 0-2 (Silver), 3-4 (Gold), 5-6 (Gold), 7 (Prime).
-                // We want to target the Prime (7) and Gold (3-6) cores.
-                if (num_cores >= 8) {
-                    for (int i = 3; i < num_cores; ++i) {
+            if (bigMask > 0) {
+                cpu_set_t cpuset;
+                CPU_ZERO(&cpuset);
+                for (int i = 0; i < 32; i++) {
+                    if ((bigMask >> i) & 1)
                         CPU_SET(i, &cpuset);
-                    }
-                } else {
-                    // Fallback for devices with fewer cores.
-                    for (int i = num_cores / 2; i < num_cores; ++i) {
-                        CPU_SET(i, &cpuset);
-                    }
                 }
 
                 if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) {
-                    LOGI("Oboe audio thread pinned to high-performance cores");
+                    LOGI("Oboe audio thread pinned to big cores (mask=0x%x)", bigMask);
                 } else {
-                    LOGE("Failed to set thread affinity: %d", errno);
+                    LOGE("Failed to set audio thread affinity: %d", errno);
+                }
+            } else {
+                // Fallback: try upper half of cores if sysfs was unreadable
+                int num_cores = sysconf(_SC_NPROCESSORS_CONF);
+                if (num_cores > 1) {
+                    cpu_set_t cpuset;
+                    CPU_ZERO(&cpuset);
+                    for (int i = num_cores / 2; i < num_cores; ++i)
+                        CPU_SET(i, &cpuset);
+                    sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
+                    LOGI("Oboe audio thread: sysfs unavailable, used upper-half fallback");
                 }
             }
             affinitySet_.store(true);
@@ -399,6 +464,15 @@ OSU_EXPORT byte nSetThreadAffinity(int coreMask) {
         }
     }
     return (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset) == 0) ? 1 : 0;
+}
+
+OSU_EXPORT int nGetBigCoreMask() {
+    int mask = cachedBigCoreMask.load(std::memory_order_relaxed);
+    if (mask < 0) {
+        mask = computeBigCoreMask();
+        cachedBigCoreMask.store(mask, std::memory_order_relaxed);
+    }
+    return mask;
 }
 }
 
