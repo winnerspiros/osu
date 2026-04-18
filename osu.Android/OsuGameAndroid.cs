@@ -445,13 +445,13 @@ namespace osu.Android
                     else
                     {
 #pragma warning disable CA1422
-                        window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
+                        window.DecorView.SystemUiFlags =
                             SystemUiFlags.ImmersiveSticky
                             | SystemUiFlags.LayoutStable
                             | SystemUiFlags.LayoutHideNavigation
                             | SystemUiFlags.LayoutFullscreen
                             | SystemUiFlags.HideNavigation
-                            | SystemUiFlags.Fullscreen);
+                            | SystemUiFlags.Fullscreen;
 #pragma warning restore CA1422
                     }
 
