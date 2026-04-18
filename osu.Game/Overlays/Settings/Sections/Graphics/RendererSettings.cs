@@ -32,16 +32,16 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
 
-            // Only show Vulkan on Android if the VulkanProbe recommends it (not just supported).
-            // On devices with known Vulkan issues (e.g. Adreno 7xx flickering), IsVulkanRecommended
-            // returns false even though the GPU technically supports Vulkan. Showing the option leads
-            // users to select it and experience poor performance vs OpenGL ES.
+            // Always show Vulkan on Android when the GPU supports it, so users can try it.
+            // The VulkanProbe detects feature support; even if some features are disabled (e.g. on
+            // Adreno 7xx), the renderer itself may still work and provide better performance than
+            // OpenGL ES for some workloads.
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
             {
-                bool isRecommended = game?.IsVulkanRecommended ?? false;
+                bool isSupported = game?.IsVulkanSupported ?? false;
                 bool isCurrentlySelected = renderer.Value == RendererType.Vulkan;
 
-                if ((isRecommended || isCurrentlySelected) && !rendererItems.Contains(RendererType.Vulkan))
+                if ((isSupported || isCurrentlySelected) && !rendererItems.Contains(RendererType.Vulkan))
                     rendererItems.Add(RendererType.Vulkan);
             }
 

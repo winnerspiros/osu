@@ -12,13 +12,12 @@ using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
-using osu.Framework.Audio.Mixing.Bass;
 
 namespace osu.Android
 {
     /// <summary>
     /// Redirects audio from BASS mixers into an unmanaged callback (Oboe).
-    /// Uses BassAudioMixer.Handle directly instead of fragile reflection-based handle discovery.
+    /// Discovers mixer handles via reflection since BassAudioMixer is internal to the framework.
     /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
@@ -285,19 +284,14 @@ namespace osu.Android
         }
 
         /// <summary>
-        /// Gets the BASS handle from an AudioMixer using the public BassAudioMixer.Handle property.
-        /// This replaces the previous fragile reflection-based approach.
+        /// Gets the BASS handle from an AudioMixer via reflection.
+        /// BassAudioMixer is internal to the framework, so we access its Handle property via reflection.
         /// </summary>
         private static int getHandle(AudioMixer mixer)
         {
-            if (mixer is BassAudioMixer bassMixer)
-                return bassMixer.Handle;
-
-            // Fallback: if the mixer is not a BassAudioMixer (shouldn't happen in practice),
-            // try reflection as a last resort.
             try
             {
-                var handleProp = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public);
+                var handleProp = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (handleProp?.GetValue(mixer) is int h)
                     return h;
             }

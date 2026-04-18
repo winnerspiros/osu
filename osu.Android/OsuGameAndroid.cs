@@ -199,7 +199,7 @@ namespace osu.Android
         {
             // Calculate big-core affinity mask dynamically based on device core count.
             // On big.LITTLE architectures, the upper half of cores are typically performance cores.
-            int coreCount = Environment.ProcessorCount;
+            int coreCount = System.Environment.ProcessorCount;
             int bigCoreStart = Math.Max(coreCount / 2, 1);
             int affinityMask = 0;
 

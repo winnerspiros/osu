@@ -48,7 +48,7 @@ namespace osu.Android
 
                         // Calculate dynamic big-core mask for audio thread, matching the pattern in OsuGameAndroid.LoadComplete
                         int audioAffinityMask;
-                        int cores = Environment.ProcessorCount;
+                        int cores = System.Environment.ProcessorCount;
                         int bigStart = Math.Max(cores / 2, 1);
                         audioAffinityMask = 0;
 

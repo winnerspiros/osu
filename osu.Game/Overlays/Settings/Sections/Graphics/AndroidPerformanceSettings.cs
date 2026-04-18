@@ -29,7 +29,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     HintText = "Enables sustained performance mode, immersive fullscreen, and auto-selects the highest refresh rate. Auto-enabled in DeX mode.",
                     Current = config.GetBindable<bool>(OsuSetting.AndroidPerformanceMode),
                 }),
-                new SettingsItemV2(refreshRateDropdown = new RefreshRateDropdown
+                new SettingsItemV2(new RefreshRateDropdown
                 {
                     Caption = "Display refresh rate",
                     HintText = "Select the display refresh rate. In DeX mode, this controls the external monitor's refresh rate.",
@@ -59,8 +59,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 },
             };
         }
-
-        private RefreshRateDropdown refreshRateDropdown = null!;
 
         private partial class RefreshRateDropdown : FormDropdown<int>
         {

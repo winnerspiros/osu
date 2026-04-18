@@ -114,7 +114,10 @@ namespace osu.Android
                 {
                     try
                     {
-                        Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                        var decorView = Window.DecorView;
+
+                        if (decorView != null)
+                            decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
                     }
                     catch (Exception e)
                     {
