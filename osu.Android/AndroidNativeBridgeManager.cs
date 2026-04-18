@@ -17,77 +17,87 @@ namespace osu.Android
         private object? oboeBridge;
         private object? vulkanProbe;
         private volatile bool disposed;
-        private string? cachedOboeStatus;
-        private string? cachedVulkanStatus;
+        private volatile string? cachedOboeStatus;
+        private volatile string? cachedVulkanStatus;
+        private readonly object oboeLock = new object();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartOboeBridge(Scheduler scheduler, Action<double> onLatencyMeasured, IntPtr provider, int sampleRate = 0, Action<int>? onStarted = null)
         {
-            if (oboeBridge != null)
+            lock (oboeLock)
             {
-                Debug.WriteLine("[osu!] Oboe bridge already started, ignoring request");
-                return;
-            }
-
-            Debug.WriteLine($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
-            cachedOboeStatus = null;
-
-            try
-            {
-                var bridge = OboeAudioBridge.Create(sampleRate);
-
-                if (bridge != null)
+                if (oboeBridge != null)
                 {
-                    oboeBridge = bridge;
+                    Debug.WriteLine("[osu!] Oboe bridge already started, ignoring request");
+                    return;
+                }
 
-                    if (provider != IntPtr.Zero)
-                        bridge.SetProvider(provider);
+                Debug.WriteLine($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
+                cachedOboeStatus = null;
 
-                    try { SetThreadAffinity(0xF8); } catch { }
-                    bool started = bridge.Start();
-                    if (!started) { System.Threading.Thread.Sleep(100); started = bridge.Start(); }
+                try
+                {
+                    var bridge = OboeAudioBridge.Create(sampleRate);
 
-                    if (started)
+                    if (bridge != null)
                     {
-                        Debug.WriteLine("[osu!] Oboe bridge started successfully");
-                        logOboeInfo(bridge);
+                        oboeBridge = bridge;
 
-                        onStarted?.Invoke(bridge.SampleRate);
+                        if (provider != IntPtr.Zero)
+                            bridge.SetProvider(provider);
 
-                        scheduler.Add(new ScheduledDelegate(() =>
+                        try { SetThreadAffinity(Environment.ProcessorCount > 4 ? 0xF0 : 0x0C); }
+                        catch (Exception e) { Debug.WriteLine($"[osu!] Audio thread affinity failed: {e.Message}"); }
+
+                        bool started = bridge.Start();
+                        if (!started) { System.Threading.Thread.Sleep(100); started = bridge.Start(); }
+
+                        if (started)
                         {
-                            if (oboeBridge is not OboeAudioBridge b) return;
+                            Debug.WriteLine("[osu!] Oboe bridge started successfully");
+                            logOboeInfo(bridge);
 
-                            double latency = b.GetOutputLatencyMs();
+                            onStarted?.Invoke(bridge.SampleRate);
 
-                            if (latency > 0)
-                                onLatencyMeasured(latency);
-                        }, 2000, 5000));
+                            scheduler.Add(new ScheduledDelegate(() =>
+                            {
+                                if (oboeBridge is not OboeAudioBridge b) return;
+
+                                double latency = b.GetOutputLatencyMs();
+
+                                if (latency > 0)
+                                    onLatencyMeasured(latency);
+                            }, 2000, 5000));
+                        }
+                        else
+                        {
+                            string error = bridge.GetLastErrorMessage() ?? "Unknown";
+                            Debug.WriteLine($"[osu!] Oboe bridge created but failed to start: {error}");
+                        }
                     }
                     else
                     {
-                        Debug.WriteLine("[osu!] Oboe bridge created but failed to start (Start() returned false)");
+                        Debug.WriteLine("[osu!] Oboe bridge creation failed — native library not loaded or stream open failed");
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    Debug.WriteLine("[osu!] Oboe bridge creation failed (Create() returned null)");
+                    Debug.WriteLine($"[osu!] Oboe bridge init failed with exception: {e.Message}");
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Oboe bridge init failed with exception: {e.Message}");
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StopOboeBridge()
         {
-            Debug.WriteLine("[osu!] Stopping Oboe bridge...");
-            (oboeBridge as OboeAudioBridge)?.Dispose();
-            oboeBridge = null;
-            cachedOboeStatus = null;
-            Debug.WriteLine("[osu!] Oboe bridge stopped");
+            lock (oboeLock)
+            {
+                Debug.WriteLine("[osu!] Stopping Oboe bridge...");
+                (oboeBridge as OboeAudioBridge)?.Dispose();
+                oboeBridge = null;
+                cachedOboeStatus = null;
+                Debug.WriteLine("[osu!] Oboe bridge stopped");
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -100,7 +110,13 @@ namespace osu.Android
         public string GetOboeStatus()
         {
             if (oboeBridge is not OboeAudioBridge bridge) return "Not Created";
-            if (!bridge.IsActive) return "Failed: " + bridge.GetLastErrorMessage();
+
+            if (!bridge.IsActive)
+            {
+                try { return "Failed: " + (bridge.GetLastErrorMessage() ?? "Unknown"); }
+                catch { return "Failed: Unknown"; }
+            }
+
             return cachedOboeStatus ??= $"{(bridge.IsAAudio ? "AAudio" : "OpenSLES")} [{(bridge.IsMMap ? "MMAP" : "Legacy")}]";
         }
 

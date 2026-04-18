@@ -18,8 +18,6 @@ namespace osu.Android.Input
         public override string Description => "S Pen / Stylus (Low Latency)";
         public override bool IsActive => Enabled.Value;
 
-        public View? View { get; set; }
-
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
         public Bindable<Vector2> OutputAreaSize { get; } = new Bindable<Vector2>();
@@ -80,16 +78,6 @@ namespace osu.Android.Input
             float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
-            float tiltX = e.GetAxisValue(Axis.Tilt, pointer_index);
-            float tiltY = e.GetAxisValue(Axis.Orientation, pointer_index);
-
-            // DeX windowed mode offset correction
-            if (View != null)
-            {
-                 // On some DeX versions, GetX/Y might be screen-relative if the window isn't focused.
-                 // Using GetX/Y is generally safer for windowed mode as Android handles the subtraction,
-                 // but we ensure the View is passed for future coordinate scaling needs.
-            }
 
             if (tablet.Value == null || x > tablet.Value.Size.X || y > tablet.Value.Size.Y)
             {
@@ -121,7 +109,6 @@ namespace osu.Android.Input
             bool isEraserDown = (e.ButtonState & MotionEventButtonState.StylusSecondary) != 0 || e.GetToolType(pointer_index) == MotionEventToolType.Eraser;
             if (isEraserDown != lastEraserDown)
             {
-                // Map eraser to Middle Click or a specific tablet button if framework supports it
                 PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Middle, isEraserDown));
                 lastEraserDown = isEraserDown;
             }

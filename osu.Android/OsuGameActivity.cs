@@ -336,11 +336,17 @@ namespace osu.Android
             {
                 IntPtr handle = surface.Handle;
                 if (handle == IntPtr.Zero) return;
+
+                // Release previous reference to prevent JNI global reference leak on rapid surface recreation.
+                if (surfaceGlobalRef != IntPtr.Zero)
                 {
-                    surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
-                    surfaceEvent.Set();
-                    Debug.WriteLine("[osu!] Native surface JNI global reference created");
+                    global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
+                    surfaceGlobalRef = IntPtr.Zero;
                 }
+
+                surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+                surfaceEvent.Set();
+                Debug.WriteLine("[osu!] Native surface JNI global reference created");
             }
         }
 
@@ -363,8 +369,18 @@ namespace osu.Android
         public override void OnConfigurationChanged(Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
+            bool wasDeX = IsDeX;
             updateDeXStatus(newConfig);
+
+            // Re-query display modes when the display configuration changes (e.g. DeX connect/disconnect,
+            // external monitor change, rotation).
             (game as OsuGameAndroid)?.SelectHighestRefreshRate();
+
+            // When entering DeX mode, apply immersive mode and auto-enable performance mode.
+            if (!wasDeX && IsDeX)
+            {
+                (game as OsuGameAndroid)?.OnDeXConnected();
+            }
         }
 
         private void updateDeXStatus(Configuration? config)

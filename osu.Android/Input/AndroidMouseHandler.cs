@@ -15,7 +15,11 @@ namespace osu.Android.Input
         public override string Description => "Mouse (Low Latency)";
         public override bool IsActive => Enabled.Value;
 
-        public View? View { get; set; }
+        private bool lastLeft;
+        private bool lastRight;
+        private bool lastMiddle;
+        private bool lastBack;
+        private bool lastForward;
 
         public AndroidMouseHandler()
         {
@@ -46,7 +50,7 @@ namespace osu.Android.Input
             }
             handlePointer(e, -1);
 
-            return true; // We consume movement/buttons to prevent system from doing weird things with our cursor
+            return true;
         }
 
         private void handlePointer(MotionEvent e, int historyIndex)
@@ -56,18 +60,6 @@ namespace osu.Android.Input
 
             float x = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float y = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
-
-            // In windowed mode (DeX), raw coordinates might be needed for consistency, but view-relative is usually better.
-            // If the view offset is weird, we could calculate it here:
-            /*
-            if (View != null)
-            {
-                int[] location = new int[2];
-                View.GetLocationOnScreen(location);
-                x = (historyIndex < 0 ? e.RawX : e.GetHistoricalRawX(pointer_index, historyIndex)) - location[0];
-                y = (historyIndex < 0 ? e.RawY : e.GetHistoricalRawY(pointer_index, historyIndex)) - location[1];
-            }
-            */
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
@@ -86,11 +78,5 @@ namespace osu.Android.Input
             if (back != lastBack) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Button1, back)); lastBack = back; }
             if (forward != lastForward) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Button2, forward)); lastForward = forward; }
         }
-
-        private bool lastLeft;
-        private bool lastRight;
-        private bool lastMiddle;
-        private bool lastBack;
-        private bool lastForward;
     }
 }

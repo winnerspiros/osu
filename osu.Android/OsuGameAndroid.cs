@@ -143,12 +143,10 @@ namespace osu.Android
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
             gameActivity.StylusHandler = stylusHandler;
-            stylusHandler.View = gameActivity.Window?.DecorView;
 
             mouseHandler = new AndroidMouseHandler();
             Host.AvailableInputHandlers.Add(mouseHandler);
             gameActivity.MouseHandler = mouseHandler;
-            mouseHandler.View = gameActivity.Window?.DecorView;
 
             keyboardHandler = new AndroidKeyboardHandler();
             Host.AvailableInputHandlers.Add(keyboardHandler);
@@ -183,42 +181,71 @@ namespace osu.Android
 
         protected override void LoadComplete()
         {
+            // Calculate big-core affinity mask dynamically based on device core count.
+            // On big.LITTLE architectures, the upper half of cores are typically performance cores.
+            int coreCount = Environment.ProcessorCount;
+            int bigCoreStart = Math.Max(coreCount / 2, 1);
+            int affinityMask = 0;
+
+            for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
+                affinityMask |= 1 << i;
+
+            if (affinityMask == 0)
+                affinityMask = (1 << coreCount) - 1; // fallback: use all cores
+
             try
             {
-                if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0)
-                    Debug.WriteLine("[osu!] Update thread pinned to big cores");
+                if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
+                    Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X}, cores {bigCoreStart}-{coreCount - 1})", LoggingTarget.Performance);
+
+                int mask = affinityMask;
 
                 Scheduler.Add(() =>
                 {
                     Host.DrawThread.Scheduler.Add(() =>
                     {
-                        try { if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0) Debug.WriteLine("[osu!] Render thread pinned to big cores"); } catch { }
+                        try { if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance); } catch { }
                     });
 
                     Host.InputThread.Scheduler.Add(() =>
                     {
-                        try { if (OboeAudioBridge.nSetThreadAffinity(0xF8) != 0) Debug.WriteLine("[osu!] Input thread pinned to big cores"); } catch { }
+                        try { if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance); } catch { }
                     });
                 });
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to pin update thread: {e.Message}");
+                Logger.Log($"[osu!] Failed to pin threads: {e.Message}", LoggingTarget.Performance);
             }
 
             base.LoadComplete();
-            System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
 
             // Always select the highest refresh rate on startup, regardless of performance mode.
             // This ensures 120Hz+ displays are used at their native rate.
             SelectHighestRefreshRate();
 
-            // In DeX mode, auto-enable performance mode for best desktop experience.
+            // When the user selects a different refresh rate from the settings dropdown, apply it.
+            SelectedDisplayRefreshRate.BindValueChanged(e =>
+            {
+                try
+                {
+                    applyRefreshRate(e.NewValue);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Failed to apply selected refresh rate: {ex.Message}");
+                }
+            });
+
+            // In DeX mode, auto-enable performance mode and immersive fullscreen for best desktop experience.
             if (gameActivity.IsDeX && !performanceMode.Value)
             {
                 performanceMode.Value = true;
                 Logger.Log("[osu!] DeX detected — auto-enabled performance mode", LoggingTarget.Performance);
             }
+
+            if (gameActivity.IsDeX)
+                applyDeXImmersiveMode();
 
             try
             {
@@ -247,18 +274,6 @@ namespace osu.Android
             {
                 if (e.NewValue)
                 {
-                    int hardwareSampleRate = 0;
-                    try
-                    {
-                        if (gameActivity.GetSystemService(global::Android.Content.Context.AudioService) is global::Android.Media.AudioManager audioManager)
-                        {
-                            string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
-                            if (!string.IsNullOrEmpty(rateStr))
-                                hardwareSampleRate = int.Parse(rateStr);
-                        }
-                    }
-                    catch { }
-
                     try
                     {
                         startOboeBridge(latency =>
@@ -268,7 +283,7 @@ namespace osu.Android
                             Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                         }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                         {
-                            audioRedirector?.RefreshMixers(sampleRate > 0 ? sampleRate : hardwareSampleRate);
+                            audioRedirector?.RefreshMixers(sampleRate);
                             Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
                         });
                     }
@@ -343,12 +358,77 @@ namespace osu.Android
                         highPerformanceSession = null;
                     }
 
-                    if (enabled)
-                        SelectHighestRefreshRate();
+                    // Refresh rate is controlled by SelectHighestRefreshRate() (called once in LoadComplete)
+                    // and the user's SelectedDisplayRefreshRate bindable. No need to re-apply here.
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Called when DeX mode is connected at runtime (e.g. phone plugged into external monitor).
+        /// Re-queries display modes, enables performance mode, and applies immersive fullscreen.
+        /// </summary>
+        public void OnDeXConnected()
+        {
+            Schedule(() =>
+            {
+                if (!performanceMode.Value)
+                {
+                    performanceMode.Value = true;
+                    Logger.Log("[osu!] DeX connected — auto-enabled performance mode", LoggingTarget.Performance);
+                }
+
+                applyDeXImmersiveMode();
+            });
+        }
+
+        /// <summary>
+        /// Applies immersive fullscreen on the DeX external display by hiding system bars.
+        /// This maximises the usable screen area and reduces input latency from system UI overlays.
+        /// </summary>
+        private void applyDeXImmersiveMode()
+        {
+            gameActivity.RunOnUiThread(() =>
+            {
+                try
+                {
+                    var window = gameActivity.Window;
+
+                    if (window == null)
+                        return;
+
+                    if (OperatingSystem.IsAndroidVersionAtLeast(30))
+                    {
+                        var controller = window.InsetsController;
+
+                        if (controller != null)
+                        {
+                            controller.Hide(global::Android.Views.WindowInsets.Type.SystemBars());
+                            controller.SystemBarsBehavior = (int)global::Android.Views.WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+                        }
+                    }
+                    else
+                    {
+#pragma warning disable CA1422
+                        window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
+                            SystemUiFlags.ImmersiveSticky
+                            | SystemUiFlags.LayoutStable
+                            | SystemUiFlags.LayoutHideNavigation
+                            | SystemUiFlags.LayoutFullscreen
+                            | SystemUiFlags.HideNavigation
+                            | SystemUiFlags.Fullscreen);
+#pragma warning restore CA1422
+                    }
+
+                    Logger.Log("[osu!] DeX immersive fullscreen applied", LoggingTarget.Performance);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to apply DeX immersive mode: {e.Message}");
                 }
             });
         }
@@ -374,45 +454,7 @@ namespace osu.Android
                 if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                     return;
 
-                var window = gameActivity.Window;
-                var windowManager = gameActivity.WindowManager;
-
-                if (window == null || windowManager == null)
-                    return;
-
-                global::Android.Views.Display? display = null;
-
-                if (OperatingSystem.IsAndroidVersionAtLeast(30))
-                {
-                    // Prefer the display associated with the activity (which would be the external monitor in DeX)
-                    display = gameActivity.Display;
-                }
-
-                if (display == null)
-                {
-                    // Fallback to DisplayManager to find an external display
-                    if (gameActivity.GetSystemService(global::Android.Content.Context.DisplayService) is global::Android.Hardware.Display.DisplayManager dm)
-                    {
-                        var displays = dm.GetDisplays();
-
-                        if (gameActivity.IsDeX)
-                        {
-                             // Find the largest external display (most likely the monitor)
-                             var displayList = displays?.ToList();
-                             if (displayList != null)
-                             {
-                                 display = displayList.Where(d => d.DisplayId != 0)
-                                                   .OrderByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.RefreshRate ?? 0)
-                                                   .ThenByDescending(d => d.GetSupportedModes()?.FirstOrDefault()?.PhysicalWidth ?? 0)
-                                                   .FirstOrDefault() ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
-                             }
-                        }
-                        else
-                        {
-                             display = displays?.FirstOrDefault(d => d.DisplayId == 0);
-                        }
-                    }
-                }
+                var display = getActiveDisplay();
 
                 if (display == null)
                     return;
@@ -422,30 +464,133 @@ namespace osu.Android
                 if (modes == null || modes.Length == 0)
                     return;
 
-                var preferred = modes.OrderByDescending(m => m.RefreshRate).First();
+                // Populate the available refresh rates for the settings dropdown.
+                var rates = modes.Select(m => (int)m.RefreshRate)
+                                 .Distinct()
+                                 .OrderByDescending(r => r)
+                                 .ToList();
 
-                gameActivity.RunOnUiThread(() =>
+                Schedule(() =>
                 {
-                    try
-                    {
-                        if (window.Attributes is WindowManagerLayoutParams layoutParams)
-                        {
-                            layoutParams.PreferredDisplayModeId = preferred.ModeId;
-                            window.Attributes = layoutParams;
-                            currentRefreshRate = (int)preferred.RefreshRate;
-                            Debug.WriteLine($"[osu!] Highest refresh rate selected: {preferred.RefreshRate}Hz (mode {preferred.ModeId})");
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to apply preferred display mode: {e.Message}");
-                    }
+                    AvailableDisplayRefreshRates.Clear();
+                    AvailableDisplayRefreshRates.Add(0); // 0 = "Auto (highest)"
+                    AvailableDisplayRefreshRates.AddRange(rates);
+
+                    // If user hasn't selected a rate, auto-select highest.
+                    if (SelectedDisplayRefreshRate.Value == 0)
+                        applyDisplayMode(display, modes.OrderByDescending(m => m.RefreshRate).First());
+                    else
+                        applyRefreshRate(SelectedDisplayRefreshRate.Value);
                 });
+
+                Logger.Log($"[osu!] Display modes queried: {string.Join(", ", rates.Select(r => $"{r}Hz"))} (DeX={gameActivity.IsDeX})", LoggingTarget.Performance);
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] Failed to query supported display modes: {e.Message}");
             }
+        }
+
+        private void applyRefreshRate(int targetHz)
+        {
+            try
+            {
+                var display = getActiveDisplay();
+
+                if (display == null)
+                    return;
+
+                var modes = display.GetSupportedModes();
+
+                if (modes == null || modes.Length == 0)
+                    return;
+
+                global::Android.Views.Display.Mode preferred;
+
+                if (targetHz <= 0)
+                {
+                    // Auto: pick highest refresh rate
+                    preferred = modes.OrderByDescending(m => m.RefreshRate).First();
+                }
+                else
+                {
+                    // Find best match for the requested rate
+                    preferred = modes.OrderBy(m => Math.Abs(m.RefreshRate - targetHz))
+                                     .ThenByDescending(m => m.PhysicalWidth)
+                                     .First();
+                }
+
+                applyDisplayMode(display, preferred);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to apply refresh rate {targetHz}Hz: {e.Message}");
+            }
+        }
+
+        private void applyDisplayMode(global::Android.Views.Display display, global::Android.Views.Display.Mode mode)
+        {
+            var window = gameActivity.Window;
+
+            if (window == null)
+                return;
+
+            gameActivity.RunOnUiThread(() =>
+            {
+                try
+                {
+                    if (window.Attributes is WindowManagerLayoutParams layoutParams)
+                    {
+                        layoutParams.PreferredDisplayModeId = mode.ModeId;
+                        window.Attributes = layoutParams;
+                        currentRefreshRate = (int)mode.RefreshRate;
+                        Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to apply display mode: {e.Message}");
+                }
+            });
+        }
+
+        private global::Android.Views.Display? getActiveDisplay()
+        {
+            if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
+                return null;
+
+            global::Android.Views.Display? display = null;
+
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
+            {
+                // On API 30+, Activity.Display returns the display the activity is currently on.
+                // In DeX, this is the external monitor.
+                display = gameActivity.Display;
+            }
+
+            if (display == null)
+            {
+                if (gameActivity.GetSystemService(global::Android.Content.Context.DisplayService) is global::Android.Hardware.Display.DisplayManager dm)
+                {
+                    var displays = dm.GetDisplays();
+
+                    if (gameActivity.IsDeX && displays != null)
+                    {
+                        // In DeX, prefer external displays (ID != 0) sorted by highest refresh rate.
+                        var displayList = displays.ToList();
+                        display = displayList.Where(d => d.DisplayId != 0)
+                                             .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
+                                             .FirstOrDefault()
+                                  ?? displayList.FirstOrDefault(d => d.DisplayId == 0);
+                    }
+                    else
+                    {
+                        display = displays?.FirstOrDefault(d => d.DisplayId == 0);
+                    }
+                }
+            }
+
+            return display;
         }
 
         public override bool IsVulkanRecommended => (nativeBridges as AndroidNativeBridgeManager)?.IsVulkanRecommended() ?? false;
