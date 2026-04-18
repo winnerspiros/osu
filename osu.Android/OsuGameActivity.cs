@@ -304,7 +304,7 @@ namespace osu.Android
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to import from URIs: {e.Message}");
+                Debug.WriteLine($"[osu!] Failed to import from URIs: {e}");
             }
         });
 
