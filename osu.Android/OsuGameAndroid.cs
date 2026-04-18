@@ -88,6 +88,7 @@ namespace osu.Android
         private object? activeMixersList;
 
         private object? nativeBridges;
+        private int currentRefreshRate;
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -207,6 +208,17 @@ namespace osu.Android
 
             base.LoadComplete();
             System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+
+            // Always select the highest refresh rate on startup, regardless of performance mode.
+            // This ensures 120Hz+ displays are used at their native rate.
+            SelectHighestRefreshRate();
+
+            // In DeX mode, auto-enable performance mode for best desktop experience.
+            if (gameActivity.IsDeX && !performanceMode.Value)
+            {
+                performanceMode.Value = true;
+                Logger.Log("[osu!] DeX detected — auto-enabled performance mode", LoggingTarget.Performance);
+            }
 
             try
             {
@@ -420,6 +432,7 @@ namespace osu.Android
                         {
                             layoutParams.PreferredDisplayModeId = preferred.ModeId;
                             window.Attributes = layoutParams;
+                            currentRefreshRate = (int)preferred.RefreshRate;
                             Debug.WriteLine($"[osu!] Highest refresh rate selected: {preferred.RefreshRate}Hz (mode {preferred.ModeId})");
                         }
                     }
@@ -457,6 +470,8 @@ namespace osu.Android
         }
 
         public override double OboeLatency => (nativeBridges as AndroidNativeBridgeManager)?.GetMeasuredAudioLatencyMs() ?? -1;
+
+        public override int DisplayRefreshRate => currentRefreshRate;
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
@@ -560,28 +575,6 @@ namespace osu.Android
 
         public override void SetHost(GameHost host)
         {
-            // Apply Vulkan environment overrides before the graphics device is initialized.
-            if (nativeBridges is AndroidNativeBridgeManager mgr && mgr.IsVulkanAvailable())
-            {
-                try
-                {
-                    string status = mgr.GetVulkanStatus();
-                    if (status.Contains("MAILBOX"))
-                        System.Environment.SetEnvironmentVariable("VULKAN_PRESENT_MODE", "MAILBOX");
-
-                    var disabledExtensions = new System.Collections.Generic.List<string>();
-                    if (status.Contains("NoID")) disabledExtensions.Add("VK_KHR_present_id");
-                    if (status.Contains("NoWait")) disabledExtensions.Add("VK_KHR_present_wait");
-                    if (status.Contains("NoGPL")) disabledExtensions.Add("VK_EXT_graphics_pipeline_library");
-
-                    if (disabledExtensions.Count > 0)
-                        System.Environment.SetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS", string.Join(",", disabledExtensions));
-
-                    Debug.WriteLine($"[osu!] Vulkan overrides applied: MODE={System.Environment.GetEnvironmentVariable("VULKAN_PRESENT_MODE")}, DISABLE={System.Environment.GetEnvironmentVariable("VULKAN_DISABLE_EXTENSIONS")}");
-                }
-                catch (Exception e) { Debug.WriteLine($"[osu!] Failed to set Vulkan overrides: {e.Message}"); }
-            }
-
             base.SetHost(host);
 
             if (host.Window != null)

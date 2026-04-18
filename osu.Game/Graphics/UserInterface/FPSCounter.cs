@@ -244,6 +244,9 @@ namespace osu.Game.Graphics.UserInterface
             {
                 status += $" | {host?.ResolvedRenderer.ToString()}";
 
+                if (Game.DisplayRefreshRate > 0)
+                    status += $" | {Game.DisplayRefreshRate}Hz";
+
                 if (!string.IsNullOrEmpty(Game.VulkanStatus))
                     status += $" | {Game.VulkanStatus}";
 

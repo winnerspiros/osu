@@ -130,6 +130,8 @@ namespace osu.Game
 
         public virtual string VulkanStatus => string.Empty;
 
+        public virtual int DisplayRefreshRate => 0;
+
         public virtual string Version
         {
             get

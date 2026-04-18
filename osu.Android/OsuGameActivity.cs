@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
+using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Android.Native;
@@ -174,8 +175,13 @@ namespace osu.Android
             if (isStylusEvent(e))
                 return handled;
 
-            // In DeX mode, we MUST call base even if "handled" to ensure window focus and system gestures work.
-            // However, if we fully consumed it (e.g. gameplay), we return true to prevent UI double-clicks.
+            // Mouse events handled by our custom handler should NOT be passed to base, as the
+            // framework's default AndroidGameView.OnTouchEvent would also process them, causing
+            // double cursor movement and double clicks.
+            if (handled && e.Source.HasFlag(InputSourceType.Mouse))
+                return true;
+
+            // Regular touch (finger) and unhandled events fall through to the framework's default handler.
             return base.DispatchTouchEvent(e) || handled;
         }
 
@@ -204,6 +210,11 @@ namespace osu.Android
             // and touch-mode triggers.
             if (isStylusEvent(e))
                 return handled;
+
+            // Mouse events handled by our custom handler should NOT be passed to base to prevent
+            // double-processing by the framework's default motion handler.
+            if (handled && e.Source.HasFlag(InputSourceType.Mouse))
+                return true;
 
             return base.DispatchGenericMotionEvent(e) || handled;
         }
