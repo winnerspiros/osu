@@ -55,7 +55,7 @@ namespace osu.Android
                         for (int i = bigStart; i < Math.Min(cores, 32); i++)
                             audioAffinityMask |= 1 << i;
 
-                        if (audioAffinityMask == 0) audioAffinityMask = (1 << cores) - 1;
+                        if (audioAffinityMask == 0) audioAffinityMask = (1 << Math.Min(cores, 31)) - 1;
 
                         try { SetThreadAffinity(audioAffinityMask); }
                         catch (Exception e) { Debug.WriteLine($"[osu!] Audio thread affinity failed: {e.Message}"); }

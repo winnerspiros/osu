@@ -207,12 +207,15 @@ namespace osu.Android
                 affinityMask |= 1 << i;
 
             if (affinityMask == 0)
-                affinityMask = (1 << coreCount) - 1; // fallback: use all cores
+                affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
 
             try
             {
                 if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
                     Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X}, cores {bigCoreStart}-{coreCount - 1})", LoggingTarget.Performance);
+
+                // Set update thread to urgent display priority (-8) for minimum scheduling latency.
+                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
 
                 int mask = affinityMask;
 
@@ -220,12 +223,22 @@ namespace osu.Android
                 {
                     Host.DrawThread.Scheduler.Add(() =>
                     {
-                        try { if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance); } catch { }
+                        try
+                        {
+                            if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
+                            global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
+                        }
+                        catch { }
                     });
 
                     Host.InputThread.Scheduler.Add(() =>
                     {
-                        try { if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance); } catch { }
+                        try
+                        {
+                            if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
+                            global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
+                        }
+                        catch { }
                     });
                 });
             }
@@ -233,6 +246,11 @@ namespace osu.Android
             {
                 Logger.Log($"[osu!] Failed to pin threads: {e.Message}", LoggingTarget.Performance);
             }
+
+            // Always enable sustained performance mode for consistent frame delivery.
+            // This prevents thermal throttling from causing sudden FPS drops.
+            try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
+            catch { }
 
             base.LoadComplete();
 
@@ -362,8 +380,8 @@ namespace osu.Android
             {
                 try
                 {
-                    gameActivity.Window?.SetSustainedPerformanceMode(enabled);
-
+                    // Sustained performance mode is always on (set in LoadComplete).
+                    // The performance toggle controls the high-perf GC session only.
                     if (enabled)
                     {
                         highPerformanceSession ??= highPerformanceSessionManager.BeginSession();
@@ -373,9 +391,6 @@ namespace osu.Android
                         highPerformanceSession?.Dispose();
                         highPerformanceSession = null;
                     }
-
-                    // Refresh rate is controlled by SelectHighestRefreshRate() (called once in LoadComplete)
-                    // and the user's SelectedDisplayRefreshRate bindable. No need to re-apply here.
                 }
                 catch (Exception e)
                 {

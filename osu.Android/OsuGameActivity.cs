@@ -93,11 +93,19 @@ namespace osu.Android
                 Window.AddFlags(WindowManagerFlags.Fullscreen);
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
+                // Use full display area including camera cutout/notch for maximum render space.
+                if (OperatingSystem.IsAndroidVersionAtLeast(28) && Window.Attributes != null)
+                    Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+
                 // Request unbuffered touch dispatch early for minimum input latency.
-                // This applies to all subsequent touch events for this window.
                 if (OperatingSystem.IsAndroidVersionAtLeast(21))
                 {
-                    try { Window.DecorView?.RequestUnbufferedDispatch(MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0)); }
+                    try
+                    {
+                        var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
+                        Window.DecorView?.RequestUnbufferedDispatch(dummy);
+                        dummy?.Recycle();
+                    }
                     catch { /* best-effort; will also be requested per-event in dispatch methods */ }
                 }
 
