@@ -47,6 +47,9 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <!-- Use LLVM backend for AOT — produces higher-quality native code than the default
+         Mono AOT compiler.  Critical for a rhythm game where frame-level timing matters. -->
+    <EnableLLVM>true</EnableLLVM>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
