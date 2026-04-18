@@ -28,8 +28,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         public CardFlow CenterRow { get; private set; } = null!;
 
-        protected override LocalisableString StageHeading => "Pick Phase";
-        protected override LocalisableString StageCaption => "It's your turn to play a card!";
+        public override bool ShowStageOverlay => true;
+
+        public override LocalisableString StageHeading => "Pick Phase";
 
         private PlayerHandOfCards playerHand = null!;
         private OpponentHandOfCards opponentHand = null!;
@@ -44,15 +45,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private Sample? timeRunningOutSample;
         private SampleChannel? timeRunningOutSampleChannel;
-        private Sample? timeUpBuzzerSample;
 
         private DateTimeOffset stageEndTime;
         private TimeSpan stageDuration;
 
-        /// <summary>
-        /// Whether the local user has played a card themselves.
-        /// </summary>
-        private bool hasPlayedCard;
+        public PickScreen()
+        {
+            StageCaption = "It's your turn to play a card!";
+        }
 
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
@@ -101,7 +101,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 cardPlaySamples[i] = audio.Samples.Get($@"Multiplayer/Matchmaking/Ranked/card-play-{1 + i}");
 
             timeRunningOutSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/time-running-out");
-            timeUpBuzzerSample = audio.Samples.Get(@"Multiplayer/Matchmaking/Ranked/time-up");
         }
 
         protected override void LoadComplete()
@@ -121,10 +120,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         }
 
         private bool shouldPlayWarningSample
-            => matchInfo.Stage.Value == RankedPlayStage.CardPlay
-               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
-               && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-               && !hasPlayedCard;
+        {
+            get => matchInfo.Stage.Value == RankedPlayStage.CardPlay
+                   && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
+                   && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
+                   && !field;
+            set;
+        }
 
         protected override void Update()
         {
@@ -207,14 +209,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
         private void onCountdownStopped(MultiplayerCountdown countdown) => Scheduler.Add(() =>
         {
-            if (countdown is not RankedPlayStageCountdown stageCountdown)
+            if (countdown is not RankedPlayStageCountdown)
                 return;
 
             stageEndTime = DateTimeOffset.Now;
             stageDuration = TimeSpan.Zero;
-
-            if (stageCountdown.Stage == RankedPlayStage.CardPlay && !hasPlayedCard)
-                timeUpBuzzerSample?.Play();
         });
 
         private void onPlayButtonClicked()
@@ -223,7 +222,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             if (selection != null)
             {
-                hasPlayedCard = true;
+                shouldPlayWarningSample = true;
                 playerHand.SelectionMode = HandSelectionMode.Disabled;
 
                 Client.PlayCard(selection.Card).FireAndForget();

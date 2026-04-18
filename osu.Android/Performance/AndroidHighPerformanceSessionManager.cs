@@ -35,10 +35,7 @@ namespace osu.Android.Performance
             Logger.Log("Starting high performance session (Android)");
 
             originalGCMode = GCSettings.LatencyMode;
-            // On Android, SustainedLowLatency is generally better for stable framerates.
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
-            GC.Collect(0);
         }
 
         private void exitSession()

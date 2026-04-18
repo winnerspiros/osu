@@ -1,11 +1,10 @@
 ﻿<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
-    <!-- arm64-v8a covers 99%+ of modern Android devices.
-         armeabi-v7a is kept for older 32-bit devices.
-         x86 removed — only used by legacy emulators; modern x86_64 emulators
-         run arm64 binaries via native translation (no dedicated x86 build needed). -->
-    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+    <!-- arm64-v8a only.  Modern Android devices are 99%+ arm64; 32-bit arm32 (armeabi-v7a)
+         adds ~200 MB of duplicate native libraries for negligible device coverage.
+         x86 was already removed — modern x86_64 emulators run arm64 via translation. -->
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <!-- CJK and Mideast encodings are needed for song metadata display.
          Rare covers supplementary Unicode blocks. West is the default Latin set. -->
@@ -68,12 +67,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- IMPORTANT: ppy.osu.Framework.Android v2026.318.0 only ships net8.0-android34.0 assets.
-         NuGet silently falls back to those assets when the app targets net10.0-android (API 36).
-         This is safe because .NET guarantees backward compatibility for loading net8.0 assemblies
-         in a net10.0 runtime, and Android API changes between 34→36 are additive.
-         TODO: Remove this comment once ppy.osu.Framework.Android ships net10.0-android assets. -->
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.416.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -82,19 +76,18 @@
     <DisableFody>true</DisableFody>
   </PropertyGroup>
 
-  <!-- Fix for .NET 10 Android AOT misclassifying non-managed assets in runtime pack.
-       This is critical for Android 16 (API 36) Release/AOT builds where the linker expects
-       all non-managed assets to be marked as native before the optimization/signing phases.
-       Scoped to Release only — running this during Debug builds can interfere with how the
-       Android SDK classifies signing-related items, leading to APKs with null certificate
-       arrays (INSTALL_PARSE_FAILED_NO_CERTIFICATES). -->
+  <!-- Fix for .NET 10 Android AOT misclassifying native .so assets in runtime pack.
+       Only .so files need the AssetType override — the previous broader filter
+       (all non-DLL, non-PDB) incorrectly reclassified signing metadata and config
+       files, which corrupted the APK signature (INSTALL_PARSE_FAILED_NO_CERTIFICATES).
+       Scoped to Release only to avoid interfering with Debug builds. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList"
           Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
-      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
+      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' == '.so'">
         <AssetType>native</AssetType>
       </RuntimePackAsset>
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' != '.dll' AND '%(Extension)' != '.pdb'">
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.so'">
         <AssetType>native</AssetType>
       </ResolvedFileToPublish>
     </ItemGroup>

@@ -32,8 +32,10 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
 
-            // Surgically inject Vulkan on Android if supported, even if the host doesn't report it.
-            // This allows us to use official framework NuGet while still supporting Vulkan in the game.
+            // Always show Vulkan on Android when the GPU supports it, so users can try it.
+            // The VulkanProbe detects feature support; even if some features are disabled (e.g. on
+            // Adreno 7xx), the renderer itself may still work and provide better performance than
+            // OpenGL ES for some workloads.
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
             {
                 bool isSupported = game?.IsVulkanSupported ?? false;

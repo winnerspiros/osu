@@ -1,9 +1,9 @@
-using System.Runtime.CompilerServices;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Debug = System.Diagnostics.Debug;
 
@@ -52,9 +52,29 @@ namespace osu.Android.Native
 
         public static OboeAudioBridge? Create(int sampleRate = 0)
         {
-            if (!native_loaded) return null;
-            try { IntPtr ptr = nOboeCreate(sampleRate); return ptr == IntPtr.Zero ? null : new OboeAudioBridge(ptr); }
-            catch { return null; }
+            if (!native_loaded)
+            {
+                Debug.WriteLine("[osu!] Oboe Create() skipped — native library not loaded");
+                return null;
+            }
+
+            try
+            {
+                IntPtr ptr = nOboeCreate(sampleRate);
+
+                if (ptr == IntPtr.Zero)
+                {
+                    Debug.WriteLine($"[osu!] nOboeCreate({sampleRate}) returned null — stream open failed");
+                    return null;
+                }
+
+                return new OboeAudioBridge(ptr);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] nOboeCreate failed: {e.Message}");
+                return null;
+            }
         }
 
         private OboeAudioBridge(IntPtr ptr) => nativePtr = ptr;

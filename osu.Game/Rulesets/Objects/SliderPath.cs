@@ -138,6 +138,18 @@ namespace osu.Game.Rulesets.Objects
         }
 
         /// <summary>
+        /// Path vertices after lengthening/shortening to account for <see cref="ExpectedDistance"/>.
+        /// </summary>
+        public IReadOnlyList<Vector2> CalculatedPath
+        {
+            get
+            {
+                ensureValid();
+                return calculatedPath;
+            }
+        }
+
+        /// <summary>
         /// Whether to optimise Catmull path segments, usually resulting in removing bulbs around stacked knots.
         /// </summary>
         /// <remarks>

@@ -33,6 +33,7 @@ public:
     bool isAAudio() const;
     bool isMMap() const;
     void setProvider(OboeAudioProvider provider);
+    const char* getLastError() const;
 
     // oboe::AudioStreamCallback
     oboe::DataCallbackResult onAudioReady(
@@ -53,6 +54,8 @@ private:
     std::atomic<OboeAudioProvider> provider_{nullptr};
     std::atomic<bool> affinitySet_{false};
     int32_t requestedSampleRate_{0};
+    std::string lastError_;
+    mutable std::mutex errorLock_;
 
     void updateLatency();
     bool reopenAndRestart();

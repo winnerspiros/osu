@@ -130,6 +130,18 @@ namespace osu.Game
 
         public virtual string VulkanStatus => string.Empty;
 
+        public virtual int DisplayRefreshRate => 0;
+
+        /// <summary>
+        /// Available display refresh rates for the current display (Android only).
+        /// </summary>
+        public BindableList<int> AvailableDisplayRefreshRates { get; } = new BindableList<int>();
+
+        /// <summary>
+        /// The user-selected display refresh rate. 0 means automatic (highest available).
+        /// </summary>
+        public Bindable<int> SelectedDisplayRefreshRate { get; } = new Bindable<int>();
+
         public virtual string Version
         {
             get

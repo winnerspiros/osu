@@ -27,10 +27,8 @@
     <None Remove="Native\CMakeLists.txt" />
   </ItemGroup>
   <!-- Include pre-built native libraries when present (built by the release workflow or local NDK build).
-       When absent, native features (Oboe audio, Vulkan probe) are gracefully disabled at runtime.
-       x86 removed — only arm64 and arm32 are shipped (see RuntimeIdentifiers in osu.Android.props). -->
+       When absent, native features (Oboe audio, Vulkan probe) are gracefully disabled at runtime. -->
   <ItemGroup>
     <AndroidNativeLibrary Include="libs\arm64-v8a\libosu_native.so" Condition="Exists('libs\arm64-v8a\libosu_native.so')" Abi="arm64-v8a" />
-    <AndroidNativeLibrary Include="libs\armeabi-v7a\libosu_native.so" Condition="Exists('libs\armeabi-v7a\libosu_native.so')" Abi="armeabi-v7a" />
   </ItemGroup>
 </Project>

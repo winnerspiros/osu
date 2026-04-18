@@ -17,6 +17,7 @@ namespace osu.Android
 {
     /// <summary>
     /// Redirects audio from BASS mixers into an unmanaged callback (Oboe).
+    /// Discovers mixer handles via reflection since BassAudioMixer is internal to the framework.
     /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
@@ -58,12 +59,14 @@ namespace osu.Android
 
             sampleRate = lastHardwareSampleRate;
 
+            // Collect mixer handles using the public BassAudioMixer.Handle property.
             addRootMixer(audioManager.TrackMixer);
             addRootMixer(audioManager.SampleMixer);
 
             foreach (var mixer in getActiveMixers())
                 addRootMixer(mixer);
 
+            // Fallback: add direct handles if root traversal found nothing.
             if (mixerHandles.Count == 0)
             {
                 addMixer(audioManager.TrackMixer);
@@ -75,9 +78,11 @@ namespace osu.Android
 
             if (mixerHandles.Count == 0)
             {
-                Console.WriteLine("[osu!] Oboe redirector: No BASS mixers discovered yet, deferring redirection.");
+                Console.WriteLine("[osu!] Oboe redirector: No BASS mixers discovered. Audio may not have initialized yet.");
                 return;
             }
+
+            Console.WriteLine($"[osu!] Oboe redirector: Found {mixerHandles.Count} mixer handle(s): {string.Join(", ", mixerHandles)}");
 
             if (!silenceDefaultAudio())
             {
@@ -253,10 +258,11 @@ namespace osu.Android
         {
             if (mixer == null) return;
 
-            int handle = findHandle(mixer);
+            int handle = getHandle(mixer);
 
             if (handle == 0) return;
 
+            // Walk up the mixer chain to find the root mixer handle.
             int current = handle;
             int parent;
 
@@ -271,70 +277,29 @@ namespace osu.Android
         {
             if (mixer == null) return;
 
-            int handle = findHandle(mixer);
+            int handle = getHandle(mixer);
 
             if (handle != 0 && !mixerHandles.Contains(handle))
                 mixerHandles.Add(handle);
         }
 
-        private int findHandle(object obj)
+        /// <summary>
+        /// Gets the BASS handle from an AudioMixer via reflection.
+        /// BassAudioMixer is internal to the framework, so we access its Handle property via reflection.
+        /// </summary>
+        private static int getHandle(AudioMixer mixer)
         {
-            Type? type = obj.GetType();
-
-            while (type != null && type != typeof(object))
+            try
             {
-                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    if (isHandleType(field.FieldType))
-                    {
-                        string name = field.Name.ToLowerInvariant();
-                        if (name == "mixerhandle" || name == "handle" || name == "_handle" || name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
-                        {
-                            int h = convertToHandle(field.GetValue(obj));
-                            if (h != 0) return h;
-                        }
-                    }
-                }
-
-                foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    if (isHandleType(prop.PropertyType))
-                    {
-                        string name = prop.Name.ToLowerInvariant();
-                        if (name.Contains("handle") || name.Contains("mixer") || name.Contains("id") || name.Contains("stream") || name.Contains("channel") || name.Contains("source"))
-                        {
-                            int h = convertToHandle(prop.GetValue(obj));
-                            if (h != 0) return h;
-                        }
-                    }
-                }
-
-                if (type.Name.Contains("Mixer") || type.Name.Contains("Channel") || type.Name.Contains("Stream"))
-                {
-                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
-                    {
-                        if (field.FieldType == typeof(int))
-                        {
-                            int h = (int)field.GetValue(obj)!;
-                            if (h > 0 && h < 1000000) return h;
-                        }
-                    }
-                }
-
-                type = type.BaseType;
+                var handleProp = mixer.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (handleProp?.GetValue(mixer) is int h)
+                    return h;
+            }
+            catch
+            {
+                // Reflection failed — return 0 to indicate no handle found.
             }
 
-            return 0;
-        }
-
-        private bool isHandleType(Type type) => type == typeof(int) || type == typeof(IntPtr) || type == typeof(long);
-
-        private int convertToHandle(object? val)
-        {
-            if (val == null) return 0;
-            if (val is int ih) return ih;
-            if (val is long lh) return (int)lh;
-            if (val is IntPtr ph) return (int)ph.ToInt64();
             return 0;
         }
 

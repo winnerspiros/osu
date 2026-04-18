@@ -5,8 +5,8 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
-using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
@@ -37,10 +36,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             Value = 1_000_000,
         };
 
-        [Resolved]
-        private UserLookupCache users { get; set; } = null!;
-
-        private readonly int userId;
+        private readonly APIUser user;
         private readonly Anchor contentAnchor;
         private readonly RankedPlayColourScheme colourScheme;
 
@@ -56,9 +52,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         [Resolved]
         private RankedPlayCornerPiece? cornerPiece { get; set; }
 
-        public RankedPlayUserDisplay(int userId, Anchor contentAnchor, RankedPlayColourScheme colourScheme)
+        public RankedPlayUserDisplay(APIUser user, Anchor contentAnchor, RankedPlayColourScheme colourScheme)
         {
-            this.userId = userId;
+            this.user = user;
             this.contentAnchor = contentAnchor;
             this.colourScheme = colourScheme;
         }
@@ -66,8 +62,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         [BackgroundDependencyLoader]
         private void load()
         {
-            APIUser user = users.GetUserAsync(userId).GetResultSafely()!;
-
             var shear = contentAnchor == Anchor.TopLeft || contentAnchor == Anchor.BottomRight
                 ? -OsuGame.SHEAR
                 : OsuGame.SHEAR;
@@ -168,12 +162,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
         private void onRoomUpdated()
         {
-            var user = client.Room?.Users.SingleOrDefault(u => u.UserID == userId);
+            var multiplayerUser = client.Room?.Users.SingleOrDefault(u => u.UserID == user.Id);
 
-            if (user == null || availability == user.BeatmapAvailability)
+            if (multiplayerUser == null || availability == multiplayerUser.BeatmapAvailability)
                 return;
 
-            availability = user.BeatmapAvailability;
+            availability = multiplayerUser.BeatmapAvailability;
 
             if (availability.State is DownloadState.NotDownloaded or DownloadState.Downloading or DownloadState.Importing)
                 beatmapState.FadeIn(50);
@@ -201,7 +195,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         {
             base.Dispose(isDisposing);
 
-            client.RoomUpdated -= onRoomUpdated;
+            if (client.IsNotNull())
+                client.RoomUpdated -= onRoomUpdated;
         }
 
         public partial class HealthBar : CompositeDrawable

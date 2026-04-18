@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -300,15 +301,15 @@ namespace osu.Game.Screens.Select
             if (Item == null)
                 return;
 
-            if (ruleset.Value.OnlineID == 3)
+            var rulesetInstance = ruleset.Value.CreateInstance();
+
+            if (rulesetInstance.AvailableVariants.Count() > 1)
             {
-                // Account for mania differences locally for now.
-                // Eventually this should be handled in a more modular way, allowing rulesets to add more information to the panel.
-                ILegacyRuleset legacyRuleset = (ILegacyRuleset)ruleset.Value.CreateInstance();
-                int keyCount = legacyRuleset.GetKeyCount(beatmap, mods.Value);
+                int variant = rulesetInstance.GetVariantForBeatmap(beatmap, mods.Value);
+                var variantName = rulesetInstance.GetVariantName(variant);
 
                 keyCountText.Alpha = 1;
-                keyCountText.Text = $"[{keyCount}K] ";
+                keyCountText.Text = LocalisableString.Interpolate($"[{variantName}] ");
             }
             else
                 keyCountText.Alpha = 0;

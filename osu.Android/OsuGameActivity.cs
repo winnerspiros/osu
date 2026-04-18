@@ -1,4 +1,3 @@
-using osu.Android.Input;
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
@@ -17,6 +16,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
+using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Android.Native;
@@ -93,12 +93,31 @@ namespace osu.Android
                 Window.AddFlags(WindowManagerFlags.Fullscreen);
                 Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
+                // Use full display area including camera cutout/notch for maximum render space.
+                if (OperatingSystem.IsAndroidVersionAtLeast(28) && Window.Attributes != null)
+                    Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+
+                // Request unbuffered touch dispatch early for minimum input latency.
+                if (OperatingSystem.IsAndroidVersionAtLeast(21))
+                {
+                    try
+                    {
+                        var dummy = MotionEvent.Obtain(0, 0, MotionEventActions.Down, 0, 0, 0);
+                        Window.DecorView?.RequestUnbufferedDispatch(dummy);
+                        dummy?.Recycle();
+                    }
+                    catch { /* best-effort; will also be requested per-event in dispatch methods */ }
+                }
+
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
                 if (OperatingSystem.IsAndroidVersionAtLeast(24))
                 {
                     try
                     {
-                        Window.DecorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                        var decorView = Window.DecorView;
+
+                        if (decorView != null)
+                            decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
                     }
                     catch (Exception e)
                     {
@@ -153,60 +172,51 @@ namespace osu.Android
         {
             if (e == null) return base.DispatchTouchEvent(e);
 
-            bool handled = false;
+            bool isStylus = isStylusEvent(e);
 
-            if (isStylusEvent(e))
+            if (isStylus)
             {
                 if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+                bool handled = StylusHandler?.HandleMotionEvent(e) ?? false;
+                return handled;
             }
-            else if (e.Source.HasFlag(InputSourceType.Mouse))
+
+            if (e.Source.HasFlag(InputSourceType.Mouse))
             {
                 if (e.ActionMasked == MotionEventActions.Down)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
+                if (MouseHandler?.HandleMotionEvent(e) ?? false)
+                    return true;
             }
 
-            // Stylus events should NEVER be passed to base.DispatchTouchEvent, as it triggers
-            // Android's touch-mode which hides the cursor and shows touch effects.
-            if (isStylusEvent(e))
-                return handled;
-
-            // In DeX mode, we MUST call base even if "handled" to ensure window focus and system gestures work.
-            // However, if we fully consumed it (e.g. gameplay), we return true to prevent UI double-clicks.
-            return base.DispatchTouchEvent(e) || handled;
+            return base.DispatchTouchEvent(e);
         }
 
         public override bool DispatchGenericMotionEvent(MotionEvent? e)
         {
             if (e == null) return base.DispatchGenericMotionEvent(e);
 
-            bool handled = false;
+            bool isStylus = isStylusEvent(e);
 
-            if (isStylusEvent(e))
+            if (isStylus)
             {
-                if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.HoverEnter)
+                if (e.ActionMasked == MotionEventActions.HoverEnter)
                     Window?.DecorView?.RequestUnbufferedDispatch(e);
 
-                handled = StylusHandler?.HandleMotionEvent(e) ?? false;
-            }
-            else if (e.Source.HasFlag(InputSourceType.Mouse))
-            {
-                if (e.ActionMasked == MotionEventActions.Down)
-                    Window?.DecorView?.RequestUnbufferedDispatch(e);
-
-                handled = MouseHandler?.HandleMotionEvent(e) ?? false;
-            }
-
-            // Stylus hover events should not be passed to base to avoid system-level hover effects
-            // and touch-mode triggers.
-            if (isStylusEvent(e))
+                bool handled = StylusHandler?.HandleMotionEvent(e) ?? false;
                 return handled;
+            }
 
-            return base.DispatchGenericMotionEvent(e) || handled;
+            if (e.Source.HasFlag(InputSourceType.Mouse))
+            {
+                if (MouseHandler?.HandleMotionEvent(e) ?? false)
+                    return true;
+            }
+
+            return base.DispatchGenericMotionEvent(e);
         }
 
         public override bool OnTouchEvent(MotionEvent? e)
@@ -229,19 +239,21 @@ namespace osu.Android
             return base.OnGenericMotionEvent(e);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private bool isStylusEvent(MotionEvent e)
         {
-            // Check source first, as it's the most reliable indicator on some devices.
+            // Source flag check is cheapest and short-circuits for the common case.
             if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
                 return true;
 
-            // Check tool type for each pointer.
+            // Fallback: check tool type per pointer for devices that don't set the source flag.
             for (int i = 0; i < e.PointerCount; i++)
             {
                 var toolType = e.GetToolType(i);
                 if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
                     return true;
             }
+
             return false;
         }
 
@@ -326,11 +338,17 @@ namespace osu.Android
             {
                 IntPtr handle = surface.Handle;
                 if (handle == IntPtr.Zero) return;
-                {
-                    surfaceGlobalRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
-                    surfaceEvent.Set();
-                    Debug.WriteLine("[osu!] Native surface JNI global reference created");
-                }
+
+                IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+
+                // Atomically swap the old reference to prevent race with SurfaceDestroyed.
+                IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, newRef);
+
+                if (oldRef != IntPtr.Zero)
+                    global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
+                surfaceEvent.Set();
+                Debug.WriteLine("[osu!] Native surface JNI global reference created");
             }
         }
 
@@ -340,11 +358,11 @@ namespace osu.Android
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
-            if (surfaceGlobalRef != IntPtr.Zero)
-            {
-                global::Android.Runtime.JNIEnv.DeleteGlobalRef(surfaceGlobalRef);
-                surfaceGlobalRef = IntPtr.Zero;
-            }
+            IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, IntPtr.Zero);
+
+            if (oldRef != IntPtr.Zero)
+                global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
             surfaceEvent.Reset();
         }
 
@@ -353,8 +371,18 @@ namespace osu.Android
         public override void OnConfigurationChanged(Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
+            bool wasDeX = IsDeX;
             updateDeXStatus(newConfig);
+
+            // Re-query display modes when the display configuration changes (e.g. DeX connect/disconnect,
+            // external monitor change, rotation).
             (game as OsuGameAndroid)?.SelectHighestRefreshRate();
+
+            // When entering DeX mode, apply immersive mode and auto-enable performance mode.
+            if (!wasDeX && IsDeX)
+            {
+                (game as OsuGameAndroid)?.OnDeXConnected();
+            }
         }
 
         private void updateDeXStatus(Configuration? config)

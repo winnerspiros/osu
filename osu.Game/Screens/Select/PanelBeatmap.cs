@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -12,6 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
@@ -34,7 +36,7 @@ namespace osu.Game.Screens.Select
 
         private StarCounter starCounter = null!;
         private ConstrainedIconContainer difficultyIcon = null!;
-        private OsuSpriteText keyCountText = null!;
+        private OsuSpriteText variantText = null!;
         private StarRatingDisplay starRatingDisplay = null!;
         private PanelLocalRankDisplay localRank = null!;
         private OsuSpriteText difficultyText = null!;
@@ -138,7 +140,7 @@ namespace osu.Game.Screens.Select
                                     Padding = new MarginPadding { Bottom = 4 },
                                     Children = new Drawable[]
                                     {
-                                        keyCountText = new OsuSpriteText
+                                        variantText = new OsuSpriteText
                                         {
                                             Font = OsuFont.Style.Body.With(weight: FontWeight.SemiBold),
                                             Anchor = Anchor.BottomLeft,
@@ -285,18 +287,18 @@ namespace osu.Game.Screens.Select
             if (Item == null)
                 return;
 
-            if (ruleset.Value.OnlineID == 3)
-            {
-                // Account for mania differences locally for now.
-                // Eventually this should be handled in a more modular way, allowing rulesets to add more information to the panel.
-                ILegacyRuleset legacyRuleset = (ILegacyRuleset)ruleset.Value.CreateInstance();
-                int keyCount = legacyRuleset.GetKeyCount(beatmap, mods.Value);
+            var rulesetInstance = ruleset.Value.CreateInstance();
 
-                keyCountText.Alpha = 1;
-                keyCountText.Text = $"[{keyCount}K] ";
+            if (rulesetInstance.AvailableVariants.Count() > 1)
+            {
+                int variant = rulesetInstance.GetVariantForBeatmap(beatmap, mods.Value);
+                var variantName = rulesetInstance.GetVariantName(variant);
+
+                variantText.Alpha = 1;
+                variantText.Text = LocalisableString.Interpolate($"[{variantName}] ");
             }
             else
-                keyCountText.Alpha = 0;
+                variantText.Alpha = 0;
         }
 
         public override MenuItem[] ContextMenuItems

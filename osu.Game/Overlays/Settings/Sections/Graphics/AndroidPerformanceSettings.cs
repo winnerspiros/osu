@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
 using osu.Game.Configuration;
@@ -18,20 +19,30 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
         protected override LocalisableString Header => "Android Performance";
 
         [BackgroundDependencyLoader]
-        private void load(OsuConfigManager config)
+        private void load(OsuConfigManager config, OsuGame? game)
         {
             Children = new Drawable[]
             {
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "Performance mode",
-                    HintText = "Enables sustained performance mode and selects the highest display refresh rate.",
+                    HintText = "Enables sustained performance mode, immersive fullscreen, and auto-selects the highest refresh rate. Auto-enabled in DeX mode.",
                     Current = config.GetBindable<bool>(OsuSetting.AndroidPerformanceMode),
                 }),
+                new SettingsItemV2(new RefreshRateDropdown
+                {
+                    Caption = "Display refresh rate",
+                    HintText = "Select the display refresh rate. In DeX mode, this controls the external monitor's refresh rate.",
+                    Current = game?.SelectedDisplayRefreshRate ?? new Bindable<int>(),
+                    ItemSource = game?.AvailableDisplayRefreshRates,
+                })
+                {
+                    Keywords = new[] { @"refresh", @"hz", @"display", @"dex", @"monitor" },
+                },
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "Low-latency audio (Oboe)",
-                    HintText = "Uses Google Oboe for AAudio low-latency output and real-time audio latency measurement.",
+                    HintText = "Uses Google Oboe for AAudio low-latency output and real-time audio latency measurement. Requires native library.",
                     Current = config.GetBindable<bool>(OsuSetting.AndroidLowLatencyAudio),
                 })
                 {
@@ -40,13 +51,21 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "GPU detection (Vulkan)",
-                    HintText = "Probes Vulkan GPU capabilities at startup for optimal rendering decisions.",
+                    HintText = "Probes Vulkan GPU capabilities at startup. Requires native library.",
                     Current = config.GetBindable<bool>(OsuSetting.AndroidVulkanProbe),
                 })
                 {
                     Keywords = new[] { @"vulkan", @"gpu", @"graphics" },
                 },
             };
+        }
+
+        private partial class RefreshRateDropdown : FormDropdown<int>
+        {
+            protected override LocalisableString GenerateItemText(int item)
+            {
+                return item == 0 ? "Auto (highest)" : $"{item} Hz";
+            }
         }
     }
 }

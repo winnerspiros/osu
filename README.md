@@ -51,7 +51,7 @@ You can see some examples of custom rulesets by visiting the [custom ruleset dir
 
 Please make sure you have the following prerequisites:
 
-- A desktop platform with the [.NET 8.0 SDK](https://dotnet.microsoft.com/download) installed.
+- A desktop platform with the [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) installed (this fork targets .NET 10; upstream ppy/osu uses .NET 8).
 
 When working with the codebase, we recommend using an IDE with intelligent code completion and syntax highlighting, such as the latest version of [Visual Studio](https://visualstudio.microsoft.com/vs/), [JetBrains Rider](https://www.jetbrains.com/rider/), or [Visual Studio Code](https://code.visualstudio.com/) with the [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig) and [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) plugin installed.
 
@@ -96,6 +96,68 @@ When running locally to do any kind of performance testing, make sure to add `-c
 
 If the build fails, try to restore NuGet packages with `dotnet restore`.
 
+#### Building for Android
+
+**Prerequisites:**
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (this fork targets .NET 10)
+- JDK 17 (`sudo apt install openjdk-17-jdk` or use [Microsoft's JDK](https://learn.microsoft.com/en-us/java/openjdk/download))
+- Android workload: `dotnet workload install android`
+
+**Debug build** (auto-signed with debug keystore, suitable for local testing):
+
+```shell
+dotnet build -c Debug osu.Android/osu.Android.csproj
+```
+
+The APK will be at `osu.Android/bin/Debug/net10.0-android/sh.ppy.osulazer.apk`. Debug builds are always signed with the Android debug keystore and can be installed directly via `adb install`.
+
+**Release build** (optimised with AOT, trimming, and compression):
+
+```shell
+dotnet publish -c Release osu.Android/osu.Android.csproj -f net10.0-android
+```
+
+The APK will be at `osu.Android/bin/Release/net10.0-android/publish/sh.ppy.osulazer.apk`.
+
+**Signing the Release APK:**
+
+Release APKs may not be automatically signed by the .NET SDK. If you get `INSTALL_PARSE_FAILED_NO_CERTIFICATES` when installing, sign the APK manually:
+
+```shell
+# Find your build-tools (adjust version as needed)
+BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)"
+
+# Zipalign (required before signing)
+"$BUILD_TOOLS/zipalign" -f -p 4 sh.ppy.osulazer.apk sh.ppy.osulazer-aligned.apk
+mv sh.ppy.osulazer-aligned.apk sh.ppy.osulazer.apk
+
+# Sign with debug keystore (or your own release keystore)
+"$BUILD_TOOLS/apksigner" sign \
+  --ks ~/.android/debug.keystore \
+  --ks-pass pass:android \
+  --key-pass pass:android \
+  --ks-key-alias androiddebugkey \
+  sh.ppy.osulazer.apk
+
+# Verify
+"$BUILD_TOOLS/apksigner" verify sh.ppy.osulazer.apk
+```
+
+If `~/.android/debug.keystore` does not exist, generate it:
+
+```shell
+keytool -genkeypair -v -keystore ~/.android/debug.keystore \
+  -storepass android -keypass android -alias androiddebugkey \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -dname "CN=Android Debug,O=Android,C=US"
+```
+
+**Install via ADB:**
+
+```shell
+adb install sh.ppy.osulazer.apk
+```
+
 ### Testing with resource/framework modifications
 
 Sometimes it may be necessary to cross-test changes in [osu-resources](https://github.com/ppy/osu-resources) or [osu-framework](https://github.com/ppy/osu-framework). This can be quickly achieved using included commands:
@@ -137,6 +199,8 @@ When it comes to contributing to the project, the two main things you can do to 
 If you wish to help with localisation efforts, head over to [crowdin](https://crowdin.com/project/osu-web).
 
 We love to reward quality contributions. If you have made a large contribution, or are a regular contributor, you are welcome to [submit an expense via opencollective](https://opencollective.com/ppy/expenses/new). If you have any questions, feel free to [reach out to peppy](mailto:pe@ppy.sh) before doing so.
+
+Our team believes in **human contributions**. Any contribution – be it an issue report or a pull request – which is created by, documented by, or aided by AI/LLM usage will typically be **closed and locked without further discussion**.
 
 ## Licence
 

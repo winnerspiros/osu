@@ -19,10 +19,11 @@ namespace osu.Game.Overlays.Dashboard.Friends
         private readonly Bindable<OverlayPanelDisplayStyle> configDisplayStyle = new Bindable<OverlayPanelDisplayStyle>();
 
         private readonly bool supportsBrickMode;
+
         private readonly UserSortTabControl sortControl;
         private readonly OverlayPanelDisplayStyleControl styleControl;
 
-        public UserListToolbar(bool supportsBrickMode)
+        public UserListToolbar(bool supportsBrickMode = true, bool supportsSort = true)
         {
             this.supportsBrickMode = supportsBrickMode;
 
@@ -37,6 +38,7 @@ namespace osu.Game.Overlays.Dashboard.Friends
                 {
                     sortControl = new UserSortTabControl
                     {
+                        Alpha = supportsSort ? 1 : 0,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                     },
