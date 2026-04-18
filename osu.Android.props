@@ -13,6 +13,10 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <!-- Enable optimized marshal methods for faster managed↔native interop.
+         .NET 10 generates efficient bridging code at build time instead of the
+         slower runtime-generated trampolines. -->
+    <AndroidEnableMarshalMethods>true</AndroidEnableMarshalMethods>
     <!-- Suppress XA0141 page-size warnings. ELF patching is disabled for all configurations
          (see PatchElfPageSizeEnabled below) to prevent APK signature corruption.
          The XA0141 warning is therefore expected and harmless.

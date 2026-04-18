@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(osu_native LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Maximum release optimizations for lowest-latency audio callback path.
 # -O3:           aggressive inlining & vectorisation
@@ -11,7 +12,10 @@ set(CMAKE_CXX_STANDARD 17)
 # -fvisibility=hidden:  only OSU_EXPORT symbols are visible
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
 set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -s")
+# -Wl,-z,max-page-size=16384: align ELF LOAD segments to 16 KB for Android 15+
+#   devices with 16 KB page sizes.  Without this, the .so will fail to load on
+#   such devices.  NDK r28+ supports this flag.
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,-z,max-page-size=16384 -s")
 
 # Disable Oboe's flowgraph module — we don't use any audio processing/conversion
 # features (our bridge outputs silence for latency measurement only).
