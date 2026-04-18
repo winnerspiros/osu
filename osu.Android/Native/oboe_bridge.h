@@ -47,7 +47,7 @@ private:
     std::unique_ptr<oboe::LatencyTuner> tuner_;
     std::unique_ptr<oboe::StabilizedCallback> stabilizedCallback_;
 
-    std::mutex streamLock_;
+    mutable std::mutex streamLock_;
     std::atomic<bool> active_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};

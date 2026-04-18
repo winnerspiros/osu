@@ -145,27 +145,27 @@ bool OboeBridge::isActive() const {
 }
 
 int32_t OboeBridge::getSampleRate() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getSampleRate() : 0;
 }
 
 int32_t OboeBridge::getFramesPerBurst() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getFramesPerBurst() : 0;
 }
 
 int32_t OboeBridge::getBufferSizeInFrames() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ ? stream_->getBufferSizeInFrames() : 0;
 }
 
 bool OboeBridge::isAAudio() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ && stream_->getAudioApi() == oboe::AudioApi::AAudio;
 }
 
 bool OboeBridge::isMMap() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(streamLock_));
+    std::lock_guard<std::mutex> lock(streamLock_);
     return stream_ && oboe::OboeExtensions::isMMapUsed(stream_.get());
 }
 

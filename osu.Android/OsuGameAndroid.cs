@@ -281,15 +281,6 @@ namespace osu.Android
             if (gameActivity.IsDeX)
                 applyDeXImmersiveMode();
 
-            try
-            {
-                applyPerformanceOptimizations(performanceMode.Value);
-                Debug.WriteLine("[osu!] Performance optimizations applied in LoadComplete");
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to apply performance optimizations: {e.Message}");
-            }
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
             performanceMode.BindValueChanged(e =>
@@ -663,7 +654,7 @@ namespace osu.Android
                     string? rateStr = audioManager.GetProperty(global::Android.Media.AudioManager.PropertyOutputSampleRate);
 
                     if (!string.IsNullOrEmpty(rateStr))
-                        hardwareSampleRate = int.Parse(rateStr);
+                        int.TryParse(rateStr, out hardwareSampleRate);
                 }
             }
             catch { }
@@ -788,6 +779,8 @@ namespace osu.Android
                     disposeNativeBridges();
                 highPerformanceSession?.Dispose();
                 highPerformanceSession = null;
+                dexPerformanceSession?.Dispose();
+                dexPerformanceSession = null;
             }
         }
 

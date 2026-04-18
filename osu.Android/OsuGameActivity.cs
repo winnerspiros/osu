@@ -294,16 +294,25 @@ namespace osu.Android
             }
         }
 
-        private void handleImportFromUris(params Uri[] uris) => Task.Factory.StartNew(async () =>
+        private void handleImportFromUris(params Uri[] uris) => Task.Run(async () =>
         {
-            var tasks = new List<ImportTask>();
-            await Task.WhenAll(uris.Select(async uri =>
+            try
             {
-                var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
-                if (task != null) { lock (tasks) { tasks.Add(task); } }
-            })).ConfigureAwait(false);
-            if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
-        }, TaskCreationOptions.LongRunning);
+                var tasks = new List<ImportTask>();
+
+                await Task.WhenAll(uris.Select(async uri =>
+                {
+                    var task = await AndroidImportTask.Create(ContentResolver!, uri).ConfigureAwait(false);
+                    if (task != null) { lock (tasks) { tasks.Add(task); } }
+                })).ConfigureAwait(false);
+
+                if (game != null) await game.Import(tasks.ToArray()).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to import from URIs: {e.Message}");
+            }
+        });
 
         private readonly System.Threading.ManualResetEventSlim surfaceEvent = new System.Threading.ManualResetEventSlim(false);
         private IntPtr surfaceGlobalRef;

@@ -25,27 +25,23 @@ VulkanProbe::VulkanProbe() {
 
     available_ = true;
 
-    if (available_) {
-        LOGI("Vulkan available: %s (Vendor: 0x%x, API %u.%u.%u, driver %u, VRAM %u MB, "
-             "qCount %u, mailbox %d, vk1.3 %d, sync2 %d, pWait %d, gpl %d, sObj %d, gPrio %d)",
-             deviceInfo_.deviceName.c_str(),
-             deviceInfo_.vendorId,
-             VK_VERSION_MAJOR(deviceInfo_.apiVersion),
-             VK_VERSION_MINOR(deviceInfo_.apiVersion),
-             VK_VERSION_PATCH(deviceInfo_.apiVersion),
-             deviceInfo_.driverVersion,
-             deviceInfo_.deviceLocalMemoryMB,
-             deviceInfo_.queueFamilyCount,
-             deviceInfo_.supportsMailboxPresentMode ? 1 : 0,
-             deviceInfo_.meetsVulkan13 ? 1 : 0,
-             deviceInfo_.supportsSynchronization2 ? 1 : 0,
-             deviceInfo_.supportsPresentWait ? 1 : 0,
-             deviceInfo_.supportsGraphicsPipelineLibrary ? 1 : 0,
-             deviceInfo_.supportsShaderObject ? 1 : 0,
-             deviceInfo_.supportsGlobalPriority ? 1 : 0);
-    } else {
-        LOGI("Vulkan not available on this device");
-    }
+    LOGI("Vulkan available: %s (Vendor: 0x%x, API %u.%u.%u, driver %u, VRAM %u MB, "
+         "qCount %u, mailbox %d, vk1.3 %d, sync2 %d, pWait %d, gpl %d, sObj %d, gPrio %d)",
+         deviceInfo_.deviceName.c_str(),
+         deviceInfo_.vendorId,
+         VK_VERSION_MAJOR(deviceInfo_.apiVersion),
+         VK_VERSION_MINOR(deviceInfo_.apiVersion),
+         VK_VERSION_PATCH(deviceInfo_.apiVersion),
+         deviceInfo_.driverVersion,
+         deviceInfo_.deviceLocalMemoryMB,
+         deviceInfo_.queueFamilyCount,
+         deviceInfo_.supportsMailboxPresentMode ? 1 : 0,
+         deviceInfo_.meetsVulkan13 ? 1 : 0,
+         deviceInfo_.supportsSynchronization2 ? 1 : 0,
+         deviceInfo_.supportsPresentWait ? 1 : 0,
+         deviceInfo_.supportsGraphicsPipelineLibrary ? 1 : 0,
+         deviceInfo_.supportsShaderObject ? 1 : 0,
+         deviceInfo_.supportsGlobalPriority ? 1 : 0);
 }
 
 VulkanProbe::~VulkanProbe() {
@@ -103,7 +99,6 @@ bool VulkanProbe::queryDevice() {
 
     queryMemory(selected);
     queryQueueFamilies(selected);
-    queryMailboxSupport(selected);
     queryVulkan13Features(selected);
     queryModernExtensions(selected);
 
@@ -136,26 +131,13 @@ void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
     }
 }
 
-void VulkanProbe::queryMailboxSupport(VkPhysicalDevice device) {
-    uint32_t count = 0;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
-    std::vector<VkExtensionProperties> exts(count);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
-    for (const auto& ext : exts) {
-        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-            deviceInfo_.supportsMailboxPresentMode = true;
-            break;
-        }
-    }
-}
-
 void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
     uint32_t count = 0;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
     std::vector<VkExtensionProperties> exts(count);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
     for (const auto& ext : exts) {
-        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) deviceInfo_.supportsSwapchain = true;
+        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) { deviceInfo_.supportsSwapchain = true; deviceInfo_.supportsMailboxPresentMode = true; }
         if (strcmp(ext.extensionName, VK_KHR_PRESENT_ID_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentId = true;
         if (strcmp(ext.extensionName, VK_KHR_PRESENT_WAIT_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentWait = true;
         if (strcmp(ext.extensionName, VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME) == 0) deviceInfo_.supportsGraphicsPipelineLibrary = true;

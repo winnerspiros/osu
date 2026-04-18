@@ -236,11 +236,14 @@ namespace osu.Android
                     masterMixer = 0;
                 }
 
+                // Snapshot which handles were restored to their original parents before clearing.
+                var restoredHandles = new HashSet<int>(originalParents.Keys);
                 restoreToParents();
 
+                // Only move handles that weren't already restored to their parents.
                 foreach (int handle in mixerHandles)
                 {
-                    if (originalParents.ContainsKey(handle)) continue;
+                    if (restoredHandles.Contains(handle)) continue;
 
                     BassMix.MixerRemoveChannel(handle);
                     Bass.ChannelSetDevice(handle, 1);
