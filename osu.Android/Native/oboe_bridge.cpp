@@ -93,7 +93,8 @@ bool OboeBridge::open(int32_t sampleRate) {
     oboe::OboeExtensions::setMMapEnabled(true);
 
     // Initialise StabilizedCallback to even out callback execution time.
-    stabilizedCallback_ = std::make_unique<oboe::StabilizedCallback>(this);
+    // shared_ptr is used to satisfy the non-deprecated setDataCallback overload.
+    stabilizedCallback_ = std::make_shared<oboe::StabilizedCallback>(this);
 
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
@@ -106,11 +107,19 @@ bool OboeBridge::open(int32_t sampleRate) {
            ->setContentType(oboe::ContentType::Music)
            ->setUsage(oboe::Usage::Game)
            ->setAudioApi(oboe::AudioApi::AAudio)
-           ->setFramesPerCallback(oboe::kUnspecified)
+           ->setFramesPerDataCallback(oboe::kUnspecified)
            ->setBufferCapacityInFrames(oboe::kUnspecified)
            ->setChannelConversionAllowed(false)
            ->setFormatConversionAllowed(false)
-           ->setCallback(stabilizedCallback_.get());
+           // Audio is pre-mixed by BASS — tell Android not to spatialize it again.
+           ->setIsContentSpatialized(true)
+           // Prevent other apps from capturing our audio stream (competitive integrity).
+           ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::AllowNone)
+           // Use shared_ptr overload (non-deprecated) for data callback.
+           ->setDataCallback(stabilizedCallback_)
+           // Non-owning shared_ptr for error callback — OboeBridge outlives the stream.
+           ->setErrorCallback(std::shared_ptr<oboe::AudioStreamErrorCallback>(
+               std::shared_ptr<void>(), static_cast<oboe::AudioStreamErrorCallback*>(this)));
 
     oboe::Result result = builder.openStream(stream_);
 

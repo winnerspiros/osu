@@ -44,8 +44,8 @@ public:
 
 private:
     std::shared_ptr<oboe::AudioStream> stream_;
+    std::shared_ptr<oboe::StabilizedCallback> stabilizedCallback_;
     std::unique_ptr<oboe::LatencyTuner> tuner_;
-    std::unique_ptr<oboe::StabilizedCallback> stabilizedCallback_;
 
     mutable std::mutex streamLock_;
     std::atomic<bool> active_{false};
