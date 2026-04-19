@@ -146,13 +146,9 @@ jobs:
           if [ -z "$APK" ]; then
             APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
           fi
-          if [ -z "$APK" ]; then
-            # Fall back to any APK if -Signed variant isn't produced
-            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
-          fi
 
           if [ -z "$APK" ]; then
-            echo "::error::Failed to locate APK. Listing bin directory:"
+            echo "::error::Failed to locate signed APK. Listing bin directory:"
             find osu.Android/bin -name "*.apk" -o -name "*.aab" 2>/dev/null || true
             exit 1
           fi
