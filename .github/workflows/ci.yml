@@ -59,6 +59,7 @@ jobs:
       - name: InspectCode
         uses: JetBrains/ReSharper-InspectCode@v0.12
         with:
+          tool-version: 2026.1.0.1
           # this is WTF tier but if you don't specify *both* of these the defaults assume `build: true`
           build: false
           no-build: true
