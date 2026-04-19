@@ -171,6 +171,17 @@ bool OboeBridge::start() {
 
     active_.store(true);
     affinitySet_.store(false);
+
+    // Eagerly compute and cache the big-core mask BEFORE the audio callback runs.
+    // This ensures computeBigCoreMask() (which does file I/O via fopen on sysfs)
+    // never executes on the real-time audio thread where it could cause latency
+    // spikes or priority inversion.
+    int mask = cachedBigCoreMask.load(std::memory_order_relaxed);
+    if (mask < 0) {
+        mask = computeBigCoreMask();
+        cachedBigCoreMask.store(mask, std::memory_order_relaxed);
+    }
+
     LOGI("Oboe stream started");
     return true;
 }
@@ -272,9 +283,20 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         // Uses sysfs-based topology detection for accurate big-core identification
         // across all SoC vendors (Snapdragon, Exynos, Dimensity, Tensor).
         if (!affinitySet_.load(std::memory_order_relaxed)) {
+            // cachedBigCoreMask is eagerly computed in start(), so this load
+            // should always return >= 0.  The < 0 branch is a defensive fallback
+            // that avoids file I/O — it uses the generic upper-half heuristic
+            // instead of calling computeBigCoreMask() on the audio thread.
             int bigMask = cachedBigCoreMask.load(std::memory_order_relaxed);
             if (bigMask < 0) {
-                bigMask = computeBigCoreMask();
+                // Defensive: sysfs was never read (should not happen).
+                // Use upper-half heuristic instead of doing file I/O here.
+                int num_cores = sysconf(_SC_NPROCESSORS_CONF);
+                bigMask = 0;
+                if (num_cores > 1) {
+                    for (int i = num_cores / 2; i < std::min(num_cores, 32); ++i)
+                        bigMask |= (1 << i);
+                }
                 cachedBigCoreMask.store(bigMask, std::memory_order_relaxed);
             }
 

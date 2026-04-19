@@ -6,6 +6,17 @@ on:
       - '*.*.*'
       - '!*-*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1.0.0). Leave empty for auto-increment."
+        required: false
+        default: ""
+        type: string
+      create_release:
+        description: "Create a GitHub Release with the APK?"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   build-android:
@@ -66,37 +77,94 @@ jobs:
           echo "Native libraries built successfully:"
           find osu.Android/libs -name "*.so" -exec ls -lh {} \;
 
-      - name: Decode keystore
+      - name: Decode or generate keystore
         id: keystore
         run: |
+          KS_PATH="${{ github.workspace }}/osu.Android/osu.keystore"
+
           if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/osu.Android/osu.keystore"
-            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+            # ── User provided a persistent keystore secret ──────────────
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$KS_PATH"
+            echo "has_keystore=true"  >> "$GITHUB_OUTPUT"
+            echo "generated=false"    >> "$GITHUB_OUTPUT"
+            echo "key_alias=$KEY_ALIAS_SECRET" >> "$GITHUB_OUTPUT"
+            echo "key_pass=$KEY_PASS_SECRET"   >> "$GITHUB_OUTPUT"
+            echo "store_pass=$STORE_PASS_SECRET" >> "$GITHUB_OUTPUT"
+            echo "✅ Using saved keystore from repository secrets."
           else
-            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+            # ── No secret → auto-generate a keystore for this build ─────
+            # The APK will install fine on any device, but UPDATING from a
+            # previous build signed with a DIFFERENT key will fail.
+            # To avoid that, save the generated keystore as a secret
+            # (instructions are printed at the end of the build).
+            AUTO_PASS="osu-$(openssl rand -hex 12)"
+            echo "::add-mask::$AUTO_PASS"
+
+            keytool -genkeypair \
+              -keystore "$KS_PATH" \
+              -storepass "$AUTO_PASS" \
+              -keypass "$AUTO_PASS" \
+              -alias osu-release \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=osu! Android,O=osu,C=US" 2>/dev/null
+
+            echo "has_keystore=true"  >> "$GITHUB_OUTPUT"
+            echo "generated=true"     >> "$GITHUB_OUTPUT"
+            echo "key_alias=osu-release" >> "$GITHUB_OUTPUT"
+            echo "key_pass=$AUTO_PASS"   >> "$GITHUB_OUTPUT"
+            echo "store_pass=$AUTO_PASS" >> "$GITHUB_OUTPUT"
+
+            # Export base64 and password into a single instructions file
+            # so the user only needs to download one artifact.
+            {
+              echo "=== osu! Android Signing Keystore ==="
+              echo ""
+              echo "ANDROID_KEYSTORE_BASE64 value (copy everything on the next line):"
+              base64 -w 0 "$KS_PATH"
+              echo ""
+              echo ""
+              echo "ANDROID_SIGNING_KEY_ALIAS value:"
+              echo "osu-release"
+              echo ""
+              echo "ANDROID_SIGNING_KEY_PASSWORD value:"
+              echo "$AUTO_PASS"
+              echo ""
+              echo "ANDROID_SIGNING_STORE_PASSWORD value:"
+              echo "$AUTO_PASS"
+            } > "${{ github.workspace }}/SAVE-THESE-SECRETS.txt"
+
+            echo "::warning::No signing keystore secret found — auto-generated one for this build."
+            echo "::warning::See the end of this job for instructions to save it for future builds."
           fi
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS_SECRET: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          KEY_PASS_SECRET: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          STORE_PASS_SECRET: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
 
-      - name: Set version
+      - name: Determine version
         id: version
         run: |
+          # Priority: manual input > tag name > auto-increment from run number
+          INPUT_VERSION="${{ inputs.version }}"
           REF="${{ github.ref_name }}"
-          if [[ "$REF" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "version=$REF" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$INPUT_VERSION" && "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="$INPUT_VERSION"
+            echo "📦 Using manually specified version: $VERSION"
+          elif [[ "$REF" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="$REF"
+            echo "📦 Using version from tag: $VERSION"
           else
-            echo "version=0.0.0" >> "$GITHUB_OUTPUT"
+            # Auto-generate: YYYY.MMDD.run_number
+            VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
+            echo "📦 Auto-generated version: $VERSION"
           fi
 
-      # Always build Release for full optimization (trimming, AOT, compression).
-      # When a keystore is available we sign with it; otherwise the SDK produces
-      # a debug-signed Release APK that can be sideloaded for testing.
-      - name: Build Android APK (signed)
-        if: steps.keystore.outputs.has_keystore == 'true'
-        env:
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          ANDROID_KEY_PASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          ANDROID_STORE_PASS: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION"    >> "$GITHUB_OUTPUT"
+
+      - name: Build Android APK
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
@@ -106,111 +174,114 @@ jobs:
           -p:ApplicationVersion="${{ github.run_number }}"
           -p:AndroidKeyStore=true
           -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore"
-          -p:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
-          -p:AndroidSigningKeyPass="$ANDROID_KEY_PASS"
-          -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
+          -p:AndroidSigningKeyAlias="${{ steps.keystore.outputs.key_alias }}"
+          -p:AndroidSigningKeyPass="${{ steps.keystore.outputs.key_pass }}"
+          -p:AndroidSigningStorePass="${{ steps.keystore.outputs.store_pass }}"
           -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
-      - name: Build Android APK (unsigned Release)
-        if: steps.keystore.outputs.has_keystore != 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version="${{ steps.version.outputs.version }}"
-          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
-          -p:ApplicationVersion="${{ github.run_number }}"
-          -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
-
-      - name: Find APK
+      - name: Find and rename APK
         id: find_apk
         run: |
-          # Both paths build Release.  Signed builds produce *-Signed.apk; unsigned
-          # builds produce the base APK name.  Search publish dir first, then fallback.
-          if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
-            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
-            if [ -z "$APK" ]; then
-              APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
-            fi
-          else
-            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
-            if [ -z "$APK" ]; then
-              APK=$(find "osu.Android/bin/Release" -name "*.apk" | head -1)
-            fi
+          APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
           fi
 
           if [ -z "$APK" ]; then
-            echo "::error::Failed to locate APK. Listing bin directory:"
+            echo "::error::Failed to locate signed APK. Listing bin directory:"
             find osu.Android/bin -name "*.apk" -o -name "*.aab" 2>/dev/null || true
             exit 1
           fi
 
-          APK_SIZE=$(stat -c %s "$APK" 2>/dev/null || stat -f %z "$APK" 2>/dev/null || wc -c < "$APK")
-          APK_SIZE_MB=$((APK_SIZE / 1048576))
-          echo "Found APK: $APK ($APK_SIZE_MB MB)"
-          echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
+          # Rename to a clean versioned filename for the release
+          VERSION="${{ steps.version.outputs.version }}"
+          FINAL_APK="$(dirname "$APK")/osu-lazer-$VERSION.apk"
+          cp "$APK" "$FINAL_APK"
 
-      # .NET 10 Android SDK may skip debug-signing for Release publish builds.
-      # Verify the APK is signed; if not, sign it with apksigner using the debug
-      # keystore so the APK can be sideloaded without INSTALL_PARSE_FAILED_NO_CERTIFICATES.
-      - name: Verify and sign APK if needed
+          APK_SIZE=$(stat -c %s "$FINAL_APK" 2>/dev/null || stat -f %z "$FINAL_APK" 2>/dev/null || wc -c < "$FINAL_APK")
+          APK_SIZE_MB=$((APK_SIZE / 1048576))
+          echo "Found APK: $FINAL_APK ($APK_SIZE_MB MB)"
+          echo "apk_path=$FINAL_APK" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK signature
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
           APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-          ZIPALIGN="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/zipalign"
 
-          if "$APKSIGNER" verify "$APK" 2>/dev/null; then
-            echo "APK is already signed ✓"
+          if "$APKSIGNER" verify --print-certs "$APK"; then
+            echo "APK signature verified ✓"
           else
-            echo "::warning::APK is not signed. Signing with debug keystore..."
-
-            # Generate debug keystore if it doesn't exist
-            DEBUG_KS="$HOME/.android/debug.keystore"
-            if [ ! -f "$DEBUG_KS" ]; then
-              mkdir -p "$HOME/.android"
-              keytool -genkeypair -v \
-                -keystore "$DEBUG_KS" \
-                -storepass android \
-                -keypass android \
-                -alias androiddebugkey \
-                -keyalg RSA -keysize 2048 -validity 10000 \
-                -dname "CN=Android Debug,O=Android,C=US"
-            fi
-
-            # Zipalign first (required before apksigner v2 signing)
-            ALIGNED_APK="${APK%.apk}-aligned.apk"
-            "$ZIPALIGN" -f -p 4 "$APK" "$ALIGNED_APK"
-            mv "$ALIGNED_APK" "$APK"
-
-            # Sign with debug keystore (v1 + v2 + v3 schemes)
-            "$APKSIGNER" sign \
-              --ks "$DEBUG_KS" \
-              --ks-pass pass:android \
-              --key-pass pass:android \
-              --ks-key-alias androiddebugkey \
-              "$APK"
-
-            # Verify signature
-            if "$APKSIGNER" verify --print-certs "$APK"; then
-              echo "APK signed successfully ✓"
-            else
-              echo "::error::APK signing failed"
-              exit 1
-            fi
+            echo "::error::APK signature verification failed. The APK may not install correctly."
+            exit 1
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: osu-android-${{ github.ref_name }}
+          name: osu-android-${{ steps.version.outputs.version }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
 
+      # When the keystore was auto-generated, upload it so the user can save it
+      # as a repository secret for consistent signing across builds.
+      - name: Upload generated keystore
+        if: steps.keystore.outputs.generated == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-signing-keystore
+          path: |
+            ${{ github.workspace }}/osu.Android/osu.keystore
+            ${{ github.workspace }}/SAVE-THESE-SECRETS.txt
+          retention-days: 7
+
+      - name: Print keystore setup instructions
+        if: steps.keystore.outputs.generated == 'true'
+        run: |
+          echo ""
+          echo "=================================================================="
+          echo "  ⚠️  YOUR APK WAS SIGNED WITH AN AUTO-GENERATED KEYSTORE"
+          echo "=================================================================="
+          echo ""
+          echo "  ✅ The APK will install fine on any device."
+          echo ""
+          echo "  ⚠️  BUT — if you build again without saving this keystore,"
+          echo "     Android will REFUSE to update (different signing certificate)."
+          echo ""
+          echo "  To keep your APK updatable across builds:"
+          echo ""
+          echo "  1. Download the 'osu-signing-keystore' artifact from this run"
+          echo "  2. Open 'SAVE-THESE-SECRETS.txt' — it contains all 4 values"
+          echo "  3. Go to: Settings → Secrets and variables → Actions"
+          echo "  4. Create these 4 secrets with the values from the file:"
+          echo ""
+          echo "     • ANDROID_KEYSTORE_BASE64"
+          echo "     • ANDROID_SIGNING_KEY_ALIAS"
+          echo "     • ANDROID_SIGNING_KEY_PASSWORD"
+          echo "     • ANDROID_SIGNING_STORE_PASSWORD"
+          echo ""
+          echo "  ⚡ After saving the secrets, all future builds will use the"
+          echo "     same keystore automatically — no more setup needed."
+          echo "=================================================================="
+
+      # Create a GitHub Release with the APK attached.
+      # Works for both tag pushes and manual workflow_dispatch runs.
+      # For manual runs: creates a tag automatically.
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: inputs.create_release != false
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "osu! Android ${{ steps.version.outputs.version }}"
           files: ${{ steps.find_apk.outputs.apk_path }}
           generate_release_notes: true
+          body: |
+            ## osu! Android v${{ steps.version.outputs.version }}
+
+            ### Download
+            Grab the APK below and install it on your Android device.
+
+            > **Minimum Android version:** 13 (API 33)
+            > **Architecture:** arm64-v8a
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

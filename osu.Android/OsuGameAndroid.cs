@@ -483,15 +483,22 @@ namespace osu.Android
 
                 Schedule(() =>
                 {
-                    AvailableDisplayRefreshRates.Clear();
-                    AvailableDisplayRefreshRates.Add(0); // 0 = "Auto (highest)"
-                    AvailableDisplayRefreshRates.AddRange(rates);
+                    try
+                    {
+                        AvailableDisplayRefreshRates.Clear();
+                        AvailableDisplayRefreshRates.Add(0); // 0 = "Auto (highest)"
+                        AvailableDisplayRefreshRates.AddRange(rates);
 
-                    // If user hasn't selected a rate, auto-select highest.
-                    if (SelectedDisplayRefreshRate.Value == 0)
-                        applyDisplayMode(display, modes.OrderByDescending(m => m.RefreshRate).First());
-                    else
-                        applyRefreshRate(SelectedDisplayRefreshRate.Value);
+                        // If user hasn't selected a rate, auto-select highest.
+                        if (SelectedDisplayRefreshRate.Value == 0)
+                            applyDisplayMode(display, modes.OrderByDescending(m => m.RefreshRate).First());
+                        else
+                            applyRefreshRate(SelectedDisplayRefreshRate.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to apply initial display mode: {ex.Message}");
+                    }
                 });
 
                 Logger.Log($"[osu!] Display modes queried: {string.Join(", ", rates.Select(r => $"{r}Hz"))} (DeX={gameActivity.IsDeX})", LoggingTarget.Performance);
