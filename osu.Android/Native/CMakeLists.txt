@@ -6,12 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Maximum release optimizations for lowest-latency audio callback path.
 # -O3:           aggressive inlining & vectorisation
-# -flto:         link-time optimisation across translation units
+# -flto=thin:    link-time optimisation with thin backend (20-40% faster link than full LTO,
+#                equivalent binary quality for small TUs like this project)
 # -ffast-math:   enable SIMD-friendly FP (safe — we only memset + store a double)
 # -ffunction/data-sections + --gc-sections:  dead-code elimination
 # -fvisibility=hidden:  only OSU_EXPORT symbols are visible
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto=thin -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto=thin -ffast-math -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG")
 # -Wl,-z,max-page-size=16384: align ELF LOAD segments to 16 KB for Android 15+
 #   devices with 16 KB page sizes.  Without this, the .so will fail to load on
 #   such devices.  NDK r28+ supports this flag.
@@ -22,12 +23,12 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,-z,max-page-size=16
 # This reduces the Oboe portion of the binary by ~50%.
 set(OBOE_ENABLE_FLOWGRAPH OFF CACHE BOOL "Disable Oboe flowgraph to reduce binary size")
 
-# Download and build Oboe main branch from source to ensure we have the latest
-# features (like ADPF performance hints) regardless of the build environment.
+# Download and build Oboe from source.  Pinned to the latest stable release
+# to ensure reproducible builds while still getting ADPF performance hints.
 include(FetchContent)
 FetchContent_Declare(oboe
     GIT_REPOSITORY https://github.com/google/oboe.git
-    GIT_TAG main
+    GIT_TAG 1.10.0
 )
 FetchContent_MakeAvailable(oboe)
 
@@ -41,9 +42,9 @@ endif()
 
 set(OBOE_LIB oboe)
 
-find_library(vulkan-lib vulkan)
-find_library(log-lib log)
-find_library(android-lib android)
+find_library(vulkan-lib vulkan REQUIRED)
+find_library(log-lib log REQUIRED)
+find_library(android-lib android REQUIRED)
 
 add_library(osu_native SHARED
     oboe_bridge.cpp
