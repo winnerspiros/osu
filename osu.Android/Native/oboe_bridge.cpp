@@ -114,7 +114,7 @@ bool OboeBridge::open(int32_t sampleRate) {
            // Audio is pre-mixed by BASS — tell Android not to spatialize it again.
            ->setIsContentSpatialized(true)
            // Prevent other apps from capturing our audio stream (competitive integrity).
-           ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::AllowNone)
+           ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::None)
            // Use shared_ptr overload (non-deprecated) for data callback.
            ->setDataCallback(stabilizedCallback_)
            // Non-owning shared_ptr for error callback — OboeBridge outlives the stream.
