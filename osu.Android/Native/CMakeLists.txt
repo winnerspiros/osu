@@ -23,12 +23,15 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,-z,max-page-size=16
 # This reduces the Oboe portion of the binary by ~50%.
 set(OBOE_ENABLE_FLOWGRAPH OFF CACHE BOOL "Disable Oboe flowgraph to reduce binary size")
 
-# Download and build Oboe from source.  Pinned to the latest stable release
-# to ensure reproducible builds while still getting ADPF performance hints.
+# Download and build Oboe main branch from source to ensure we have the latest
+# features and fixes (ADPF performance hints, workload management, spatialization,
+# API 36 compatibility) regardless of the build environment.
+# main is preferred over pinned tags because Oboe releases infrequently (~yearly)
+# and the main branch accumulates significant latency-critical improvements between tags.
 include(FetchContent)
 FetchContent_Declare(oboe
     GIT_REPOSITORY https://github.com/google/oboe.git
-    GIT_TAG 1.10.0
+    GIT_TAG main
 )
 FetchContent_MakeAvailable(oboe)
 
