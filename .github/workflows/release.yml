@@ -78,6 +78,38 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
+      # Signing is REQUIRED for installable APKs.  Without a consistent keystore
+      # across builds Android will reject updates with INSTALL_FAILED_UPDATE_INCOMPATIBLE.
+      # The old fallback (generating a fresh debug keystore each CI run) produced a
+      # different certificate every time — making every APK incompatible with the last.
+      #
+      # To set up signing, run the "Generate Android Signing Keystore" workflow
+      # (generate-keystore.yml) and save the four secrets it outputs.
+      - name: Require signing keystore
+        if: steps.keystore.outputs.has_keystore != 'true'
+        run: |
+          echo "::error::No signing keystore configured. APK builds require a consistent signing key."
+          echo ""
+          echo "==================================================================="
+          echo "  SETUP INSTRUCTIONS"
+          echo "==================================================================="
+          echo ""
+          echo "  1. Go to Actions → 'Generate Android Signing Keystore' → Run workflow"
+          echo "  2. Download the keystore artifact and copy the base64 from the job summary"
+          echo "  3. Add these four repository secrets (Settings → Secrets → Actions):"
+          echo ""
+          echo "     ANDROID_KEYSTORE_BASE64          = <base64 from step 2>"
+          echo "     ANDROID_SIGNING_KEY_ALIAS        = osu-release"
+          echo "     ANDROID_SIGNING_KEY_PASSWORD     = <password you chose>"
+          echo "     ANDROID_SIGNING_STORE_PASSWORD   = <password you chose>"
+          echo ""
+          echo "  4. Re-run this workflow."
+          echo ""
+          echo "  Why? Each CI run is ephemeral. Without a stored keystore, every build"
+          echo "  gets a different signing certificate, causing INSTALL_FAILED_UPDATE_INCOMPATIBLE."
+          echo "==================================================================="
+          exit 1
+
       - name: Set version
         id: version
         run: |
@@ -88,11 +120,7 @@ jobs:
             echo "version=0.0.0" >> "$GITHUB_OUTPUT"
           fi
 
-      # Always build Release for full optimization (trimming, AOT, compression).
-      # When a keystore is available we sign with it; otherwise the SDK produces
-      # a debug-signed Release APK that can be sideloaded for testing.
-      - name: Build Android APK (signed)
-        if: steps.keystore.outputs.has_keystore == 'true'
+      - name: Build Android APK
         env:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
           ANDROID_KEY_PASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -111,32 +139,16 @@ jobs:
           -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
           -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
-      - name: Build Android APK (unsigned Release)
-        if: steps.keystore.outputs.has_keystore != 'true'
-        run: >
-          dotnet publish -c Release
-          osu.Android/osu.Android.csproj
-          -f net10.0-android
-          -p:Version="${{ steps.version.outputs.version }}"
-          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
-          -p:ApplicationVersion="${{ github.run_number }}"
-          -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
-
       - name: Find APK
         id: find_apk
         run: |
-          # Both paths build Release.  Signed builds produce *-Signed.apk; unsigned
-          # builds produce the base APK name.  Search publish dir first, then fallback.
-          if [ "${{ steps.keystore.outputs.has_keystore }}" == "true" ]; then
-            APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
-            if [ -z "$APK" ]; then
-              APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
-            fi
-          else
+          APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*-Signed.apk" 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find "osu.Android/bin/Release" -name "*-Signed.apk" | head -1)
+          fi
+          if [ -z "$APK" ]; then
+            # Fall back to any APK if -Signed variant isn't produced
             APK=$(find "osu.Android/bin/Release/net10.0-android/publish" -maxdepth 1 -name "*.apk" 2>/dev/null | head -1)
-            if [ -z "$APK" ]; then
-              APK=$(find "osu.Android/bin/Release" -name "*.apk" | head -1)
-            fi
           fi
 
           if [ -z "$APK" ]; then
@@ -150,53 +162,16 @@ jobs:
           echo "Found APK: $APK ($APK_SIZE_MB MB)"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
 
-      # .NET 10 Android SDK may skip debug-signing for Release publish builds.
-      # Verify the APK is signed; if not, sign it with apksigner using the debug
-      # keystore so the APK can be sideloaded without INSTALL_PARSE_FAILED_NO_CERTIFICATES.
-      - name: Verify and sign APK if needed
+      - name: Verify APK signature
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
           APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-          ZIPALIGN="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/zipalign"
 
-          if "$APKSIGNER" verify "$APK" 2>/dev/null; then
-            echo "APK is already signed ✓"
+          if "$APKSIGNER" verify --print-certs "$APK"; then
+            echo "APK signature verified ✓"
           else
-            echo "::warning::APK is not signed. Signing with debug keystore..."
-
-            # Generate debug keystore if it doesn't exist
-            DEBUG_KS="$HOME/.android/debug.keystore"
-            if [ ! -f "$DEBUG_KS" ]; then
-              mkdir -p "$HOME/.android"
-              keytool -genkeypair -v \
-                -keystore "$DEBUG_KS" \
-                -storepass android \
-                -keypass android \
-                -alias androiddebugkey \
-                -keyalg RSA -keysize 2048 -validity 10000 \
-                -dname "CN=Android Debug,O=Android,C=US"
-            fi
-
-            # Zipalign first (required before apksigner v2 signing)
-            ALIGNED_APK="${APK%.apk}-aligned.apk"
-            "$ZIPALIGN" -f -p 4 "$APK" "$ALIGNED_APK"
-            mv "$ALIGNED_APK" "$APK"
-
-            # Sign with debug keystore (v1 + v2 + v3 schemes)
-            "$APKSIGNER" sign \
-              --ks "$DEBUG_KS" \
-              --ks-pass pass:android \
-              --key-pass pass:android \
-              --ks-key-alias androiddebugkey \
-              "$APK"
-
-            # Verify signature
-            if "$APKSIGNER" verify --print-certs "$APK"; then
-              echo "APK signed successfully ✓"
-            else
-              echo "::error::APK signing failed"
-              exit 1
-            fi
+            echo "::error::APK signature verification failed. The APK may not install correctly."
+            exit 1
           fi
 
       - name: Upload APK artifact
