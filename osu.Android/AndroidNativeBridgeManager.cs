@@ -190,7 +190,19 @@ namespace osu.Android
         public string GetVulkanStatus()
         {
             if (vulkanProbe is not VulkanProbe probe) return string.Empty;
-            return cachedVulkanStatus ??= $"{(probe.SupportsMailboxPresentMode ? "MAILBOX" : "FIFO")}{(probe.DisablePresentId ? " [NoID]" : "")}{(probe.DisablePresentWait ? " [NoWait]" : "")}{(probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "")}";
+
+            if (cachedVulkanStatus != null)
+                return cachedVulkanStatus;
+
+            int ver = probe.ApiVersion;
+            int major = (ver >> 22) & 0x3FF;
+            int minor = (ver >> 12) & 0x3FF;
+
+            cachedVulkanStatus = $"Vk{major}.{minor}"
+                                 + (probe.DisablePresentId ? " [NoID]" : "")
+                                 + (probe.DisablePresentWait ? " [NoWait]" : "")
+                                 + (probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "");
+            return cachedVulkanStatus;
         }
 
         public void StopVulkanProbe()
@@ -211,10 +223,12 @@ namespace osu.Android
 
             Debug.WriteLine($"[osu!] Vulkan GPU: {probe.DeviceLocalMemoryMB}MB, "
                             + $"API={major}.{minor}.{patch}, "
-                            + $"mailbox={probe.SupportsMailboxPresentMode}, "
                             + $"vk1.3={probe.MeetsVulkan13}, "
+                            + $"vk1.4={probe.MeetsVulkan14}, "
                             + $"gpl={probe.SupportsGraphicsPipelineLibrary}, "
-                            + $"shaderObj={probe.SupportsShaderObject}");
+                            + $"shaderObj={probe.SupportsShaderObject}, "
+                            + $"hostCopy={probe.SupportsHostImageCopy}, "
+                            + $"pushDesc={probe.SupportsPushDescriptors}");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

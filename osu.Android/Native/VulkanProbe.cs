@@ -68,6 +68,9 @@ namespace osu.Android.Native
         public bool SupportsGlobalPriority => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsGlobalPriority(nativePtr) != 0;
         public bool SupportsMemoryBudget => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsMemoryBudget(nativePtr) != 0;
         public bool SupportsSurfaceMaintenance1 => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsSurfaceMaintenance1(nativePtr) != 0;
+        public bool MeetsVulkan14 => !disposed && nativePtr != IntPtr.Zero && nVulkanMeetsVulkan14(nativePtr) != 0;
+        public bool SupportsHostImageCopy => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsHostImageCopy(nativePtr) != 0;
+        public bool SupportsPushDescriptors => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsPushDescriptors(nativePtr) != 0;
 
         public bool DisablePresentId => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentId(nativePtr) != 0;
         public bool DisablePresentWait => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentWait(nativePtr) != 0;
@@ -108,5 +111,8 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nVulkanDisablePresentId(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanDisablePresentWait(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanDisableGraphicsPipelineLibrary(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanMeetsVulkan14(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanSupportsHostImageCopy(IntPtr ptr);
+        [DllImport(lib_name)] private static extern byte nVulkanSupportsPushDescriptors(IntPtr ptr);
     }
 }

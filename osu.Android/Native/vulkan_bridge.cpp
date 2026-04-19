@@ -7,7 +7,7 @@
 #include <cstring>
 #include <new>
 
-#define LOG_TAG "osu_native"
+#define LOG_TAG "osu!native"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
@@ -26,7 +26,8 @@ VulkanProbe::VulkanProbe() {
     available_ = true;
 
     LOGI("Vulkan available: %s (Vendor: 0x%x, API %u.%u.%u, driver %u, VRAM %u MB, "
-         "qCount %u, mailbox %d, vk1.3 %d, sync2 %d, pWait %d, gpl %d, sObj %d, gPrio %d)",
+         "qCount %u, vk1.3 %d, vk1.4 %d, sync2 %d, pWait %d, gpl %d, sObj %d, gPrio %d, "
+         "hostCopy %d, pushDesc %d)",
          deviceInfo_.deviceName.c_str(),
          deviceInfo_.vendorId,
          VK_VERSION_MAJOR(deviceInfo_.apiVersion),
@@ -35,13 +36,15 @@ VulkanProbe::VulkanProbe() {
          deviceInfo_.driverVersion,
          deviceInfo_.deviceLocalMemoryMB,
          deviceInfo_.queueFamilyCount,
-         deviceInfo_.supportsMailboxPresentMode ? 1 : 0,
          deviceInfo_.meetsVulkan13 ? 1 : 0,
+         deviceInfo_.meetsVulkan14 ? 1 : 0,
          deviceInfo_.supportsSynchronization2 ? 1 : 0,
          deviceInfo_.supportsPresentWait ? 1 : 0,
          deviceInfo_.supportsGraphicsPipelineLibrary ? 1 : 0,
          deviceInfo_.supportsShaderObject ? 1 : 0,
-         deviceInfo_.supportsGlobalPriority ? 1 : 0);
+         deviceInfo_.supportsGlobalPriority ? 1 : 0,
+         deviceInfo_.supportsHostImageCopy ? 1 : 0,
+         deviceInfo_.supportsPushDescriptors ? 1 : 0);
 }
 
 VulkanProbe::~VulkanProbe() {
@@ -99,8 +102,15 @@ bool VulkanProbe::queryDevice() {
 
     queryMemory(selected);
     queryQueueFamilies(selected);
-    queryVulkan13Features(selected);
+    // Query extensions first (sets extension-based feature flags for pre-1.3 devices).
     queryModernExtensions(selected);
+    // Feature queries for 1.3+ override extension-based values with actual feature support.
+    queryVulkan13Features(selected);
+
+    // MAILBOX present mode cannot be queried without a VkSurfaceKHR (we have none in
+    // this lightweight probe).  The actual present mode is selected by the renderer
+    // (Veldrid) at swapchain creation time via vkGetPhysicalDeviceSurfacePresentModesKHR.
+    // We leave supportsMailboxPresentMode = false (default) to avoid false positives.
 
     return true;
 }
@@ -137,7 +147,7 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
     std::vector<VkExtensionProperties> exts(count);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
     for (const auto& ext : exts) {
-        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) { deviceInfo_.supportsSwapchain = true; deviceInfo_.supportsMailboxPresentMode = true; }
+        if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) deviceInfo_.supportsSwapchain = true;
         if (strcmp(ext.extensionName, VK_KHR_PRESENT_ID_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentId = true;
         if (strcmp(ext.extensionName, VK_KHR_PRESENT_WAIT_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentWait = true;
         if (strcmp(ext.extensionName, VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME) == 0) deviceInfo_.supportsGraphicsPipelineLibrary = true;
@@ -145,18 +155,32 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
         if (strcmp(ext.extensionName, VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME) == 0 || strcmp(ext.extensionName, VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME) == 0) deviceInfo_.supportsGlobalPriority = true;
         if (strcmp(ext.extensionName, VK_EXT_MEMORY_BUDGET_EXTENSION_NAME) == 0) deviceInfo_.supportsMemoryBudget = true;
         if (strcmp(ext.extensionName, "VK_EXT_surface_maintenance1") == 0) deviceInfo_.supportsSurfaceMaintenance1 = true;
+
+        // Extension-based fallback for pre-1.3 devices (overridden by queryVulkan13Features on 1.3+).
+        if (strcmp(ext.extensionName, "VK_KHR_dynamic_rendering") == 0) deviceInfo_.supportsDynamicRendering = true;
+        if (strcmp(ext.extensionName, "VK_KHR_synchronization2") == 0) deviceInfo_.supportsSynchronization2 = true;
+
+        // Vulkan 1.4+ / Android 16+ extensions — used by string literals since NDK r29
+        // headers may not define these macros.
+        if (strcmp(ext.extensionName, "VK_EXT_host_image_copy") == 0) deviceInfo_.supportsHostImageCopy = true;
+        if (strcmp(ext.extensionName, "VK_KHR_push_descriptor") == 0) deviceInfo_.supportsPushDescriptors = true;
     }
 
     // ── Vendor-specific GPU quirks ──────────────────────────────────────
     // Qualcomm Adreno 7xx series: known flickering with PresentId/PresentWait
     // and broken Graphics Pipeline Library compilation on some driver versions.
-    if (deviceInfo_.vendorId == 0x5143 && (deviceInfo_.deviceName.find("740") != std::string::npos ||
-                                          deviceInfo_.deviceName.find("750") != std::string::npos ||
-                                          deviceInfo_.deviceName.find("Adreno") != std::string::npos)) {
-        LOGI("Adreno 7xx GPU detected: applying performance and flickering overrides");
-        deviceInfo_.disablePresentId = true;
-        deviceInfo_.disablePresentWait = true;
-        deviceInfo_.disableGraphicsPipelineLibrary = true;
+    // Only target 7xx (730/740/750) — other Adreno generations are unaffected.
+    if (deviceInfo_.vendorId == 0x5143) {
+        const auto& name = deviceInfo_.deviceName;
+        bool isAdreno7xx = name.find("730") != std::string::npos ||
+                           name.find("740") != std::string::npos ||
+                           name.find("750") != std::string::npos;
+        if (isAdreno7xx) {
+            LOGI("Adreno 7xx GPU detected: applying performance and flickering overrides");
+            deviceInfo_.disablePresentId = true;
+            deviceInfo_.disablePresentWait = true;
+            deviceInfo_.disableGraphicsPipelineLibrary = true;
+        }
     }
 
     // ARM Mali (Samsung Exynos, MediaTek Dimensity, Google Tensor):
@@ -184,12 +208,18 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
 void VulkanProbe::queryVulkan13Features(VkPhysicalDevice device) {
     if (VK_VERSION_MAJOR(deviceInfo_.apiVersion) < 1 || (VK_VERSION_MAJOR(deviceInfo_.apiVersion) == 1 && VK_VERSION_MINOR(deviceInfo_.apiVersion) < 3)) return;
     deviceInfo_.meetsVulkan13 = true;
+
+    // Vulkan 1.4 is just a version check — no NDK header support needed.
+    if (VK_VERSION_MINOR(deviceInfo_.apiVersion) >= 4)
+        deviceInfo_.meetsVulkan14 = true;
+
     VkPhysicalDeviceVulkan13Features f13{};
     f13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     VkPhysicalDeviceFeatures2 f2{};
     f2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     f2.pNext = &f13;
     vkGetPhysicalDeviceFeatures2(device, &f2);
+    // Override extension-based flags with accurate feature queries for 1.3+ devices.
     deviceInfo_.supportsDynamicRendering = f13.dynamicRendering == VK_TRUE;
     deviceInfo_.supportsSynchronization2 = f13.synchronization2 == VK_TRUE;
 }
@@ -227,4 +257,7 @@ OSU_EXPORT byte nVulkanSupportsSurfaceMaintenance1(intptr_t ptr) { return (ptr &
 OSU_EXPORT byte nVulkanDisablePresentId(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disablePresentId) ? 1 : 0; }
 OSU_EXPORT byte nVulkanDisablePresentWait(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disablePresentWait) ? 1 : 0; }
 OSU_EXPORT byte nVulkanDisableGraphicsPipelineLibrary(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disableGraphicsPipelineLibrary) ? 1 : 0; }
+OSU_EXPORT byte nVulkanMeetsVulkan14(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().meetsVulkan14) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsHostImageCopy(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsHostImageCopy) ? 1 : 0; }
+OSU_EXPORT byte nVulkanSupportsPushDescriptors(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsPushDescriptors) ? 1 : 0; }
 }

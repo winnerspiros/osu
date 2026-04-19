@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Rendering.LowLatency;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Game.Configuration;
@@ -81,6 +82,14 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 })
                 {
                     Keywords = new[] { @"framerate", @"counter" },
+                },
+                new SettingsItemV2(new FormEnumDropdown<LatencyMode>
+                {
+                    Caption = GraphicsSettingsStrings.LowLatency,
+                    Current = config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode),
+                })
+                {
+                    Keywords = new[] { @"latency", @"reflex", @"input" },
                 },
             };
 

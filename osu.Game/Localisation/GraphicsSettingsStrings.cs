@@ -169,6 +169,11 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString ShrinkGameToSafeArea => new TranslatableString(getKey(@"shrink_game_to_safe_area"), @"Shrink game to avoid cameras and notches");
 
+        /// <summary>
+        /// "Low latency"
+        /// </summary>
+        public static LocalisableString LowLatency => new TranslatableString(getKey(@"low_latency"), @"Low latency");
+
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }
