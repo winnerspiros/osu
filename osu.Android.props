@@ -21,7 +21,7 @@
          unmanaged function pointers, reflection-based handle discovery).
          The default runtime-generated trampolines are slower but proven reliable. -->
     <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
-    <NoWarn>$(NoWarn);NU1608;XA4301</NoWarn>
+    <NoWarn>$(NoWarn);NU1605;NU1608;XA4301</NoWarn>
   </PropertyGroup>
 
   <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
