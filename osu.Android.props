@@ -88,6 +88,14 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
   </ItemGroup>
 
+  <!-- Include framework native libraries (BASS audio, FFmpeg, etc.) from the submodule.
+       When using a NuGet package these are bundled automatically; with a ProjectReference
+       they must be declared explicitly or the app crashes at startup with
+       System.DllNotFoundException: bass (or similar). -->
+  <ItemGroup>
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\arm64-v8a\*.so" Abi="arm64-v8a" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- Fody does not handle Android build well, and warns when unchanged.
          Since Realm objects are not declared directly in Android projects, simply disable Fody. -->
