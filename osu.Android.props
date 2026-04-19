@@ -81,6 +81,12 @@
     <!-- linker's input set; adding this reference ensures it is included.       -->
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" NoWarn="NU1510" />
     <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
+    <!-- Preserve ppy.Veldrid.SPIRV from trimming.  The trimmer does not trace the
+         CrossCompileTarget enum usage in osu.Framework's VeldridShader/GLShader correctly
+         (the reference crosses assembly boundaries via a ProjectReference chain), causing
+         TypeLoadException: 'Could not resolve type Veldrid.SPIRV.CrossCompileTarget' at
+         startup when the renderer tries to compile shaders. -->
+    <TrimmerRootAssembly Include="ppy.Veldrid.SPIRV" RootMode="all" />
   </ItemGroup>
 
   <ItemGroup>
