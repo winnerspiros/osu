@@ -114,7 +114,7 @@ bool OboeBridge::open(int32_t sampleRate) {
            // Audio is pre-mixed by BASS — tell Android not to spatialize it again.
            ->setIsContentSpatialized(true)
            // Prevent other apps from capturing our audio stream (competitive integrity).
-           ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::AllowNone)
+           ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::None)
            // Use shared_ptr overload (non-deprecated) for data callback.
            ->setDataCallback(stabilizedCallback_)
            // Non-owning shared_ptr for error callback — OboeBridge outlives the stream.
@@ -250,9 +250,9 @@ void OboeBridge::setProvider(OboeAudioProvider provider) {
     provider_.store(provider, std::memory_order_release);
 }
 
-const char* OboeBridge::getLastError() const {
+std::string OboeBridge::getLastError() const {
     std::lock_guard<std::mutex> lock(errorLock_);
-    return lastError_.empty() ? nullptr : lastError_.c_str();
+    return lastError_;
 }
 
 oboe::DataCallbackResult OboeBridge::onAudioReady(
@@ -283,13 +283,18 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
     uint32_t count = callbackCount_.fetch_add(1, std::memory_order_relaxed);
 
+    // LatencyTuner once every 128 callbacks (~1.5s @ 192 burst, 48 kHz).
+    // updateLatency() issues an AAudio syscall, so throttle it further to every
+    // 256 callbacks — Tab still sees stable values, but we cut audio-thread
+    // syscall pressure in half.
     if ((count & 127) == 0) {
-        updateLatency();
-
         // Dynamically tune the buffer size to the lowest stable value.
         if (tuner_) {
             tuner_->tune();
         }
+
+        if ((count & 255) == 0)
+            updateLatency();
 
         // Attempt to set CPU affinity to high-performance cores.
         // We do this inside the audio callback to ensure we target the AAudio thread.
@@ -478,7 +483,15 @@ OSU_EXPORT void nOboeSetProvider(intptr_t ptr, OboeAudioProvider provider) {
 
 OSU_EXPORT const char* nOboeGetLastErrorMessage(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
-    return bridge ? bridge->getLastError() : nullptr;
+    if (!bridge) return nullptr;
+
+    // Hold a thread_local snapshot so the pointer we hand back to managed code
+    // remains valid for the duration of the P/Invoke marshalling step, even if
+    // another thread (Oboe error callback) overwrites `lastError_` immediately
+    // after we return.  Each managed thread gets its own buffer.
+    thread_local std::string snapshot;
+    snapshot = bridge->getLastError();
+    return snapshot.empty() ? nullptr : snapshot.c_str();
 }
 
 } // extern "C"
@@ -512,6 +525,9 @@ OSU_EXPORT int nGetBigCoreMask() {
 }
 
 #include <android/performance_hint.h>
+// Explicit dependency for gettid() used in nADPFCreateSession below — do not
+// rely on transitive includes from Oboe / NDK headers, which may change.
+#include <unistd.h>
 
 extern "C" {
 OSU_EXPORT intptr_t nADPFCreateSession(int64_t targetDurationNanos) {
