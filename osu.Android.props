@@ -13,10 +13,14 @@
     <!-- NullabilityInfoContextSupport is disabled by default for Android -->
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-    <!-- Enable optimized marshal methods for faster managed↔native interop.
-         .NET 10 generates efficient bridging code at build time instead of the
-         slower runtime-generated trampolines. -->
-    <AndroidEnableMarshalMethods>true</AndroidEnableMarshalMethods>
+    <!-- Do NOT enable AndroidEnableMarshalMethods on .NET 10 with profiled AOT + trimming.
+         The build-time P/Invoke stub generator can produce stubs that crash in native code
+         when combined with partial AOT and trimmed assemblies — the crash bypasses managed
+         exception handling entirely, resulting in silent SIGSEGV/SIGABRT with no crash logs.
+         This is especially dangerous for apps with complex interop (UnmanagedCallersOnly,
+         unmanaged function pointers, reflection-based handle discovery).
+         The default runtime-generated trampolines are slower but proven reliable. -->
+    <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
     <!-- Suppress XA0141 page-size warnings. ELF patching is disabled for all configurations
          (see PatchElfPageSizeEnabled below) to prevent APK signature corruption.
          The XA0141 warning is therefore expected and harmless.
