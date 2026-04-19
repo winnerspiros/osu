@@ -127,6 +127,105 @@ A native C++ Vulkan probe (`vulkan_bridge.cpp`) checks the GPU's capabilities at
 | `generate-keystore.yml` | Helper to generate a persistent signing keystore for consistent APK signatures across builds. |
 | `ci.yml` | Full CI with desktop tests + Android/iOS compile-only verification. |
 
+### 🔧 osu-framework fork ([winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework))
+
+The upstream ppy/osu uses the official `ppy.osu.Framework` NuGet package. This fork replaces it with a git submodule pointing to a custom framework fork — enabling deep platform-level changes that aren't possible through the public API.
+
+#### .NET 10 upgrade
+
+The entire framework is upgraded from .NET 8 → **.NET 10** with C# 14 language features. All target frameworks are updated (`net10.0`, `net10.0-android`, `net10.0-ios`).
+
+#### Audio latency reduction
+
+The biggest audio change lives in the framework's `AudioManager`:
+
+| Setting | Upstream (ppy) | This fork |
+|---------|----------------|-----------|
+| `Bass.DeviceBufferLength` | Default (10 ms) | **5 ms** |
+| `Bass.PlaybackBufferLength` | Default (100 ms) | **25 ms** (Android), **30 ms** (iOS) |
+| `Bass.UpdatePeriod` | Default (5 ms) | **2 ms** (Android), **3 ms** (iOS) |
+| AAudio backend | Not enabled | **Enabled** via `Bass.Configure(67, 1)` |
+| Sample rate | 44100 Hz | **48000 Hz** (native rate for AAudio and CoreAudio) |
+
+The `BassAudioMixer.Handle` property is made **public** so the Android Oboe bridge can access mixer handles directly instead of using fragile reflection.
+
+#### Android Vulkan as primary renderer
+
+In the framework's `GameHost`, the renderer order for Android is changed:
+
+- **Upstream:** OpenGL only
+- **This fork:** Vulkan (primary) → OpenGL (fallback)
+
+A diagnostic check logs a warning if the device has Vulkan < 1.3, since osu! Veldrid uses Vulkan 1.3 features (dynamic rendering, synchronisation2).
+
+#### Android platform layer
+
+The framework fork has a full `osu.Framework.Android` project with:
+- `AndroidGameActivity` / `AndroidGameHost` — Activity lifecycle and host integration
+- `AndroidStorage` — Content resolver file access
+- `AndroidFileSelector` — Native file picker
+- Release build optimisations: profiled AOT, LLVM, partial trimming, IL stripping
+
+#### iOS platform layer
+
+A complete `osu.Framework.iOS` project with:
+- `IOSGameHost` / `IOSWindow` — iOS host and Metal-backed window
+- AOT compilation with Mono interpreter fallback
+- Native framework references for BASS, FFmpeg, and Metal
+- macOS-only framework stripping (removes ApplicationServices/Quartz from iOS linker)
+
+#### Performance hot-path optimisations
+
+Several commits eliminate allocations and reduce lock contention in the framework:
+
+- **LINQ elimination** in `Dropdown.cs`, `FlowContainer.cs`, and shader pipelines — removed redundant enumerations that allocated on every keyboard event or layout pass
+- **`System.Threading.Lock`** migration — replaced `lock(object)` with the modern `Lock` type in `RendererDisposalQueue`, `SampleStore`, `VeldridTexture`, `GLTexture`, and others for lower-overhead synchronisation
+- **GL state thrashing reduction** — avoids redundant OpenGL state changes in the renderer
+- **Texture upload pipeline** optimisations for faster asset loading on mobile
+
+#### Dependency updates
+
+Key packages updated beyond upstream versions:
+
+| Package | Upstream | Fork |
+|---------|----------|------|
+| `ppy.SDL3-CS` | 2026.302.0 | 2026.320.0 |
+| `SixLabors.ImageSharp` | 3.1.11 | 3.1.12 |
+| `Newtonsoft.Json` | 13.0.3 | 13.0.4 |
+| `JetBrains.Annotations` | 2023.3.0 | 2025.2.4 |
+| `StbiSharp` | 1.1.0 | 1.2.1 |
+| `Xamarin.AndroidX.Window` | 1.2.0.1 | 1.5.1.2 |
+
+### 🖥️ Veldrid fork ([winnerspiros/veldrid](https://github.com/winnerspiros/veldrid))
+
+[Veldrid](https://github.com/veldrid/veldrid) is the cross-platform GPU abstraction layer used by osu-framework. Upstream ppy/osu uses it via a NuGet package (`ppy.Veldrid`). This fork replaces that with a git submodule containing a customised Veldrid with Android graphics support and performance improvements.
+
+#### Android Vulkan rendering
+
+The main reason this fork exists — full Vulkan support on Android:
+
+- **`VkSurfaceUtil.cs`** — Creates Vulkan surfaces from `ANativeWindow` via `VK_KHR_android_surface`
+- **`VkGraphicsDevice.cs`** — Detects and enables Android-specific Vulkan extensions
+- **`AndroidRuntime.cs`** — P/Invoke bindings to `ANativeWindow_fromSurface()`, `ANativeWindow_setBuffersGeometry()`, `ANativeWindow_release()`
+- **`SwapchainSource.cs`** — `AndroidSurfaceSwapchainSource` class for passing native windows to Vulkan
+
+#### OpenGL ES support
+
+For devices where Vulkan isn't available:
+
+- **EGL bindings** (`EGLNative.cs`) — Complete EGL 1.4 API for OpenGL ES 2.0/3.0 context creation
+- **`OpenGLGraphicsDevice.cs`** — `initializeANativeWindow()` for Android surface initialisation via EGL
+- **GLES stencil fixes** — Proper stencil buffer initialisation (critical for osu!'s UI rendering)
+
+#### .NET 10 and performance
+
+- Upgraded to `net10.0` across all projects
+- **`System.Threading.Lock`** migration across all backends (D3D11, Vulkan, OpenGL, Metal) — 11 files updated
+- **UTF-8 string literals** (`"vkCreate..."u8`) for zero-allocation Vulkan function lookups
+- **Vulkan fence early-out** — uses `vkGetFenceStatus()` to avoid blocking waits
+- **Screen tearing support** — `AllowTearing` property in `VkSwapchain` for lowest-latency present modes
+- **D3D11 platform annotations** — `[SupportedOSPlatform("windows")]` enables safe trimming on non-Windows platforms
+
 ---
 
 ## Download
