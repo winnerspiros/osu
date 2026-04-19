@@ -98,6 +98,17 @@
          ExcludeAssets="native" prevents NuGet from contributing any .so files;
          the correct Android-built libraries are supplied by AndroidNativeLibrary below. -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2025.806.0-nativelibs" ExcludeAssets="native" PrivateAssets="all" />
+
+    <!-- ppy.Veldrid.SPIRV ships its Android native library (libveldrid-spirv.so) via a build
+         targets file under build/MonoAndroid10/.  net10.0-android does NOT import MonoAndroid10
+         build targets — the old Xamarin TFM is not in the NuGet TFM compatibility fallback chain
+         for modern .NET for Android.  The result: the .so never reaches the APK, causing
+         DllNotFoundException: libveldrid-spirv at shader compilation (startup crash).
+         ExcludeAssets="buildTransitive;build" prevents NuGet from trying (and failing) to import
+         the stale targets.  GeneratePathProperty gives us $(Pkgppy_Veldrid_SPIRV) to reference
+         the package content directly.  The correct arm64-v8a .so is supplied as
+         AndroidNativeLibrary below. -->
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gfbb03d21c2" ExcludeAssets="buildTransitive;build" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <!-- Include framework native libraries (BASS audio, FFmpeg, etc.) from the submodule.
@@ -110,12 +121,22 @@
     <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)submodules/osu-framework/osu.Framework.Android/arm64-v8a/*.so" Abi="arm64-v8a" />
   </ItemGroup>
 
-  <!-- Fail the build early if libbass.so is missing.
-       A missing libbass.so means the app will crash on startup with DllNotFoundException.
-       This catches silent glob failures (e.g. uninitialised submodule, wrong path). -->
+  <!-- Include Veldrid SPIR-V cross-compiler native library from the NuGet package.
+       This is the Android arm64-v8a build of libveldrid-spirv that compiles GLSL→SPIR-V
+       at runtime for Vulkan/OpenGL ES shader loading. -->
+  <ItemGroup>
+    <AndroidNativeLibrary Include="$(Pkgppy_Veldrid_SPIRV)/build/MonoAndroid10/native/arm64-v8a/libveldrid-spirv.so" Abi="arm64-v8a" />
+  </ItemGroup>
+
+  <!-- Fail the build early if critical native libraries are missing.
+       A missing .so means the app will crash on startup with DllNotFoundException.
+       This catches silent glob failures (e.g. uninitialised submodule, wrong path)
+       and NuGet restore failures for Veldrid.SPIRV. -->
   <Target Name="ValidateFrameworkNativeLibraries" BeforeTargets="Build">
     <Error Condition="!Exists('$(MSBuildThisFileDirectory)submodules/osu-framework/osu.Framework.Android/arm64-v8a/libbass.so')"
            Text="libbass.so not found in submodules/osu-framework/osu.Framework.Android/arm64-v8a/. Ensure the osu-framework submodule is initialised: git submodule update --init --recursive" />
+    <Error Condition="!Exists('$(Pkgppy_Veldrid_SPIRV)/build/MonoAndroid10/native/arm64-v8a/libveldrid-spirv.so')"
+           Text="libveldrid-spirv.so not found in ppy.Veldrid.SPIRV NuGet package. Ensure NuGet packages are restored: dotnet restore" />
   </Target>
 
   <PropertyGroup>
