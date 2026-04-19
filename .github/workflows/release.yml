@@ -66,49 +66,70 @@ jobs:
           echo "Native libraries built successfully:"
           find osu.Android/libs -name "*.so" -exec ls -lh {} \;
 
-      - name: Decode keystore
+      - name: Decode or generate keystore
         id: keystore
         run: |
+          KS_PATH="${{ github.workspace }}/osu.Android/osu.keystore"
+
           if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 --decode > "${{ github.workspace }}/osu.Android/osu.keystore"
-            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+            # ── User provided a persistent keystore secret ──────────────
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$KS_PATH"
+            echo "has_keystore=true"  >> "$GITHUB_OUTPUT"
+            echo "generated=false"    >> "$GITHUB_OUTPUT"
+            echo "key_alias=$KEY_ALIAS_SECRET" >> "$GITHUB_OUTPUT"
+            echo "key_pass=$KEY_PASS_SECRET"   >> "$GITHUB_OUTPUT"
+            echo "store_pass=$STORE_PASS_SECRET" >> "$GITHUB_OUTPUT"
+            echo "✅ Using saved keystore from repository secrets."
           else
-            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+            # ── No secret → auto-generate a keystore for this build ─────
+            # The APK will install fine on any device, but UPDATING from a
+            # previous build signed with a DIFFERENT key will fail.
+            # To avoid that, save the generated keystore as a secret
+            # (instructions are printed at the end of the build).
+            AUTO_PASS="osu-$(openssl rand -hex 12)"
+            echo "::add-mask::$AUTO_PASS"
+
+            keytool -genkeypair \
+              -keystore "$KS_PATH" \
+              -storepass "$AUTO_PASS" \
+              -keypass "$AUTO_PASS" \
+              -alias osu-release \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=osu! Android,O=osu,C=US" 2>/dev/null
+
+            echo "has_keystore=true"  >> "$GITHUB_OUTPUT"
+            echo "generated=true"     >> "$GITHUB_OUTPUT"
+            echo "key_alias=osu-release" >> "$GITHUB_OUTPUT"
+            echo "key_pass=$AUTO_PASS"   >> "$GITHUB_OUTPUT"
+            echo "store_pass=$AUTO_PASS" >> "$GITHUB_OUTPUT"
+
+            # Export base64 and password into a single instructions file
+            # so the user only needs to download one artifact.
+            {
+              echo "=== osu! Android Signing Keystore ==="
+              echo ""
+              echo "ANDROID_KEYSTORE_BASE64 value (copy everything on the next line):"
+              base64 -w 0 "$KS_PATH"
+              echo ""
+              echo ""
+              echo "ANDROID_SIGNING_KEY_ALIAS value:"
+              echo "osu-release"
+              echo ""
+              echo "ANDROID_SIGNING_KEY_PASSWORD value:"
+              echo "$AUTO_PASS"
+              echo ""
+              echo "ANDROID_SIGNING_STORE_PASSWORD value:"
+              echo "$AUTO_PASS"
+            } > "${{ github.workspace }}/SAVE-THESE-SECRETS.txt"
+
+            echo "::warning::No signing keystore secret found — auto-generated one for this build."
+            echo "::warning::See the end of this job for instructions to save it for future builds."
           fi
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-
-      # Signing is REQUIRED for installable APKs.  Without a consistent keystore
-      # across builds Android will reject updates with INSTALL_FAILED_UPDATE_INCOMPATIBLE.
-      # The old fallback (generating a fresh debug keystore each CI run) produced a
-      # different certificate every time — making every APK incompatible with the last.
-      #
-      # To set up signing, run the "Generate Android Signing Keystore" workflow
-      # (generate-keystore.yml) and save the four secrets it outputs.
-      - name: Require signing keystore
-        if: steps.keystore.outputs.has_keystore != 'true'
-        run: |
-          echo "::error::No signing keystore configured. APK builds require a consistent signing key."
-          echo ""
-          echo "==================================================================="
-          echo "  SETUP INSTRUCTIONS"
-          echo "==================================================================="
-          echo ""
-          echo "  1. Go to Actions → 'Generate Android Signing Keystore' → Run workflow"
-          echo "  2. Download the keystore artifact and copy the base64 from the job summary"
-          echo "  3. Add these four repository secrets (Settings → Secrets → Actions):"
-          echo ""
-          echo "     ANDROID_KEYSTORE_BASE64          = <base64 from step 2>"
-          echo "     ANDROID_SIGNING_KEY_ALIAS        = osu-release"
-          echo "     ANDROID_SIGNING_KEY_PASSWORD     = <password you chose>"
-          echo "     ANDROID_SIGNING_STORE_PASSWORD   = <password you chose>"
-          echo ""
-          echo "  4. Re-run this workflow."
-          echo ""
-          echo "  Why? Each CI run is ephemeral. Without a stored keystore, every build"
-          echo "  gets a different signing certificate, causing INSTALL_FAILED_UPDATE_INCOMPATIBLE."
-          echo "==================================================================="
-          exit 1
+          KEY_ALIAS_SECRET: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          KEY_PASS_SECRET: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          STORE_PASS_SECRET: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
 
       - name: Set version
         id: version
@@ -121,10 +142,6 @@ jobs:
           fi
 
       - name: Build Android APK
-        env:
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          ANDROID_KEY_PASS: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          ANDROID_STORE_PASS: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
@@ -134,9 +151,9 @@ jobs:
           -p:ApplicationVersion="${{ github.run_number }}"
           -p:AndroidKeyStore=true
           -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore"
-          -p:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
-          -p:AndroidSigningKeyPass="$ANDROID_KEY_PASS"
-          -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
+          -p:AndroidSigningKeyAlias="${{ steps.keystore.outputs.key_alias }}"
+          -p:AndroidSigningKeyPass="${{ steps.keystore.outputs.key_pass }}"
+          -p:AndroidSigningStorePass="${{ steps.keystore.outputs.store_pass }}"
           -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
       - name: Find APK
@@ -176,6 +193,47 @@ jobs:
           name: osu-android-${{ github.ref_name }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
+
+      # When the keystore was auto-generated, upload it so the user can save it
+      # as a repository secret for consistent signing across builds.
+      - name: Upload generated keystore
+        if: steps.keystore.outputs.generated == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-signing-keystore
+          path: |
+            ${{ github.workspace }}/osu.Android/osu.keystore
+            ${{ github.workspace }}/SAVE-THESE-SECRETS.txt
+          retention-days: 7
+
+      - name: Print keystore setup instructions
+        if: steps.keystore.outputs.generated == 'true'
+        run: |
+          echo ""
+          echo "=================================================================="
+          echo "  ⚠️  YOUR APK WAS SIGNED WITH AN AUTO-GENERATED KEYSTORE"
+          echo "=================================================================="
+          echo ""
+          echo "  ✅ The APK will install fine on any device."
+          echo ""
+          echo "  ⚠️  BUT — if you build again without saving this keystore,"
+          echo "     Android will REFUSE to update (different signing certificate)."
+          echo ""
+          echo "  To keep your APK updatable across builds:"
+          echo ""
+          echo "  1. Download the 'osu-signing-keystore' artifact from this run"
+          echo "  2. Open 'SAVE-THESE-SECRETS.txt' — it contains all 4 values"
+          echo "  3. Go to: Settings → Secrets and variables → Actions"
+          echo "  4. Create these 4 secrets with the values from the file:"
+          echo ""
+          echo "     • ANDROID_KEYSTORE_BASE64"
+          echo "     • ANDROID_SIGNING_KEY_ALIAS"
+          echo "     • ANDROID_SIGNING_KEY_PASSWORD"
+          echo "     • ANDROID_SIGNING_STORE_PASSWORD"
+          echo ""
+          echo "  ⚡ After saving the secrets, all future builds will use the"
+          echo "     same keystore automatically — no more setup needed."
+          echo "=================================================================="
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
