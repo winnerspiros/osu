@@ -33,7 +33,11 @@ public:
     bool isAAudio() const;
     bool isMMap() const;
     void setProvider(OboeAudioProvider provider);
-    const char* getLastError() const;
+    /// Returns a copy of the most recent error message under lock.  We return
+    /// by value (not a pointer to internal storage) so callers can't observe a
+    /// torn or freed `std::string` if another thread mutates `lastError_`
+    /// concurrently (Oboe error callbacks fire from an internal thread).
+    std::string getLastError() const;
 
     // oboe::AudioStreamCallback
     oboe::DataCallbackResult onAudioReady(
