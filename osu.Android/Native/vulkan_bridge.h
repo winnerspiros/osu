@@ -29,7 +29,7 @@ public:
         bool supportsDynamicRendering = false;
         bool supportsSynchronization2 = false;
 
-        // API 31+ / Modern High-Performance Extensions
+        // Modern High-Performance Extensions
         bool supportsPresentId = false;
         bool supportsPresentWait = false;
         bool supportsGraphicsPipelineLibrary = false;
@@ -37,6 +37,11 @@ public:
         bool supportsGlobalPriority = false;
         bool supportsMemoryBudget = false;
         bool supportsSurfaceMaintenance1 = false;
+
+        // Vulkan 1.4+ / Android 16+ features
+        bool meetsVulkan14 = false;
+        bool supportsHostImageCopy = false;
+        bool supportsPushDescriptors = false;
 
         // Quirks / Blacklist flags
         bool disablePresentId = false;
