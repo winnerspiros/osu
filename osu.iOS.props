@@ -10,6 +10,10 @@
          (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder) that cannot be statically analysed.
          SuppressTrimAnalysisWarnings only suppresses ILLink tool warnings, not the Roslyn analyzer. -->
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <!-- iOS test projects define an explicit Program.Main entry point (UIApplication.Main).
+         Microsoft.NET.Test.Sdk v18+ auto-generates MicrosoftTestingPlatformEntryPoint.Main()
+         which conflicts with the explicit one, producing CS7022 warnings. Disable it. -->
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <!-- On debug configurations, we use Mono interpreter for faster compilation. -->
