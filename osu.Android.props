@@ -84,9 +84,9 @@
          the correct Android-built libraries are supplied by AndroidNativeLibrary below. -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2025.806.0-nativelibs" ExcludeAssets="native" PrivateAssets="all" />
 
-    <!-- winnerspiros/veldrid-spirv fork — ships 16 KB-aligned .so files via the standard
+    <!-- winnerspiros/veldrid-spirv fork -- ships 16KB-aligned .so files via the standard
          runtimes/android-arm64/native/ NuGet layout.  net10.0-android resolves and bundles
-         the native library automatically — no manual AndroidNativeLibrary is needed. -->
+         the native library automatically -- no manual AndroidNativeLibrary is needed. -->
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" PrivateAssets="all" />
   </ItemGroup>
 
