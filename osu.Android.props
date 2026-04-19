@@ -23,7 +23,7 @@
          AndroidPageSize16KBCompatibilityCheck=false should suppress the check, but Android SDK
          36.1.53 still emits XA0141 in some build orderings, so we also add it to NoWarn. -->
     <AndroidPageSize16KBCompatibilityCheck>false</AndroidPageSize16KBCompatibilityCheck>
-    <NoWarn>$(NoWarn);XA0141</NoWarn>
+    <NoWarn>$(NoWarn);XA0141;NU1608;XA4301</NoWarn>
     <!-- Disable ELF alignment patching for ALL configurations.
          The custom PatchElfPageSize task can run concurrently with the Android packaging step
          because MSBuild's BeforeTargets="Build" fires for every ABI sub-build, which often
@@ -53,9 +53,13 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
-    <!-- Strip IL bodies from AOT-compiled assemblies.  The runtime uses the native .so code
-         instead, and IL is only kept for non-AOT methods.  This can save 20-30 MB. -->
-    <AndroidStripILAfterAOT>true</AndroidStripILAfterAOT>
+    <!-- Keep IL bodies as a fallback for methods not covered by profiled AOT.
+         AndroidEnableProfiledAot only AOT-compiles methods in the startup profile; the remaining
+         methods require IL for JIT/interpretation.  Stripping IL (AndroidStripILAfterAOT=true)
+         removes that fallback, causing 'plt_entry not met' assertions in aot-runtime.c when
+         the runtime encounters an un-AOT'd method (observed on .NET Timer thread at startup).
+         The ~20-30 MB size saving is not worth the crash risk. -->
+    <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
          but the download/APK size is significantly smaller. -->
     <AndroidEnableAssemblyCompression>true</AndroidEnableAssemblyCompression>

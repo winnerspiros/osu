@@ -109,6 +109,7 @@ jobs:
           -p:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
           -p:AndroidSigningKeyPass="$ANDROID_KEY_PASS"
           -p:AndroidSigningStorePass="$ANDROID_STORE_PASS"
+          -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
       - name: Build Android APK (unsigned Release)
         if: steps.keystore.outputs.has_keystore != 'true'
@@ -119,6 +120,7 @@ jobs:
           -p:Version="${{ steps.version.outputs.version }}"
           -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
           -p:ApplicationVersion="${{ github.run_number }}"
+          -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
       - name: Find APK
         id: find_apk
