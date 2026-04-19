@@ -257,8 +257,7 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
 
         // Clamp to valid range: negative or out-of-range values from the provider
         // would wrap to a huge size_t, causing a buffer overrun in the memset below.
-        if (framesRead < 0) framesRead = 0;
-        if (framesRead > numFrames) framesRead = numFrames;
+        framesRead = std::clamp(framesRead, 0, numFrames);
 
         if (framesRead < numFrames) {
             size_t bytesDone = static_cast<size_t>(framesRead) * stream->getChannelCount() * sizeof(float);
