@@ -85,16 +85,26 @@
 
   <ItemGroup>
     <!-- Use winnerspiros/osu-framework fork (net10.0-android, optimized) via submodule instead of ppy NuGet package -->
-    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules/osu-framework/osu.Framework.Android/osu.Framework.Android.csproj" />
   </ItemGroup>
 
   <!-- Include framework native libraries (BASS audio, FFmpeg, etc.) from the submodule.
        When using a NuGet package these are bundled automatically; with a ProjectReference
        they must be declared explicitly or the app crashes at startup with
-       System.DllNotFoundException: bass (or similar). -->
+       System.DllNotFoundException: bass (or similar).
+       Use forward slashes — backslash globs silently match zero files on Linux CI runners,
+       which produces an APK without libbass.so (and the other native libs). -->
   <ItemGroup>
-    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.Android\arm64-v8a\*.so" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)submodules/osu-framework/osu.Framework.Android/arm64-v8a/*.so" Abi="arm64-v8a" />
   </ItemGroup>
+
+  <!-- Fail the build early if libbass.so is missing.
+       A missing libbass.so means the app will crash on startup with DllNotFoundException.
+       This catches silent glob failures (e.g. uninitialised submodule, wrong path). -->
+  <Target Name="ValidateFrameworkNativeLibraries" BeforeTargets="Build">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)submodules/osu-framework/osu.Framework.Android/arm64-v8a/libbass.so')"
+           Text="libbass.so not found in submodules/osu-framework/osu.Framework.Android/arm64-v8a/. Ensure the osu-framework submodule is initialised: git submodule update --init --recursive" />
+  </Target>
 
   <PropertyGroup>
     <!-- Fody does not handle Android build well, and warns when unchanged.

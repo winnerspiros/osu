@@ -215,6 +215,34 @@ jobs:
             exit 1
           fi
 
+      - name: Verify native libraries in APK
+        run: |
+          APK="${{ steps.find_apk.outputs.apk_path }}"
+          echo "Checking APK for required native libraries..."
+
+          NATIVE_LIBS=$(unzip -l "$APK" | grep "lib/arm64-v8a/.*\.so" || true)
+          echo "$NATIVE_LIBS"
+          echo ""
+
+          MISSING=0
+          for LIB in libbass.so libbass_fx.so libbassmix.so; do
+            if echo "$NATIVE_LIBS" | grep -q "$LIB"; then
+              echo "✅ $LIB found"
+            else
+              echo "::error::$LIB is MISSING from the APK — the app will crash at startup (DllNotFoundException)."
+              MISSING=1
+            fi
+          done
+
+          if [ "$MISSING" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more required native libraries are missing. Check that the osu-framework submodule is initialised and the AndroidNativeLibrary glob in osu.Android.props resolves correctly."
+            exit 1
+          fi
+
+          echo ""
+          echo "All required native libraries present ✓"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
