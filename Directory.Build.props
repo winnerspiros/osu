@@ -7,11 +7,6 @@
     <GenerateAssemblyInfo Condition="'$(Configuration)'=='Debug'">false</GenerateAssemblyInfo>
     <!-- Required due to the above  -->
     <NoWarn Condition="'$(Configuration)'=='Debug'">$(NoWarn);CA1416</NoWarn>
-    <!-- NU1605: Suppress package downgrade error for ppy.Veldrid.SPIRV.
-         We intentionally override the framework's 1.0.15-gfbb03d21c2 with the fork's
-         1.0.15-gb268bf39ea. NuGet considers this a "downgrade" because 'b' < 'f' in
-         prerelease suffix comparison, but it's actually a newer fork build. -->
-    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>$(MSBuildThisFileDirectory)app.manifest</ApplicationManifest>
@@ -23,16 +18,6 @@
   </ItemGroup>
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="Resources\**\*.*" />
-  </ItemGroup>
-  <!-- Override ppy.Veldrid.SPIRV with winnerspiros/veldrid-spirv fork for ALL projects.
-       The fork (1.0.15-gb268bf39ea) is API-compatible and includes:
-       - 16KB ELF-aligned Android .so (no PatchElfPageSize workaround needed)
-       - Modern runtimes/android-arm64/native/ NuGet layout (no MonoAndroid10 workarounds)
-       - CompileCompute interop bug fix, debug flag passthrough, error diagnostics
-       The .nupkg is in local-packages/ (see NuGet.Config).
-       This overrides the framework's transitive reference to 1.0.15-gfbb03d21c2. -->
-  <ItemGroup Label="Veldrid.SPIRV Override">
-    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" />
   </ItemGroup>
   <ItemGroup Label="Code Analysis">
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />

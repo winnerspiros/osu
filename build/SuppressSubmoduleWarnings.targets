@@ -1,8 +1,0 @@
-<Project>
-  <!-- Suppress CS1591 (missing XML doc comments) for submodule projects that enable
-       documentation generation but don't suppress the warning in Release builds.
-       This file is imported via CustomBeforeMicrosoftCommonTargets in the release workflow. -->
-  <PropertyGroup Condition="$(MSBuildProjectFullPath.Contains('submodules'))">
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
-  </PropertyGroup>
-</Project>
