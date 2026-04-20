@@ -36,19 +36,29 @@ namespace osu.Game.Screens.Play.HUD.ClicksPerSecond
             double latestValidTime = clock.CurrentTime;
             double earliestTimeValid = latestValidTime - 1000 * gameplayClock.GetTrueGameplayRate();
 
+            // Timestamps are added in chronological order (from clock.CurrentTime),
+            // so we can use binary-search-style trimming instead of per-element RemoveAt.
+
+            // Trim future timestamps caused by rewinding (remove from the end in one batch).
+            // RemoveRange from the end is a single operation vs repeated RemoveAt calls.
+            int trimStart = timestamps.Count;
+
+            while (trimStart > 0 && timestamps[trimStart - 1] > latestValidTime)
+                trimStart--;
+
+            if (trimStart < timestamps.Count)
+                timestamps.RemoveRange(trimStart, timestamps.Count - trimStart);
+
+            // Count timestamps within the valid 1-second window.
+            // Since the list is in chronological order, scan backwards until we leave the window.
             int count = 0;
 
             for (int i = timestamps.Count - 1; i >= 0; i--)
             {
-                // handle rewinding by removing future timestamps as we go
-                if (timestamps[i] > latestValidTime)
-                {
-                    timestamps.RemoveAt(i);
-                    continue;
-                }
+                if (timestamps[i] < earliestTimeValid)
+                    break;
 
-                if (timestamps[i] >= earliestTimeValid)
-                    count++;
+                count++;
             }
 
             Value = count;

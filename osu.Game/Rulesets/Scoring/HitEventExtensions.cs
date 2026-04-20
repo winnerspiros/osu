@@ -63,12 +63,23 @@ namespace osu.Game.Rulesets.Scoring
         /// </returns>
         public static double? CalculateAverageHitError(this IEnumerable<HitEvent> hitEvents)
         {
-            double[] timeOffsets = hitEvents.Where(AffectsUnstableRate).Select(ev => ev.TimeOffset).ToArray();
+            // Single-pass mean using running sum — avoids allocating a temporary array.
+            double sum = 0;
+            int count = 0;
 
-            if (timeOffsets.Length == 0)
+            foreach (var ev in hitEvents)
+            {
+                if (!AffectsUnstableRate(ev))
+                    continue;
+
+                sum += ev.TimeOffset;
+                count++;
+            }
+
+            if (count == 0)
                 return null;
 
-            return timeOffsets.Average();
+            return sum / count;
         }
 
         /// <summary>
