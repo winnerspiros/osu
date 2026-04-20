@@ -315,7 +315,7 @@ jobs:
       # For manual runs: creates a tag automatically.
       - name: Create GitHub Release
         if: inputs.create_release != false
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: "osu! Android ${{ steps.version.outputs.version }}"
