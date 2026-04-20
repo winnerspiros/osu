@@ -56,16 +56,24 @@ namespace osu.Game.Utils
             if (!game.IsDeployedBuild || !game.CreateEndpoints().WebsiteUrl.EndsWith(@".ppy.sh", StringComparison.Ordinal))
                 return;
 
-            sentrySession = SentrySdk.Init(options =>
+            try
             {
-                options.Dsn = "https://localhost";
-                options.AutoSessionTracking = true;
-                options.IsEnvironmentUser = false;
-                options.IsGlobalModeEnabled = true;
-                options.CacheDirectoryPath = storage?.GetFullPath(string.Empty);
-                // The reported release needs to match version as reported to Sentry in .github/workflows/sentry-release.yml
-                options.Release = $"osu@{game.Version.Split('-').First()}";
-            });
+                sentrySession = SentrySdk.Init(options =>
+                {
+                    options.Dsn = "https://localhost";
+                    options.AutoSessionTracking = true;
+                    options.IsEnvironmentUser = false;
+                    options.IsGlobalModeEnabled = true;
+                    options.CacheDirectoryPath = storage?.GetFullPath(string.Empty);
+                    // The reported release needs to match version as reported to Sentry in .github/workflows/sentry-release.yml
+                    options.Release = $"osu@{game.Version.Split('-').First()}";
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to initialise Sentry SDK: {ex.Message}", LoggingTarget.Runtime, LogLevel.Debug);
+                return;
+            }
 
             Logger.NewEntry += processLogEntry;
         }
