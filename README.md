@@ -2,252 +2,251 @@
   <img width="500" alt="osu! logo" src="assets/lazer.png">
 </p>
 
-# osu! (Android-optimised fork)
+<h1 align="center">osu! lazer — Android Edition</h1>
 
-[![Build Android APK](https://github.com/winnerspiros/osu/actions/workflows/release.yml/badge.svg)](https://github.com/winnerspiros/osu/actions/workflows/release.yml)
-[![CI](https://github.com/winnerspiros/osu/actions/workflows/ci.yml/badge.svg)](https://github.com/winnerspiros/osu/actions/workflows/ci.yml)
-[![GitHub release](https://img.shields.io/github/release/winnerspiros/osu.svg)](https://github.com/winnerspiros/osu/releases/latest)
+<p align="center">
+  <a href="https://github.com/winnerspiros/osu/actions/workflows/release.yml"><img src="https://github.com/winnerspiros/osu/actions/workflows/release.yml/badge.svg" alt="Build Android APK"></a>
+  <a href="https://github.com/winnerspiros/osu/actions/workflows/ci.yml"><img src="https://github.com/winnerspiros/osu/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/winnerspiros/osu/releases/latest"><img src="https://img.shields.io/github/release/winnerspiros/osu.svg" alt="GitHub release"></a>
+</p>
 
-A fork of [ppy/osu](https://github.com/ppy/osu) (osu! lazer) with deep Android platform integration — low-latency audio, Samsung optimisations, Vulkan GPU probing, and production-ready APK builds.
-
-> **📱 Download the latest APK:** Go to [Releases](https://github.com/winnerspiros/osu/releases/latest) and download `osu-lazer-*.apk`.
-> Requires **Android 13+** (arm64).
+<p align="center">
+  A community fork of <a href="https://github.com/ppy/osu">ppy/osu</a> (osu! lazer) rebuilt for the best possible Android experience.<br>
+  Lower audio latency · Samsung optimisations · Vulkan rendering · 120 Hz+ support · S Pen as a tablet
+</p>
 
 ---
 
-## What's different from upstream ppy/osu?
+## 📱 Download
 
-This fork adds **~5,000 lines of custom code** (managed C# + native C++) to turn osu! lazer into a performance-tuned Android rhythm game. The upstream ppy/osu has minimal Android support — this fork fills in everything needed for a production-quality mobile experience.
+> **[⬇️ Download the latest APK](https://github.com/winnerspiros/osu/releases/latest)**
 
-### 🔊 Low-latency audio (Google Oboe)
-
-The single most important change for a rhythm game. Upstream uses the default Android audio path, which adds 50–200 ms of latency — unacceptable for gameplay.
-
-| Feature | Upstream | This fork |
-|---------|----------|-----------|
-| Audio backend | Default Android (high latency) | [Google Oboe](https://github.com/google/oboe) via native C++ bridge |
-| Audio API | OpenSL ES | AAudio with MMAP (shared memory) when available, OpenSL ES fallback |
-| Measured latency | Not measured | Real-time measurement via `stream->calculateLatencyMillis()` |
-| Audio offset | Manual user guess | Auto-suggested from measured hardware latency |
-| Buffer tuning | Fixed | Dynamic via Oboe `LatencyTuner` (shrinks to 1× burst when stable) |
-| Callback stability | N/A | `StabilizedCallback` wrapper smooths execution jitter |
-| ADPF hints | No | `setPerformanceHintEnabled(true)` tells Android to prioritise the audio thread |
-
-The audio bridge (`osu.Android/Native/oboe_bridge.cpp`) runs as an unmanaged C++ callback at real-time priority. BASS audio mixers are redirected into this callback via `OboeAudioRedirector`, which discovers mixer handles through reflection since `BassAudioMixer` is internal to the framework.
-
-**Toggle:** Settings → Graphics → Android Performance → *Low-latency audio (Oboe)*
-
-### 🎮 Custom input handlers
-
-Upstream relies on the framework's default touch handling. This fork adds three dedicated input handlers with direct event dispatch and unbuffered input:
-
-#### Samsung S Pen / stylus (`AndroidStylusHandler`)
-- Full **tablet area mapping** — the S Pen digitiser maps to the game area like a Wacom tablet
-- Pressure-sensitive clicking with configurable threshold
-- S Pen button → right-click, eraser → middle-click
-- Dynamic area expansion if the digitiser reports out-of-bounds coordinates
-- Rotation support for different device orientations
-
-#### Physical keyboard (`AndroidKeyboardHandler`)
-- Complete Android keycode → osuTK key mapping (A–Z, 0–9, F1–F12, special keys)
-- Uses `FrozenDictionary` for O(1) lookup in the hot path
-- Filters system keys (Back, Home, Volume) to avoid interfering with Android
-
-#### Mouse / trackpad (`AndroidMouseHandler`)
-- Full mouse support (position, scroll wheel, 5 buttons) for Samsung DeX and USB mice
-- Processes historical motion events for accurate input timing
-- System pointer icon hidden to prevent double cursors in DeX mode
-
-### ⚡ Performance tuning
-
-| Optimisation | What it does |
+| | |
 |---|---|
-| **CPU affinity pinning** | Pins update, render, input, and audio threads to high-performance (big) CPU cores. Uses sysfs topology detection (`/sys/devices/system/cpu/cpuN/cpufreq/cpuinfo_max_freq`) to correctly identify Prime + Gold cores across Snapdragon, Exynos, Dimensity, and Tensor SoCs. |
-| **Thread priority** | Sets game threads to `UrgentDisplay` priority (-8) for minimum scheduling latency. |
-| **GC tuning** | Switches to `SustainedLowLatency` GC mode during gameplay to avoid collection pauses. |
-| **Sustained performance mode** | Always-on `Window.SetSustainedPerformanceMode(true)` prevents thermal throttling from causing sudden FPS drops. |
-| **ADPF integration** | Native ADPF session creation and work duration reporting for Android's Dynamic Performance Framework. |
-| **Display refresh rate** | Queries all supported display modes, auto-selects the highest refresh rate, and sets `Surface.SetFrameRate()` hints for the compositor. Supports 120 Hz+ panels. |
+| **Requires** | Android 13 or newer (arm64) |
+| **Works on** | Phones, tablets, Samsung DeX, foldables |
+| **Install** | Open the `.apk` file on your device. Enable "Install from unknown sources" if prompted. |
 
-**Toggle:** Settings → Graphics → Android Performance → *Performance mode*
+The app checks for updates automatically and notifies you when a new version is available.
 
-### 🖥️ Samsung DeX support
+---
 
-When connected to an external monitor via DeX:
+## ✨ What makes this different?
 
-- Auto-detects DeX mode (`UiMode.TypeDesk`)
-- Auto-enables performance mode and immersive fullscreen
-- Queries external display modes and selects the highest refresh rate
-- Starts a permanent high-performance GC session
-- Mouse/keyboard input works seamlessly (including mouse back button → Escape)
+The official osu! lazer has basic Android support. This fork goes much further — adding low-latency audio, proper input handling, GPU optimisations, and Samsung-specific features to make it feel like a native Android rhythm game.
 
-### 🎨 Vulkan GPU probing
+Here's what you get:
 
-A native C++ Vulkan probe (`vulkan_bridge.cpp`) checks the GPU's capabilities at startup:
+---
 
-- Vulkan API version and driver info
-- Device-local VRAM
-- Modern extensions: dynamic rendering, synchronisation2, graphics pipeline library, shader objects, present ID/wait
-- GPU-specific workaround detection (disables problematic features on known-bad drivers)
-- Result exposed as `IsVulkanRecommended` — the Vulkan renderer option only appears in settings if the GPU actually supports it
+### 🔊 Low-latency audio
 
-**Toggle:** Settings → Graphics → Android Performance → *GPU detection (Vulkan)*
+**The #1 improvement for a rhythm game.** Stock Android audio adds 50–200 ms of delay — that's the difference between a perfect hit and a miss.
 
-### 📦 Build system
+This fork replaces the default audio path with [Google Oboe](https://github.com/google/oboe), the same low-latency audio library used by professional music apps:
 
-| Change | Detail |
+- **AAudio with shared memory (MMAP)** — the fastest audio path Android offers, with OpenSL ES as a fallback for older devices
+- **Automatic latency measurement** — the game measures your device's actual audio delay and suggests the right offset, so you don't have to guess
+- **Dynamic buffer tuning** — audio buffers automatically shrink to the smallest stable size for your device
+- **Reduced framework buffers** — BASS audio engine buffers cut from 100 ms → 25 ms, update period from 5 ms → 2 ms
+- **Native 48 kHz sample rate** — matches what modern Android hardware actually uses, avoiding unnecessary resampling
+
+> **💡 Enable it:** Settings → Graphics → Android Performance → *Low-latency audio (Oboe)*
+
+---
+
+### 🎮 Input — S Pen, keyboard & mouse
+
+Stock osu! lazer uses basic touch input on Android. This fork adds three dedicated input handlers:
+
+#### ✏️ Samsung S Pen / stylus
+Your S Pen becomes a **real tablet** — just like a Wacom:
+- Full tablet area mapping (the digitiser maps directly to the game area)
+- Pressure-sensitive clicking with adjustable threshold
+- S Pen button = right-click, eraser end = middle-click
+- Automatic calibration to your screen size and rotation
+
+#### ⌨️ Physical keyboard
+Plug in a keyboard (USB or Bluetooth) and it just works:
+- Full key mapping — letters, numbers, F-keys, arrow keys, all the usual suspects
+- System keys (Home, Back, Volume) are filtered so they don't interfere with gameplay
+
+#### 🖱️ Mouse & trackpad
+Perfect for Samsung DeX or a USB mouse:
+- Full mouse support — position tracking, scroll wheel, all 5 buttons
+- No double cursor — the system pointer hides automatically
+- Mouse back button = Escape (for quick menu navigation)
+
+---
+
+### ⚡ Performance mode
+
+Turn it on and the game squeezes every bit of performance from your hardware:
+
+- **Smart CPU pinning** — game threads run on the fastest CPU cores. The game reads your chip's topology (works on Snapdragon, Exynos, Dimensity, Tensor, and others) and pins to the right cores automatically
+- **High thread priority** — game threads run at urgent-display priority so the OS doesn't deprioritise them
+- **Low-latency garbage collection** — the .NET runtime switches to a mode that avoids pauses during gameplay
+- **Sustained performance** — prevents the phone from thermal throttling during long sessions
+- **ADPF hints** — tells Android's performance framework to boost the audio thread
+
+> **💡 Enable it:** Settings → Graphics → Android Performance → *Performance mode*
+
+---
+
+### 🖥️ 120 Hz+ display support
+
+The game queries your screen's supported modes and picks the highest refresh rate automatically:
+
+- Supports 60 / 90 / 120 / 144 / 165 Hz panels (and beyond)
+- Tells the Android compositor your target frame rate for optimal scheduling
+- On Samsung DeX, it finds and uses the external display's best mode
+
+---
+
+### 🖥️ Samsung DeX
+
+Plug your phone into a monitor and play on the big screen:
+
+- **Auto-detected** — the game knows when you're in DeX mode
+- Performance mode and immersive fullscreen turn on automatically
+- External display refresh rate is detected and applied
+- Keyboard + mouse input works seamlessly (no extra setup)
+- The game stays alive during display transitions (no restart)
+
+---
+
+### 🎨 Vulkan GPU detection
+
+A built-in GPU probe checks whether your device can handle Vulkan rendering:
+
+- Tests for Vulkan 1.3+ with all the extensions osu! needs (dynamic rendering, synchronisation2, graphics pipeline library, shader objects)
+- Detects GPU-specific driver bugs and automatically disables problematic features
+- The Vulkan renderer option only shows up in settings if your GPU truly supports it — no guessing
+
+When Vulkan is available, it's used as the **primary renderer** (with OpenGL ES as fallback).
+
+> **💡 Enable it:** Settings → Graphics → Android Performance → *GPU detection (Vulkan)*
+
+---
+
+### 📱 Android quality-of-life
+
+| Feature | What it does |
 |---|---|
-| **.NET 10** | Upgraded from .NET 8 (upstream) to .NET 10 for latest runtime improvements |
-| **Framework submodule** | Uses [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) as a git submodule instead of the NuGet package, enabling mobile platform modifications |
-| **Profiled AOT** | `AndroidEnableProfiledAot=true` for faster startup (startup-critical methods are ahead-of-time compiled) |
-| **IL trimming** | Partial trimming enabled for smaller APK size |
-| **LZ4 compression** | Assembly compression reduces APK size by ~20 MB |
-| **Native C++ library** | `libosu_native.so` built with NDK r29, C++20, `-O3`, LTO, and 16 KB page alignment (`-Wl,-z,max-page-size=16384`) for Android 15+ compatibility |
-| **ELF page alignment** | Custom MSBuild task (`PatchElfPageSize.targets`) rewrites 4 KB-aligned .so files to 16 KB for Android 16 (API 36+) compliance |
-| **arm64 only** | Single ABI target reduces APK size and build complexity |
+| **Open beatmaps, skins & replays** | Tap a `.osz`, `.osk`, or `.osr` file anywhere on your phone and it opens directly in osu! |
+| **Deep links** | `osu://` and `osump://` URLs open in the app |
+| **Smart orientation** | Phones: portrait in menus, landscape during gameplay. Tablets: stays landscape |
+| **Full-screen with notch** | Uses the entire display, including around camera cutouts |
+| **Samsung Game Booster** | Registered with Samsung's Game Launcher for extra performance optimisations and thermal management |
+| **Update notifications** | Checks GitHub for new releases and lets you know (never forces an update) |
+| **Tablet detection** | Devices with screens ≥ 600 dp are treated as tablets, with adapted UI behaviour |
+| **Battery info** | Battery level and charging status shown natively |
 
-### 📱 Android integration
+---
 
-| Feature | Detail |
+### 🛡️ Stability improvements
+
+This fork includes several crash fixes on top of upstream:
+
+- **Sentry crash fix** — the app no longer crashes on startup when the error reporting service can't initialise (e.g. with a placeholder DSN)
+- **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them instead of crashing
+- **JNI surface safety** — proper lifecycle management with atomic swaps and timeouts to prevent race conditions between Android surface creation and destruction
+- **Trimmer-safe builds** — critical reflection-heavy assemblies are protected from .NET IL trimming to prevent `TypeLoadException` crashes in release builds
+
+---
+
+## 🔧 Under the hood
+
+<details>
+<summary><strong>Build system & toolchain</strong></summary>
+
+| | |
 |---|---|
-| **File associations** | Opens `.osz` (beatmaps), `.osk` (skins), `.osr` (replays) and `osu://` / `osump://` URLs |
-| **Samsung Game Launcher** | Registered via `com.samsung.android.game.biz` metadata for Samsung Game Booster optimisations |
-| **Samsung MultiDisplay** | `keep_process_alive` flag prevents process termination on display transitions |
-| **Orientation management** | Locks to landscape during gameplay, allows portrait in menus (phone only — tablets stay landscape) |
-| **Tablet detection** | Devices with smallest screen width ≥ 600 dp are treated as tablets |
-| **Update notifications** | Checks GitHub Releases for newer versions and notifies the user |
-| **Notch/cutout support** | `LayoutInDisplayCutoutMode.ShortEdges` uses the full display area |
-| **Min SDK 33** | Targets Android 13+ (API 33) for modern API access; target SDK 36 |
+| **.NET 10** | Upgraded from .NET 8 (upstream) to .NET 10 for the latest runtime and language improvements |
+| **Framework as submodule** | Uses a [custom osu-framework fork](https://github.com/winnerspiros/osu-framework) as a git submodule instead of the NuGet package — enables deep platform changes |
+| **Profiled AOT** | Startup-critical methods are ahead-of-time compiled for faster app launch |
+| **IL trimming** | Unused code is stripped from the APK for smaller size |
+| **LZ4 compression** | Assembly compression saves ~20 MB in the final APK |
+| **Native C++ library** | `libosu_native.so` — Oboe audio + Vulkan probe, built with NDK r29, C++20, `-O3`, LTO |
+| **16 KB page alignment** | All native libraries use 16 KB ELF alignment for Android 15+ and 16 (API 36) compliance |
+| **arm64 only** | Single ABI keeps the APK small and builds fast |
 
-### 🔧 CI/CD
+</details>
+
+<details>
+<summary><strong>osu-framework fork changes</strong></summary>
+
+The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) fork includes:
+
+**Audio engine tuning:**
+- BASS device buffer: 10 ms → 5 ms
+- Playback buffer: 100 ms → 25 ms (Android) / 30 ms (iOS)
+- Update period: 5 ms → 2 ms (Android) / 3 ms (iOS)
+- AAudio backend enabled for BASS
+- Native 48 kHz sample rate (matches Android/iOS hardware)
+- Mixer handle made public for Oboe bridge access
+
+**Rendering:**
+- Android renderer order changed to Vulkan (primary) → OpenGL (fallback)
+- Vulkan 1.3 requirement check with diagnostic logging
+
+**Platform layers:**
+- Full `osu.Framework.Android` project (activity lifecycle, storage, file picker)
+- Full `osu.Framework.iOS` project (Metal window, AOT, native frameworks)
+
+**Performance:**
+- LINQ eliminated from hot paths (Dropdown, FlowContainer, shader pipelines)
+- Modern `System.Threading.Lock` type replaces `lock(object)` in renderers
+- Reduced redundant OpenGL state changes
+- Faster texture uploads on mobile
+
+**Dependencies updated:** SDL3-CS, ImageSharp, Newtonsoft.Json, JetBrains.Annotations, StbiSharp, AndroidX.Window
+
+</details>
+
+<details>
+<summary><strong>Veldrid fork changes</strong></summary>
+
+The [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork adds:
+
+**Android Vulkan rendering:**
+- Vulkan surface creation from `ANativeWindow` via `VK_KHR_android_surface`
+- Android-specific extension detection and enablement
+- Native window P/Invoke bindings
+
+**OpenGL ES fallback:**
+- Complete EGL 1.4 bindings for GLES 2.0/3.0 context creation
+- Proper stencil buffer initialisation (critical for osu!'s UI)
+
+**Performance:**
+- `System.Threading.Lock` migration across all GPU backends
+- UTF-8 string literals for zero-allocation Vulkan lookups
+- Vulkan fence early-out to avoid blocking waits
+- Screen tearing support for lowest-latency present modes
+
+</details>
+
+<details>
+<summary><strong>CI/CD pipelines</strong></summary>
 
 | Workflow | What it does |
 |---|---|
-| `release.yml` | **One-click APK builder.** Compiles native C++, builds the .NET project, signs the APK, creates a GitHub Release. Auto-generates a signing keystore if no secrets are configured. |
-| `generate-keystore.yml` | Helper to generate a persistent signing keystore for consistent APK signatures across builds. |
-| `ci.yml` | Full CI with desktop tests + Android/iOS compile-only verification. |
+| **`release.yml`** | One-click APK builder. Compiles native C++ with NDK, builds .NET, signs the APK, creates a GitHub Release. Auto-generates a signing keystore if none is configured. |
+| **`generate-keystore.yml`** | Generates a persistent signing keystore so APK updates install cleanly over previous versions. |
+| **`ci.yml`** | Runs code quality checks (ReSharper InspectCode), desktop tests, and Android/iOS compile verification. |
 
-### 🔧 osu-framework fork ([winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework))
-
-The upstream ppy/osu uses the official `ppy.osu.Framework` NuGet package. This fork replaces it with a git submodule pointing to a custom framework fork — enabling deep platform-level changes that aren't possible through the public API.
-
-#### .NET 10 upgrade
-
-The entire framework is upgraded from .NET 8 → **.NET 10** with C# 14 language features. All target frameworks are updated (`net10.0`, `net10.0-android`, `net10.0-ios`).
-
-#### Audio latency reduction
-
-The biggest audio change lives in the framework's `AudioManager`:
-
-| Setting | Upstream (ppy) | This fork |
-|---------|----------------|-----------|
-| `Bass.DeviceBufferLength` | Default (10 ms) | **5 ms** |
-| `Bass.PlaybackBufferLength` | Default (100 ms) | **25 ms** (Android), **30 ms** (iOS) |
-| `Bass.UpdatePeriod` | Default (5 ms) | **2 ms** (Android), **3 ms** (iOS) |
-| AAudio backend | Not enabled | **Enabled** via `Bass.Configure(67, 1)` |
-| Sample rate | 44100 Hz | **48000 Hz** (native rate for AAudio and CoreAudio) |
-
-The `BassAudioMixer.Handle` property is made **public** so the Android Oboe bridge can access mixer handles directly instead of using fragile reflection.
-
-#### Android Vulkan as primary renderer
-
-In the framework's `GameHost`, the renderer order for Android is changed:
-
-- **Upstream:** OpenGL only
-- **This fork:** Vulkan (primary) → OpenGL (fallback)
-
-A diagnostic check logs a warning if the device has Vulkan < 1.3, since osu! Veldrid uses Vulkan 1.3 features (dynamic rendering, synchronisation2).
-
-#### Android platform layer
-
-The framework fork has a full `osu.Framework.Android` project with:
-- `AndroidGameActivity` / `AndroidGameHost` — Activity lifecycle and host integration
-- `AndroidStorage` — Content resolver file access
-- `AndroidFileSelector` — Native file picker
-- Release build optimisations: profiled AOT, LLVM, partial trimming, IL stripping
-
-#### iOS platform layer
-
-A complete `osu.Framework.iOS` project with:
-- `IOSGameHost` / `IOSWindow` — iOS host and Metal-backed window
-- AOT compilation with Mono interpreter fallback
-- Native framework references for BASS, FFmpeg, and Metal
-- macOS-only framework stripping (removes ApplicationServices/Quartz from iOS linker)
-
-#### Performance hot-path optimisations
-
-Several commits eliminate allocations and reduce lock contention in the framework:
-
-- **LINQ elimination** in `Dropdown.cs`, `FlowContainer.cs`, and shader pipelines — removed redundant enumerations that allocated on every keyboard event or layout pass
-- **`System.Threading.Lock`** migration — replaced `lock(object)` with the modern `Lock` type in `RendererDisposalQueue`, `SampleStore`, `VeldridTexture`, `GLTexture`, and others for lower-overhead synchronisation
-- **GL state thrashing reduction** — avoids redundant OpenGL state changes in the renderer
-- **Texture upload pipeline** optimisations for faster asset loading on mobile
-
-#### Dependency updates
-
-Key packages updated beyond upstream versions:
-
-| Package | Upstream | Fork |
-|---------|----------|------|
-| `ppy.SDL3-CS` | 2026.302.0 | 2026.320.0 |
-| `SixLabors.ImageSharp` | 3.1.11 | 3.1.12 |
-| `Newtonsoft.Json` | 13.0.3 | 13.0.4 |
-| `JetBrains.Annotations` | 2023.3.0 | 2025.2.4 |
-| `StbiSharp` | 1.1.0 | 1.2.1 |
-| `Xamarin.AndroidX.Window` | 1.2.0.1 | 1.5.1.2 |
-
-### 🖥️ Veldrid fork ([winnerspiros/veldrid](https://github.com/winnerspiros/veldrid))
-
-[Veldrid](https://github.com/veldrid/veldrid) is the cross-platform GPU abstraction layer used by osu-framework. Upstream ppy/osu uses it via a NuGet package (`ppy.Veldrid`). This fork replaces that with a git submodule containing a customised Veldrid with Android graphics support and performance improvements.
-
-#### Android Vulkan rendering
-
-The main reason this fork exists — full Vulkan support on Android:
-
-- **`VkSurfaceUtil.cs`** — Creates Vulkan surfaces from `ANativeWindow` via `VK_KHR_android_surface`
-- **`VkGraphicsDevice.cs`** — Detects and enables Android-specific Vulkan extensions
-- **`AndroidRuntime.cs`** — P/Invoke bindings to `ANativeWindow_fromSurface()`, `ANativeWindow_setBuffersGeometry()`, `ANativeWindow_release()`
-- **`SwapchainSource.cs`** — `AndroidSurfaceSwapchainSource` class for passing native windows to Vulkan
-
-#### OpenGL ES support
-
-For devices where Vulkan isn't available:
-
-- **EGL bindings** (`EGLNative.cs`) — Complete EGL 1.4 API for OpenGL ES 2.0/3.0 context creation
-- **`OpenGLGraphicsDevice.cs`** — `initializeANativeWindow()` for Android surface initialisation via EGL
-- **GLES stencil fixes** — Proper stencil buffer initialisation (critical for osu!'s UI rendering)
-
-#### .NET 10 and performance
-
-- Upgraded to `net10.0` across all projects
-- **`System.Threading.Lock`** migration across all backends (D3D11, Vulkan, OpenGL, Metal) — 11 files updated
-- **UTF-8 string literals** (`"vkCreate..."u8`) for zero-allocation Vulkan function lookups
-- **Vulkan fence early-out** — uses `vkGetFenceStatus()` to avoid blocking waits
-- **Screen tearing support** — `AllowTearing` property in `VkSwapchain` for lowest-latency present modes
-- **D3D11 platform annotations** — `[SupportedOSPlatform("windows")]` enables safe trimming on non-Windows platforms
+</details>
 
 ---
 
-## Download
-
-Grab the latest signed APK from the [Releases page](https://github.com/winnerspiros/osu/releases/latest).
-
-**Requirements:**
-- Android 13 or later (API 33+)
-- arm64 device (virtually all modern Android phones and tablets)
-
-Install by opening the APK on your device. You may need to enable "Install from unknown sources" in your device settings.
-
----
-
-## Building from source
+## 🏗️ Building from source
 
 ### Prerequisites
 
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - JDK 17 (`sudo apt install openjdk-17-jdk` or [Microsoft's JDK](https://learn.microsoft.com/en-us/java/openjdk/download))
 - Android workload: `dotnet workload install android`
-- Android NDK r29 + CMake (for native library — only needed for release builds)
+- Android NDK r29 + CMake (only needed for release builds with native audio/Vulkan)
 
 ### Clone
 
@@ -263,16 +262,16 @@ dotnet build -c Debug osu.Android/osu.Android.csproj
 adb install osu.Android/bin/Debug/net10.0-android/sh.ppy.osulazer.apk
 ```
 
-Debug builds skip AOT/trimming and use the Android debug keystore — fast to build, fine for testing.
+Debug builds skip AOT and trimming — fast to build, good for testing.
 
 ### Release build (optimised)
 
-The easiest way is the GitHub Actions workflow — just click **Actions → Build Android APK → Run workflow**. It handles NDK setup, native compilation, signing, and creates a Release automatically.
+The easiest way is the GitHub Actions workflow: **Actions → Build Android APK → Run workflow**. It handles everything — NDK, native compilation, signing, and release creation.
 
 To build locally:
 
 ```shell
-# 1. Build native library (requires NDK r29)
+# 1. Build the native library (requires NDK r29)
 NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
 CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
@@ -294,76 +293,29 @@ dotnet publish -c Release osu.Android/osu.Android.csproj -f net10.0-android
 dotnet run --project osu.Desktop
 ```
 
-Load `osu.Desktop.slnf` in your IDE for desktop development, or `osu.Android.slnf` for Android.
+Use `osu.Desktop.slnf` in your IDE for desktop development, or `osu.Android.slnf` for Android work.
 
 ---
 
-## Project structure (fork-specific files)
+## 🤝 Contributing
 
-```
-osu.Android/
-├── Native/
-│   ├── oboe_bridge.cpp/h      # C++ Oboe audio bridge (AAudio/OpenSL ES)
-│   ├── vulkan_bridge.cpp/h     # C++ Vulkan GPU capability probe
-│   ├── OboeAudioBridge.cs      # P/Invoke wrapper for Oboe
-│   ├── VulkanProbe.cs          # P/Invoke wrapper for Vulkan
-│   └── CMakeLists.txt          # NDK build config (C++20, Oboe, Vulkan)
-├── Input/
-│   ├── AndroidStylusHandler.cs # S Pen / stylus tablet-area input
-│   ├── AndroidKeyboardHandler.cs
-│   └── AndroidMouseHandler.cs
-├── Performance/
-│   └── AndroidHighPerformanceSessionManager.cs
-├── OboeAudioRedirector.cs      # BASS → Oboe audio routing
-├── AndroidNativeBridgeManager.cs
-├── OsuGameAndroid.cs           # Main game class (Android lifecycle, perf, DeX)
-├── OsuGameActivity.cs          # Activity (intents, surface, input dispatch)
-└── AndroidManifest.xml         # Samsung tags, file associations, API levels
+Contributions are welcome! Please refer to the [contributing guidelines](CONTRIBUTING.md).
 
-build/
-├── PatchElfPageSize.targets    # ELF 4KB→16KB alignment for Android 16+
-└── SuppressSubmoduleWarnings.targets
+Before committing, run `dotnet format` to ensure consistent code style. The CI pipeline also runs [ReSharper InspectCode](https://www.jetbrains.com/help/resharper/InspectCode.html) for additional checks — you can run it locally with `.\InspectCode.ps1`.
 
-.github/workflows/
-├── release.yml                 # One-click APK builder + GitHub Release
-├── generate-keystore.yml       # Signing keystore generator
-└── ci.yml                      # CI with Android/iOS compile jobs
-
-osu.Game/
-├── Configuration/OsuConfigManager.cs   # +3 Android settings
-├── OsuGameBase.cs                      # +virtual props (Vulkan, Oboe, refresh rate)
-├── Overlays/Settings/.../AndroidPerformanceSettings.cs  # Android settings UI
-├── Overlays/Settings/.../RendererSettings.cs            # +Vulkan dropdown on Android
-├── Utils/MobileUtils.cs                # Orientation management
-└── Updater/MobileUpdateNotifier.cs     # GitHub Release update checker
-```
+For localisation help, head to [crowdin](https://crowdin.com/project/osu-web).
 
 ---
 
-## Developing osu!
+## 📄 Licence
 
-### Code analysis
+*osu!*'s code and framework are licensed under the [MIT licence](https://opensource.org/licenses/MIT). See the [LICENCE](LICENCE) file for details. In short — you can do whatever you want as long as you include the original copyright notice.
 
-Before committing your code, please run a code formatter. This can be achieved by running `dotnet format` in the command line, or using the `Format code` command in your IDE.
+This does **not** cover the "osu!" or "ppy" branding (protected by trademark law), or game resources (see [ppy/osu-resources](https://github.com/ppy/osu-resources)).
 
-We have adopted some cross-platform, compiler integrated analyzers. They can provide warnings when you are editing, building inside IDE or from command line, as-if they are provided by the compiler itself.
+---
 
-JetBrains ReSharper InspectCode is also used for wider rule sets. You can run it from PowerShell with `.\InspectCode.ps1`. Alternatively, you can install ReSharper or use Rider to get inline support in your IDE of choice.
-
-## Contributing
-
-Contributions are welcome! Please refer to the [contributing guidelines](CONTRIBUTING.md) to understand how to help in the most effective way possible.
-
-If you wish to help with localisation efforts, head over to [crowdin](https://crowdin.com/project/osu-web).
-
-## Licence
-
-*osu!*'s code and framework are licensed under the [MIT licence](https://opensource.org/licenses/MIT). Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/mit-license) you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.
-
-Please note that this *does not cover* the usage of the "osu!" or "ppy" branding in any software, resources, advertising or promotion, as this is protected by trademark law.
-
-Please also note that game resources are covered by a separate licence. Please see the [ppy/osu-resources](https://github.com/ppy/osu-resources) repository for clarifications.
-
-## Credits
-
-This fork is based on [ppy/osu](https://github.com/ppy/osu) by Dean Herbert (peppy) and contributors. All upstream code is under the MIT licence.
+<p align="center">
+  Based on <a href="https://github.com/ppy/osu">ppy/osu</a> by Dean Herbert (peppy) and contributors.<br>
+  All upstream code is under the MIT licence.
+</p>
