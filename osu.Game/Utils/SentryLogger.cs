@@ -69,7 +69,7 @@ namespace osu.Game.Utils
                     options.Release = $"osu@{game.Version.Split('-').First()}";
                 });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 Logger.Log($"Failed to initialise Sentry SDK: {ex.Message}", LoggingTarget.Runtime, LogLevel.Debug);
                 return;
