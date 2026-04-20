@@ -69,7 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.420.3" />
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.416.0" />
   </ItemGroup>
 
   <PropertyGroup>
