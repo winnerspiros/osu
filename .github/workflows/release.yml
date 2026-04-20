@@ -276,7 +276,7 @@ jobs:
 
           if [ "$MISSING" -ne 0 ]; then
             echo ""
-            echo "::error::One or more required native libraries are missing."
+            echo "::error::One or more required native libraries are missing from the APK. Ensure ppy.osu.Framework.Android was properly restored from the winnerspiros GitHub Packages feed."
             exit 1
           fi
 
