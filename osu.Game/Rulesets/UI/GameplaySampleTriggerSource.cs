@@ -102,10 +102,25 @@ namespace osu.Game.Rulesets.UI
             {
                 // We need to use lifetime entries to find the next object (we can't just use `hitObjectContainer.Objects` due to pooling - it may even be empty).
                 // If required, we can make this lookup more efficient by adding support to get next-future-entry in LifetimeEntryManager.
-                var candidate =
-                    // Use alive entries first as an optimisation.
-                    hitObjectContainer.AliveEntries.Keys.Where(e => !isAlreadyHit(e)).MinBy(e => e.HitObject.StartTime)
-                    ?? hitObjectContainer.Entries.Where(e => !isAlreadyHit(e)).MinBy(e => e.HitObject.StartTime);
+
+                // Use alive entries first as an optimisation (single-pass minimum, no LINQ allocation).
+                HitObjectLifetimeEntry? candidate = null;
+
+                foreach (var e in hitObjectContainer.AliveEntries.Keys)
+                {
+                    if (!isAlreadyHit(e) && (candidate == null || e.HitObject.StartTime < candidate.HitObject.StartTime))
+                        candidate = e;
+                }
+
+                // Fall back to full entries if no alive non-judged entry found.
+                if (candidate == null)
+                {
+                    foreach (var e in hitObjectContainer.Entries)
+                    {
+                        if (!isAlreadyHit(e) && (candidate == null || e.HitObject.StartTime < candidate.HitObject.StartTime))
+                            candidate = e;
+                    }
+                }
 
                 // In the case there are no non-judged objects, the last hit object should be used instead.
                 if (candidate == null)
