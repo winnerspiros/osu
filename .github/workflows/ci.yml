@@ -6,6 +6,7 @@ concurrency:
 
 permissions:
   contents: read # to fetch code (actions/checkout)
+  packages: read # to restore NuGet packages from GitHub Packages
   security-events: write # for reporting InspectCode issues
 
 jobs:
@@ -16,7 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Install .NET 10.0.x
@@ -30,6 +30,9 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Restore Tools
         run: dotnet tool restore
@@ -53,10 +56,6 @@ jobs:
           exit_code=0
           while read -r line; do
             if [[ ! -z "$line" ]]; then
-              # Skip submodule files — third-party code doesn't use our license header
-              if [[ "$line" == *"./submodules/"* ]]; then
-                continue
-              fi
               echo "::error::$line"
               exit_code=1
             fi
@@ -93,7 +92,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Install .NET 10.0.x
@@ -107,6 +105,9 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Compile
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
@@ -171,7 +172,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Setup JDK 11
@@ -192,6 +192,9 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
           restore-keys: ${{ runner.os }}-nuget-
 
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
       - name: Install .NET workloads
         run: dotnet workload install android
 
@@ -206,7 +209,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Install .NET 10.0.x
@@ -220,6 +222,9 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
           restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Set Xcode version
         run: sudo xcode-select -s /Applications/Xcode_26.3.app

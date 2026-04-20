@@ -33,11 +33,6 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Use winnerspiros/osu-framework fork (net10.0-ios, optimized) via submodule instead of ppy NuGet package -->
-    <ProjectReference Include="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.iOS\osu.Framework.iOS.csproj" />
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.420.3" />
   </ItemGroup>
-  <!-- When using ProjectReference instead of NuGet, the framework's .props and .targets are not
-       auto-imported. Import explicitly for NativeReference items (bass/ffmpeg xcframeworks)
-       and workaround targets (remove macOS-only frameworks like ApplicationServices/Quartz). -->
-  <Import Project="$(MSBuildThisFileDirectory)submodules\osu-framework\osu.Framework.iOS.props" />
 </Project>

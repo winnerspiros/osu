@@ -1,3 +1,0 @@
-# Override the root .gitignore to allow checked-in NuGet packages.
-# These are fork-built packages not available on nuget.org.
-!*.nupkg

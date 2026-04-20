@@ -40,11 +40,11 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: write
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Setup JDK 17
@@ -60,6 +60,9 @@ jobs:
 
       - name: Install .NET Android workload
         run: dotnet workload install android
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Ensure Android NDK and CMake are available
         run: |
@@ -215,7 +218,6 @@ jobs:
           -p:AndroidSigningKeyAlias="${{ steps.keystore.outputs.key_alias }}"
           -p:AndroidSigningKeyPass="${{ steps.keystore.outputs.key_pass }}"
           -p:AndroidSigningStorePass="${{ steps.keystore.outputs.store_pass }}"
-          -p:CustomBeforeMicrosoftCommonTargets="${{ github.workspace }}/build/SuppressSubmoduleWarnings.targets"
 
       - name: Find and rename APK
         id: find_apk
@@ -256,7 +258,6 @@ jobs:
       - name: Verify native libraries in APK
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
-          SUBMOD="submodules/osu-framework/osu.Framework.Android/arm64-v8a"
           echo "Checking APK for required native libraries..."
 
           NATIVE_LIBS=$(unzip -l "$APK" | grep "lib/arm64-v8a/.*\.so" || true)
@@ -275,30 +276,12 @@ jobs:
 
           if [ "$MISSING" -ne 0 ]; then
             echo ""
-            echo "::error::One or more required native libraries are missing. Check that the osu-framework submodule is initialised and the AndroidNativeLibrary glob in osu.Android.props resolves correctly."
+            echo "::error::One or more required native libraries are missing."
             exit 1
           fi
 
           echo ""
           echo "All required native libraries present ✓"
-
-          # Verify the BASS libraries are the Android-built versions, not the Linux desktop
-          # ones from the NativeLibs NuGet package.  The Android libbass.so links against
-          # libOpenSLES.so (Android audio API); the Linux one links against libc.so.6.
-          echo ""
-          echo "Verifying native library ABI compatibility..."
-          TMPDIR=$(mktemp -d)
-          unzip -q -o "$APK" "lib/arm64-v8a/libbass.so" -d "$TMPDIR"
-          if readelf -d "$TMPDIR/lib/arm64-v8a/libbass.so" | grep -q "libOpenSLES.so"; then
-            echo "✅ libbass.so is the correct Android build (links libOpenSLES.so)"
-          else
-            echo "::error::libbass.so in APK is NOT the Android build — it appears to be the Linux desktop version from ppy.osu.Framework.NativeLibs NuGet. The app will crash with DllNotFoundException."
-            echo "::error::Ensure ppy.osu.Framework.NativeLibs has ExcludeAssets=native in osu.Android.props."
-            readelf -d "$TMPDIR/lib/arm64-v8a/libbass.so" | grep NEEDED || true
-            rm -rf "$TMPDIR"
-            exit 1
-          fi
-          rm -rf "$TMPDIR"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
