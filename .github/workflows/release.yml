@@ -100,10 +100,13 @@ jobs:
           # Priority: workflow_dispatch inputs > repository secrets > auto-generate.
           # This lets users paste values from SAVE-THESE-SECRETS.txt directly into
           # the "Run workflow" form so they don't need to set up repo secrets.
+          # Note: the auto-generated keystore uses the same password for both key and
+          # store, so a single key_password input covers both. Users with separate
+          # passwords should use repository secrets instead of workflow inputs.
           EFFECTIVE_KS="${INPUT_KEYSTORE_BASE64:-$KEYSTORE_BASE64}"
           EFFECTIVE_ALIAS="${INPUT_KEY_ALIAS:-$KEY_ALIAS_SECRET}"
           EFFECTIVE_PASS="${INPUT_KEY_PASSWORD:-$KEY_PASS_SECRET}"
-          EFFECTIVE_STORE_PASS="${INPUT_KEY_PASSWORD:-$STORE_PASS_SECRET}"
+          EFFECTIVE_STORE_PASS="${INPUT_KEY_PASSWORD:-${STORE_PASS_SECRET:-$EFFECTIVE_PASS}}"
 
           # Mask passwords so they never appear in logs.
           if [ -n "$EFFECTIVE_PASS" ]; then echo "::add-mask::$EFFECTIVE_PASS"; fi
