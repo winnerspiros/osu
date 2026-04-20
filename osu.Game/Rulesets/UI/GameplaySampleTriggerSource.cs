@@ -64,9 +64,8 @@ namespace osu.Game.Rulesets.UI
             if (nextObject == null)
                 return;
 
-            var samples = nextObject.Samples
-                                    .Cast<ISampleInfo>()
-                                    .ToArray();
+            // HitSampleInfo implements ISampleInfo, so array covariance lets us skip .Cast<>().
+            var samples = nextObject.Samples.ToArray();
 
             PlaySamples(samples);
         }
@@ -135,7 +134,23 @@ namespace osu.Game.Rulesets.UI
 
             // Else we want the earliest valid nested.
             // In cases of nested objects, they will always have earlier sample data than their parent object.
-            return getAllNested(mostValidObject.HitObject).OrderBy(h => h.GetEndTime()).SkipWhile(h => h.GetEndTime() <= getReferenceTime()).FirstOrDefault() ?? mostValidObject.HitObject;
+            // Single-pass scan avoids the OrderBy + SkipWhile + FirstOrDefault LINQ chain.
+            double referenceTime = getReferenceTime();
+            HitObject? best = null;
+            double bestEnd = double.MaxValue;
+
+            foreach (var nested in getAllNested(mostValidObject.HitObject))
+            {
+                double end = nested.GetEndTime();
+
+                if (end > referenceTime && end < bestEnd)
+                {
+                    best = nested;
+                    bestEnd = end;
+                }
+            }
+
+            return best ?? mostValidObject.HitObject;
         }
 
         private bool isAlreadyHit(HitObjectLifetimeEntry h) => h.AllJudged;
