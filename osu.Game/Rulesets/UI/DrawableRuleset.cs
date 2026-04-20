@@ -271,7 +271,7 @@ namespace osu.Game.Rulesets.UI
                 return true;
 
             // If the entry was not removed from the playfield, assume the hitobject is not being pooled and attempt a direct drawable removal.
-            var drawableObject = Playfield.AllHitObjects.SingleOrDefault(d => d.HitObject == hitObject);
+            var drawableObject = Playfield.AllHitObjects.FirstOrDefault(d => d.HitObject == hitObject);
             if (drawableObject != null)
                 return Playfield.Remove(drawableObject);
 

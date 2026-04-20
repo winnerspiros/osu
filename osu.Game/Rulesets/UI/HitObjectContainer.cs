@@ -19,9 +19,42 @@ namespace osu.Game.Rulesets.UI
 {
     public partial class HitObjectContainer : PooledDrawableWithLifetimeContainer<HitObjectLifetimeEntry, DrawableHitObject>, IHitObjectContainer
     {
-        public IEnumerable<DrawableHitObject> Objects => InternalChildren.Cast<DrawableHitObject>().OrderBy(h => h.HitObject.StartTime);
+        /// <summary>
+        /// All <see cref="DrawableHitObject"/>s in this container, sorted by ascending <see cref="HitObject.StartTime"/>.
+        /// </summary>
+        /// <remarks>
+        /// Since internal children are already sorted by descending <see cref="HitObject.StartTime"/>
+        /// (via <see cref="Compare"/>), we reverse-enumerate to avoid an O(n log n) sort on every access.
+        /// </remarks>
+        public IEnumerable<DrawableHitObject> Objects => enumerateByStartTimeAscending();
 
-        public IEnumerable<DrawableHitObject> AliveObjects => AliveEntries.Values.OrderBy(h => h.HitObject.StartTime);
+        /// <summary>
+        /// All alive <see cref="DrawableHitObject"/>s in this container, sorted by ascending <see cref="HitObject.StartTime"/>.
+        /// </summary>
+        /// <remarks>
+        /// The alive entries dictionary is unordered, so we must sort.
+        /// However, the alive set is typically much smaller than the full set, making this cheaper
+        /// than sorting all children. We use a List + Sort (in-place) to avoid LINQ iterator allocations.
+        /// </remarks>
+        public IEnumerable<DrawableHitObject> AliveObjects => getSortedAliveObjects();
+
+        private IEnumerable<DrawableHitObject> enumerateByStartTimeAscending()
+        {
+            var children = InternalChildren;
+
+            for (int i = children.Count - 1; i >= 0; i--)
+            {
+                if (children[i] is DrawableHitObject hitObject)
+                    yield return hitObject;
+            }
+        }
+
+        private List<DrawableHitObject> getSortedAliveObjects()
+        {
+            var list = new List<DrawableHitObject>(AliveEntries.Values);
+            list.Sort(static (a, b) => a.HitObject.StartTime.CompareTo(b.HitObject.StartTime));
+            return list;
+        }
 
         /// <summary>
         /// Invoked when a <see cref="DrawableHitObject"/> is judged.

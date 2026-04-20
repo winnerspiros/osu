@@ -161,6 +161,10 @@ namespace osu.Game.Online
         {
             base.Dispose(isDisposing);
 
+            apiState?.UnbindAll();
+            multiplayerState?.UnbindAll();
+            spectatorState?.UnbindAll();
+
             if (notificationsClient.IsNotNull())
                 notificationsClient.MessageReceived -= notifyAboutForcedDisconnection;
 
