@@ -40,8 +40,14 @@ namespace osu.Game.Screens.Play.HUD.ClicksPerSecond
             // so we can use binary-search-style trimming instead of per-element RemoveAt.
 
             // Trim future timestamps caused by rewinding (remove from the end in one batch).
-            while (timestamps.Count > 0 && timestamps[^1] > latestValidTime)
-                timestamps.RemoveAt(timestamps.Count - 1);
+            // RemoveRange from the end is a single operation vs repeated RemoveAt calls.
+            int trimStart = timestamps.Count;
+
+            while (trimStart > 0 && timestamps[trimStart - 1] > latestValidTime)
+                trimStart--;
+
+            if (trimStart < timestamps.Count)
+                timestamps.RemoveRange(trimStart, timestamps.Count - trimStart);
 
             // Count timestamps within the valid 1-second window.
             // Since the list is in chronological order, scan backwards until we leave the window.
