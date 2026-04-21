@@ -39,6 +39,15 @@
     </PackageReference>
     <PackageReference Include="Realm" Version="20.1.0" />
     <PackageReference Include="ppy.osu.Framework" Version="2026.421.1" />
+    <!--
+      Explicitly pin `ppy.Veldrid.SPIRV` to a published version. `ppy.osu.Framework` 2026.421.1 was
+      built against `ppy.Veldrid.SPIRV 1.0.15-gb268bf39ea`, which is a winnerspiros fork build that
+      was never published to a public NuGet feed. Without this explicit reference NuGet falls back
+      to the nearest available version on nuget.org and emits NU1603, which `-warnaserror` (used by
+      both the `Code Quality` and `Test` CI jobs) turns into build errors. The published version
+      below is binary-compatible with what the framework expects.
+    -->
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb66ebf81d2" />
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.420.0" />
     <PackageReference Include="Sentry" Version="6.2.0" />
     <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->
