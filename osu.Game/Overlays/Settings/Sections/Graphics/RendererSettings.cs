@@ -49,7 +49,15 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             var frameSync = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
-            SettingsItemV2 customDrawLimitItem;
+            var customDrawLimitItem = new SettingsItemV2(new FormSliderBar<int>
+            {
+                Caption = GraphicsSettingsStrings.CustomDrawLimit,
+                Current = config.GetBindable<int>(FrameworkSetting.CustomDrawLimit),
+                TransferValueOnCommit = true,
+            })
+            {
+                Keywords = new[] { @"fps", @"framerate", @"custom", @"hz" },
+            };
 
             Children = new Drawable[]
             {
@@ -74,15 +82,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"fps", @"framerate" },
                 },
-                customDrawLimitItem = new SettingsItemV2(new FormSliderBar<int>
-                {
-                    Caption = GraphicsSettingsStrings.CustomDrawLimit,
-                    Current = config.GetBindable<int>(FrameworkSetting.CustomDrawLimit),
-                    TransferValueOnCommit = true,
-                })
-                {
-                    Keywords = new[] { @"fps", @"framerate", @"custom", @"hz" },
-                },
+                customDrawLimitItem,
                 new SettingsItemV2(new FormEnumDropdown<ExecutionMode>
                 {
                     Caption = GraphicsSettingsStrings.ThreadingMode,

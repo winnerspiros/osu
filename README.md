@@ -129,6 +129,42 @@ When Vulkan is available, it's used as the **primary renderer** (with OpenGL ES 
 
 ---
 
+### 🧪 ANGLE on Android (advanced / experimental)
+
+[ANGLE](https://chromium.googlesource.com/angle/angle/) is Google's OpenGL-ES-on-Vulkan translator. On devices with a sketchy native GL ES driver, forcing ANGLE can work around driver bugs or even improve performance. Android 10+ supports enabling ANGLE **per app** — no APK changes required on our side:
+
+**Option 1 — Developer Options (no PC needed):**
+1. Enable Developer Options (`Settings → About phone → tap Build number 7 times`).
+2. `Settings → System → Developer options → ANGLE preferences` *(name varies: "OpenGL renderer", "GLES driver" on some OEMs)*.
+3. Select **osu!** and choose **`angle`** (default is `native`/`default`).
+4. Force-stop and relaunch osu!.
+
+**Option 2 — ADB (one-liner):**
+```shell
+adb shell settings put global angle_gl_driver_selection_pkgs sh.ppy.osulazer
+adb shell settings put global angle_gl_driver_selection_values angle
+adb shell am force-stop sh.ppy.osulazer
+```
+To revert, set the value back to `native` (or `default`).
+
+> **Note:** This affects only the OpenGL ES path — Vulkan rendering (the default on this fork) already runs natively. Use ANGLE only if you've explicitly switched the renderer to OpenGL ES in Settings → Graphics → Renderer. A first-class "ANGLE" entry in the renderer dropdown would need framework-level work (new `RendererType` value + bundling ANGLE's native libs into the APK) and is intentionally left out until the upstream [`winnerspiros/osu-framework`](https://github.com/winnerspiros/osu-framework) fork grows it.
+
+---
+
+### ⚡ Rendering tuning (desktop + Android)
+
+Settings → Graphics → Renderer now exposes the full set of fork-added options:
+
+| Option | What it does |
+|---|---|
+| **Renderer** | Picks the GPU backend. On Windows you get Metal / Vulkan / D3D11 / **D3D12 (new)** / OpenGL plus their `Deferred_*` experimental variants. On Android you get Vulkan (if supported) and OpenGL ES. |
+| **Frame limiter** | VSync, **VSync Unbuffered (new)** — ideal for G-Sync / FreeSync / VRR displays, 2×/4×/8× refresh, Unlimited, or **Custom (new)**. |
+| **Custom draw rate limit** | Slider 0–1000 Hz, only visible when the frame limiter is set to Custom. `0` = unlimited draw thread. Useful for benchmarking or VRR-specific tuning. |
+| **Threading mode** | Single / MultiThreaded / MultiThreadedDrawing. |
+| **Low latency** | `Off` / `On` / `Boost` — drives the fork's generic `ILowLatencyProvider` (NVIDIA Reflex / LatencyFlex-ready on D3D11 & D3D12; no-op on other backends until a provider plugin is supplied). `Boost` also sleeps at the start of each update frame for lower input-to-photon latency. |
+
+---
+
 ### 📱 Android quality-of-life
 
 | Feature | What it does |
@@ -163,7 +199,7 @@ This fork includes several crash fixes on top of upstream:
 | | |
 |---|---|
 | **.NET 10** | Upgraded from .NET 8 (upstream) to .NET 10 for the latest runtime and language improvements |
-| **Framework as submodule** | Uses a [custom osu-framework fork](https://github.com/winnerspiros/osu-framework) as a git submodule instead of the NuGet package — enables deep platform changes |
+| **Framework as NuGet (fork)** | Consumes the [`winnerspiros/osu-framework`](https://github.com/winnerspiros/osu-framework) fork as `ppy.osu.Framework` / `ppy.osu.Framework.Android` / `ppy.osu.Framework.iOS` **v2026.421.1** from the winnerspiros GitHub Packages feed — enables deep platform changes without carrying a submodule |
 | **Profiled AOT** | Startup-critical methods are ahead-of-time compiled for faster app launch |
 | **IL trimming** | Unused code is stripped from the APK for smaller size |
 | **LZ4 compression** | Assembly compression saves ~20 MB in the final APK |
@@ -174,55 +210,89 @@ This fork includes several crash fixes on top of upstream:
 </details>
 
 <details>
-<summary><strong>osu-framework fork changes</strong></summary>
+<summary><strong>osu-framework fork changes (v2026.421.1)</strong></summary>
 
-The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) fork includes:
+The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) fork (published as NuGet v2026.421.1) layers the following on top of upstream `ppy/osu-framework`:
+
+**Rendering backends:**
+- Full **Direct3D 12** backend powered by the [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork — exposed as `RendererType.Direct3D12` / `Deferred_Direct3D12` in the renderer dropdown (Windows only; auto-hidden on other platforms).
+- Android renderer order: Vulkan (primary) → OpenGL ES (fallback). Vulkan 1.3 requirement check with diagnostic logging.
+- New public **`BackendInfoD3D11/D3D12/Metal/OpenGL/Vulkan`** APIs consumed by `VeldridExtensions.LogD3D11/LogD3D12/LogMetal/LogOpenGL/LogVulkan` — avoids re-issuing native capability queries and exposes richer diagnostics (driver name/info, fragment shading rate, mesh shaders, raytracing, enhanced barriers, etc.).
+
+**Low-latency infrastructure (GPU + input):**
+- Generic `ILowLatencyProvider` interface (with D3D11-specific `IDirect3D11LowLatencyProvider`) and default no-op implementations — ready for NVIDIA Reflex / LatencyFlex implementations on D3D11 or D3D12.
+- Latency markers inserted into `GameHost.UpdateFrame()` / `DrawFrame()` (`SimulationStart/End`, `RenderSubmitStart/End`, `PresentStart/End`, `InputSample`, `TriggerFlash`).
+- Provider auto-initialises on the draw thread using the native device handle from Veldrid's `BackendInfoD3D11` / `BackendInfoD3D12`.
+- **New `LatencyMode` setting** (`Off` / `On` / `Boost`) — surfaced as "Low latency" in Settings → Graphics → Renderer.
+- **Raw keyboard input** on Windows (`SDL_HINT_WINDOWS_RAW_KEYBOARD` enabled by default) — bypasses Windows message translation.
+- **Async keyboard event handling** — when text input (IME) is inactive, `KEY_DOWN` / `KEY_UP` are handled directly in SDL's event filter, bypassing the SDL event queue for reduced input-to-render latency.
+
+**Frame-rate limiter enhancements:**
+- **Unbuffered VSync (`FrameSync.UVSync`)** — limits both draw and update threads to the exact display refresh rate. Useful for VRR / G-Sync / FreeSync displays where regular VSync adds buffering.
+- **Custom FPS limiter (`FrameSync.Custom` + `CustomDrawLimit` 0–1000 Hz)** — surfaced as a "Custom draw rate limit" slider in Settings → Graphics → Renderer that appears only when Custom is selected. `0` = unlimited draw thread.
 
 **Audio engine tuning:**
 - BASS device buffer: 10 ms → 5 ms
 - Playback buffer: 100 ms → 25 ms (Android) / 30 ms (iOS)
 - Update period: 5 ms → 2 ms (Android) / 3 ms (iOS)
-- AAudio backend enabled for BASS
-- Native 48 kHz sample rate (matches Android/iOS hardware)
+- AAudio backend enabled for BASS, native 48 kHz sample rate (matches Android/iOS hardware)
 - Mixer handle made public for Oboe bridge access
 
-**Rendering:**
-- Android renderer order changed to Vulkan (primary) → OpenGL (fallback)
-- Vulkan 1.3 requirement check with diagnostic logging
+**Performance (all transparent to consumers):**
+- Hot-path LINQ allocations eliminated across the framework (for-loops, spans, cached collections).
+- `object`-based locks migrated to `System.Threading.Lock` for lower overhead on .NET 10.
+- GridContainer cell sizing uses `RequiredParentSizeToFit` instead of `BoundingBox` — avoids redundant matrix-to-parent-space transforms each layout pass.
+- `VeldridExtensions.LogOpenGL` hoists cached Version / ShadingLanguageVersion out of the GL-thread execution scope (fewer unsafe `glGetString` + `Marshal.PtrToStringUTF8` calls per init).
+- GL state-change, shader warm-up, texture upload, and mobile vertex-batching improvements.
 
-**Platform layers:**
-- Full `osu.Framework.Android` project (activity lifecycle, storage, file picker)
-- Full `osu.Framework.iOS` project (Metal window, AOT, native frameworks)
+**Platform targeting:**
+- Full `osu.Framework.Android` / `osu.Framework.iOS` implementations.
+- Android minimum bumped to **API 33** (matches app manifest), target API 36.
+- Android release config: profiled AOT (`AndroidEnableProfiledAot`), partial trimming, `AndroidStripILAfterAOT=false` (avoids `plt_entry` crashes), no LLVM (incompatible with profiled AOT).
+- iOS: `SupportedOSPlatformVersion` 13.4, trim-analysis warnings suppressed with `[DynamicallyAccessedMembers]` and `[UnconditionalSuppressMessage]`.
 
-**Performance:**
-- LINQ eliminated from hot paths (Dropdown, FlowContainer, shader pipelines)
-- Modern `System.Threading.Lock` type replaces `lock(object)` in renderers
-- Reduced redundant OpenGL state changes
-- Faster texture uploads on mobile
-
-**Dependencies updated:** SDL3-CS, ImageSharp, Newtonsoft.Json, JetBrains.Annotations, StbiSharp, AndroidX.Window
+**Stability fixes consumed by the Android build:**
+- Null `ANativeWindow` guard in `VkSurfaceUtil` prevents SIGSEGV at `pc=0x0` from invalid Vulkan function pointers.
+- `VeldridDevice` polls `SurfaceHandle` for up to 5 s when the Android surface is not yet ready.
+- `DrawThread.OnInitialize()` wraps the initial `BeginFrame` in try-catch for graceful handling before surface readiness.
+- NRE fix in `GraphicsPipeline.cs` (null-conditional `ResourceLayouts?.Length`).
 
 </details>
 
 <details>
 <summary><strong>Veldrid fork changes</strong></summary>
 
-The [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork adds:
+The [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork (net10.0, C# 14, `System.Threading.Lock`) powers the framework above. It adds:
+
+**Direct3D 12 backend:**
+- Full D3D12 renderer with swapchain creation (`VeldridDevice.CreateD3D12`) and `PersistentStagingBuffer`.
+- `BackendInfoD3D12`: `SupportsEnhancedBarriers`, `SupportsMeshShaders`, `SupportsVariableRateShading`, `SupportsRaytracing`, device handle for low-latency providers.
+- D3D12 redundant-state caching, staging-pool swap-remove.
 
 **Android Vulkan rendering:**
-- Vulkan surface creation from `ANativeWindow` via `VK_KHR_android_surface`
-- Android-specific extension detection and enablement
-- Native window P/Invoke bindings
+- Vulkan surface creation from `ANativeWindow` via `VK_KHR_android_surface`.
+- Android-specific extension detection and enablement.
+- `VK_EXT_host_image_copy`, push descriptors, dynamic rendering, pipeline-cache optimisations.
 
 **OpenGL ES fallback:**
-- Complete EGL 1.4 bindings for GLES 2.0/3.0 context creation
-- Proper stencil buffer initialisation (critical for osu!'s UI)
+- Complete EGL 1.4 bindings for GLES 2.0/3.0 context creation.
+- Proper stencil buffer initialisation (critical for osu!'s UI).
+- OpenGL pipeline state caching; `BackendInfoOpenGL` caches `Version` / `ShadingLanguageVersion` off-thread.
 
-**Performance:**
-- `System.Threading.Lock` migration across all GPU backends
-- UTF-8 string literals for zero-allocation Vulkan lookups
-- Vulkan fence early-out to avoid blocking waits
-- Screen tearing support for lowest-latency present modes
+**Metal / D3D11 / general:**
+- `BackendInfoMetal` with `MaxFeatureSet` / `FeatureSet`, merged layout-offset loops.
+- `BackendInfoD3D11` exposing `FeatureLevel`, `DeviceId`, native `Device` handle (no redundant COM RCW).
+- D3D11/D3D12 staging-pool swap-remove for faster buffer recycling.
+
+**Performance, all backends:**
+- `System.Threading.Lock` migration across every GPU backend.
+- UTF-8 string literals for zero-allocation Vulkan lookups.
+- Vulkan fence early-out to avoid blocking waits.
+- Screen-tearing support for lowest-latency present modes.
+- `Vortice.Windows` bumped to 3.8.3.
+
+**Android packaging:**
+- `veldrid-spirv` built with 16 KB ELF page alignment (Android 15+ / API 36 compliance).
 
 </details>
 
@@ -251,8 +321,16 @@ The [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork adds:
 ### Clone
 
 ```shell
-git clone --recurse-submodules https://github.com/winnerspiros/osu
+git clone https://github.com/winnerspiros/osu
 cd osu
+```
+
+The fork's framework + Veldrid are consumed as NuGet packages from the `winnerspiros` GitHub Packages feed (configured in `NuGet.Config`), so there are no git submodules to initialise. You'll need a GitHub Personal Access Token with `read:packages` scope to restore — the CI workflows pass `GITHUB_TOKEN` automatically:
+
+```shell
+dotnet nuget update source winnerspiros-github \
+  --username <your-gh-username> --password <your-PAT> \
+  --store-password-in-clear-text
 ```
 
 ### Debug build (quick iteration)
