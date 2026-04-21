@@ -45,8 +45,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             private readonly Container overlayLayer;
 
-            private bool shouldBePlaying => Enabled.Value && CardHovered.Value;
-
             [Resolved]
             private PreviewTrackManager previewTrackManager { get; set; } = null!;
 
@@ -77,33 +75,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 ];
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                Enabled.BindValueChanged(enabled =>
-                {
-                    if (!enabled.NewValue)
-                    {
-                        previewTrack?.Stop();
-                        return;
-                    }
-
-                    if (shouldBePlaying)
-                    {
-                        startPreviewIfAvailable();
-                    }
-                });
-
-                CardHovered.BindValueChanged(selected =>
-                {
-                    if (selected.NewValue && shouldBePlaying)
-                    {
-                        startPreviewIfAvailable();
-                    }
-                });
-            }
-
             private PreviewTrack? previewTrack;
 
             public void LoadPreview(APIBeatmap beatmap)
@@ -126,9 +97,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     {
                         TrackRunning = { BindTarget = trackRunning }
                     });
-
-                    if (shouldBePlaying)
-                        startPreviewIfAvailable();
                 });
             }
 

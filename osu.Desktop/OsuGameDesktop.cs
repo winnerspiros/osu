@@ -35,6 +35,8 @@ namespace osu.Desktop
 
         public bool IsFirstRun { get; init; }
 
+        public bool EnableWebSocketServer { get; init; }
+
         public OsuGameDesktop(string[]? args = null)
             : base(args)
         {
@@ -148,6 +150,9 @@ namespace osu.Desktop
 
             osuSchemeLinkIPCChannel = new OsuSchemeLinkIPCChannel(Host, this);
             archiveImportIPCChannel = new ArchiveImportIPCChannel(Host, this);
+
+            if (EnableWebSocketServer)
+                Add(new OsuWebSocketProvider());
         }
 
         public override void SetHost(GameHost host)
