@@ -227,25 +227,37 @@ namespace osu.Android
 
                 Scheduler.Add(() =>
                 {
-                    Host.DrawThread.Scheduler.Add(() =>
+                    try
                     {
-                        try
+                        Host?.DrawThread?.Scheduler.Add(() =>
                         {
-                            if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
-                            global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
-                        }
-                        catch { }
-                    });
+                            try
+                            {
+                                if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
+                                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
+                            }
+                            catch { }
+                        });
 
-                    Host.InputThread.Scheduler.Add(() =>
-                    {
-                        try
+                        Host?.InputThread?.Scheduler.Add(() =>
                         {
-                            if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
-                            global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
-                        }
-                        catch { }
-                    });
+                            try
+                            {
+                                if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
+                                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
+                            }
+                            catch { }
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        // The enclosing try/catch only covers the Scheduler.Add call — not the
+                        // lambda body, which runs later on the update thread. Guard here so an
+                        // NRE from Host.DrawThread/Host.InputThread being null (or a Host
+                        // teardown race during startup) can't escape as an unhandled update-
+                        // thread exception and kill the framework.
+                        Debug.WriteLine($"[osu!] Failed to enqueue thread-affinity pinning for render/input threads: {e.Message}");
+                    }
                 });
             }
             catch (Exception e)

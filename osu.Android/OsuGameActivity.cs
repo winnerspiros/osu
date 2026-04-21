@@ -86,9 +86,35 @@ namespace osu.Android
         {
             base.OnCreate(savedInstanceState);
 
-            Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            // Wrap Platform.Init defensively: MAUI Essentials pulls in workload-version-sensitive
+            // initialisation code, and a mismatch between the build-time workload and the device's
+            // runtime can throw TypeLoadException/MissingMethodException on the UI thread before
+            // the managed logger is up — users would see only a native tombstone with no osu.log.
+            try
+            {
+                Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] MAUI Platform.Init failed (non-fatal): {e.Message}");
+            }
+
             updateDeXStatus(null);
-            Window?.DecorView.Post(() => GetSurface()?.Holder?.AddCallback(this));
+
+            // Posting the surface-callback registration onto the UI thread loop is intentional
+            // (the SurfaceView may not be attached yet at OnCreate time). Guard the body of the
+            // lambda — a later race with activity teardown can make AddCallback throw.
+            Window?.DecorView.Post(() =>
+            {
+                try
+                {
+                    GetSurface()?.Holder?.AddCallback(this);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to register SurfaceHolder callback: {e.Message}");
+                }
+            });
 
             handleIntent(Intent);
 
