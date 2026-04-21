@@ -82,13 +82,46 @@
        Only .so files need the AssetType override — the previous broader filter
        (all non-DLL, non-PDB) incorrectly reclassified signing metadata and config
        files, which corrupted the APK signature (INSTALL_PARSE_FAILED_NO_CERTIFICATES).
-       Scoped to Release only to avoid interfering with Debug builds. -->
+       Scoped to Release only to avoid interfering with Debug builds.
+
+       IMPORTANT: only Android-runtime .so files may be marked as native and packaged
+       into the APK. ppy.osu.Framework transitively depends on ppy.osu.Framework.NativeLibs
+       which ships desktop-only natives under runtimes/linux-arm64/native/, runtimes/osx/native/,
+       runtimes/win-*/native/ etc. — including a bare libbass.so, libbass_fx.so, libbassmix.so
+       for Linux. If any of those are marked AssetType=native, the .NET Android SDK packs them
+       into lib/arm64-v8a/ of the APK, racing with (and replacing) the proper Android arm64
+       libbass*.so coming from ppy.osu.Framework.Android's AAR (jni/arm64-v8a/). The Linux ELF
+       is linked against glibc and cannot be loaded by Android's bionic dynamic linker, which
+       surfaces at startup as System.DllNotFoundException: bass from AudioManager..ctor →
+       ManagedBass.Bass.get_DeviceCount, immediately crashing the app. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList"
           Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
-      <RuntimePackAsset Update="@(RuntimePackAsset)" Condition="'%(Extension)' == '.so'">
+      <!-- Strip desktop/iOS runtime .so files from the Android publish set entirely.
+           Match path components for any non-Android RID known to ship .so files.
+           Path normalisation handles both Windows (\) and Unix (/) separators. -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(Extension)' == '.so'
+                                        AND ($([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/linux-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/linux/'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/osx-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/osx/'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/ios-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/ios/'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/maccatalyst-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/win-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/win/'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/browser-'))
+                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/freebsd-')))" />
+      <!-- Only mark Android-RID runtime pack assets as native. RuntimePackAsset items carry
+           an explicit RuntimeIdentifier metadata, so this filter is exact. -->
+      <RuntimePackAsset Update="@(RuntimePackAsset)"
+                        Condition="'%(Extension)' == '.so'
+                                   AND $([System.String]::Copy('%(RuntimeIdentifier)').StartsWith('android'))">
         <AssetType>native</AssetType>
       </RuntimePackAsset>
+      <!-- Mark the surviving (Android-only after the Remove above) publish .so files as native
+           so the Android SDK packs them into lib/<abi>/ rather than dropping them as data. -->
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.so'">
         <AssetType>native</AssetType>
       </ResolvedFileToPublish>

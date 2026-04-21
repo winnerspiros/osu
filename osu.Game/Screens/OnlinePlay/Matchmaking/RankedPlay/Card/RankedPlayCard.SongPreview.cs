@@ -45,8 +45,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             private readonly Container overlayLayer;
 
-            private bool shouldBePlaying => Enabled.Value && CardHovered.Value;
-
             [Resolved]
             private PreviewTrackManager previewTrackManager { get; set; } = null!;
 
@@ -77,33 +75,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 ];
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                Enabled.BindValueChanged(enabled =>
-                {
-                    if (!enabled.NewValue)
-                    {
-                        previewTrack?.Stop();
-                        return;
-                    }
-
-                    if (shouldBePlaying)
-                    {
-                        startPreviewIfAvailable();
-                    }
-                });
-
-                CardHovered.BindValueChanged(selected =>
-                {
-                    if (selected.NewValue && shouldBePlaying)
-                    {
-                        startPreviewIfAvailable();
-                    }
-                });
-            }
-
             private PreviewTrack? previewTrack;
 
             public void LoadPreview(APIBeatmap beatmap)
@@ -127,13 +98,23 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                         TrackRunning = { BindTarget = trackRunning }
                     });
 
-                    if (shouldBePlaying)
-                        startPreviewIfAvailable();
+                    // bind start/stop to hover + enable state once the track has actually loaded,
+                    // to avoid attempting to start playback while the track is still being prepared in flaky network conditions.
+                    Enabled.BindValueChanged(_ => updatePlaybackState());
+                    CardHovered.BindValueChanged(_ => updatePlaybackState(), true);
                 });
             }
 
+            private void updatePlaybackState()
+            {
+                if (previewTrack == null)
+                    return;
 
-            private void startPreviewIfAvailable() => previewTrack?.Start();
+                if (Enabled.Value && CardHovered.Value)
+                    previewTrack.Start();
+                else
+                    previewTrack.Stop();
+            }
 
             #region IBeatSyncProvider implementation
 

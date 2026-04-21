@@ -280,8 +280,48 @@ jobs:
             exit 1
           fi
 
+          # Architecture sanity check: a previous build packaged the Linux-glibc
+          # libbass.so from ppy.osu.Framework.NativeLibs into lib/arm64-v8a/, which
+          # passed the name check above but failed at runtime with
+          # System.DllNotFoundException: bass because Android's bionic linker cannot
+          # resolve glibc-only symbols. Both Linux and Android builds report
+          # identically as "ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV)"
+          # via file(1), so we rely on the presence of GLIBC_ versioned symbols
+          # (which exist only in glibc-linked binaries) to distinguish them.
           echo ""
-          echo "All required native libraries present ✓"
+          echo "Verifying native library architectures (must be Android arm64, not Linux glibc)..."
+          TMPDIR=$(mktemp -d)
+          trap 'rm -rf "$TMPDIR"' EXIT
+          BAD=0
+          for LIB in libbass.so libbass_fx.so libbassmix.so; do
+            unzip -p "$APK" "lib/arm64-v8a/$LIB" > "$TMPDIR/$LIB"
+            FILE_INFO=$(file "$TMPDIR/$LIB")
+            echo "  $LIB: $FILE_INFO"
+            # Must be a 64-bit aarch64 ELF shared object.
+            if ! echo "$FILE_INFO" | grep -qE "ELF 64-bit.*aarch64|ELF 64-bit.*ARM aarch64"; then
+              echo "::error::$LIB is not a 64-bit aarch64 ELF — runtime DllNotFoundException will occur."
+              BAD=1
+              continue
+            fi
+            # Reliable Linux-vs-Android distinguisher: GLIBC_ versioned symbols
+            # (e.g. memcpy@@GLIBC_2.17) appear only in glibc-linked Linux binaries.
+            # Android's bionic libc uses no symbol versioning.
+            if strings "$TMPDIR/$LIB" | grep -q "^GLIBC_"; then
+              echo "::error::$LIB references GLIBC_ versioned symbols — this is the Linux ELF from ppy.osu.Framework.NativeLibs runtimes/linux-arm64/native/, not the Android ELF from ppy.osu.Framework.Android. Android's bionic linker cannot load it; the app will crash at startup with System.DllNotFoundException: bass."
+              BAD=1
+              continue
+            fi
+            echo "    ✅ $LIB is a valid Android arm64 ELF"
+          done
+
+          if [ "$BAD" -ne 0 ]; then
+            echo ""
+            echo "::error::One or more native libraries in the APK are NOT valid Android arm64 binaries. This usually means desktop runtime .so files (e.g. from ppy.osu.Framework.NativeLibs runtimes/linux-arm64/native/) leaked into lib/arm64-v8a/ during packaging. See osu.Android.props FixRuntimePackAssetTypes target."
+            exit 1
+          fi
+
+          echo ""
+          echo "All required native libraries present and valid ✓"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
