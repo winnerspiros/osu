@@ -93,28 +93,50 @@
        libbass*.so coming from ppy.osu.Framework.Android's AAR (jni/arm64-v8a/). The Linux ELF
        is linked against glibc and cannot be loaded by Android's bionic dynamic linker, which
        surfaces at startup as System.DllNotFoundException: bass from AudioManager..ctor →
-       ManagedBass.Bass.get_DeviceCount, immediately crashing the app. -->
+       ManagedBass.Bass.get_DeviceCount, immediately crashing the app.
+
+       Implementation notes:
+       * Uses a two-step item helper list + Remove-by-identity pattern, which batches
+         over item metadata reliably (an earlier inline `Remove="@(X)" Condition="…"`
+         with a nested OR of Replace/Contains calls silently no-op'd — the Linux libbass
+         leaked into the APK in build v2026.421.144).
+       * Uses a single inverted match: any `.so` under `/runtimes/<rid>/native/` whose
+         RID does not start with `android` is stripped. This covers every non-Android
+         desktop/mobile RID in one rule and is future-proof against new RIDs.
+       * The path match uses forward-slash normalisation with the doubled-backslash
+         escape `'\\'` required inside MSBuild property-function string literals
+         (the previous `'\'` form is ambiguous to the expression parser).
+       * Applied to `ResolvedFileToPublish` (the primary input to the .NET Android SDK's
+         publish step) and also to `ReferenceCopyLocalPaths` / `RuntimeCopyLocalItems`
+         in case a NuGet package flows native assets through those collections. -->
   <Target Name="FixRuntimePackAssetTypes" AfterTargets="ResolveRuntimePackAssets;ComputeFilesToPublish;ComputeResolvedFilesToPublishList"
           Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
-      <!-- Strip desktop/iOS runtime .so files from the Android publish set entirely.
-           Match path components for any non-Android RID known to ship .so files.
-           Path normalisation handles both Windows (\) and Unix (/) separators. -->
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-                             Condition="'%(Extension)' == '.so'
-                                        AND ($([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/linux-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/linux/'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/osx-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/osx/'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/ios-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/ios/'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/maccatalyst-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/win-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/win/'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/browser-'))
-                                             OR $([System.String]::Copy('%(Identity)').Replace('\','/').Contains('/runtimes/freebsd-')))" />
-      <!-- Only mark Android-RID runtime pack assets as native. RuntimePackAsset items carry
-           an explicit RuntimeIdentifier metadata, so this filter is exact. -->
+      <!-- Build filter lists of non-Android runtime .so files. The two-step pattern
+           (Include into helper list, then Remove by identity) is more reliable than a
+           conditional Remove because MSBuild batches per-item on metadata references
+           in the helper list's Condition, and the subsequent Remove is an unconditional
+           identity match. -->
+      <_DesktopNativeToStripFromPublish Include="@(ResolvedFileToPublish)"
+        Condition="'%(Extension)' == '.so'
+                   AND $([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/'))
+                   AND !$([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/android'))" />
+      <ResolvedFileToPublish Remove="@(_DesktopNativeToStripFromPublish)" />
+
+      <_DesktopNativeToStripFromRefCopy Include="@(ReferenceCopyLocalPaths)"
+        Condition="'%(Extension)' == '.so'
+                   AND $([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/'))
+                   AND !$([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/android'))" />
+      <ReferenceCopyLocalPaths Remove="@(_DesktopNativeToStripFromRefCopy)" />
+
+      <_DesktopNativeToStripFromRuntimeCopy Include="@(RuntimeCopyLocalItems)"
+        Condition="'%(Extension)' == '.so'
+                   AND $([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/'))
+                   AND !$([System.String]::Copy('%(Identity)').Replace('\\','/').Contains('/runtimes/android'))" />
+      <RuntimeCopyLocalItems Remove="@(_DesktopNativeToStripFromRuntimeCopy)" />
+
+      <!-- Only mark Android-RID runtime pack assets as native. RuntimePackAsset items
+           carry an explicit RuntimeIdentifier metadata, so this filter is exact. -->
       <RuntimePackAsset Update="@(RuntimePackAsset)"
                         Condition="'%(Extension)' == '.so'
                                    AND $([System.String]::Copy('%(RuntimeIdentifier)').StartsWith('android'))">
