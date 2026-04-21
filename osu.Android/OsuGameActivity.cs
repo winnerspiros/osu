@@ -23,12 +23,11 @@ using osu.Framework.Logging;
 
 namespace osu.Android
 {
-    // ScreenOrientation is declared in the manifest as SensorLandscape so Android creates the activity in
-    // landscape from the start. Otherwise the activity launches in the device's sensor orientation (often
-    // portrait on a phone), then the runtime `RequestedOrientation` assignment in OnCreate triggers an
-    // immediate orientation change → the SurfaceView's ANativeWindow is destroyed and recreated while
-    // SDL's draw thread is concurrently initialising the Vulkan swapchain → vkCreateAndroidSurfaceKHR
-    // races on a stale ANativeWindow and the process crashes a few seconds into startup.
+    // Declare ScreenOrientation in the manifest (rather than only assigning RequestedOrientation
+    // at runtime in OnCreate) so Android creates the activity in landscape from the very first
+    // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
+    // event during startup. This is defensive hardening alongside the main fix in osu.Android.props
+    // (disabling trimming + profiled AOT, which was the actual cause of the startup crash).
     [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.SensorLandscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
