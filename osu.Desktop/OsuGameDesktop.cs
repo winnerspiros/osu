@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
+using osu.Desktop.IPC;
 using osu.Desktop.MacOS;
 using osu.Desktop.Performance;
 using osu.Desktop.Security;
