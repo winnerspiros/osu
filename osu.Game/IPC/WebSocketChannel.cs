@@ -23,6 +23,10 @@ namespace osu.Game.IPC
         private readonly byte[] receiveBuffer = new byte[max_message_size];
         private int currentBufferPosition;
 
+        // strict UTF-8 decoder so malformed payloads throw `DecoderFallbackException` rather than being
+        // silently replaced with U+FFFD (which would defeat the `InvalidPayloadData` close path below).
+        private static readonly Encoding strict_utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         private readonly WebSocket webSocket;
         private Task? readWriteTask;
         private readonly CancellationTokenSource runningTokenSource = new CancellationTokenSource();
@@ -100,7 +104,7 @@ namespace osu.Game.IPC
                     return;
                 }
 
-                if (currentBufferPosition >= max_message_size)
+                if (currentBufferPosition > max_message_size)
                 {
                     await webSocket.CloseOutputAsync(WebSocketCloseStatus.MessageTooBig, $@"Exceeded maximum message size of {max_message_size} bytes.", token).ConfigureAwait(false);
                     ClosedPrematurely?.Invoke();
@@ -113,9 +117,9 @@ namespace osu.Game.IPC
 
                     try
                     {
-                        message = Encoding.UTF8.GetString(receiveBuffer, 0, currentBufferPosition);
+                        message = strict_utf8.GetString(receiveBuffer, 0, currentBufferPosition);
                     }
-                    catch (ArgumentException)
+                    catch (DecoderFallbackException)
                     {
                         await webSocket.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData, @"UTF-8 encoded strings expected.", token).ConfigureAwait(false);
                         ClosedPrematurely?.Invoke();

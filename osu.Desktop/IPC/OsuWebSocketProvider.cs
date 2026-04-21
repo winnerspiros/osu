@@ -63,12 +63,23 @@ namespace osu.Desktop.IPC
         {
             base.Dispose(isDisposing);
 
-            if (server?.IsRunning == true)
+            var localServer = server;
+            server = null;
+
+            if (localServer == null)
+                return;
+
+            try
             {
-                var cts = new CancellationTokenSource();
-                cts.CancelAfter(TimeSpan.FromSeconds(10));
-                server.StopAsync(cts.Token).WaitSafely();
-                server = null;
+                if (localServer.IsRunning)
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    localServer.StopAsync(cts.Token).WaitSafely();
+                }
+            }
+            finally
+            {
+                localServer.Dispose();
             }
         }
     }

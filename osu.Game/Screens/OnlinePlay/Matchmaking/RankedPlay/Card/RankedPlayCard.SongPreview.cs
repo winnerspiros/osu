@@ -97,11 +97,24 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     {
                         TrackRunning = { BindTarget = trackRunning }
                     });
+
+                    // bind start/stop to hover + enable state once the track has actually loaded,
+                    // to avoid attempting to start playback while the track is still being prepared in flaky network conditions.
+                    Enabled.BindValueChanged(_ => updatePlaybackState());
+                    CardHovered.BindValueChanged(_ => updatePlaybackState(), true);
                 });
             }
 
+            private void updatePlaybackState()
+            {
+                if (previewTrack == null)
+                    return;
 
-            private void startPreviewIfAvailable() => previewTrack?.Start();
+                if (Enabled.Value && CardHovered.Value)
+                    previewTrack.Start();
+                else
+                    previewTrack.Stop();
+            }
 
             #region IBeatSyncProvider implementation
 

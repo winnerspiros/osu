@@ -265,10 +265,33 @@ namespace osu.Game.IPC
 
             isDisposed = true;
 
+            // ensure the request loop is unblocked and stops touching `runningTokenSource`/`contextResetEvent`
+            // before we dispose them. callers that didn't call `StopAsync()` first would otherwise race the loop
+            // and trip `ObjectDisposedException` on shutdown.
+            try
+            {
+                if (!runningTokenSource.IsCancellationRequested)
+                    runningTokenSource.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
             // no clue why this isn't accessible without casting.
             // sidebar: `Stop()` unregisters addresses on Windows, but `Abort()` doesn't!
             // this `Dispose()` implementation calls the former.
             (listener as IDisposable)?.Dispose();
+
+            // give the request loop a brief opportunity to exit gracefully before we yank the wait handles out
+            // from under it. this is best-effort; we don't want `Dispose()` to ever block for long.
+            try
+            {
+                handleRequestTask?.Wait(TimeSpan.FromSeconds(2));
+            }
+            catch
+            {
+                // any cancellation/aggregate exceptions here are expected during shutdown.
+            }
 
             foreach (var channel in channels.Values)
                 channel.Dispose();
