@@ -174,6 +174,11 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString LowLatency => new TranslatableString(getKey(@"low_latency"), @"Low latency");
 
+        /// <summary>
+        /// "Custom draw rate limit"
+        /// </summary>
+        public static LocalisableString CustomDrawLimit => new TranslatableString(getKey(@"custom_draw_limit"), @"Custom draw rate limit");
+
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }
