@@ -16,7 +16,20 @@ set(CMAKE_C_FLAGS_RELEASE   "-O3 -flto=thin -ffast-math -ffunction-sections -fda
 # -Wl,-z,max-page-size=16384: align ELF LOAD segments to 16 KB for Android 15+
 #   devices with 16 KB page sizes.  Without this, the .so will fail to load on
 #   such devices.  NDK r28+ supports this flag.
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,-z,max-page-size=16384 -s")
+#
+# IMPORTANT: do NOT pass `-s` (or `-Wl,-s`) here.  Stripping the native library
+# removes the symbol table, which means Android tombstones — and crash-report
+# tools like Crash Log Viewer that read them — print only `pc=<hex>` with no
+# function name.  That makes the SDLThread / audio-thread SIGSEGVs we have been
+# chasing essentially unfixable from a tombstone alone, because we cannot tell
+# whether the null indirect call originated in our `OboeBridge::onAudioReady`,
+# in Oboe itself, in libvulkan, or in the renderer.  Keeping symbols costs only
+# a few hundred KB in the on-device .so (and zero APK download size when LZ4
+# assembly compression is on, since the .so is also compressed), and it is the
+# single highest-leverage change we can make for diagnosing real-device crashes.
+# `-Wl,--gc-sections` still removes unreferenced sections; only the symbol
+# *names* are retained.
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections -Wl,-z,max-page-size=16384")
 
 # Disable Oboe's flowgraph module — we don't use any audio processing/conversion
 # features (our bridge outputs silence for latency measurement only).
