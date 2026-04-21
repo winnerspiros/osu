@@ -1,0 +1,2 @@
+# Override root *.nupkg exclusion so vendored fork packages can be committed here.
+!*.nupkg
