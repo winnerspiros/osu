@@ -23,7 +23,12 @@ using osu.Framework.Logging;
 
 namespace osu.Android
 {
-    [Activity(ResizeableActivity = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    // Declare ScreenOrientation in the manifest (rather than only assigning RequestedOrientation
+    // at runtime in OnCreate) so Android creates the activity in landscape from the very first
+    // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
+    // event during startup. This is defensive hardening alongside the main fix in osu.Android.props
+    // (disabling trimming + profiled AOT, which was the actual cause of the startup crash).
+    [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.SensorLandscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
@@ -81,9 +86,35 @@ namespace osu.Android
         {
             base.OnCreate(savedInstanceState);
 
-            Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            // Wrap Platform.Init defensively: MAUI Essentials pulls in workload-version-sensitive
+            // initialisation code, and a mismatch between the build-time workload and the device's
+            // runtime can throw TypeLoadException/MissingMethodException on the UI thread before
+            // the managed logger is up — users would see only a native tombstone with no osu.log.
+            try
+            {
+                Microsoft.Maui.ApplicationModel.Platform.Init(this, savedInstanceState);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] MAUI Platform.Init failed (non-fatal): {e.Message}");
+            }
+
             updateDeXStatus(null);
-            Window?.DecorView.Post(() => GetSurface()?.Holder?.AddCallback(this));
+
+            // Posting the surface-callback registration onto the UI thread loop is intentional
+            // (the SurfaceView may not be attached yet at OnCreate time). Guard the body of the
+            // lambda — a later race with activity teardown can make AddCallback throw.
+            Window?.DecorView.Post(() =>
+            {
+                try
+                {
+                    GetSurface()?.Holder?.AddCallback(this);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to register SurfaceHolder callback: {e.Message}");
+                }
+            });
 
             handleIntent(Intent);
 
@@ -122,7 +153,16 @@ namespace osu.Android
             if (Resources?.Configuration != null)
                 IsTablet = Resources.Configuration.SmallestScreenWidthDp >= 600;
 
-            RequestedOrientation = DefaultOrientation = IsTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
+            // Phones: manifest already requests SensorLandscape; do not re-assign at runtime —
+            // a no-op assignment is harmless on most devices but a redundant RequestedOrientation
+            // write can still nudge the SurfaceView into a recreate cycle on some OEMs while the
+            // SDL draw thread is mid-Vulkan-init. Tablets get a more permissive policy applied
+            // here; the SurfaceView is already up by this point and the framework handles
+            // post-init surface resize cleanly.
+            if (IsTablet)
+                RequestedOrientation = DefaultOrientation = ScreenOrientation.FullUser;
+            else
+                DefaultOrientation = ScreenOrientation.SensorLandscape;
 
             foreach (string asm in new[] { "osu.Game.Rulesets.Osu", "osu.Game.Rulesets.Taiko", "osu.Game.Rulesets.Catch", "osu.Game.Rulesets.Mania" })
             {

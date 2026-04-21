@@ -24,27 +24,23 @@
     <NoWarn>$(NoWarn);NU1608;XA4301</NoWarn>
   </PropertyGroup>
 
-  <!-- Release-only optimisations: AOT for low-latency gameplay, trimming for smaller APK.
-       Suppress trim analysis warnings because the project uses reflection extensively
-       (Newtonsoft.Json, Realm, AutoMapper, RuntimeBinder). -->
+  <!-- Release-only optimisations.
+       Trimming and AOT were previously enabled here for size/startup, but caused a
+       reproducible "splash → black screen → crash, no logs" failure on real devices.
+       Root cause: PublishTrimmed + TrimMode=partial + AndroidEnableProfiledAot, with
+       SuppressTrimAnalysisWarnings=true masking the build-time signal. Only Microsoft.CSharp
+       and ppy.Veldrid.SPIRV were rooted — osu.Game, the rulesets, Realm, Newtonsoft.Json,
+       AutoMapper, Sentry, OsuTK and other reflection-heavy assemblies were not. A trimmed
+       method/type or an un-AOT'd profiled-AOT call site throws TypeLoadException /
+       MissingMethodException early in OsuGame construction, before the file logger is open;
+       the process dies on the SDLThread / .NET ThreadPool thread with only a tombstone, so
+       the user gets no osu.log and Logcat shows a bare native crash.
+       Upstream ppy/osu's osu.Android.props enables NEITHER trimming NOR AOT — we now match
+       that baseline. The remaining release-only knobs (assembly compression, no PDBs) are
+       safe and unrelated to the startup crash. To re-enable trimming/AOT in the future,
+       reintroduce them one at a time, root every reflection-using assembly explicitly, and
+       run with SuppressTrimAnalysisWarnings=false to surface the gaps before shipping. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <RunAOTCompilation>true</RunAOTCompilation>
-    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
-    <!-- Do NOT use EnableLLVM with profiled AOT on .NET 10.
-         The LLVM backend generates internally-inconsistent PLT (Procedure Linkage Table)
-         entries when only a subset of methods is AOT-compiled (profiled AOT).  This causes
-         'plt_entry not met' assertions in aot-runtime.c at startup (SIGABRT on SDLThread).
-         The default Mono AOT compiler handles partial-image PLT generation correctly. -->
-    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
-    <!-- Keep IL bodies as a fallback for methods not covered by profiled AOT.
-         AndroidEnableProfiledAot only AOT-compiles methods in the startup profile; the remaining
-         methods require IL for JIT/interpretation.  Stripping IL (AndroidStripILAfterAOT=true)
-         removes that fallback, causing 'plt_entry not met' assertions in aot-runtime.c when
-         the runtime encounters an un-AOT'd method (observed on .NET Timer thread at startup).
-         The ~20-30 MB size saving is not worth the crash risk. -->
-    <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
          but the download/APK size is significantly smaller. -->
     <AndroidEnableAssemblyCompression>true</AndroidEnableAssemblyCompression>
@@ -53,20 +49,6 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <!-- Force Microsoft.CSharp into the trimmer input graph (.NET 10+).          -->
-    <!-- A bare TrimmerRootAssembly is ignored if the assembly is not in the      -->
-    <!-- linker's input set; adding this reference ensures it is included.       -->
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" NoWarn="NU1510" />
-    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
-    <!-- Preserve ppy.Veldrid.SPIRV from trimming.  The trimmer does not trace the
-         CrossCompileTarget enum usage in osu.Framework's VeldridShader/GLShader correctly
-         (the reference crosses assembly boundaries via a ProjectReference chain), causing
-         TypeLoadException: 'Could not resolve type Veldrid.SPIRV.CrossCompileTarget' at
-         startup when the renderer tries to compile shaders. -->
-    <TrimmerRootAssembly Include="ppy.Veldrid.SPIRV" RootMode="all" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.420.2" />
