@@ -182,13 +182,13 @@ Settings → Graphics → Renderer now exposes the full set of fork-added option
 
 ### 🛡️ Stability improvements
 
-This fork includes several crash fixes on top of upstream:
+This fork includes several hardening fixes on top of upstream:
 
-- **Sentry crash fix** — the app no longer crashes on startup when the error reporting service can't initialise (e.g. with a placeholder DSN)
-- **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them instead of crashing
+- **Sentry-safe init** — the app gracefully handles a missing/placeholder Sentry DSN instead of failing on startup
+- **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them
 - **JNI surface safety** — proper lifecycle management with atomic swaps and timeouts to prevent race conditions between Android surface creation and destruction
-- **Trimmer-safe builds** — critical reflection-heavy assemblies are protected from .NET IL trimming to prevent `TypeLoadException` crashes in release builds
-- **Architecture-correct native libraries (v144+)** — `osu.Android.props` now strips desktop runtime `.so` files (`runtimes/{linux,osx,ios,maccatalyst,win,…}-*/native/`) from the Android publish set, and only marks Android-RID assets as `AssetType=native`. Previous releases accidentally packaged the Linux-glibc `libbass.so` (from `ppy.osu.Framework.NativeLibs`) into `lib/arm64-v8a/`, replacing the proper Android arm64 binary; bionic's loader rejected the glibc-versioned symbols and the app crashed at startup with `System.DllNotFoundException: bass`. The release workflow now scans every shipped `libbass*.so` for `GLIBC_*` versioned symbols and fails the build if any are found, so the regression cannot recur silently.
+- **Trimmer-safe builds** — critical reflection-heavy assemblies are protected from .NET IL trimming so release builds behave the same as debug
+- **Architecture-correct native libraries (v144+)** — `osu.Android.props` strips desktop runtime `.so` files (`runtimes/{linux,osx,ios,maccatalyst,win,…}-*/native/`) from the Android publish set and only marks Android-RID assets as `AssetType=native`, so the proper Android arm64 BASS libraries from `ppy.osu.Framework.Android`'s AAR (`jni/arm64-v8a/`) always win over the desktop `.so` files transitively pulled in by `ppy.osu.Framework.NativeLibs`. The release workflow scans every shipped `libbass*.so` for `GLIBC_*` versioned symbols (only present in glibc-linked Linux ELFs) and fails the build if any are found, so an architecture mismatch can never reach a release.
 
 ---
 
