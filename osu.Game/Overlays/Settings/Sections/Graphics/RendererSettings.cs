@@ -47,6 +47,18 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             if (!rendererItems.Contains(renderer.Value))
                 renderer.SetDefault();
 
+            var frameSync = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+
+            var customDrawLimitItem = new SettingsItemV2(new FormSliderBar<int>
+            {
+                Caption = GraphicsSettingsStrings.CustomDrawLimit,
+                Current = config.GetBindable<int>(FrameworkSetting.CustomDrawLimit),
+                TransferValueOnCommit = true,
+            })
+            {
+                Keywords = new[] { @"fps", @"framerate", @"custom", @"hz" },
+            };
+
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
@@ -65,11 +77,12 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 new SettingsItemV2(new FormEnumDropdown<FrameSync>
                 {
                     Caption = GraphicsSettingsStrings.FrameLimiter,
-                    Current = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync),
+                    Current = frameSync,
                 })
                 {
                     Keywords = new[] { @"fps", @"framerate" },
                 },
+                customDrawLimitItem,
                 new SettingsItemV2(new FormEnumDropdown<ExecutionMode>
                 {
                     Caption = GraphicsSettingsStrings.ThreadingMode,
@@ -92,6 +105,10 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Keywords = new[] { @"latency", @"reflex", @"input" },
                 },
             };
+
+            // "Custom draw rate limit" is only meaningful when the frame limiter is set to Custom
+            // (upstream winnerspiros/osu-framework PR porting ppy/osu-framework#6725).
+            frameSync.BindValueChanged(f => customDrawLimitItem.CanBeShown.Value = f.NewValue == FrameSync.Custom, true);
 
             renderer.BindValueChanged(r =>
             {
