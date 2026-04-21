@@ -188,6 +188,7 @@ This fork includes several crash fixes on top of upstream:
 - **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them instead of crashing
 - **JNI surface safety** — proper lifecycle management with atomic swaps and timeouts to prevent race conditions between Android surface creation and destruction
 - **Trimmer-safe builds** — critical reflection-heavy assemblies are protected from .NET IL trimming to prevent `TypeLoadException` crashes in release builds
+- **Architecture-correct native libraries (v144+)** — `osu.Android.props` now strips desktop runtime `.so` files (`runtimes/{linux,osx,ios,maccatalyst,win,…}-*/native/`) from the Android publish set, and only marks Android-RID assets as `AssetType=native`. Previous releases accidentally packaged the Linux-glibc `libbass.so` (from `ppy.osu.Framework.NativeLibs`) into `lib/arm64-v8a/`, replacing the proper Android arm64 binary; bionic's loader rejected the glibc-versioned symbols and the app crashed at startup with `System.DllNotFoundException: bass`. The release workflow now scans every shipped `libbass*.so` for `GLIBC_*` versioned symbols and fails the build if any are found, so the regression cannot recur silently.
 
 ---
 

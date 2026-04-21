@@ -165,6 +165,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
                 }
 
                 case Key.Space:
+                {
                     if (SelectionMode == HandSelectionMode.Disabled)
                         return false;
 
