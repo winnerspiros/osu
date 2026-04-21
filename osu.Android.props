@@ -70,6 +70,27 @@
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.421.1" />
+    <!-- `ppy.osu.Framework.NativeLibs` is a transitive dependency of `ppy.osu.Framework`
+         that ships desktop-only natives (Linux/macOS/Windows) under `runtimes/<rid>/native/`
+         — including a bare Linux `libbass.so`/`libbass_fx.so`/`libbassmix.so` for linux-arm64.
+         The default .NET RID fallback graph routes `android-arm64` through
+         `linux-bionic-arm64` → `linux-arm64`, so NuGet resolves those Linux `.so` files for
+         an Android publish and the .NET Android SDK packs them into the APK's
+         `lib/arm64-v8a/` — replacing the correct Android arm64 natives from
+         `ppy.osu.Framework.Android`'s AAR (`jni/arm64-v8a/libbass*.so`). The Linux ELFs
+         reference GLIBC_* versioned symbols and cannot be loaded by Android's bionic
+         linker, crashing the app at startup with `System.DllNotFoundException: bass`.
+         Cutting the package's assets off at the NuGet level is the only reliable fix:
+         previous attempts to scrub items via an `AfterTargets="ResolveRuntimePackAssets;
+         ComputeFilesToPublish;ComputeResolvedFilesToPublishList"` target (see
+         `FixRuntimePackAssetTypes` below) consistently missed one of the many item
+         collections the .NET Android SDK consults during APK packaging, and the Linux
+         `.so` leaked into the APK (observed in build v2026.421.144 and again in v145
+         after a more thorough item filter). The package has no managed assets we need
+         — all Android runtime natives come from the `ppy.osu.Framework.Android` AAR —
+         so excluding it entirely is safe. -->
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2025.806.0-nativelibs"
+                      ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>
