@@ -1051,6 +1051,17 @@ namespace osu.Game
                 { FrameworkSetting.VolumeUniversal, 0.6 },
                 { FrameworkSetting.VolumeMusic, 0.6 },
                 { FrameworkSetting.VolumeEffect, 0.6 },
+                // Override the framework's per-platform default for ExecutionMode. AndroidGameHost.SetupConfig
+                // adds SingleThread as the *default* (only when the consuming game does not provide one), which
+                // makes Android boot in SingleThread on a fresh install / missing framework.ini and then transition
+                // to MultiThreaded mid-startup once OsuGameBase.load() runs — visible in logs as two consecutive
+                // "Execution mode changed to ..." entries seconds apart, with the GameThread set being torn down
+                // and re-created in between (one consequence: the InputThread shows up in HangWatchdog as
+                // "tid=0 ticks=0" because the watchdog registered against the pre-transition thread instance).
+                // Setting the framework default to MultiThreaded here lets us start in the right mode from the
+                // very first frame, with no transition. iOS and desktop already default to MultiThreaded and are
+                // unaffected; the OsuGameBase.load() force-set remains as belt-and-suspenders for stale ini files.
+                { FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded },
             };
         }
 
