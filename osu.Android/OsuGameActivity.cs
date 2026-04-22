@@ -117,6 +117,7 @@ namespace osu.Android
             // OnCreate alongside the crash-diagnostics installs.
             LogManagement.Apply();
             LogManagement.NormaliseFrameworkIniExecutionMode();
+            LogManagement.WipeShaderCacheOnceForVersion();
 
             base.OnCreate(savedInstanceState);
 

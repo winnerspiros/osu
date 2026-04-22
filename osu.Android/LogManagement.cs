@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Android.App;
@@ -252,6 +253,154 @@ namespace osu.Android
             {
                 Debug.WriteLine($"[osu!] LogManagement: could not resolve external files dir: {e.Message}");
                 return null;
+            }
+        }
+
+        // Sentinel file dropped after a successful one-shot shader-cache wipe.
+        // Stored alongside the cache itself (not in the cache directory, which
+        // we delete) so the marker survives the wipe. The file payload is the
+        // package versionCode that triggered the wipe, so a future APK upgrade
+        // bumps the code and re-arms the wipe automatically without requiring
+        // any code change.
+        private const string shader_cache_wipe_sentinel = "shader_cache_wipe.versioncode";
+
+        /// <summary>
+        /// One-shot wipe of the framework's on-disk shader pipeline cache,
+        /// performed once per APK <c>versionCode</c>.
+        ///
+        /// <para>
+        /// Background: the framework persists Veldrid pipeline-cache blobs
+        /// under <c>&lt;external-files-dir&gt;/cache/shaders/</c>. On Adreno
+        /// drivers (Samsung S24 / S25 family in particular) a stale or
+        /// partially-written entry from a previous launch can cause
+        /// <c>vkCreateGraphicsPipelines</c> to block for tens of seconds —
+        /// long enough to trip Android's 10s input-dispatch ANR — every
+        /// time a draw-thread shader-load reaches that entry. The user-visible
+        /// symptom is "splash → black screen → ANR" with the runtime log
+        /// stalled at a different shader-compile line on each launch (which
+        /// is exactly the fingerprint we have been chasing).
+        /// </para>
+        ///
+        /// <para>
+        /// Wiping the directory is safe: the framework regenerates entries on
+        /// first use after the wipe, with a one-time cold-start cost in the
+        /// sub-second range (the cache is purely an optimisation; SPIR-V
+        /// compile-from-source is the source of truth). Doing the wipe on
+        /// every APK upgrade is the minimum-risk policy: it is unconditional
+        /// for users who upgrade to a build containing this change, gated by
+        /// versionCode for users who relaunch the same build.
+        /// </para>
+        ///
+        /// <para>
+        /// Best-effort and never throws. If the sentinel cannot be written
+        /// after a successful wipe we just re-wipe on the next launch — that
+        /// is wasteful but harmless.
+        /// </para>
+        /// </summary>
+        public static void WipeShaderCacheOnceForVersion()
+        {
+            try
+            {
+                string? root = resolveStorageRoot();
+                if (root == null) return;
+
+                long versionCode = readPackageVersionCode();
+                if (versionCode <= 0)
+                {
+                    // No reliable version identifier available — don't wipe
+                    // (would re-wipe on every launch, which defeats the cache
+                    // entirely). Surface the situation but proceed silently.
+                    Debug.WriteLine("[osu!] LogManagement: skipping shader-cache wipe (no versionCode)");
+                    return;
+                }
+
+                string sentinelPath = Path.Combine(root, shader_cache_wipe_sentinel);
+
+                if (File.Exists(sentinelPath))
+                {
+                    string existing;
+                    try { existing = File.ReadAllText(sentinelPath).Trim(); }
+                    catch { existing = string.Empty; }
+
+                    if (long.TryParse(existing, NumberStyles.Integer, CultureInfo.InvariantCulture, out long previous)
+                        && previous == versionCode)
+                    {
+                        // Already wiped for this APK install — nothing to do.
+                        return;
+                    }
+                }
+
+                string shaderCacheDir = Path.Combine(root, "cache", "shaders");
+
+                if (Directory.Exists(shaderCacheDir))
+                {
+                    try
+                    {
+                        Directory.Delete(shaderCacheDir, recursive: true);
+                    }
+                    catch (Exception e)
+                    {
+                        // A single locked file inside the directory should not
+                        // veto the entire wipe — fall back to a per-entry sweep.
+                        Debug.WriteLine($"[osu!] LogManagement: recursive shader-cache delete failed ({e.Message}); falling back to per-entry sweep");
+                        sweepDirectoryBestEffort(shaderCacheDir);
+                    }
+                }
+
+                try
+                {
+                    File.WriteAllText(sentinelPath, versionCode.ToString(CultureInfo.InvariantCulture));
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not write shader-cache wipe sentinel: {e.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: WipeShaderCacheOnceForVersion failed: {e.Message}");
+            }
+        }
+
+        private static void sweepDirectoryBestEffort(string dir)
+        {
+            try
+            {
+                if (!Directory.Exists(dir)) return;
+
+                foreach (string file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                {
+                    try { File.Delete(file); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] LogManagement: could not delete cache file {file}: {e.Message}"); }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: sweepDirectoryBestEffort outer failure: {e.Message}");
+            }
+        }
+
+        private static long readPackageVersionCode()
+        {
+            try
+            {
+                var ctx = Application.Context;
+                var pm = ctx.PackageManager;
+                if (pm == null || string.IsNullOrEmpty(ctx.PackageName))
+                    return 0;
+
+                var info = pm.GetPackageInfo(ctx.PackageName!, 0);
+                if (info == null) return 0;
+
+                // PackageInfo.LongVersionCode is the Android-API-28+ replacement
+                // for the deprecated 32-bit VersionCode; we target API 33 so
+                // it's always available.
+                return info.LongVersionCode;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: readPackageVersionCode failed: {e.Message}");
+                return 0;
             }
         }
     }
