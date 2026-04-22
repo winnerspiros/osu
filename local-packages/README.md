@@ -14,7 +14,7 @@ It is wired up as a NuGet source in the repo-root `NuGet.Config`:
 
 | Package                         | Version                | Why vendored |
 |---------------------------------|------------------------|--------------|
-| `ppy.Veldrid.SPIRV`             | `1.0.15-gb268bf39ea`   | This fork build (from <https://github.com/winnerspiros/veldrid-spirv/releases/tag/1.0>) ships `runtimes/android-arm64/native/libveldrid-spirv.so` aligned to **16 KB pages**, which is required for Android 16+. The version published on nuget.org (`1.0.15-gb66ebf81d2`) is 4 KB-aligned and triggers a build warning when packaging the APK. The version is referenced by `ppy.osu.Framework 2026.421.1` and re-pinned explicitly in `osu.Game/osu.Game.csproj` so resolution is deterministic. |
+| `ppy.Veldrid.SPIRV`             | `1.0.15-gb268bf39ea`   | This fork build (from <https://github.com/winnerspiros/veldrid-spirv/releases/tag/1.0>) ships `runtimes/android-arm64/native/libveldrid-spirv.so` aligned to **16 KB pages**, which is required for Android 16+. The version published on nuget.org (`1.0.15-gb66ebf81d2`) is 4 KB-aligned and triggers a build warning when packaging the APK. The version is referenced by `ppy.osu.Framework 2026.422.1` and re-pinned explicitly in `osu.Game/osu.Game.csproj` so resolution is deterministic. |
 
 ## Updating
 
