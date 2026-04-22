@@ -160,7 +160,6 @@ Settings → Graphics → Renderer now exposes the full set of fork-added option
 | **Renderer** | Picks the GPU backend. On Windows you get Metal / Vulkan / D3D11 / **D3D12 (new)** / OpenGL plus their `Deferred_*` experimental variants. On Android you get Vulkan (if supported) and OpenGL ES. |
 | **Frame limiter** | VSync, **VSync Unbuffered (new)** — ideal for G-Sync / FreeSync / VRR displays, 2×/4×/8× refresh, Unlimited, or **Custom (new)**. |
 | **Custom draw rate limit** | Slider 0–1000 Hz, only visible when the frame limiter is set to Custom. `0` = unlimited draw thread. Useful for benchmarking or VRR-specific tuning. |
-| **Threading mode** | Single / MultiThreaded / MultiThreadedDrawing. |
 | **Low latency** | `Off` / `On` / `Boost` — drives the fork's generic `ILowLatencyProvider` (NVIDIA Reflex / LatencyFlex-ready on D3D11 & D3D12; no-op on other backends until a provider plugin is supplied). `Boost` also sleeps at the start of each update frame for lower input-to-photon latency. |
 
 ---
@@ -184,6 +183,7 @@ Settings → Graphics → Renderer now exposes the full set of fork-added option
 
 This fork includes several hardening fixes on top of upstream:
 
+- **Multi-threaded execution lock-in (v145+)** — the framework's `ExecutionMode = SingleThread` is force-set to `MultiThreaded` on every startup and the threading-mode toggle is removed from Settings → Graphics → Renderer. SingleThread on Android collapsed the SDL/Vulkan thread onto the same thread that delivers the `SurfaceHolder.Callback`, so `VeldridDevice`'s 5-second `SurfaceHandle` poll deadlocked and Vulkan device creation crashed on a null function pointer (`SDLThread` `SI_TKILL` ~5 s into launch). The same risk applies to iOS Metal drawable attach; on desktop SingleThread is strictly slower with no UX benefit, so the lock-in is unconditional across all platforms.
 - **Sentry-safe init** — the app gracefully handles a missing/placeholder Sentry DSN instead of failing on startup
 - **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them
 - **JNI surface safety** — proper lifecycle management with atomic swaps and timeouts to prevent race conditions between Android surface creation and destruction

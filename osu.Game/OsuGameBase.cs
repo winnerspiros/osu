@@ -329,6 +329,21 @@ namespace osu.Game
 
             MessageFormatter.WebsiteRootUrl = endpoints.WebsiteUrl;
 
+            // Force the framework execution mode to MultiThreaded on every startup.
+            //
+            // SingleThread used to be exposed in the graphics settings, but it is incompatible
+            // with our Android Vulkan-surface readiness path: VeldridDevice / AndroidGameHost
+            // poll AndroidGameWindow.SurfaceHandle for up to 5s, and in SingleThread mode that
+            // poll runs on the same thread that publishes the surface handle, deadlocking
+            // initialisation until the timeout fires and Vulkan device creation crashes with a
+            // null function pointer (see PR history around the SDLThread/SI_TKILL crash).
+            //
+            // The same risk applies to iOS Metal layer attach (drawable surfaces are also
+            // delivered via the main loop), and on desktop SingleThread is strictly slower with
+            // no UX benefit. Upstream ppy/osu defaults to MultiThreaded; we now enforce it
+            // unconditionally so a stale `framework.ini` cannot pin a user into the broken mode.
+            frameworkConfig.SetValue(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
+
             // Initialise localisation
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
             frameworkLocale.BindValueChanged(_ => updateLanguage());

@@ -86,7 +86,7 @@ jobs:
             # macOS runner performance has gotten unbearably slow so let's turn them off temporarily.
             # - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
-          threadingMode: ['SingleThread', 'MultiThreaded']
+          threadingMode: ['MultiThreaded']
     timeout-minutes: 120
     steps:
       - name: Checkout
