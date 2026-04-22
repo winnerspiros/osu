@@ -935,6 +935,7 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     if (st.frame == 0) writeStr(fd, "  <empty>\n");
 
     writeStr(fd, "=========================================================\n");
+    writeStr(fd, "=== END OF CRASH DUMP ===\n");
 
     if (fd >= 0) {
         fsync(fd);
