@@ -22,9 +22,10 @@
   </ItemGroup>
   <!-- Mono runtime environment variables baked into the APK.  Enables Mono's
        jitmap output (read by Native/crash_handler.cpp's resolveViaPerfmap()
-       to symbolicate JIT frames in native_crash.log) and redirects TMPDIR so
-       the perfmap lands in the app's external-files dir (same place as the
-       crash log).  See mono.env for details. -->
+       to symbolicate JIT frames in native_crash.log) and redirects TMPDIR
+       to the app's internal cache dir.  TMPDIR must NOT point at external
+       (FUSE-backed) storage — that breaks Realm's mkfifo() notifier.
+       See mono.env for the full rationale. -->
   <ItemGroup>
     <AndroidEnvironment Include="mono.env" />
   </ItemGroup>

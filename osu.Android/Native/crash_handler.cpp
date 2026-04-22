@@ -180,10 +180,17 @@ static void logcatWrite(const char* msg) {
 // To enable the perfmap output (step 1) for a build:
 //   - Add an `AndroidEnvironment` text file to the project containing:
 //       MONO_ENV_OPTIONS=--jitmap
-//       TMPDIR=/storage/emulated/0/Android/data/<pkg>/files
-//     so Mono writes the perfmap into the same dir as `native_crash.log`.
-//     `crash_handler.cpp` searches that dir, plus `/tmp` and `/data/local/tmp`,
-//     plus the directory containing `g_logPath`.
+//       TMPDIR=/data/user/0/<pkg>/cache
+//     TMPDIR MUST point at the app's internal storage (not the external
+//     /storage/emulated/... path): Realm calls mkfifo() under TMPDIR for its
+//     cross-process notifier, and FUSE-backed external storage rejects
+//     mkfifo() with EACCES, which crashes Realm.GetInstance() at startup.
+//     Internal storage (ext4/f2fs) supports FIFOs.  The crash handler then
+//     reads `getenv("TMPDIR")` at signal time to locate the perfmap and
+//     emits the symbolicated frames into native_crash.log (which lives in
+//     the external files dir and IS user-retrievable).
+//     `crash_handler.cpp` also searches `/tmp`, `/data/local/tmp`, and the
+//     directory containing `g_logPath` as fallbacks.
 //
 // Async-signal safety:
 //   - All file I/O uses open/read/close (signal-safe).
@@ -255,8 +262,10 @@ static bool ensurePerfmapLoaded() {
     nameBuf[np] = '\0';
 
     // Candidate directories, in priority order.  The dir containing g_logPath
-    // is checked first so a build that sets `TMPDIR=<external-files-dir>`
-    // (the recommended config) finds its perfmap immediately.
+    // (external files dir) is checked first as a historical fallback, but
+    // current builds set TMPDIR to the app's internal cache dir (FUSE-backed
+    // external storage cannot host the FIFOs Realm needs — see mono.env), so
+    // the perfmap normally lives at $TMPDIR/perf-<pid>.map.
     const char* tmpEnv = getenv("TMPDIR");
     char logDir[kMaxLogPathLen] = {};
     if (g_logPath[0] != '\0') {
