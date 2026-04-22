@@ -19,6 +19,7 @@ using osu.Framework;
 using osu.Android.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Game;
@@ -139,13 +140,20 @@ namespace osu.Android
         private AndroidMouseHandler? mouseHandler;
         private AndroidKeyboardHandler? keyboardHandler;
 
+        /// <summary>
+        /// Background-loaded entry point. <paramref name="frameworkConfig"/> is injected
+        /// to drive <see cref="applyAndroidFrameSyncMigrationOnce"/>, the one-shot Android
+        /// FrameSync default migration; everything else here is unrelated init wiring.
+        /// </summary>
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(FrameworkConfigManager frameworkConfig)
         {
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
+
+            applyAndroidFrameSyncMigrationOnce(frameworkConfig);
 
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
@@ -807,6 +815,56 @@ namespace osu.Android
             });
         }
 
+        /// <summary>
+        /// One-shot migration that switches Android-side <see cref="FrameSync"/> from the
+        /// framework default of <see cref="FrameSync.Limit2x"/> to <see cref="FrameSync.VSync"/>.
+        ///
+        /// <para>
+        /// On a 120Hz Adreno-class display (Snapdragon 8 Gen 2 / S23 Ultra),
+        /// <see cref="FrameSync.Limit2x"/> targets ~240 frames/s with no upper bound on
+        /// in-flight Vulkan frames. Combined with the typical 2–3 swapchain images, this
+        /// lets the draw thread queue presents faster than the GPU can drain, so the
+        /// next <c>vkAcquireNextImageKHR</c> can stall on the present-queue futex for
+        /// hundreds of milliseconds — long enough that texture uploads piling up from
+        /// the load thread (e.g. during the toolbar/intro sequence) starve the draw
+        /// thread entirely and the UI freezes for several seconds.
+        /// </para>
+        ///
+        /// <para>
+        /// <see cref="FrameSync.VSync"/> caps the draw thread to the display refresh and
+        /// bounds in-flight frames to one, eliminating the pile-up. The migration runs
+        /// exactly once per install (gated by <see cref="OsuSetting.AndroidStartupFrameSyncMigrationApplied"/>)
+        /// so a user who later prefers <c>Limit2x</c>/<c>Unlimited</c> from
+        /// Settings &gt; Graphics &gt; Renderer is not fought on every launch.
+        /// </para>
+        /// </summary>
+        private void applyAndroidFrameSyncMigrationOnce(FrameworkConfigManager frameworkConfig)
+        {
+            try
+            {
+                if (LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncMigrationApplied))
+                    return;
+
+                var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+
+                // Only override the framework default. If the user has already explicitly
+                // chosen a different mode (Unlimited / VSync / Custom), respect that —
+                // the migration's job is to nudge the *default*, not to overwrite intent.
+                if (frameSync.Value == FrameSync.Limit2x)
+                {
+                    frameSync.Value = FrameSync.VSync;
+                    Logger.Log("[osu!] Android first-launch FrameSync migration: Limit2x → VSync (bounds Vulkan present-queue depth on Adreno)", LoggingTarget.Performance);
+                }
+
+                LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncMigrationApplied, true);
+            }
+            catch (Exception e)
+            {
+                // Diagnostic-only: failing to migrate must never block startup.
+                Debug.WriteLine($"[osu!] applyAndroidFrameSyncMigrationOnce failed: {e.Message}");
+            }
+        }
+
         public override void SetHost(GameHost host)
         {
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (GameHost.Run entry)");
@@ -820,6 +878,12 @@ namespace osu.Android
             base.SetHost(host);
 
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (base.SetHost returned)");
+
+            // Start the hang watchdog now that GameHost has populated all four
+            // GameThread instances. Running on a dedicated background thread, it
+            // ticks each thread's Scheduler every ~1s and dumps a /proc/self/task
+            // snapshot if any thread fails to drain its queue for >5s.
+            HangWatchdog.Start(host);
 
             if (host.Window != null)
                 host.Window.CursorState |= CursorState.Hidden;

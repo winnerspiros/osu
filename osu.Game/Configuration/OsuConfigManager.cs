@@ -242,6 +242,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidPerformanceMode, false);
             SetDefault(OsuSetting.AndroidLowLatencyAudio, false);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
+            SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -500,6 +501,7 @@ namespace osu.Game.Configuration
         AndroidPerformanceMode,
         AndroidLowLatencyAudio,
         AndroidVulkanProbe,
+        AndroidStartupFrameSyncMigrationApplied,
         RefreshRateFullscreen,
     }
 }

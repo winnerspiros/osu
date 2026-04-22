@@ -364,6 +364,14 @@ namespace osu.Android
             tryAppend(externalDir, payload);
         }
 
+        /// <summary>
+        /// Public entry point for other components (e.g. <c>HangWatchdog</c>) to append
+        /// a diagnostic block into the same internal+external <c>native_crash.log</c>
+        /// targets that the native handler and managed exception hooks write to.
+        /// Never throws.
+        /// </summary>
+        public static void AppendDiagnosticBlock(string payload) => appendToBoth(payload);
+
         private static void tryAppend(string? dir, string payload)
         {
             if (dir == null) return;
