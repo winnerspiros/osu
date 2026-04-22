@@ -199,13 +199,24 @@ namespace osu.Android
             // AppDomain.UnhandledException before aborting — so without this hook the
             // exception that ultimately kills the process can vanish without trace. We
             // record it here on every throw so the *last* recorded exception before a
-            // SIGSEGV/SIGABRT is the candidate culprit. To avoid drowning the log in noise
-            // we filter by exception type — only fatal-ish kinds are recorded.
+            // SIGSEGV/SIGABRT is the candidate culprit.
+            //
+            // Filtering policy:
+            //   * On osu.Framework GameThreads (Draw/Update/Audio/Input): log *every*
+            //     exception. An unhandled throw on any of these threads will tear down
+            //     the process via Mono's tgkill(SIGSEGV) path with no managed trace
+            //     reaching AppDomain.UnhandledException, so we cannot afford to filter.
+            //   * On all other threads: keep the legacy "fatal-ish kinds" type filter
+            //     so the log is not flooded by routine first-chance noise (e.g. the
+            //     HidSharp / CFStringCreateWithCharacters EntryPointNotFoundException
+            //     that fires every startup on .NET TP Worker).
             try
             {
                 AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
                 {
-                    if (e.Exception is NullReferenceException
+                    bool isGameThread = isOsuGameThread(Thread.CurrentThread.Name);
+
+                    bool isFatalKind = e.Exception is NullReferenceException
                         or AccessViolationException
                         or StackOverflowException
                         or TypeInitializationException
@@ -215,7 +226,9 @@ namespace osu.Android
                         or TypeLoadException
                         or MissingMethodException
                         or MissingFieldException
-                        or InvalidProgramException)
+                        or InvalidProgramException;
+
+                    if (isGameThread || isFatalKind)
                     {
                         writeManagedException($"FirstChanceException ({e.Exception.GetType().Name})", e.Exception);
                     }
@@ -225,6 +238,23 @@ namespace osu.Android
             {
                 Debug.WriteLine($"[osu!] Could not install FirstChanceException hook: {e.Message}");
             }
+        }
+
+        // osu.Framework names its game threads with stable prefixes such as
+        // "DrawThread", "UpdateThread", "AudioThread", "InputThread", and the
+        // tombstone we are debugging shows the comm name "Draw (GameThread)".
+        // Match any of these so an exception thrown deep inside the renderer or
+        // audio pipeline gets captured before Mono aborts the process.
+        private static bool isOsuGameThread(string? name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+            return name.StartsWith("Draw", StringComparison.Ordinal)
+                   || name.StartsWith("Update", StringComparison.Ordinal)
+                   || name.StartsWith("Audio", StringComparison.Ordinal)
+                   || name.StartsWith("Input", StringComparison.Ordinal)
+                   || name.Contains("GameThread", StringComparison.Ordinal);
         }
 
         /// <summary>
