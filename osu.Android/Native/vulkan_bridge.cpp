@@ -77,11 +77,12 @@ bool VulkanProbe::createInstance() {
 
 bool VulkanProbe::queryDevice() {
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr);
+    if (vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr) != VK_SUCCESS) return false;
     if (deviceCount == 0) return false;
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data()) != VK_SUCCESS) return false;
+    if (deviceCount == 0) return false;
 
     VkPhysicalDevice selected = devices[0];
     for (const auto& dev : devices) {
@@ -131,6 +132,7 @@ void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
     uint32_t count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
     deviceInfo_.queueFamilyCount = count;
+    if (count == 0) return;
     std::vector<VkQueueFamilyProperties> families(count);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &count, families.data());
     for (const auto& family : families) {
@@ -143,9 +145,10 @@ void VulkanProbe::queryQueueFamilies(VkPhysicalDevice device) {
 
 void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
     uint32_t count = 0;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr) != VK_SUCCESS) return;
+    if (count == 0) return;
     std::vector<VkExtensionProperties> exts(count);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data());
+    if (vkEnumerateDeviceExtensionProperties(device, nullptr, &count, exts.data()) != VK_SUCCESS) return;
     for (const auto& ext : exts) {
         if (strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) deviceInfo_.supportsSwapchain = true;
         if (strcmp(ext.extensionName, VK_KHR_PRESENT_ID_EXTENSION_NAME) == 0) deviceInfo_.supportsPresentId = true;

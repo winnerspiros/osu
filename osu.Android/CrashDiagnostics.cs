@@ -69,6 +69,12 @@ namespace osu.Android
         /// <param name="context">Any <see cref="Context"/> — typically the host Activity.</param>
         public static void InstallNativeHandler(Context context)
         {
+            // Idempotent at the managed level: the native handler dedupes via its own
+            // g_installed flag, but we also avoid re-writing the sentinel and re-running
+            // the directory-resolution / P-Invoke path on repeat calls.
+            if (Interlocked.Exchange(ref initialised, 1) != 0)
+                return;
+
             try
             {
                 resolveDirs(context);
@@ -106,8 +112,6 @@ namespace osu.Android
             {
                 Debug.WriteLine($"[osu!] CrashDiagnostics.InstallNativeHandler outer failure: {e.Message}");
             }
-
-            Interlocked.Exchange(ref initialised, 1);
         }
 
         /// <summary>

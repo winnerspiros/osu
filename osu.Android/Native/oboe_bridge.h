@@ -53,6 +53,7 @@ private:
 
     mutable std::mutex streamLock_;
     std::atomic<bool> active_{false};
+    std::atomic<bool> disposing_{false};
     std::atomic<double> latencyMs_{-1.0};
     std::atomic<uint32_t> callbackCount_{0};
     std::atomic<OboeAudioProvider> provider_{nullptr};

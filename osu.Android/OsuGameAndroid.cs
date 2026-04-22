@@ -90,7 +90,7 @@ namespace osu.Android
         private object? nativeBridges;
 
         /// <summary>
-        /// Last value passed to <see cref="OsuGameActivity.RequestedOrientation"/> by
+        /// Last value passed to <see cref="global::Android.App.Activity.RequestedOrientation"/> by
         /// <see cref="updateOrientation"/>. Cached locally so we can short-circuit
         /// redundant updates without round-tripping through the activity getter, which
         /// itself performs a binder IPC on modern Android.
