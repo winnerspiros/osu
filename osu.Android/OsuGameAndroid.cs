@@ -760,6 +760,8 @@ namespace osu.Android
 
         public override void SetHost(GameHost host)
         {
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (GameHost.Run entry)");
+
             base.SetHost(host);
 
             if (host.Window != null)
