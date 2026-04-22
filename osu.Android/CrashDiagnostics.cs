@@ -37,9 +37,25 @@ namespace osu.Android
         private static int initialised;
         private static int managedHooksInstalled;
 
+        // Global cap on FirstChanceException dumps written per process. A hot-path
+        // throw loop (e.g. Veldrid "surface lost" thrown every Draw frame while the
+        // Android Vulkan surface is unavailable during a slow startup) can otherwise
+        // produce hundreds of full-stack dumps, each one a synchronous file write
+        // on the throwing thread — which itself stalls the Draw thread and worsens
+        // the very condition causing the throws.
+        private const int first_chance_global_cap = 50;
+
+        // Per-unique-stack cap. Higher (10) for true fatal kinds caught via
+        // FirstChanceException-fallback or AppDomain.UnhandledException; lower (3)
+        // for first-chance noise where seeing the first few occurrences is enough
+        // to diagnose and the rest are pure log bloat.
+        private const int per_key_cap_default = 10;
+        private const int per_key_cap_first_chance = 3;
+
         private static string? internalDir;
         private static string? externalDir;
         private static readonly ConcurrentDictionary<string, int> exceptionCounts = new ConcurrentDictionary<string, int>();
+        private static int firstChanceWriteCount;
         private static string? sentinelPath;
         private static string? installedLogPath;
         private static bool sentinelWritten;
@@ -290,8 +306,18 @@ namespace osu.Android
             if (ex is EntryPointNotFoundException && ex.Message.Contains("CFStringCreateWithCharacters"))
                 return;
 
+            bool isFirstChance = source.StartsWith("FirstChanceException", StringComparison.Ordinal);
+
+            // Global cap on first-chance dumps: a hot-path throw loop on the Draw
+            // thread can otherwise produce unbounded synchronous file writes, which
+            // themselves stall the Draw thread and worsen the surface-acquisition
+            // problem that caused the throws.
+            if (isFirstChance && Interlocked.Increment(ref firstChanceWriteCount) > first_chance_global_cap)
+                return;
+
+            int perKeyCap = isFirstChance ? per_key_cap_first_chance : per_key_cap_default;
             string key = $"{source}_{ex?.GetType().Name}_{ex?.StackTrace?.GetHashCode() ?? 0}";
-            if (exceptionCounts.AddOrUpdate(key, 1, (_, count) => count + 1) > 10)
+            if (exceptionCounts.AddOrUpdate(key, 1, (_, count) => count + 1) > perKeyCap)
                 return;
 
             try
@@ -306,7 +332,17 @@ namespace osu.Android
                     "\n" +
                     (ex?.ToString() ?? "<no exception object>") + "\n" +
                     "=== END OF MANAGED EXCEPTION ===\n\n";
-                appendToBoth(block);
+
+                // For FirstChanceException we deliberately skip the external/FUSE
+                // write — those writes are tens of milliseconds each and run on the
+                // throwing thread (often the Draw thread). MirrorInternalLogToExternal
+                // copies the internal log to external on the next startup, which is
+                // sufficient for user-facing diagnostics without risking a Draw-thread
+                // stall in the live process.
+                if (isFirstChance)
+                    tryAppend(internalDir, block);
+                else
+                    appendToBoth(block);
             }
             catch (Exception e)
             {
