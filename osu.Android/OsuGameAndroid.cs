@@ -267,8 +267,29 @@ namespace osu.Android
 
             // Always enable sustained performance mode for consistent frame delivery.
             // This prevents thermal throttling from causing sudden FPS drops.
-            try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
-            catch { }
+            //
+            // This MUST run on the Android UI thread: SetSustainedPerformanceMode mutates
+            // window state through ViewRootImpl, which enforces single-threaded access via
+            // checkThread() and throws CalledFromWrongThreadException otherwise. On some
+            // OEM frameworks (observed on Samsung One UI / Adreno) that exception unwinds
+            // through setPrivateFlags after the underlying Surface has already been
+            // partially reconfigured, invalidating the active VkSurfaceKHR and crashing the
+            // Vulkan driver inside vkCmdBeginRendering on the next frame.
+            try
+            {
+                gameActivity.RunOnUiThread(() =>
+                {
+                    try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
+            }
 
             base.LoadComplete();
 
