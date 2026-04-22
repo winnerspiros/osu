@@ -9,6 +9,7 @@ using Android.App;
 using Android.Content;
 using Debug = System.Diagnostics.Debug;
 using osu.Android.Native;
+using System.Collections.Concurrent;
 
 namespace osu.Android
 {
@@ -38,6 +39,7 @@ namespace osu.Android
 
         private static string? internalDir;
         private static string? externalDir;
+        private static readonly ConcurrentDictionary<string, int> exceptionCounts = new ConcurrentDictionary<string, int>();
         private static string? sentinelPath;
         private static string? installedLogPath;
         private static bool sentinelWritten;
@@ -285,6 +287,13 @@ namespace osu.Android
 
         private static void writeManagedException(string source, Exception? ex)
         {
+            if (ex is EntryPointNotFoundException && ex.Message.Contains("CFStringCreateWithCharacters"))
+                return;
+
+            string key = $"{source}_{ex?.GetType().Name}_{ex?.StackTrace?.GetHashCode() ?? 0}";
+            if (exceptionCounts.AddOrUpdate(key, 1, (_, count) => count + 1) > 10)
+                return;
+
             try
             {
                 string block =
