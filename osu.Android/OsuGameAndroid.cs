@@ -88,6 +88,14 @@ namespace osu.Android
         private object? activeMixersList;
 
         private object? nativeBridges;
+
+        /// <summary>
+        /// Last value passed to <see cref="OsuGameActivity.RequestedOrientation"/> by
+        /// <see cref="updateOrientation"/>. Cached locally so we can short-circuit
+        /// redundant updates without round-tripping through the activity getter, which
+        /// itself performs a binder IPC on modern Android.
+        /// </summary>
+        private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
         public OsuGameAndroid(OsuGameActivity activity)
@@ -753,24 +761,44 @@ namespace osu.Android
 
             var orientation = MobileUtils.GetOrientation(this, currentScreen, gameActivity.IsTablet);
 
+            global::Android.Content.PM.ScreenOrientation desired;
+
+            switch (orientation)
+            {
+                case MobileUtils.Orientation.Locked:
+                    desired = global::Android.Content.PM.ScreenOrientation.Locked;
+                    break;
+
+                case MobileUtils.Orientation.Portrait:
+                    desired = global::Android.Content.PM.ScreenOrientation.Portrait;
+                    break;
+
+                case MobileUtils.Orientation.Default:
+                    desired = gameActivity.DefaultOrientation;
+                    break;
+
+                default:
+                    return;
+            }
+
+            // Short-circuit when no change is required. We track the last requested orientation
+            // locally because Activity.getRequestedOrientation() itself performs a binder IPC
+            // on modern Android, and the whole point of this guard is to avoid binder traffic.
+            // ScreenChanged fires on every screen push/pop and the resolved orientation rarely
+            // differs between adjacent screens, so without this guard we flood the UI looper
+            // with redundant Activity.setRequestedOrientation transactions, which under
+            // system_server CPU pressure can wedge input dispatch and trigger an ANR
+            // ("Input dispatching timed out ... Waited 10000ms for MotionEvent").
+            if (lastRequestedOrientation == desired)
+                return;
+
+            lastRequestedOrientation = desired;
+
             gameActivity.RunOnUiThread(() =>
             {
                 try
                 {
-                    switch (orientation)
-                    {
-                        case MobileUtils.Orientation.Locked:
-                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Locked;
-                            break;
-
-                        case MobileUtils.Orientation.Portrait:
-                            gameActivity.RequestedOrientation = global::Android.Content.PM.ScreenOrientation.Portrait;
-                            break;
-
-                        case MobileUtils.Orientation.Default:
-                            gameActivity.RequestedOrientation = gameActivity.DefaultOrientation;
-                            break;
-                    }
+                    gameActivity.RequestedOrientation = desired;
                 }
                 catch (Exception e)
                 {

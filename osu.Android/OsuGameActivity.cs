@@ -83,8 +83,19 @@ namespace osu.Android
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
-            // Force orientation immediately to prevent unnecessary surface recreation on startup.
-            RequestedOrientation = ScreenOrientation.Landscape;
+            // NOTE: do NOT assign RequestedOrientation here. The `[Activity]` attribute on this
+            // class already declares `ScreenOrientation = ScreenOrientation.Landscape`, so the
+            // activity is created in landscape from the very first frame. A runtime re-assignment
+            // *before* `base.OnCreate` (which is where SDL constructs the SurfaceView) gets
+            // queued by Android and delivered exactly during initial SurfaceView setup, nudging
+            // the SurfaceView into a destroy/recreate cycle on some OEMs while the SDL draw
+            // thread is mid-Vulkan-init. The framework's `VeldridDevice` then either times out
+            // its 5s `SurfaceHandle` poll (constructor throws, renderer never comes up) or hands
+            // a stale handle to `vkCreateAndroidSurfaceKHR` (driver SIGSEGV) — either way the
+            // game never renders a frame and the user is left staring at a black screen while
+            // the per-frame retry / FirstChanceException pipeline floods the log. The same
+            // invariant is documented further down in this method (see the "Phones: manifest
+            // already requests Landscape; do not re-assign at runtime" block).
 
             // Crash diagnostics first. The native handler write target is internal storage
             // (FilesDir/native_crash.log); a one-shot mirror copies it to external storage
