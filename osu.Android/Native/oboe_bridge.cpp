@@ -196,6 +196,10 @@ bool OboeBridge::start() {
 }
 
 void OboeBridge::stop() {
+    // Signal any in-flight error-callback recovery (onErrorAfterClose →
+    // reopenAndRestart) to bail out, so the bridge cannot be reopened from
+    // Oboe's internal thread while we are tearing it down from .NET.
+    disposing_.store(true);
     active_.store(false);
 
     std::lock_guard<std::mutex> lock(streamLock_);
@@ -360,6 +364,16 @@ void OboeBridge::onErrorAfterClose(oboe::AudioStream* stream, oboe::Result error
          oboe::convertToText(error));
     active_.store(false);
 
+    // Bail out immediately if a teardown is in flight: stop() has signalled
+    // that the bridge is being destroyed by .NET, and proceeding with the
+    // recovery path could leave us inside open()/requestStart() while the
+    // OboeBridge object is freed by the destructor.
+    if (disposing_.load()) {
+        std::lock_guard<std::mutex> lock(streamLock_);
+        stream_.reset();
+        return;
+    }
+
     if (error == oboe::Result::ErrorDisconnected) {
         {
             std::lock_guard<std::mutex> lock(streamLock_);
@@ -378,8 +392,17 @@ void OboeBridge::onErrorAfterClose(oboe::AudioStream* stream, oboe::Result error
 }
 
 bool OboeBridge::reopenAndRestart() {
+    // Re-check teardown after acquiring no-lock fast path: stop() may have
+    // been called between onErrorAfterClose's check and now.
+    if (disposing_.load()) return false;
+
     if (open(requestedSampleRate_)) {
         std::lock_guard<std::mutex> lock(streamLock_);
+
+        if (disposing_.load()) {
+            stream_.reset();
+            return false;
+        }
 
         if (stream_) {
             oboe::Result result = stream_->requestStart();
