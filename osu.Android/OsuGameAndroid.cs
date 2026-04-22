@@ -762,7 +762,15 @@ namespace osu.Android
         {
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (GameHost.Run entry)");
 
+            // Re-install the native crash handler now that the Mono runtime has had a chance
+            // to install its own SIGSEGV handler. Without this, Mono sits in front of us in
+            // the chain and intercepts JIT null-deref faults — re-raising via tgkill (visible
+            // as si_code = SI_TKILL in tombstones) without forwarding to our dump.
+            CrashDiagnostics.ReinstallNativeHandler();
+
             base.SetHost(host);
+
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (base.SetHost returned)");
 
             if (host.Window != null)
                 host.Window.CursorState |= CursorState.Hidden;

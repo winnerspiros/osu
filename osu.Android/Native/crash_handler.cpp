@@ -1006,4 +1006,40 @@ void nInstallCrashHandler(const char* logPath) {
         g_logPath[0] ? g_logPath : "<none, logcat only>");
 }
 
+// Re-install the signal handlers without short-circuiting on g_installed.
+// Mono installs its own SIGSEGV handler later in startup (after activity
+// OnCreate), which sits in front of ours and intercepts JIT null-deref
+// faults — re-raising via tgkill when it cannot translate them, which
+// bypasses our dump.  Calling this from a later phase (e.g. GameHost.Run)
+// puts our handler back on top of the chain, with Mono's saved as the
+// previous handler so chaining still works.
+__attribute__((visibility("default")))
+void nReinstallCrashHandler() {
+    // Re-install alt stack (cheap; idempotent on the same buffer).
+    stack_t ss{};
+    ss.ss_sp = g_altStack;
+    ss.ss_size = kAltStackSize;
+    ss.ss_flags = 0;
+    sigaltstack(&ss, nullptr);
+
+    struct sigaction sa{};
+    sa.sa_sigaction = &crashHandler;
+    sa.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+
+    for (size_t i = 0; i < kNumSignals; ++i) {
+        // Overwrite previous-handler slot with whatever is currently
+        // installed (typically Mono's handler at this point), so when our
+        // handler chains, it forwards to Mono rather than to our own
+        // already-saved entry.
+        sigaction(kSignals[i], &sa, &g_prevHandlers[i]);
+    }
+
+    g_installed = 1;
+
+    __android_log_print(ANDROID_LOG_INFO, CRASH_LOG_TAG,
+        "Crash handler re-installed (logPath=%s)",
+        g_logPath[0] ? g_logPath : "<none, logcat only>");
+}
+
 } // extern "C"
