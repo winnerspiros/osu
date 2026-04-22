@@ -13,7 +13,15 @@ namespace osu.Android
     /// JNI_OnLoad, or static .NET assembly load are captured to <c>native_crash.log</c>
     /// instead of leaving only a 2-frame Android tombstone.
     /// </summary>
-    [Application]
+    [Application(
+        AllowBackup = true,
+        SupportsRtl = true,
+        Label = "osu!",
+        Icon = "@mipmap/ic_launcher",
+        RoundIcon = "@mipmap/ic_launcher",
+        LargeHeap = true,
+        HardwareAccelerated = true,
+        ExtractNativeLibs = false)]
     public class OsuApplication : Application
     {
         public OsuApplication(System.IntPtr handle, JniHandleOwnership transfer)
