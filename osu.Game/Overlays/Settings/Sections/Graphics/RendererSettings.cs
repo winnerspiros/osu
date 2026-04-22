@@ -83,11 +83,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Keywords = new[] { @"fps", @"framerate" },
                 },
                 customDrawLimitItem,
-                new SettingsItemV2(new FormEnumDropdown<ExecutionMode>
-                {
-                    Caption = GraphicsSettingsStrings.ThreadingMode,
-                    Current = config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode)
-                }),
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = GraphicsSettingsStrings.ShowFPS,

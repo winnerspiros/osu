@@ -8,9 +8,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Platform;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
@@ -102,13 +100,6 @@ namespace osu.Game.Tests.Visual.Navigation
 
             AddAssert("ruleset still valid", () => Ruleset.Value.Available);
             AddAssert("ruleset unchanged", () => ReferenceEquals(Ruleset.Value, ruleset));
-        }
-
-        [Test]
-        public void TestSwitchThreadExecutionMode()
-        {
-            AddStep("Change thread mode to multi threaded", () => { Game.Dependencies.Get<FrameworkConfigManager>().SetValue(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded); });
-            AddStep("Change thread mode to single thread", () => { Game.Dependencies.Get<FrameworkConfigManager>().SetValue(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread); });
         }
 
         [Test]
