@@ -36,29 +36,42 @@ namespace osu.Game.Screens.Play.HUD.ClicksPerSecond
             double latestValidTime = clock.CurrentTime;
             double earliestTimeValid = latestValidTime - 1000 * gameplayClock.GetTrueGameplayRate();
 
-            // Timestamps are added in chronological order (from clock.CurrentTime),
-            // so we can use binary-search-style trimming instead of per-element RemoveAt.
+            // Timestamps are appended at clock.CurrentTime which is *usually* monotonic, but
+            // gameplay rewinds (and replay seeks) can append a smaller value after a larger
+            // one — so the list is not strictly sorted. We still scan from the end (where
+            // newly-appended entries live) to match the access pattern of the previous
+            // implementation, but we cannot stop early on either bound because an older
+            // out-of-order entry may live anywhere in the list.
 
-            // Trim future timestamps caused by rewinding (remove from the end in one batch).
-            // RemoveRange from the end is a single operation vs repeated RemoveAt calls.
-            int trimStart = timestamps.Count;
+            // First pass: drop any timestamps now in the future (caused by rewinding).
+            // Walk backwards and shift surviving entries down in-place; this is O(n) and
+            // avoids the O(n²) RemoveAt-in-loop pattern of the original code.
+            int write = 0;
 
-            while (trimStart > 0 && timestamps[trimStart - 1] > latestValidTime)
-                trimStart--;
+            for (int read = 0; read < timestamps.Count; read++)
+            {
+                double t = timestamps[read];
 
-            if (trimStart < timestamps.Count)
-                timestamps.RemoveRange(trimStart, timestamps.Count - trimStart);
+                if (t > latestValidTime)
+                    continue;
 
-            // Count timestamps within the valid 1-second window.
-            // Since the list is in chronological order, scan backwards until we leave the window.
+                if (write != read)
+                    timestamps[write] = t;
+
+                write++;
+            }
+
+            if (write < timestamps.Count)
+                timestamps.RemoveRange(write, timestamps.Count - write);
+
+            // Count entries inside the 1-second window. Cannot break early because the list
+            // is not guaranteed sorted (see above), so scan all surviving timestamps.
             int count = 0;
 
-            for (int i = timestamps.Count - 1; i >= 0; i--)
+            for (int i = 0; i < timestamps.Count; i++)
             {
-                if (timestamps[i] < earliestTimeValid)
-                    break;
-
-                count++;
+                if (timestamps[i] >= earliestTimeValid)
+                    count++;
             }
 
             Value = count;
