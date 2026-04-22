@@ -82,10 +82,14 @@ namespace osu.Android
 
             try
             {
-                heartbeats[0] = new Heartbeat("Update", host.UpdateThread);
-                heartbeats[1] = new Heartbeat("Draw", host.DrawThread);
-                heartbeats[2] = new Heartbeat("Audio", host.AudioThread);
-                heartbeats[3] = new Heartbeat("Input", host.InputThread);
+                heartbeats[0] = new Heartbeat("Update", host.UpdateThread, allowNeverTickedHangDetection: true);
+                heartbeats[1] = new Heartbeat("Draw", host.DrawThread, allowNeverTickedHangDetection: true);
+                heartbeats[2] = new Heartbeat("Audio", host.AudioThread, allowNeverTickedHangDetection: true);
+                // Input legitimately starts ticking late (after window + input loop init),
+                // which can exceed the hang threshold during a normal cold start. Don't
+                // count "armed but never ticked" as a hang for this slot — only a stop
+                // *after* it has ticked at least once is a real signal.
+                heartbeats[3] = new Heartbeat("Input", host.InputThread, allowNeverTickedHangDetection: false);
 
                 foreach (var hb in heartbeats)
                     hb.Arm();
@@ -136,7 +140,26 @@ namespace osu.Android
                         // once it has been armed for longer than the threshold —
                         // this catches startup deadlocks where the GameThread
                         // never actually starts running its Scheduler.
-                        long referenceMs = lastTickMs > 0 ? lastTickMs : armedAtMs;
+                        //
+                        // Exception: the framework's InputThread legitimately
+                        // does not start ticking until a window is up and the
+                        // input loop is initialised, which can take well over
+                        // the 5s threshold on cold-start of a heavy build. We
+                        // therefore *do not* trigger a hang dump on Input
+                        // simply because it has never ticked — we only flag
+                        // Input once it has ticked at least once and *then*
+                        // stops. Update/Draw/Audio retain the strict policy
+                        // because they start synchronously with the host and a
+                        // never-tick is a true deadlock signal for them.
+                        long referenceMs;
+
+                        if (lastTickMs > 0)
+                            referenceMs = lastTickMs;
+                        else if (hb.AllowNeverTickedHangDetection)
+                            referenceMs = armedAtMs;
+                        else
+                            continue;
+
                         if (referenceMs <= 0) continue;
 
                         long ageMs = nowMs - referenceMs;
@@ -185,8 +208,27 @@ namespace osu.Android
 
                     long t = Interlocked.Read(ref other.LastTickUtcMs);
                     long a = Interlocked.Read(ref other.ArmedAtUtcMs);
-                    long otherAge = t > 0 ? now - t : (a > 0 ? now - a : -1);
-                    sb.Append($"  {other.Name,-7} tid={Interlocked.Read(ref other.LinuxTid),-7} age_ms={otherAge,-7} ticks={Interlocked.Read(ref other.TickCount)}\n");
+                    long otherTid = Interlocked.Read(ref other.LinuxTid);
+                    long ticks = Interlocked.Read(ref other.TickCount);
+
+                    // A slot that is "armed but never ticked" is most often a thread
+                    // that has not yet started running (e.g. Input before the window
+                    // is up), not a hung thread — annotate so the dump reader does
+                    // not mistake it for a stalled-after-ticking thread.
+                    if (t > 0)
+                    {
+                        long otherAge = now - t;
+                        sb.Append($"  {other.Name,-7} tid={otherTid,-7} age_ms={otherAge,-7} ticks={ticks}\n");
+                    }
+                    else if (a > 0)
+                    {
+                        long armedAge = now - a;
+                        sb.Append($"  {other.Name,-7} tid={otherTid,-7} not_yet_started armed_ms_ago={armedAge}\n");
+                    }
+                    else
+                    {
+                        sb.Append($"  {other.Name,-7} tid={otherTid,-7} not_armed\n");
+                    }
                 }
 
                 sb.Append("\n--- /proc/self/task snapshot ---\n");
@@ -297,16 +339,27 @@ namespace osu.Android
         private sealed class Heartbeat
         {
             public readonly string Name;
+
+            /// <summary>
+            /// Whether the monitor should treat "armed but never ticked &gt;
+            /// hang_threshold_ms" as a hang for this slot. True for threads
+            /// that start synchronously with the host (Update/Draw/Audio);
+            /// false for threads that legitimately start ticking later in
+            /// the host lifecycle (Input).
+            /// </summary>
+            public readonly bool AllowNeverTickedHangDetection;
+
             private readonly GameThread thread;
             public long LastTickUtcMs;
             public long ArmedAtUtcMs;
             public long LinuxTid;
             public long TickCount;
 
-            public Heartbeat(string name, GameThread thread)
+            public Heartbeat(string name, GameThread thread, bool allowNeverTickedHangDetection)
             {
                 Name = name;
                 this.thread = thread;
+                AllowNeverTickedHangDetection = allowNeverTickedHangDetection;
             }
 
             // Schedule a self-pinging recurring delegate that bumps the

@@ -111,6 +111,14 @@ namespace osu.Android
             CrashDiagnostics.WriteInstallState();
             CrashDiagnostics.MirrorInternalLogToExternal();
 
+            // Bound on-disk runtime log footprint and lower the framework log
+            // level to Important. Must run before the framework constructs its
+            // logger / loads framework.ini, so we do it here at the top of
+            // OnCreate alongside the crash-diagnostics installs.
+            LogManagement.Apply();
+            LogManagement.NormaliseFrameworkIniExecutionMode();
+            LogManagement.WipeShaderCacheOnceForVersion();
+
             base.OnCreate(savedInstanceState);
 
             // Wrap Platform.Init defensively: MAUI Essentials pulls in workload-version-sensitive
