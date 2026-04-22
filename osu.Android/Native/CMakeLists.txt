@@ -77,10 +77,15 @@ set(OBOE_LIB oboe)
 find_library(vulkan-lib vulkan REQUIRED)
 find_library(log-lib log REQUIRED)
 find_library(android-lib android REQUIRED)
+# `dl` is needed for dladdr() in crash_handler.cpp (symbol resolution from PCs).
+# It is normally auto-linked on Android, but make the dependency explicit so we
+# don't accidentally lose dladdr if the toolchain default ever changes.
+find_library(dl-lib dl REQUIRED)
 
 add_library(osu_native SHARED
     oboe_bridge.cpp
     vulkan_bridge.cpp
+    crash_handler.cpp
 )
 
 
@@ -89,4 +94,5 @@ target_link_libraries(osu_native
     ${vulkan-lib}
     ${log-lib}
     ${android-lib}
+    ${dl-lib}
 )

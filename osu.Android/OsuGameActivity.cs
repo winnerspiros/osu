@@ -16,9 +16,9 @@ using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
 using osu.Android.Input;
+using osu.Android.Native;
 using osu.Framework.Android;
 using osu.Game.Database;
-using osu.Android.Native;
 using osu.Framework.Logging;
 
 namespace osu.Android
@@ -85,6 +85,38 @@ namespace osu.Android
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            // Install the native crash handler as early as we possibly can — before
+            // anything else in our managed code touches native libraries.  Any crash
+            // after this point (SIGSEGV/SIGBUS/SIGILL/SIGFPE/SIGABRT, on any thread)
+            // will append a symbolicated backtrace to <external-files-dir>/native_crash.log
+            // *and* mirror it to logcat (`osu!crash`), and then chain to the system
+            // tombstone handler.  This is the only way to obtain a usable crash report
+            // on unrooted devices where the user cannot run `adb logcat` and the
+            // built-in tombstone shown in App Info is truncated to two unsymbolicated
+            // frames.  Wrapped in try/catch so a failure here can never itself
+            // contribute to startup crashes — worst case we simply have no extra
+            // diagnostic, which is the status quo.
+            try
+            {
+                string? crashLogPath = null;
+
+                try
+                {
+                    var dir = GetExternalFilesDir(null);
+                    if (dir != null && !string.IsNullOrEmpty(dir.AbsolutePath))
+                        crashLogPath = System.IO.Path.Combine(dir.AbsolutePath, "native_crash.log");
+                }
+                catch (Exception e) { Debug.WriteLine($"[osu!] Could not resolve external files dir for crash log: {e.Message}"); }
+
+                OboeAudioBridge.nInstallCrashHandler(crashLogPath);
+            }
+            catch (Exception e)
+            {
+                // Most likely cause: native library not loaded yet (DllNotFoundException).
+                // That is fine — the crash handler is best-effort diagnostics.
+                Debug.WriteLine($"[osu!] Failed to install native crash handler: {e.Message}");
+            }
 
             // Wrap Platform.Init defensively: MAUI Essentials pulls in workload-version-sensitive
             // initialisation code, and a mismatch between the build-time workload and the device's
