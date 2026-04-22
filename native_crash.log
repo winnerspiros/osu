@@ -1,0 +1,8 @@
+=== ALIVE [2026-04-22T21:33:48.9768695Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files ===
+=== ALIVE [2026-04-22T21:33:48.9768695Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files ===
+=== ALIVE [2026-04-22T21:33:49.0265147Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-22T21:33:49.7883970Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-22T21:33:49.7893531Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-22T21:33:49.9061141Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
