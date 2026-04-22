@@ -359,13 +359,32 @@ namespace osu.Android
         });
 
         private readonly System.Threading.ManualResetEventSlim surfaceEvent = new System.Threading.ManualResetEventSlim(false);
+
+        // Hold both the JNI global ref AND the managed Surface peer alive against the
+        // SurfaceView lifecycle. The global ref alone is NOT enough — .NET-for-Android
+        // tracks managed peers separately, and once the local `Surface` returned by
+        // `holder.Surface` becomes GC-eligible (i.e. once SurfaceCreated returns), the
+        // peer's finaliser will release the underlying Java Surface even though we still
+        // hold a global ref to its handle. The next time the SDL thread tries to use that
+        // handle through JNI we crash with SIGSEGV inside libart.so on the SDLActivity
+        // thread (see native_crash.log). Storing the wrapper in a managed field roots the
+        // peer for the SurfaceView's entire lifetime.
+        //
+        // SurfaceCreated and SurfaceDestroyed are serialised against each other via
+        // `surfaceLock` so the SDL/Veldrid backend can never observe a half-torn-down
+        // state (e.g. global ref present but managed peer already released, or vice
+        // versa). The handle reader uses Volatile.Read for an unlocked fast path on hot
+        // call sites and a locked slow path is unnecessary because all writes happen
+        // under the lock and Interlocked.Exchange / Volatile.Write are release barriers.
+        private readonly object surfaceLock = new object();
+        private global::Android.Views.Surface? heldSurface;
         private IntPtr surfaceGlobalRef;
 
         public IntPtr GetSurfaceGlobalRef()
         {
             if (!surfaceEvent.Wait(5000))
                 Debug.WriteLine("[osu!] Warning: Wait for surface timed out");
-            return surfaceGlobalRef;
+            return System.Threading.Volatile.Read(ref surfaceGlobalRef);
         }
 
         public SurfaceView? GetSurface() => findSurfaceView(Window?.DecorView);
@@ -387,18 +406,32 @@ namespace osu.Android
         public void SurfaceCreated(ISurfaceHolder holder)
         {
             var surface = holder.Surface;
-            if (surface != null && surface.IsValid)
+            if (surface == null || !surface.IsValid)
+                return;
+
+            IntPtr handle = surface.Handle;
+            if (handle == IntPtr.Zero)
+                return;
+
+            IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
+
+            lock (surfaceLock)
             {
-                IntPtr handle = surface.Handle;
-                if (handle == IntPtr.Zero) return;
+                // Establish the new managed root BEFORE publishing the new global ref so
+                // that any reader that observes the new ref already has its managed peer
+                // pinned. Then atomically swap in the new ref and release the previous one.
+                var oldHeld = heldSurface;
+                heldSurface = surface;
 
-                IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
-
-                // Atomically swap the old reference to prevent race with SurfaceDestroyed.
                 IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, newRef);
 
                 if (oldRef != IntPtr.Zero)
                     global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
+                // Drop the previous managed root only AFTER its global ref is gone, so
+                // there is no window where consumers can hold a stale global ref pointing
+                // into a Java peer whose .NET wrapper has been disposed.
+                oldHeld?.Dispose();
 
                 Debug.WriteLine("[osu!] Native surface JNI global reference created (waiting for SurfaceChanged for signal)");
             }
@@ -420,12 +453,28 @@ namespace osu.Android
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
-            IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, IntPtr.Zero);
+            // Block any concurrent SurfaceCreated so the SDL/Veldrid thread can never
+            // observe a partial state where the global ref has been freed but the
+            // managed peer is still alive (or the inverse).
+            lock (surfaceLock)
+            {
+                // Reset the readiness signal first so any waiter blocks until a new
+                // surface is published, rather than racing with the teardown below.
+                surfaceEvent.Reset();
 
-            if (oldRef != IntPtr.Zero)
-                global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+                // Release the global ref BEFORE dropping the managed root, never the
+                // other way around: once the .NET wrapper is disposed the underlying
+                // Java Surface may be released, and any subsequent JNI use of an
+                // outstanding global ref to that handle would segfault. Order here
+                // mirrors the inverse of SurfaceCreated.
+                IntPtr oldRef = System.Threading.Interlocked.Exchange(ref surfaceGlobalRef, IntPtr.Zero);
 
-            surfaceEvent.Reset();
+                if (oldRef != IntPtr.Zero)
+                    global::Android.Runtime.JNIEnv.DeleteGlobalRef(oldRef);
+
+                heldSurface?.Dispose();
+                heldSurface = null;
+            }
         }
 
         public override void OnConfigurationChanged(Configuration newConfig)
