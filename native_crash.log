@@ -1,1 +1,34 @@
-=== ALIVE [2026-04-22T12:24:32.4218505Z] Activity.OnCreate entry ===
+=== ALIVE [2026-04-22T13:23:50.3754310Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files ===
+=== ALIVE [2026-04-22T13:23:50.3754310Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files ===
+=== ALIVE [2026-04-22T13:23:50.4125823Z] Activity.OnCreate exit ===
+
+=========================================================
+=== MANAGED EXCEPTION ===
+  source     = FirstChanceException (EntryPointNotFoundException)
+  utc_time   = 2026-04-22T13:23:50.9390010Z
+  thread_id  = 14
+  thread_name= .NET TP Worker
+
+System.EntryPointNotFoundException: CFStringCreateWithCharacters
+=== END OF MANAGED EXCEPTION ===
+
+
+=========================================================
+=== MANAGED EXCEPTION ===
+  source     = FirstChanceException (TypeInitializationException)
+  utc_time   = 2026-04-22T13:23:50.9410254Z
+  thread_id  = 14
+  thread_name= .NET TP Worker
+
+System.TypeInitializationException: TypeInitialization_Type, HidSharp.Platform.MacOS.NativeMethods
+ ---> System.EntryPointNotFoundException: CFStringCreateWithCharacters
+   at HidSharp.Platform.MacOS.NativeMethods.CFStringCreateWithCharacters(String str)
+   at HidSharp.Platform.MacOS.NativeMethods..cctor()
+   Exception_EndOfInnerExceptionStack
+=== END OF MANAGED EXCEPTION ===
+
+=== ALIVE [2026-04-22T13:23:50.9679633Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-22T13:23:50.9683420Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-22T13:23:51.0392566Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
