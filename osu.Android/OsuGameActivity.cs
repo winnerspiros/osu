@@ -94,6 +94,7 @@ namespace osu.Android
             CrashDiagnostics.InstallNativeHandler(this);
             CrashDiagnostics.InstallManagedExceptionHooks();
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate entry");
+            CrashDiagnostics.WriteInstallState();
             CrashDiagnostics.MirrorInternalLogToExternal();
 
             base.OnCreate(savedInstanceState);

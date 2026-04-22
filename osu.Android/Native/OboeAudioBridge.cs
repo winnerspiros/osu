@@ -216,5 +216,6 @@ namespace osu.Android.Native
         [DllImport(lib_name)] internal static extern void nADPFUpdateTargetDuration(IntPtr sessionPtr, long targetDurationNanos);
         [DllImport(lib_name)] internal static extern void nADPFCloseSession(IntPtr sessionPtr);
         [DllImport(lib_name)] internal static extern void nInstallCrashHandler([MarshalAs(UnmanagedType.LPUTF8Str)] string? logPath);
+        [DllImport(lib_name)] internal static extern void nReinstallCrashHandler();
     }
 }
