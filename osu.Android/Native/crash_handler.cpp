@@ -23,14 +23,17 @@
 //     1. Signal info (signal/code/fault address/tid/thread name/uptime).
 //     2. Full register state.
 //     3. The faulting thread's backtrace, walked from the saved ucontext via
-//        the AArch64 frame-pointer chain.  This is the diagnostic that
-//        actually matters — it shows where the crash happened.  We do NOT
-//        use `_Unwind_Backtrace` for this because that walks the *handler*
-//        thread's stack (which terminates at the kernel signal trampoline
-//        in vdso, giving "crashHandler → libsigchain → vdso" — useless).
-//     4. /proc/self/maps so any addresses dladdr couldn't symbolicate
-//        (internal-namespace / stripped-.dynsym frames) can still be matched
-//        to a library and offset post-mortem.
+//        the AArch64 frame-pointer chain.  Each frame is symbolicated by
+//        trying, in order:
+//          a. dladdr — resolves PCs that fall inside a loaded ELF (.so).
+//          b. The Mono `--jitmap` perfmap (`<TMPDIR>/perf-<pid>.map`), which
+//             names managed JIT methods.  Enable by setting Mono env vars
+//             (see `resolveViaPerfmap` comment below).
+//          c. /proc/self/maps — labels the containing region (e.g. JIT trampoline
+//             or stripped .so) with offset, so addresses without a symbol still
+//             produce actionable output instead of "<unresolved>".
+//     4. /proc/self/maps so any addresses still without a symbol after (3c)
+//        can be cross-checked manually against the full process memory layout.
 //     5. The secondary `_Unwind_Backtrace` output for completeness.
 //
 // Async-signal safety:
@@ -69,6 +72,7 @@
 #include <dlfcn.h>
 #include <unwind.h>
 #include <ucontext.h>
+#include <sys/mman.h>
 #include <android/log.h>
 
 #include "crash_handler.h"
@@ -149,6 +153,331 @@ static void logcatWrite(const char* msg) {
 }
 
 // ----------------------------------------------------------------------------
+// Mapping- and JIT-perfmap-based fallback symbolicators.
+//
+// Why this exists:
+//   `dladdr` only resolves PCs that fall inside a loaded ELF (.so) image.
+//   It cannot resolve:
+//     a. PCs in Mono's JIT/trampoline regions (anonymous `rwxp` mappings) —
+//        these are where every `<unresolved>` frame in our existing crash logs
+//        sits when the crash is in managed C# code or a Mono trampoline.
+//     b. PCs in stripped libraries with no .dynsym entries, where dladdr at
+//        best returns the library path with no symbol.
+//
+//   We add two fallbacks below, tried in order whenever dladdr fails:
+//     1. `resolveViaPerfmap` — search a Mono `--jitmap` file (if present) for
+//        the managed method that owns this PC.  Mono with `--jitmap` (enabled
+//        via `MONO_ENV_OPTIONS=--jitmap`) writes one line per JIT method to
+//        `<TMPDIR>/perf-<pid>.map` in the format
+//            <hex_start_addr> <hex_size> <method_name>
+//        which we parse line-by-line.
+//     2. `resolveViaProcMaps` — find the `/proc/self/maps` entry containing
+//        the PC and emit `[perms start-end +offset] /path/to/lib` (or a
+//        `[Mono JIT/trampoline (anon rwxp)]` tag for anonymous executable
+//        mappings).  This always works and turns "<unresolved>" lines into
+//        actionable output even when no perfmap is present.
+//
+// To enable the perfmap output (step 1) for a build:
+//   - Add an `AndroidEnvironment` text file to the project containing:
+//       MONO_ENV_OPTIONS=--jitmap
+//       TMPDIR=/storage/emulated/0/Android/data/<pkg>/files
+//     so Mono writes the perfmap into the same dir as `native_crash.log`.
+//     `crash_handler.cpp` searches that dir, plus `/tmp` and `/data/local/tmp`,
+//     plus the directory containing `g_logPath`.
+//
+// Async-signal safety:
+//   - All file I/O uses open/read/close (signal-safe).
+//   - We do NOT use malloc.  The perfmap is mmap'd once on first use into a
+//     static slot; subsequent frame lookups scan that buffer in-place.
+//   - The /proc/self/maps lookup uses a fixed-size stack buffer and
+//     re-opens the file once per crash (it is small — typically <1 MB).
+// ----------------------------------------------------------------------------
+
+// Lazily-mapped Mono perfmap.  Set on first call to resolveViaPerfmap during
+// a crash; never unmapped (we're about to die anyway).
+static const char* g_perfmapData = nullptr;
+static size_t g_perfmapSize = 0;
+static volatile sig_atomic_t g_perfmapTried = 0;
+
+static int hexVal(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+    if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+    return -1;
+}
+
+// Parse "<hex>" up to a non-hex char.  Advances *p past the parsed digits.
+// Returns the parsed value (0 if no digits parsed).
+static uint64_t parseHexAt(const char* s, size_t len, size_t* p) {
+    uint64_t v = 0;
+    while (*p < len) {
+        int d = hexVal(s[*p]);
+        if (d < 0) break;
+        v = (v << 4) | (uint64_t)d;
+        ++*p;
+    }
+    return v;
+}
+
+// Append a NUL-terminated literal to a fixed buffer; advances *bp.
+static void appendLit(char* buf, int cap, int* bp, const char* s) {
+    while (*s && *bp < cap - 1) buf[(*bp)++] = *s++;
+}
+
+// Append a length-bounded string (may contain '\n' which we stop at).
+static void appendBounded(char* buf, int cap, int* bp, const char* s, int slen) {
+    for (int i = 0; i < slen && *bp < cap - 1; ++i) {
+        char c = s[i];
+        if (c == '\n' || c == '\r') break;
+        buf[(*bp)++] = c;
+    }
+}
+
+// Try to mmap the Mono perfmap once.  Returns true if g_perfmapData is set.
+// Searches several plausible locations because Mono's `--jitmap` always
+// writes to `<TMPDIR>/perf-<pid>.map` and TMPDIR varies by configuration.
+static bool ensurePerfmapLoaded() {
+    if (g_perfmapTried) return g_perfmapData != nullptr;
+    g_perfmapTried = 1;
+
+    // Build "perf-<pid>.map" once.
+    char nameBuf[64];
+    int np = 0;
+    appendLit(nameBuf, sizeof(nameBuf), &np, "perf-");
+    {
+        char tmp[16]; int tp = 0;
+        long long n = (long long)getpid();
+        if (n == 0) tmp[tp++] = '0';
+        while (n > 0 && tp < 15) { tmp[tp++] = (char)('0' + (n % 10)); n /= 10; }
+        while (tp > 0 && np < (int)sizeof(nameBuf) - 1) nameBuf[np++] = tmp[--tp];
+    }
+    appendLit(nameBuf, sizeof(nameBuf), &np, ".map");
+    nameBuf[np] = '\0';
+
+    // Candidate directories, in priority order.  The dir containing g_logPath
+    // is checked first so a build that sets `TMPDIR=<external-files-dir>`
+    // (the recommended config) finds its perfmap immediately.
+    const char* tmpEnv = getenv("TMPDIR");
+    char logDir[kMaxLogPathLen] = {};
+    if (g_logPath[0] != '\0') {
+        size_t len = 0;
+        while (g_logPath[len] != '\0' && len < sizeof(logDir) - 1) {
+            logDir[len] = g_logPath[len];
+            ++len;
+        }
+        // Strip trailing filename component.
+        while (len > 0 && logDir[len - 1] != '/') { logDir[--len] = '\0'; }
+        if (len > 1 && logDir[len - 1] == '/') logDir[len - 1] = '\0';
+    }
+
+    const char* dirs[4] = {
+        logDir[0] ? logDir : nullptr,
+        tmpEnv,
+        "/tmp",
+        "/data/local/tmp",
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        if (!dirs[i] || dirs[i][0] == '\0') continue;
+        char path[kMaxLogPathLen + 64];
+        int p = 0;
+        for (int k = 0; dirs[i][k] && p < (int)sizeof(path) - 1; ++k) path[p++] = dirs[i][k];
+        if (p > 0 && path[p - 1] != '/' && p < (int)sizeof(path) - 1) path[p++] = '/';
+        for (int k = 0; nameBuf[k] && p < (int)sizeof(path) - 1; ++k) path[p++] = nameBuf[k];
+        path[p] = '\0';
+
+        int fd = open(path, O_RDONLY | O_CLOEXEC);
+        if (fd < 0) continue;
+        struct stat st;
+        if (fstat(fd, &st) != 0 || st.st_size <= 0) { close(fd); continue; }
+        // Cap the mapped size at 64 MB to bound scan time.  A perfmap larger
+        // than that for a single .NET process would be extraordinary.
+        size_t sz = (size_t)st.st_size;
+        if (sz > 64u * 1024u * 1024u) sz = 64u * 1024u * 1024u;
+        void* m = mmap(nullptr, sz, PROT_READ, MAP_PRIVATE, fd, 0);
+        close(fd);
+        if (m == MAP_FAILED) continue;
+        g_perfmapData = static_cast<const char*>(m);
+        g_perfmapSize = sz;
+        return true;
+    }
+    return false;
+}
+
+// Linearly scan the perfmap for the entry containing pc.  On hit, writes
+// "  [JIT] <method_name>+0xOFF" to fd and returns true.
+static bool resolveViaPerfmap(int fd, uintptr_t pc) {
+    if (!ensurePerfmapLoaded()) return false;
+    const char* d = g_perfmapData;
+    size_t n = g_perfmapSize;
+    size_t i = 0;
+    while (i < n) {
+        // Each line: "<hex_start> <hex_size> <name>\n"
+        size_t lineStart = i;
+        size_t p = i;
+        uint64_t start = parseHexAt(d, n, &p);
+        // skip space
+        while (p < n && d[p] == ' ') ++p;
+        uint64_t size = parseHexAt(d, n, &p);
+        while (p < n && d[p] == ' ') ++p;
+        size_t nameStart = p;
+        while (p < n && d[p] != '\n') ++p;
+        size_t nameLen = p - nameStart;
+        if (size != 0 && pc >= start && pc < start + size) {
+            char buf[320];
+            int bp = 0;
+            appendLit(buf, sizeof(buf), &bp, "  [JIT] ");
+            appendBounded(buf, sizeof(buf), &bp, d + nameStart, (int)nameLen);
+            appendLit(buf, sizeof(buf), &bp, "+0x");
+            // hex offset
+            uint64_t off = pc - start;
+            char hb[17];
+            static const char hd[] = "0123456789abcdef";
+            int hp = 0;
+            if (off == 0) hb[hp++] = '0';
+            char rev[17]; int rp = 0;
+            while (off > 0) { rev[rp++] = hd[off & 0xf]; off >>= 4; }
+            while (rp > 0) hb[hp++] = rev[--rp];
+            for (int k = 0; k < hp && bp < (int)sizeof(buf) - 1; ++k) buf[bp++] = hb[k];
+            buf[bp] = '\0';
+            ssize_t wn = write(fd, buf, bp);
+            (void)wn;
+            return true;
+        }
+        // advance past newline
+        if (p < n && d[p] == '\n') ++p;
+        // safety: if a line is malformed and we didn't advance, force progress
+        if (p == lineStart) ++p;
+        i = p;
+    }
+    return false;
+}
+
+// Scan /proc/self/maps for the entry containing pc.  On hit writes
+// "  [perms start-end +0xOFF] <path-or-tag>" to fd and returns true.
+// Reads the file fresh each call (it's small and signal-safe to do so).
+static bool resolveViaProcMaps(int fd, uintptr_t pc) {
+    int mfd = open("/proc/self/maps", O_RDONLY | O_CLOEXEC);
+    if (mfd < 0) return false;
+
+    // We accumulate a single map line into `line` (max 512 chars; lines on
+    // Android maps are well below this in practice — long ones are paths to
+    // /data/app/.../base.apk plus offset, ~280 chars).
+    char line[512];
+    int lp = 0;
+    char chunk[4096];
+    bool hit = false;
+
+    for (;;) {
+        ssize_t r = read(mfd, chunk, sizeof(chunk));
+        if (r <= 0) break;
+        for (ssize_t ci = 0; ci < r; ++ci) {
+            char c = chunk[ci];
+            if (c == '\n') {
+                line[lp] = '\0';
+                // Parse "start-end perms offset dev inode <path>"
+                size_t p = 0; size_t lineLen = (size_t)lp;
+                uint64_t s = parseHexAt(line, lineLen, &p);
+                if (p < lineLen && line[p] == '-') {
+                    ++p;
+                    uint64_t e = parseHexAt(line, lineLen, &p);
+                    if (pc >= s && pc < e) {
+                        // Skip space, capture perms (4 chars).
+                        while (p < lineLen && line[p] == ' ') ++p;
+                        char perms[5] = {};
+                        for (int k = 0; k < 4 && p < lineLen; ++k, ++p) perms[k] = line[p];
+                        // Skip 3 fields (offset dev inode) to reach path.
+                        for (int field = 0; field < 3; ++field) {
+                            while (p < lineLen && line[p] == ' ') ++p;
+                            while (p < lineLen && line[p] != ' ') ++p;
+                        }
+                        while (p < lineLen && line[p] == ' ') ++p;
+                        const char* path = (p < lineLen) ? &line[p] : "";
+
+                        char outBuf[640];
+                        int bp = 0;
+                        appendLit(outBuf, sizeof(outBuf), &bp, "  [");
+                        for (int k = 0; k < 4 && perms[k] && bp < (int)sizeof(outBuf) - 1; ++k)
+                            outBuf[bp++] = perms[k];
+                        appendLit(outBuf, sizeof(outBuf), &bp, " 0x");
+                        // start hex
+                        {
+                            uint64_t v = s;
+                            char hb[17]; int hp = 0;
+                            static const char hd[] = "0123456789abcdef";
+                            if (v == 0) hb[hp++] = '0';
+                            char rev[17]; int rp = 0;
+                            while (v > 0) { rev[rp++] = hd[v & 0xf]; v >>= 4; }
+                            while (rp > 0) hb[hp++] = rev[--rp];
+                            for (int k = 0; k < hp && bp < (int)sizeof(outBuf) - 1; ++k)
+                                outBuf[bp++] = hb[k];
+                        }
+                        appendLit(outBuf, sizeof(outBuf), &bp, "-0x");
+                        {
+                            uint64_t v = e;
+                            char hb[17]; int hp = 0;
+                            static const char hd[] = "0123456789abcdef";
+                            if (v == 0) hb[hp++] = '0';
+                            char rev[17]; int rp = 0;
+                            while (v > 0) { rev[rp++] = hd[v & 0xf]; v >>= 4; }
+                            while (rp > 0) hb[hp++] = rev[--rp];
+                            for (int k = 0; k < hp && bp < (int)sizeof(outBuf) - 1; ++k)
+                                outBuf[bp++] = hb[k];
+                        }
+                        appendLit(outBuf, sizeof(outBuf), &bp, " +0x");
+                        {
+                            uint64_t v = pc - s;
+                            char hb[17]; int hp = 0;
+                            static const char hd[] = "0123456789abcdef";
+                            if (v == 0) hb[hp++] = '0';
+                            char rev[17]; int rp = 0;
+                            while (v > 0) { rev[rp++] = hd[v & 0xf]; v >>= 4; }
+                            while (rp > 0) hb[hp++] = rev[--rp];
+                            for (int k = 0; k < hp && bp < (int)sizeof(outBuf) - 1; ++k)
+                                outBuf[bp++] = hb[k];
+                        }
+                        outBuf[bp < (int)sizeof(outBuf) - 1 ? bp++ : bp] = ']';
+                        if (path[0] != '\0') {
+                            appendLit(outBuf, sizeof(outBuf), &bp, " ");
+                            for (int k = 0; path[k] && bp < (int)sizeof(outBuf) - 1; ++k)
+                                outBuf[bp++] = path[k];
+                        } else if (perms[2] == 'x') {
+                            // Anonymous executable mapping: classic Mono JIT/trampoline region.
+                            appendLit(outBuf, sizeof(outBuf), &bp,
+                                      " [Mono JIT/trampoline (anon rwxp)]");
+                        } else {
+                            appendLit(outBuf, sizeof(outBuf), &bp, " [anon]");
+                        }
+                        outBuf[bp] = '\0';
+                        ssize_t wn = write(fd, outBuf, bp);
+                        (void)wn;
+                        hit = true;
+                    }
+                }
+                lp = 0;
+                if (hit) break;
+            } else if (lp < (int)sizeof(line) - 1) {
+                line[lp++] = c;
+            } else {
+                // overflow: drop until newline
+            }
+        }
+        if (hit) break;
+    }
+    close(mfd);
+    return hit;
+}
+
+// Convenience: try perfmap then /proc/self/maps.  Writes nothing (and returns
+// false) if neither resolves.
+static bool resolveUnknownPc(int fd, uintptr_t pc) {
+    if (pc == 0) return false;
+    if (resolveViaPerfmap(fd, pc)) return true;
+    return resolveViaProcMaps(fd, pc);
+}
+
+
+// ----------------------------------------------------------------------------
 // Backtrace via libgcc/compiler-rt _Unwind_Backtrace.
 // ----------------------------------------------------------------------------
 
@@ -191,7 +520,7 @@ static _Unwind_Reason_Code unwindCallback(struct _Unwind_Context* ctx, void* arg
             writeHex64(st->fd, (uint64_t)off, 1);
             writeStr(st->fd, ")");
         }
-    } else {
+    } else if (!resolveUnknownPc(st->fd, pc)) {
         writeStr(st->fd, "  <unresolved>");
     }
     writeStr(st->fd, "\n");
@@ -312,7 +641,12 @@ static void writeFrame(int fd, int frameNo, uintptr_t pc, const char* tagWhenUnr
     } else if (tagWhenUnresolved) {
         writeStr(fd, "  ");
         writeStr(fd, tagWhenUnresolved);
-    } else {
+        // Even when we have a synthetic tag (e.g. "<NULL function pointer call>"
+        // or "<LR (return address of NULL call)>"), still try to attach a
+        // perfmap/maps annotation so we know which JIT region or library the
+        // PC sits in.
+        resolveUnknownPc(fd, pc);
+    } else if (!resolveUnknownPc(fd, pc)) {
         writeStr(fd, "  <unresolved>");
     }
     writeStr(fd, "\n");
