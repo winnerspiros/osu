@@ -20,6 +20,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.51" />
   </ItemGroup>
+  <!-- Mono runtime environment variables baked into the APK.  Enables Mono's
+       --jitmap output (read by Native/crash_handler.cpp's resolveViaPerfmap()
+       to symbolicate JIT frames in native_crash.log) and redirects TMPDIR so
+       the perfmap lands in the app's external-files dir (same place as the
+       crash log).  See mono.env for details. -->
+  <ItemGroup>
+    <AndroidEnvironment Include="mono.env" />
+  </ItemGroup>
   <!-- Exclude native C++ source files from the managed build. They are compiled separately via CMake/NDK. -->
   <ItemGroup>
     <None Remove="Native\*.cpp" />
