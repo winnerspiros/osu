@@ -12,13 +12,26 @@
 //   library.
 //
 //   This file installs a SIGSEGV/SIGBUS/SIGILL/SIGFPE/SIGABRT handler that
-//   captures the signal IN-PROCESS, walks the stack with `_Unwind_Backtrace`,
-//   resolves each frame with `dladdr` (library + symbol + offset), and writes
-//   the result to **both** logcat (tag `osu!crash`) and a plain text file at a
-//   path passed in by the C# side (`<external-files-dir>/native_crash.log`).
-//   That path is reachable by the user via Android's Files app without root
-//   or adb.  After dumping, the previous handler (debuggerd) is invoked so
-//   the normal Android tombstone is still produced.
+//   captures the signal IN-PROCESS and writes a structured dump to **both**
+//   logcat (tag `osu!crash`) and a plain text file at a path passed in by
+//   the C# side (`<external-files-dir>/native_crash.log`).  That path is
+//   reachable by the user via Android's Files app without root or adb.
+//   After dumping, the previous handler (debuggerd) is invoked so the normal
+//   Android tombstone is still produced.
+//
+//   The dump contains:
+//     1. Signal info (signal/code/fault address/tid/thread name/uptime).
+//     2. Full register state.
+//     3. The faulting thread's backtrace, walked from the saved ucontext via
+//        the AArch64 frame-pointer chain.  This is the diagnostic that
+//        actually matters — it shows where the crash happened.  We do NOT
+//        use `_Unwind_Backtrace` for this because that walks the *handler*
+//        thread's stack (which terminates at the kernel signal trampoline
+//        in vdso, giving "crashHandler → libsigchain → vdso" — useless).
+//     4. /proc/self/maps so any addresses dladdr couldn't symbolicate
+//        (internal-namespace / stripped-.dynsym frames) can still be matched
+//        to a library and offset post-mortem.
+//     5. The secondary `_Unwind_Backtrace` output for completeness.
 //
 // Async-signal safety:
 //   We use only signal-safe primitives in the handler:
@@ -264,6 +277,192 @@ static void dumpRegisters(int fd, void* ucv) {
 }
 
 // ----------------------------------------------------------------------------
+// Symbolicate a single PC and write a "  #NN pc=0xHEX  /lib (sym+0xOFF)\n" line.
+// `tagWhenUnresolved` lets the caller annotate frames whose PC is invalid
+// (e.g. NULL function-pointer call → pc == 0).
+// Also mirrors a short version to logcat.
+// ----------------------------------------------------------------------------
+static void writeFrame(int fd, int frameNo, uintptr_t pc, const char* tagWhenUnresolved) {
+    writeStr(fd, "  #");
+    if (frameNo < 10) writeStr(fd, "0");
+    writeDec(fd, frameNo);
+    writeStr(fd, " pc 0x");
+    writeHex64(fd, (uint64_t)pc);
+
+    Dl_info info;
+    bool resolved = (pc != 0) && (dladdr(reinterpret_cast<void*>(pc), &info) != 0);
+
+    if (resolved && info.dli_fname) {
+        writeStr(fd, "  ");
+        writeStr(fd, info.dli_fname);
+
+        if (info.dli_sname) {
+            uintptr_t off = pc - (uintptr_t)info.dli_saddr;
+            writeStr(fd, " (");
+            writeStr(fd, info.dli_sname);
+            writeStr(fd, "+0x");
+            writeHex64(fd, (uint64_t)off, 1);
+            writeStr(fd, ")");
+        } else if (info.dli_fbase) {
+            uintptr_t off = pc - (uintptr_t)info.dli_fbase;
+            writeStr(fd, " (lib+0x");
+            writeHex64(fd, (uint64_t)off, 1);
+            writeStr(fd, ")");
+        }
+    } else if (tagWhenUnresolved) {
+        writeStr(fd, "  ");
+        writeStr(fd, tagWhenUnresolved);
+    } else {
+        writeStr(fd, "  <unresolved>");
+    }
+    writeStr(fd, "\n");
+
+    // Short logcat mirror.
+    char line[256];
+    int p = 0;
+    line[p++] = '#';
+    if (frameNo < 10) line[p++] = '0';
+    long long n = frameNo;
+    char tmp[12]; int tp = 0;
+    if (n == 0) tmp[tp++] = '0';
+    while (n > 0 && tp < 11) { tmp[tp++] = (char)('0' + (n % 10)); n /= 10; }
+    while (tp > 0 && p < (int)sizeof(line) - 1) line[p++] = tmp[--tp];
+    const char* sep = " pc=0x";
+    for (int i = 0; sep[i] && p < (int)sizeof(line) - 1; ++i) line[p++] = sep[i];
+    static const char hd[] = "0123456789abcdef";
+    for (int sh = 60; sh >= 0 && p < (int)sizeof(line) - 1; sh -= 4)
+        line[p++] = hd[(pc >> sh) & 0xf];
+    if (resolved) {
+        const char* lib = info.dli_fname ? info.dli_fname : "?";
+        const char* sym = info.dli_sname ? info.dli_sname : "";
+        if (p < (int)sizeof(line) - 1) line[p++] = ' ';
+        for (int i = 0; lib[i] && p < (int)sizeof(line) - 1; ++i) line[p++] = lib[i];
+        if (sym[0]) {
+            if (p < (int)sizeof(line) - 1) line[p++] = ' ';
+            if (p < (int)sizeof(line) - 1) line[p++] = '(';
+            for (int i = 0; sym[i] && p < (int)sizeof(line) - 2; ++i) line[p++] = sym[i];
+            if (p < (int)sizeof(line) - 1) line[p++] = ')';
+        }
+    }
+    line[p] = '\0';
+    logcatWrite(line);
+}
+
+// ----------------------------------------------------------------------------
+// Walk the *crashing thread's* stack from the saved ucontext.
+//
+// `_Unwind_Backtrace` (used elsewhere in this file) walks the *current*
+// thread's stack — i.e., the stack of the signal handler itself, with the
+// libgcc unwinder stopping at the kernel signal trampoline (`__kernel_rt_sigreturn`)
+// because there's no CFI across the signal frame.  In practice that produces
+// only "crashHandler → libsigchain → vdso", which is useless for diagnosing
+// the actual fault.
+//
+// To recover the real backtrace we walk the AArch64 frame-pointer chain
+// starting from the saved registers in ucontext:
+//   - frame[0] is `pc` (or, if pc == 0 because of a NULL function pointer
+//     call, `lr` — the return address of that call, i.e. the call site).
+//   - subsequent frames come from following `x29 (fp)` chain:
+//       prev_fp = *(uintptr_t*)fp
+//       prev_lr = *(uintptr_t*)(fp + 8)
+//
+// AArch64 on Android is built with frame pointers preserved (Google ABI
+// requirement for Android 10+), so this chain is reliable.
+//
+// Safety: we validate each `fp` (non-NULL, 16-byte aligned, monotonically
+// increasing — the stack grows down so each new fp must be strictly greater
+// than the previous) before dereferencing.  A bad fp simply terminates the
+// walk; the re-entrancy guard catches a SIGSEGV inside the walk and falls
+// straight through to the previous handler.
+// ----------------------------------------------------------------------------
+#if defined(__aarch64__)
+static void walkContextStack(int fd, void* ucv) {
+    if (!ucv) return;
+    auto* uc = static_cast<ucontext_t*>(ucv);
+    auto& mc = uc->uc_mcontext;
+
+    uintptr_t pc = (uintptr_t)mc.pc;
+    uintptr_t lr = (uintptr_t)mc.regs[30];
+    uintptr_t fp = (uintptr_t)mc.regs[29];
+
+    int frame = 0;
+
+    if (pc == 0) {
+        // Faulting site is a NULL function pointer call.  Emit a synthetic
+        // frame 0 to make this explicit, then frame 1 is the actual call site
+        // pointed to by LR.
+        writeFrame(fd, frame++, 0, "<NULL function pointer call>");
+        if (lr != 0) {
+            writeFrame(fd, frame++, lr, "<LR (return address of NULL call)>");
+        }
+    } else {
+        writeFrame(fd, frame++, pc, "<faulting PC>");
+        // After the leaf frame, LR is the return address (caller).  Only emit
+        // if it differs from PC and looks plausible.
+        if (lr != 0 && lr != pc) {
+            writeFrame(fd, frame++, lr, "<LR (caller return address)>");
+        }
+    }
+
+    // Walk the frame pointer chain.  Cap at 32 frames; bail out on any sign
+    // of a corrupt or non-monotonic chain.
+    constexpr int kMaxFrames = 32;
+    uintptr_t lastFp = 0;
+    while (frame < kMaxFrames && fp != 0) {
+        // Validate fp: must be 16-byte aligned, non-low-memory, and strictly
+        // greater than the previous fp (stack grows down → fp moves *up* as
+        // we walk callers).
+        if ((fp & 0xf) != 0) break;
+        if (fp < 0x10000) break;
+        if (lastFp != 0 && fp <= lastFp) break;
+
+        // Read [fp] = saved fp, [fp+8] = saved lr.  Best-effort dereference;
+        // if fp is bogus we'll trip the re-entrancy guard and bail.
+        uintptr_t prevFp = *reinterpret_cast<volatile uintptr_t*>(fp);
+        uintptr_t prevLr = *reinterpret_cast<volatile uintptr_t*>(fp + 8);
+
+        if (prevLr == 0) break;
+        writeFrame(fd, frame++, prevLr, nullptr);
+
+        lastFp = fp;
+        fp = prevFp;
+    }
+
+    if (frame == 0) writeStr(fd, "  <empty — no recoverable context>\n");
+}
+#else
+static void walkContextStack(int fd, void* /*ucv*/) {
+    writeStr(fd, "  <context-walk only implemented for aarch64>\n");
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// Dump /proc/self/maps to fd so addresses without dladdr symbols can still
+// be matched to a library and offset post-mortem.  Uses only signal-safe
+// primitives (open/read/write).
+// ----------------------------------------------------------------------------
+static void dumpProcMaps(int fd) {
+    if (fd < 0) return;
+    int mapsFd = open("/proc/self/maps", O_RDONLY | O_CLOEXEC);
+    if (mapsFd < 0) {
+        writeStr(fd, "  <could not open /proc/self/maps>\n");
+        return;
+    }
+    char buf[4096];
+    for (;;) {
+        ssize_t n = read(mapsFd, buf, sizeof(buf));
+        if (n <= 0) break;
+        ssize_t off = 0;
+        while (off < n) {
+            ssize_t w = write(fd, buf + off, n - off);
+            if (w <= 0) break;
+            off += w;
+        }
+    }
+    close(mapsFd);
+}
+
+// ----------------------------------------------------------------------------
 // Signal name lookup (signal-safe — no strsignal which can allocate).
 // ----------------------------------------------------------------------------
 static const char* signalName(int sig) {
@@ -368,8 +567,26 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     writeStr(fd, "Registers:\n");
     dumpRegisters(fd, ucontext);
 
-    // Backtrace.
-    writeStr(fd, "Backtrace:\n");
+    // Faulting-thread backtrace, recovered from the saved ucontext.  This is
+    // the *important* one — it shows where the crash actually happened.
+    // (See walkContextStack for the rationale on why we don't use
+    // _Unwind_Backtrace for this purpose.)
+    writeStr(fd, "Backtrace (from signal context):\n");
+    walkContextStack(fd, ucontext);
+    if (fd >= 0) fsync(fd);
+
+    // Memory map.  Lets us correlate any unresolved frames to library+offset
+    // even when dladdr can't find a symbol (e.g. internal-namespace functions
+    // or stripped .dynsym entries — both of which produce useless "lib+0xc"
+    // output above).
+    writeStr(fd, "Memory map (/proc/self/maps):\n");
+    dumpProcMaps(fd);
+    if (fd >= 0) fsync(fd);
+
+    // Secondary backtrace via _Unwind_Backtrace.  This walks the *handler
+    // thread's* stack (typically just crashHandler → libsigchain → vdso) and
+    // is mostly informational; kept for parity with the previous behaviour.
+    writeStr(fd, "Handler-thread backtrace (_Unwind_Backtrace, for reference):\n");
     UnwindState st{ fd, 0, 64 };
     _Unwind_Backtrace(&unwindCallback, &st);
     if (st.frame == 0) writeStr(fd, "  <empty>\n");
