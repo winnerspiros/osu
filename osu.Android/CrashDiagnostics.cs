@@ -34,6 +34,22 @@ namespace osu.Android
         public const string CRASH_LOG_NAME = "native_crash.log";
         public const string SENTINEL_NAME = "crash_handler_installed.txt";
 
+        // Hard size cap on a single native_crash.log file. When reached we rotate the
+        // file to "<name>.1" (overwriting any previous backup) and start a fresh log.
+        // This bounds *each* of the internal and external locations to ~2× the cap
+        // worst-case, regardless of how many crash-restart cycles the device endures.
+        //
+        // The cap exists to defeat the failure mode observed in the field where a
+        // tight ANR-restart loop produced ~480 MB of native_crash.log on the user's
+        // device storage in a few hours — every restart appended the previous
+        // process's HangWatchdog dumps to the external log via
+        // MirrorInternalLogToExternal, with no upper bound. 3 MiB is enough to hold
+        // ~6 full HangWatchdog hang dumps including the per-thread /proc snapshot,
+        // i.e. comfortably more than one process's worth of evidence after the new
+        // HangWatchdog cap (max_dumps_per_process=20) is applied.
+        private const long native_crash_log_max_bytes = 3L * 1024 * 1024;
+        private const string crash_log_backup_suffix = ".1";
+
         private static int initialised;
         private static int managedHooksInstalled;
 
@@ -166,6 +182,17 @@ namespace osu.Android
                 if (info.Length == 0) return;
 
                 string externalPath = Path.Combine(externalDir, CRASH_LOG_NAME);
+
+                // Defeat the unbounded-growth failure mode: a tight ANR-restart
+                // loop calls MirrorInternalLogToExternal on every startup, each
+                // of which appends the previous process's full HangWatchdog
+                // dump set to the external log. Without this rotation the
+                // external file grew to hundreds of MB on the user's device
+                // (one report: 480 MB across a single afternoon). Rotating
+                // *before* the append guarantees the resulting file is at most
+                // <native_crash_log_max_bytes + this_payload_size>, and a
+                // single ".1" backup retains the previous generation.
+                rotateIfTooLarge(externalPath);
 
                 try
                 {
@@ -379,6 +406,14 @@ namespace osu.Android
             try
             {
                 string path = Path.Combine(dir, CRASH_LOG_NAME);
+
+                // Bound the file size before opening for append. A pathological
+                // crash-restart loop would otherwise write hundreds of MB into
+                // this single file — the rotation cap (one historical backup,
+                // each ≤ native_crash_log_max_bytes) keeps the worst-case at
+                // ~2× the cap regardless of how long the loop runs.
+                rotateIfTooLarge(path);
+
                 using var fs = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
                 using var sw = new StreamWriter(fs);
                 sw.Write(payload);
@@ -387,6 +422,44 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] CrashDiagnostics.tryAppend({dir}) failed: {e.Message}");
+            }
+        }
+
+        // If <path> exists and is at or above the size cap, move it to
+        // "<path>.1" (overwriting any previous backup) so the next write starts
+        // a fresh file. Best-effort and never throws — diagnostics paths must
+        // not introduce new failure modes.
+        private static void rotateIfTooLarge(string path)
+        {
+            try
+            {
+                if (!File.Exists(path)) return;
+
+                long length;
+                try { length = new FileInfo(path).Length; }
+                catch { return; }
+
+                if (length < native_crash_log_max_bytes) return;
+
+                string backup = path + crash_log_backup_suffix;
+
+                try { if (File.Exists(backup)) File.Delete(backup); }
+                catch (Exception e) { Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: could not delete prior backup {backup}: {e.Message}"); }
+
+                try { File.Move(path, backup); }
+                catch (Exception e)
+                {
+                    // If rename fails (e.g. cross-device on some FUSE setups),
+                    // fall back to in-place truncation rather than leaving the
+                    // file unbounded.
+                    Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: rename failed ({e.Message}); truncating in place");
+                    try { File.WriteAllText(path, string.Empty); }
+                    catch (Exception inner) { Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: truncate also failed: {inner.Message}"); }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge outer failure for {path}: {e.Message}");
             }
         }
 

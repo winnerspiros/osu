@@ -30,9 +30,14 @@ namespace osu.Android
     ///
     /// <para>
     /// The hang threshold is intentionally short (5s): the runtime log can grow
-    /// to ~70MB on the user's device, so we'd rather over-dump than miss a
-    /// stall, but we still rate-limit re-dumps of the same hang to one every
-    /// 10s so we don't fill the log in a single second of frozen state.
+    /// quickly on a stuck device, so we'd rather over-detect than miss a stall.
+    /// We rate-limit re-dumps of the same hang to one every 30s and cap the
+    /// per-process dump count at 20 so a permanently-hung process cannot on its
+    /// own fill the bounded <c>native_crash.log</c> budget — earlier (200-dump,
+    /// 10s-cooldown) settings were the dominant contributor to the ~480 MB
+    /// log explosion observed in the field on devices stuck in an ANR-restart
+    /// loop, where every restart appended the previous process's full dump set
+    /// to the external log via <c>MirrorInternalLogToExternal</c>.
     /// </para>
     /// </summary>
     internal static class HangWatchdog
@@ -47,14 +52,22 @@ namespace osu.Android
         private const int heartbeat_interval_ms = 1_000;
 
         // Minimum gap between two consecutive snapshots while still hung. Without
-        // this, a 60s hang would generate 12 full /proc/self/task dumps and
-        // potentially blow the log size cap in a few seconds.
-        private const int redump_cooldown_ms = 10_000;
+        // this, a 60s hang would generate many full /proc/self/task dumps and
+        // potentially blow the log size cap in a few seconds. 30s is plenty for
+        // a "still hung" signal — the HangWatchdog is for diagnosing *that* the
+        // thread hung and *roughly when*, not for sampling its state every
+        // second; the high-frequency sampling rate in earlier iterations was
+        // the dominant contributor to the 480 MB log explosion observed in the
+        // field on devices stuck in an ANR-restart loop.
+        private const int redump_cooldown_ms = 30_000;
 
         // Maximum number of distinct hang dumps written for the lifetime of the
         // process. Prevents pathological "permanent hang plus runaway watchdog"
         // from filling the log indefinitely if the cooldown logic ever misbehaves.
-        private const int max_dumps_per_process = 200;
+        // 20 dumps × ~6 KB ≈ 120 KB worst-case per process, well within the
+        // CrashDiagnostics rotation cap (~3 MiB) so a single hung process can
+        // never on its own exhaust the bounded native_crash.log budget.
+        private const int max_dumps_per_process = 20;
 
         private static int started;
         private static Thread? monitorThread;
