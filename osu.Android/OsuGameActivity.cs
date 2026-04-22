@@ -86,10 +86,11 @@ namespace osu.Android
             // Crash diagnostics first. The native handler write target is internal storage
             // (FilesDir/native_crash.log); a one-shot mirror copies it to external storage
             // here on the *next* normal startup so the user can pull it without root.
-            // OsuApplication.OnCreate already installed both the native handler and the
-            // managed exception hooks — these calls are idempotent safety nets that cover
-            // the (vanishingly unlikely) case where the activity is created without our
-            // Application subclass having run first.
+            // We do NOT have a custom Android.App.Application subclass — ppy.osu.Framework.Android
+            // already declares `[assembly: Application]`, so adding our own `[Application]`
+            // class would trigger XAGMM7009 at manifest-merge time. The activity is the
+            // earliest managed entry point we own; install both hooks at the very top of
+            // OnCreate so any crash from this point onward lands in `native_crash.log`.
             CrashDiagnostics.InstallNativeHandler(this);
             CrashDiagnostics.InstallManagedExceptionHooks();
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate entry");

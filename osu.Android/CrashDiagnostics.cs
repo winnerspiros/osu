@@ -40,11 +40,11 @@ namespace osu.Android
 
         /// <summary>
         /// Installs the native crash handler against the internal-storage log path, drops the
-        /// sentinel, and writes the first "I am alive" marker. Idempotent — safe to call from
-        /// both <see cref="Application.OnCreate"/> and <see cref="Activity.OnCreate(Bundle)"/>;
-        /// the underlying handler dedupes via its own <c>g_installed</c> flag.
+        /// sentinel, and writes the first "I am alive" marker. Idempotent — safe to call
+        /// repeatedly from <c>Activity.OnCreate</c>; the underlying handler dedupes
+        /// via its own <c>g_installed</c> flag.
         /// </summary>
-        /// <param name="context">Any <see cref="Context"/> — typically the Application or Activity.</param>
+        /// <param name="context">Any <see cref="Context"/> — typically the host Activity.</param>
         public static void InstallNativeHandler(Context context)
         {
             try
