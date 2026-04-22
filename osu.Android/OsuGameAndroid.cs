@@ -140,6 +140,11 @@ namespace osu.Android
         private AndroidMouseHandler? mouseHandler;
         private AndroidKeyboardHandler? keyboardHandler;
 
+        /// <summary>
+        /// Background-loaded entry point. <paramref name="frameworkConfig"/> is injected
+        /// to drive <see cref="applyAndroidFrameSyncMigrationOnce"/>, the one-shot Android
+        /// FrameSync default migration; everything else here is unrelated init wiring.
+        /// </summary>
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager frameworkConfig)
         {

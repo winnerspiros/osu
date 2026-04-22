@@ -225,6 +225,9 @@ namespace osu.Android
                     return;
                 }
 
+                // Sort by tid so consecutive dumps for the same hang produce
+                // diff-able output — makes it easy to spot which thread changed
+                // state between two snapshots taken 10s apart during a long hang.
                 collected.Sort(StringComparer.Ordinal);
 
                 foreach (string tid in collected)
@@ -316,6 +319,10 @@ namespace osu.Android
 
                 try
                 {
+                    // repeat: true → reschedule every heartbeat_interval_ms ms.
+                    // The delegate runs on the game thread itself, so its execution
+                    // *is* the liveness signal: if the thread is hung, this never
+                    // fires and LastTickUtcMs stays stale for the monitor to detect.
                     thread.Scheduler.AddDelayed(tick, heartbeat_interval_ms, true);
                 }
                 catch (Exception e)
