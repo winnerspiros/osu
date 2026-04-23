@@ -367,31 +367,21 @@ namespace osu.Android
                 Logger.Log($"[osu!] Failed to pin threads: {e.Message}", LoggingTarget.Performance);
             }
 
-            // Always enable sustained performance mode for consistent frame delivery.
-            // This prevents thermal throttling from causing sudden FPS drops.
-            //
-            // This MUST run on the Android UI thread: SetSustainedPerformanceMode mutates
-            // window state through ViewRootImpl, which enforces single-threaded access via
-            // checkThread() and throws CalledFromWrongThreadException otherwise. On some
-            // OEM frameworks (observed on Samsung One UI / Adreno) that exception unwinds
-            // through setPrivateFlags after the underlying Surface has already been
-            // partially reconfigured, invalidating the active VkSurfaceKHR and crashing the
-            // Vulkan driver inside vkCmdBeginRendering on the next frame.
-            try
-            {
-                gameActivity.RunOnUiThread(() =>
-                {
-                    try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
-            }
+            // Sustained performance mode is applied LATER, together with the deferred
+            // display-mode / GC-latency work below. See the Scheduler.AddDelayed block
+            // further down (after base.LoadComplete()) that schedules the first apply
+            // on a refreshRateDelayMs timer. Running
+            // Window.SetSustainedPerformanceMode(true) synchronously here — during the
+            // Toolbar cold-start texture-upload burst and the Vulkan swapchain bring-up —
+            // has been observed to race the Draw thread on Samsung One UI / Adreno panels:
+            // the window-flag mutation round-trips through ViewRootImpl.setPrivateFlags
+            // and can partially reconfigure the Surface while vkAcquireNextImageKHR is in
+            // flight, stalling the present queue. Update keeps ticking (so neither the
+            // managed nor the native watchdog ever dumps), the screen never updates, and
+            // ~10 s later Android raises a MotionEvent input-dispatch ANR — the exact
+            // cold-start "black screen → no touch → ANR" fingerprint reported across
+            // multiple v174 launches in logs.zip. Deferring to the same window used by
+            // SelectHighestRefreshRate moves the mutation behind the texture-upload burst.
 
             base.LoadComplete();
 
@@ -433,6 +423,78 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
                 }
+
+                // Deferred sustained-performance-mode apply. See the comment block
+                // before base.LoadComplete() above for the rationale (Samsung One UI /
+                // Adreno Surface reconfigure race with vkAcquireNextImageKHR during the
+                // cold-start texture-upload burst). By the time this fires the
+                // swapchain has long since stabilised.
+                try
+                {
+                    gameActivity.RunOnUiThread(() =>
+                    {
+                        try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
+                }
+
+                // Deferred initial application of the user's performance-mode setting.
+                // The BindValueChanged registration below is WITHOUT the immediate-fire
+                // flag, so the very first apply (which may flip GCSettings.LatencyMode
+                // to SustainedLowLatency via AndroidHighPerformanceSessionManager) is
+                // done here, after the Toolbar texture-upload burst has drained. Running
+                // it synchronously during LoadComplete suppresses gen-2 GCs while the
+                // Draw thread is churning through hundreds of queued texture uploads,
+                // causing the managed heap to balloon, the kernel to start paging
+                // (VmSwap ~22 MB / RSS ~695 MB / memory-pressure avg10=1.34 observed in
+                // the ANR dump), the Draw thread to stall on a page-fault burst, and
+                // the main thread to miss its input-channel ACK deadline — another
+                // contributor to the MotionEvent ANR fingerprint.
+                try
+                {
+                    applyPerformanceOptimizations(performanceMode.Value);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Deferred initial performance-mode apply failed: {ex.Message}");
+                }
+
+                // Deferred UI-thread RequestUnbufferedDispatch(sources). Moved here from
+                // the bottom of LoadComplete so the DecorView attribute mutation no
+                // longer races the cold-start Toolbar texture-upload burst. OnCreate
+                // already requested unbuffered dispatch once (with a dummy MotionEvent),
+                // and every per-pointer DispatchTouchEvent / DispatchGenericMotionEvent
+                // re-requests it as needed, so this global set-sources call is only a
+                // latency polish for the first few real touches after the burst — it
+                // brings no benefit during the black-screen window but does take a
+                // binder IPC round-trip through ViewRootImpl, which we do not want
+                // competing with swapchain settle work.
+                try
+                {
+                    gameActivity.RunOnUiThread(() =>
+                    {
+                        try
+                        {
+                            int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
+                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to dispatch unbuffered-dispatch request to UI thread: {e.Message}");
+                }
             }, refreshRateDelayMs);
 
             // Clear the "startup in progress" sentinel once the current launch has
@@ -472,6 +534,11 @@ namespace osu.Android
 
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
+            // NOTE: no `true` (immediate-fire) flag — the initial apply is done inside
+            // the refreshRateDelayMs scheduler above, so the cold-start texture-upload
+            // burst completes under default GC latency. User-driven changes from the
+            // settings dropdown (and the DeX auto-flip above, whose value is picked up
+            // at defer-fire time) still take effect immediately via this subscription.
             performanceMode.BindValueChanged(e =>
             {
                 try
@@ -482,7 +549,7 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to toggle performance mode: {ex.Message}");
                 }
-            }, true);
+            });
 
             // Layer 3b — Oboe and Vulkan-probe initial-bind handling.
             //
@@ -492,10 +559,18 @@ namespace osu.Android
             // local config), that synchronous fire would do native init on
             // the BDL load thread, in the silent cold-start window — exactly
             // when we are debugging a startup hang. Deferring the initial
-            // fire via Scheduler (i.e. moving it onto the next Update tick on
-            // the Update thread, after the game has finished loading) keeps
-            // the cold-start path free of synchronous native init even when a
-            // saved-true setting would otherwise force it.
+            // fire via Scheduler.AddDelayed onto the same refreshRateDelayMs
+            // timer that gates SustainedPerformanceMode / the initial refresh-
+            // rate apply / the initial performance-mode apply keeps the cold-
+            // start path free of synchronous native init even when a saved-
+            // true setting would otherwise force it, AND ensures the native
+            // init actually lands AFTER the cold-start Toolbar texture-upload
+            // burst has drained.
+            //
+            // (Prior implementations used plain Schedule(...), which only
+            // defers to the next Update tick — milliseconds, still well inside
+            // the burst. The comment correctly described the intent — "after
+            // the game has finished loading" — but the code under-delivered.)
             //
             // Default: defer (safe). Toggle off in settings to restore the
             // original immediate-init behaviour for A/B testing.
@@ -512,7 +587,7 @@ namespace osu.Android
 
             if (deferInit)
             {
-                Schedule(() =>
+                Scheduler.AddDelayed(() =>
                 {
                     try
                     {
@@ -523,7 +598,7 @@ namespace osu.Android
                     {
                         Debug.WriteLine($"[osu!] Deferred startup native init failed: {ex.Message}");
                     }
-                });
+                }, refreshRateDelayMs);
             }
             else
             {
@@ -538,25 +613,11 @@ namespace osu.Android
                 }
             }
 
-            try
-            {
-                gameActivity.RunOnUiThread(() =>
-                {
-                    try
-                    {
-                        int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
-                        gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to schedule unbuffered dispatch: {e.Message}");
-            }
+            // NOTE: the trailing RequestUnbufferedDispatch(sources) that used to live
+            // here has been moved into the refreshRateDelayMs Scheduler.AddDelayed block
+            // above, so the DecorView attribute mutation lands after the cold-start
+            // Toolbar texture-upload burst has drained. See the deferred block for the
+            // full rationale.
         }
 
         private void applyPerformanceOptimizations(bool enabled)
