@@ -58,15 +58,31 @@ namespace osu.Android
         /// </summary>
         public static void Apply()
         {
-            // NOTE: we used to force Logger.Level = LogLevel.Important here to
-            // shrink runtime log output during the "log explosion" debugging
-            // window. That has been reverted at user request — the default
-            // framework log verbosity is now restored so osu.log captures the
-            // full per-thread startup narrative we need to diagnose hangs.
-            // Log size is still bounded by pruneLogDirectory() below
-            // (MAX_LOG_BYTES cap with oldest-first eviction), so re-enabling
-            // verbose logging cannot regress the on-disk footprint that the
-            // 480 MB report originally exposed.
+            // Verbose-logging toggle (default OFF). The framework writes
+            // ~330 KB of runtime.log + ~28 KB of input.log per launch at the
+            // default Verbose level, dominated by OpenTabletDriver per-tablet
+            // detection and SDL platform-feature probe chatter — useful when
+            // diagnosing a hang, not useful in the steady state. Default to
+            // Important so on-disk log volume drops to a few KB per launch
+            // and audio/render hot paths spend zero time formatting log
+            // messages. Users can re-enable verbose logging from
+            // Settings → Graphics → Android Performance to capture a full
+            // log when they need to share one.
+            //
+            // Sentinel-driven (not config-driven) because LogManagement.Apply
+            // runs in OsuGameActivity.OnCreate, LONG before the
+            // OsuConfigManager exists — same pattern as the other Android
+            // startup-safety flags. OsuGameAndroid mirrors the in-game
+            // bindable into the sentinel via mirrorStartupFlag.
+            try
+            {
+                bool verbose = AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED);
+                Logger.Level = verbose ? LogLevel.Verbose : LogLevel.Important;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: could not apply Logger.Level: {e.Message}");
+            }
 
             try
             {

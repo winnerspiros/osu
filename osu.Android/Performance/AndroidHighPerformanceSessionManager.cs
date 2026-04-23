@@ -18,6 +18,17 @@ namespace osu.Android.Performance
 
         private GCLatencyMode originalGCMode;
 
+        /// <summary>
+        /// One-shot disable. Mono on Android throws <see cref="PlatformNotSupportedException"/>
+        /// from the <see cref="GCSettings.LatencyMode"/> setter (and, on some runtimes, the
+        /// getter). We must not let that exception escape — it would crash the
+        /// game every time the user enters <c>PlayerLoader</c>, holds a mouse
+        /// button, or otherwise triggers a high-performance session, since
+        /// <see cref="BeginSession"/> is invoked on the update thread and the
+        /// throw propagates up through <c>UpdateSubTree</c>.
+        /// </summary>
+        private static bool gcLatencyModeSupported = true;
+
         public IDisposable BeginSession()
         {
             enterSession();
@@ -34,8 +45,23 @@ namespace osu.Android.Performance
 
             Logger.Log("Starting high performance session (Android)");
 
-            originalGCMode = GCSettings.LatencyMode;
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            if (!gcLatencyModeSupported)
+                return;
+
+            try
+            {
+                originalGCMode = GCSettings.LatencyMode;
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                // Mono on Android does not implement GCSettings.LatencyMode.
+                // Latch off so subsequent sessions skip the throwing call entirely
+                // (the unhandled-exception allowance is finite and would burn out
+                // after a few gameplay entries, killing the process).
+                gcLatencyModeSupported = false;
+                Logger.Log("GCSettings.LatencyMode unsupported on this runtime; high-performance GC tuning disabled.");
+            }
         }
 
         private void exitSession()
@@ -48,8 +74,18 @@ namespace osu.Android.Performance
 
             Logger.Log("Ending high performance session (Android)");
 
-            if (GCSettings.LatencyMode == GCLatencyMode.SustainedLowLatency)
-                GCSettings.LatencyMode = originalGCMode;
+            if (!gcLatencyModeSupported)
+                return;
+
+            try
+            {
+                if (GCSettings.LatencyMode == GCLatencyMode.SustainedLowLatency)
+                    GCSettings.LatencyMode = originalGCMode;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                gcLatencyModeSupported = false;
+            }
         }
     }
 }

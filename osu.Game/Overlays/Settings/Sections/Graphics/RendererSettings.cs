@@ -35,6 +35,11 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             // The VulkanProbe detects feature support; even if some features are disabled (e.g. on
             // Adreno 7xx), the renderer itself may still work and provide better performance than
             // OpenGL ES for some workloads.
+            //
+            // Note: the Veldrid Vulkan backend currently produces a black screen on some Adreno
+            // devices (swapchain bring-up never reaches first present). Until that's fixed
+            // upstream in osu-framework / Veldrid, picking Vulkan here can leave the user
+            // unable to launch the game from the UI — they'd need to clear app data to recover.
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
             {
                 bool isSupported = game?.IsVulkanSupported ?? false;

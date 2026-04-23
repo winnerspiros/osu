@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using osu.Android.Native;
+using osu.Framework.Logging;
 using osu.Framework.Threading;
 using Debug = System.Diagnostics.Debug;
 
@@ -32,7 +33,7 @@ namespace osu.Android
                     return;
                 }
 
-                Debug.WriteLine($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
+                Logger.Log($"[osu!] Starting Oboe bridge (sampleRate={sampleRate}, hasProvider={provider != IntPtr.Zero})");
                 cachedOboeStatus = null;
 
                 try
@@ -69,7 +70,7 @@ namespace osu.Android
 
                         if (started)
                         {
-                            Debug.WriteLine("[osu!] Oboe bridge started successfully");
+                            Logger.Log("[osu!] Oboe bridge started successfully");
                             logOboeInfo(bridge);
 
                             onStarted?.Invoke(bridge.SampleRate);
@@ -87,17 +88,17 @@ namespace osu.Android
                         else
                         {
                             string error = bridge.GetLastErrorMessage() ?? "Unknown";
-                            Debug.WriteLine($"[osu!] Oboe bridge created but failed to start: {error}");
+                            Logger.Log($"[osu!] Oboe bridge created but failed to start: {error}", level: LogLevel.Error);
                         }
                     }
                     else
                     {
-                        Debug.WriteLine("[osu!] Oboe bridge creation failed — native library not loaded or stream open failed");
+                        Logger.Log("[osu!] Oboe bridge creation failed — native library not loaded or stream open failed", level: LogLevel.Error);
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"[osu!] Oboe bridge init failed with exception: {e.Message}");
+                    Logger.Log($"[osu!] Oboe bridge init failed with exception: {e.Message}", level: LogLevel.Error);
                 }
             }
         }
@@ -107,11 +108,11 @@ namespace osu.Android
         {
             lock (oboeLock)
             {
-                Debug.WriteLine("[osu!] Stopping Oboe bridge...");
+                Logger.Log("[osu!] Stopping Oboe bridge...");
                 (oboeBridge as OboeAudioBridge)?.Dispose();
                 oboeBridge = null;
                 cachedOboeStatus = null;
-                Debug.WriteLine("[osu!] Oboe bridge stopped");
+                Logger.Log("[osu!] Oboe bridge stopped");
             }
         }
 
