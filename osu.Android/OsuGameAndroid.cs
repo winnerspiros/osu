@@ -152,8 +152,18 @@ namespace osu.Android
         /// to drive <see cref="applyAndroidFrameSyncMigrationOnce"/>, the one-shot Android
         /// FrameSync default migration; everything else here is unrelated init wiring.
         /// </summary>
+        /// <remarks>
+        /// We must NOT take <see cref="OsuConfigManager"/> as a BDL parameter here. The
+        /// dependency activator resolves BDL parameters from the parent dependency
+        /// container, but <see cref="OsuGameBase.load"/> caches <c>LocalConfig</c> into
+        /// the child container (the one returned from <c>CreateChildDependencies</c>).
+        /// Resolving <c>OsuConfigManager</c> as a parameter therefore throws
+        /// <c>DependencyNotRegisteredException</c> before this method body even runs.
+        /// Use the inherited <see cref="OsuGameBase.LocalConfig"/> field instead — it is
+        /// guaranteed to be non-null because <c>SetHost</c> creates it before any BDL.
+        /// </remarks>
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager frameworkConfig, OsuConfigManager osuConfig)
+        private void load(FrameworkConfigManager frameworkConfig)
         {
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
@@ -171,9 +181,9 @@ namespace osu.Android
             // AndroidStartupFlags in the activity.
             try
             {
-                osuConfig.BindWith(OsuSetting.AndroidCleanupStaleRealmFifos, cleanupStaleRealmFifos);
-                osuConfig.BindWith(OsuSetting.AndroidDeferStartupNativeInit, deferStartupNativeInit);
-                osuConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
+                LocalConfig.BindWith(OsuSetting.AndroidCleanupStaleRealmFifos, cleanupStaleRealmFifos);
+                LocalConfig.BindWith(OsuSetting.AndroidDeferStartupNativeInit, deferStartupNativeInit);
+                LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
 
                 // sentinelOnDisable=true → presence ⇒ "feature disabled". The
                 // safety nets default to ON, so the sentinel is created only
