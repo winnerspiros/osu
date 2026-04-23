@@ -109,15 +109,64 @@ namespace osu.Android
             CrashDiagnostics.InstallManagedExceptionHooks();
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate entry");
             CrashDiagnostics.WriteInstallState();
+            // Arm the native pthread liveness watchdog as the very next thing,
+            // so it is running BEFORE any framework code, BEFORE Realm init,
+            // BEFORE Vulkan/Oboe/native-bridge probes, and BEFORE Mono can
+            // enter a stop-the-world GC. The watchdog runs as a pthread that
+            // never attaches to the runtime, so STW cannot suspend it — it is
+            // the only thing that can produce a /proc/self/task snapshot when
+            // every managed thread (including the managed HangWatchdog
+            // monitor) is parked in __rt_sigsuspend during a stuck GC. 10s
+            // threshold matches the Android system-server's own ANR window.
+            CrashDiagnostics.StartNativeWatchdog(10);
             CrashDiagnostics.MirrorInternalLogToExternal();
 
-            // Bound on-disk runtime log footprint and lower the framework log
-            // level to Important. Must run before the framework constructs its
-            // logger / loads framework.ini, so we do it here at the top of
-            // OnCreate alongside the crash-diagnostics installs.
+            // Layer 2 mitigation — defensively unlink stale Realm cross-process
+            // notification fifos under Path.GetTempPath()/lazer. A leftover fifo
+            // from a previously-crashed process can block Realm.GetInstance() in
+            // native code (open() blocks on the fifo while a runtime lock is
+            // held), which produces exactly the all-threads-parked-in-sigsuspend
+            // pattern observed in the field. The toggle is sourced from a
+            // sentinel file (set by OsuGameAndroid when the user changes the
+            // matching OsuConfigManager setting) so it can be honoured before
+            // the config manager exists.
+            //
+            // Default behaviour: cleanup is enabled. Sentinel presence ⇒ disabled.
+            try
+            {
+                if (!AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_CLEANUP_REALM_FIFOS_DISABLED))
+                {
+                    int deleted = RealmFifoCleanup.Run();
+                    CrashDiagnostics.WriteAliveMarker($"RealmFifoCleanup ran (deleted={deleted})");
+                }
+                else
+                {
+                    CrashDiagnostics.WriteAliveMarker("RealmFifoCleanup skipped (user-disabled)");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] RealmFifoCleanup wiring failure: {e.Message}");
+            }
+
+            // Bound on-disk runtime log footprint (oldest-first eviction down
+            // to MAX_LOG_BYTES). Framework log level is left at its default —
+            // we used to force it to Important here but reverted to capture
+            // the full per-thread startup narrative in osu.log. Must run
+            // before the framework constructs its logger / loads framework.ini,
+            // so we do it here at the top of OnCreate alongside the
+            // crash-diagnostics installs.
+            CrashDiagnostics.WriteAliveMarker("LogManagement.Apply (about to start)");
             LogManagement.Apply();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.Apply (returned)");
+
+            CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniExecutionMode (about to start)");
             LogManagement.NormaliseFrameworkIniExecutionMode();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniExecutionMode (returned)");
+
+            CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (about to start)");
             LogManagement.WipeShaderCacheOnceForVersion();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (returned)");
 
             base.OnCreate(savedInstanceState);
 

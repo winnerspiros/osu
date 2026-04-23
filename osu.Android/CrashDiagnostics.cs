@@ -151,6 +151,40 @@ namespace osu.Android
         }
 
         /// <summary>
+        /// Arm the native pthread liveness watchdog. Writes its hang dumps to the same
+        /// internal-storage <c>native_crash.log</c> the rest of the diagnostics pipeline uses.
+        ///
+        /// <para>
+        /// The native watchdog is the only diagnostic that survives a Mono stop-the-world GC
+        /// pause: it runs as a pthread that never attaches to the runtime, so Mono cannot
+        /// suspend it during STW. This is essential for diagnosing the "every managed thread
+        /// parked in <c>__rt_sigsuspend</c>" startup hangs we have been chasing — under that
+        /// failure mode the managed <see cref="osu.Android.HangWatchdog"/> is itself frozen
+        /// and produces no dump.
+        /// </para>
+        ///
+        /// <para>
+        /// Idempotent on the native side; safe to call from any thread; never throws.
+        /// Caller is expected to gate on <c>OsuSetting.AndroidNativeWatchdogEnabled</c> so
+        /// the user can disable the diagnostic from in-game settings if it ever interferes
+        /// with normal operation.
+        /// </para>
+        /// </summary>
+        /// <param name="hangSeconds">Threshold (clamped to [3, 120] on the native side).</param>
+        public static void StartNativeWatchdog(int hangSeconds)
+        {
+            try
+            {
+                NativeWatchdog.Start(installedLogPath, hangSeconds);
+                WriteAliveMarker($"CrashDiagnostics.StartNativeWatchdog (threshold={hangSeconds}s)");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] StartNativeWatchdog failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
         /// Append a single-line "I am alive" marker to the crash log so that, when we later
         /// inspect a truncated/empty file after a crash, the last-written marker pinpoints
         /// which startup phase died. Writes to both internal and external storage so the user

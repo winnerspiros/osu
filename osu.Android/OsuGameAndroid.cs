@@ -79,6 +79,13 @@ namespace osu.Android
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
 
+        // Layer 2/3 startup-safety toggles. Held as fields so the BindValueChanged
+        // subscriptions installed in load() outlive the BDL frame and continue to
+        // mirror updates into the on-disk sentinel files for the next launch.
+        private readonly Bindable<bool> cleanupStaleRealmFifos = new Bindable<bool>();
+        private readonly Bindable<bool> deferStartupNativeInit = new Bindable<bool>();
+        private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
+
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
 
@@ -146,14 +153,51 @@ namespace osu.Android
         /// FrameSync default migration; everything else here is unrelated init wiring.
         /// </summary>
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager frameworkConfig)
+        private void load(FrameworkConfigManager frameworkConfig, OsuConfigManager osuConfig)
         {
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
-            applyAndroidFrameSyncMigrationOnce(frameworkConfig);
+            // Bind the three Android startup-safety toggles. The BindWith call
+            // wires each persistent OsuConfigManager setting to a long-lived
+            // field bindable, then a value-changed handler mirrors the current
+            // value into a tiny on-disk sentinel under FilesDir.
+            // OsuGameActivity.OnCreate runs LONG before the OsuConfigManager
+            // exists, so for any setting that gates pre-SetHost behaviour we
+            // need a config-manager-independent way to signal the user's
+            // preference into the next launch. The sentinel is read by
+            // AndroidStartupFlags in the activity.
+            try
+            {
+                osuConfig.BindWith(OsuSetting.AndroidCleanupStaleRealmFifos, cleanupStaleRealmFifos);
+                osuConfig.BindWith(OsuSetting.AndroidDeferStartupNativeInit, deferStartupNativeInit);
+                osuConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
+
+                // sentinelOnDisable=true → presence ⇒ "feature disabled". The
+                // safety nets default to ON, so the sentinel is created only
+                // when the user explicitly disables them.
+                mirrorStartupFlag(cleanupStaleRealmFifos,            AndroidStartupFlags.FLAG_CLEANUP_REALM_FIFOS_DISABLED, sentinelOnDisable: true);
+                mirrorStartupFlag(deferStartupNativeInit,            AndroidStartupFlags.FLAG_DEFER_NATIVE_INIT_DISABLED,    sentinelOnDisable: true);
+                // sentinelOnDisable=false → presence ⇒ "feature enabled". The
+                // FrameSync migration defaults to OFF, so the sentinel is
+                // created only when the user explicitly opts in.
+                mirrorStartupFlag(startupFrameSyncMigrationEnabled,  AndroidStartupFlags.FLAG_FRAME_SYNC_MIGRATION_ENABLED,  sentinelOnDisable: false);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Startup-flag sentinel binding failed: {e.Message}");
+            }
+
+            // Layer 3a — only run the silent first-launch FrameSync migration
+            // if the user has explicitly opted back in via the new toggle.
+            // Default is OFF: the migration was added to fix a 120Hz Adreno
+            // present-queue starvation, but on a freshly-installed APK that
+            // hangs at startup we must not silently mutate framework defaults
+            // before we know the cold-start path is healthy.
+            if (startupFrameSyncMigrationEnabled.Value)
+                applyAndroidFrameSyncMigrationOnce(frameworkConfig);
 
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
@@ -350,51 +394,55 @@ namespace osu.Android
                 }
             }, true);
 
-            lowLatencyAudio.BindValueChanged(e =>
+            // Layer 3b — Oboe and Vulkan-probe initial-bind handling.
+            //
+            // The third arg `true` to BindValueChanged fires the callback
+            // synchronously NOW with the current bindable value. If the user
+            // had previously enabled Oboe or the Vulkan probe (saved in their
+            // local config), that synchronous fire would do native init on
+            // the BDL load thread, in the silent cold-start window — exactly
+            // when we are debugging a startup hang. Deferring the initial
+            // fire via Scheduler (i.e. moving it onto the next Update tick on
+            // the Update thread, after the game has finished loading) keeps
+            // the cold-start path free of synchronous native init even when a
+            // saved-true setting would otherwise force it.
+            //
+            // Default: defer (safe). Toggle off in settings to restore the
+            // original immediate-init behaviour for A/B testing.
+            bool deferInit = deferStartupNativeInit.Value;
+
+            // Always bind the change-listener, never with the immediate fire — we
+            // do the initial fire ourselves, optionally deferred.
+            lowLatencyAudio.BindValueChanged(handleLowLatencyAudioChanged);
+            vulkanProbeEnabled.BindValueChanged(handleVulkanProbeChanged);
+
+            if (deferInit)
             {
-                if (e.NewValue)
+                Schedule(() =>
                 {
                     try
                     {
-                        startOboeBridge(latency =>
-                        {
-                            double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
-                            audioOffset.Value = suggested;
-                            Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
-                        }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
-                        {
-                            audioRedirector?.RefreshMixers(sampleRate);
-                            Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
-                        });
+                        handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                        handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
-                        lowLatencyAudio.Value = false;
+                        Debug.WriteLine($"[osu!] Deferred startup native init failed: {ex.Message}");
                     }
-                }
-                else
-                {
-                    stopOboeBridge();
-                    audioRedirector?.Dispose();
-                    audioRedirector = new OboeAudioRedirector(Audio);
-                }
-            }, true);
-
-            vulkanProbeEnabled.BindValueChanged(e =>
+                });
+            }
+            else
             {
                 try
                 {
-                    if (e.NewValue)
-                        startVulkanProbe();
-                    else
-                        stopVulkanProbe();
+                    handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                    handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[osu!] Failed to toggle Vulkan probe: {ex.Message}");
+                    Debug.WriteLine($"[osu!] Immediate startup native init failed: {ex.Message}");
                 }
-            }, true);
+            }
 
             try
             {
@@ -697,6 +745,94 @@ namespace osu.Android
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
+        // ------------------------------------------------------------------
+        // Layer 3 helpers — extracted Oboe / Vulkan-probe BindValueChanged
+        // bodies so the initial fire can be EITHER synchronous (the original
+        // behaviour, when AndroidDeferStartupNativeInit is OFF) OR deferred
+        // via Schedule onto the Update tick after the cold-start window
+        // (when the toggle is ON, which is the default).
+        // ------------------------------------------------------------------
+
+        private void handleLowLatencyAudioChanged(ValueChangedEvent<bool> e)
+        {
+            if (e.NewValue)
+            {
+                try
+                {
+                    startOboeBridge(latency =>
+                    {
+                        double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
+                        audioOffset.Value = suggested;
+                        Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                    }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
+                    {
+                        audioRedirector?.RefreshMixers(sampleRate);
+                        Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
+                    lowLatencyAudio.Value = false;
+                }
+            }
+            else
+            {
+                stopOboeBridge();
+                audioRedirector?.Dispose();
+                audioRedirector = new OboeAudioRedirector(Audio);
+            }
+        }
+
+        private void handleVulkanProbeChanged(ValueChangedEvent<bool> e)
+        {
+            try
+            {
+                if (e.NewValue)
+                    startVulkanProbe();
+                else
+                    stopVulkanProbe();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[osu!] Failed to toggle Vulkan probe: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Mirror the current value of an in-game OsuConfigManager bool toggle
+        /// into an on-disk sentinel file under <c>FilesDir</c> so pre-config-
+        /// manager code (the activity) can consult its value on the *next*
+        /// launch via <see cref="AndroidStartupFlags"/>.
+        ///
+        /// <para>
+        /// The bindable must be a long-lived field on this game (so the
+        /// installed value-changed subscription is not GC-collected when load()
+        /// returns).
+        /// </para>
+        /// </summary>
+        /// <param name="bindable">A field-stored bindable already bound to its OsuSetting via BindWith.</param>
+        /// <param name="flagName">Sentinel filename to write/delete under FilesDir.</param>
+        /// <param name="sentinelOnDisable">
+        /// If true, the sentinel is created when the setting is FALSE and deleted when TRUE
+        /// (i.e. presence ⇒ "the safety behaviour is disabled"). If false, the sentinel is
+        /// created when the setting is TRUE and deleted when FALSE (presence ⇒ "the user
+        /// has opted in to non-default behaviour"). Both modes default to "no sentinel"
+        /// in the absence of any user action, which the activity treats as "use the
+        /// hard-coded default".
+        /// </param>
+        private static void mirrorStartupFlag(Bindable<bool> bindable, string flagName, bool sentinelOnDisable)
+        {
+            void apply(bool v)
+            {
+                bool sentinelShouldExist = sentinelOnDisable ? !v : v;
+                AndroidStartupFlags.Set(flagName, sentinelShouldExist);
+            }
+
+            apply(bindable.Value);
+            bindable.BindValueChanged(e => apply(e.NewValue));
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
         {
@@ -840,10 +976,14 @@ namespace osu.Android
         /// </summary>
         private void applyAndroidFrameSyncMigrationOnce(FrameworkConfigManager frameworkConfig)
         {
+            CrashDiagnostics.WriteAliveMarker("applyAndroidFrameSyncMigrationOnce (entry)");
             try
             {
                 if (LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncMigrationApplied))
+                {
+                    CrashDiagnostics.WriteAliveMarker("applyAndroidFrameSyncMigrationOnce (already applied)");
                     return;
+                }
 
                 var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
@@ -863,6 +1003,7 @@ namespace osu.Android
                 // Diagnostic-only: failing to migrate must never block startup.
                 Debug.WriteLine($"[osu!] applyAndroidFrameSyncMigrationOnce failed: {e.Message}");
             }
+            CrashDiagnostics.WriteAliveMarker("applyAndroidFrameSyncMigrationOnce (returning)");
         }
 
         public override void SetHost(GameHost host)
@@ -873,20 +1014,33 @@ namespace osu.Android
             // to install its own SIGSEGV handler. Without this, Mono sits in front of us in
             // the chain and intercepts JIT null-deref faults — re-raising via tgkill (visible
             // as si_code = SI_TKILL in tombstones) without forwarding to our dump.
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (about to ReinstallNativeHandler)");
             CrashDiagnostics.ReinstallNativeHandler();
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (ReinstallNativeHandler returned)");
 
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (about to call base.SetHost)");
             base.SetHost(host);
-
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (base.SetHost returned)");
+
+            // Bracket each per-thread Scheduler.Add registration so that — even
+            // without the native watchdog firing — a freeze inside one of these
+            // schedule-on-thread submissions narrows the window to a single
+            // call. These are cheap (Scheduler.Add only enqueues a delegate,
+            // never blocks on the target thread) but a stalled GameThread can
+            // still make the enqueue side spin on its lock.
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (about to start HangWatchdog)");
 
             // Start the hang watchdog now that GameHost has populated all four
             // GameThread instances. Running on a dedicated background thread, it
             // ticks each thread's Scheduler every ~1s and dumps a /proc/self/task
             // snapshot if any thread fails to drain its queue for >5s.
             HangWatchdog.Start(host);
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (HangWatchdog started)");
 
             if (host.Window != null)
                 host.Window.CursorState |= CursorState.Hidden;
+
+            CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (returning)");
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

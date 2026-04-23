@@ -25,15 +25,14 @@ namespace osu.Android
     /// </para>
     ///
     /// <para>
-    /// We additionally lower <see cref="Logger.Level"/> to
-    /// <see cref="LogLevel.Important"/> on Android. The default for release
-    /// builds is <see cref="LogLevel.Verbose"/>, which on osu! emits one
-    /// <c>[verbose]</c> line per shader compile, per texture upload, per SDL
-    /// no-op, per `Loading X...` event, etc. Almost none of that helps debug a
-    /// startup ANR — the actionable signal is exclusively in <c>[important]</c>
-    /// and <c>[error]</c> entries (Vulkan surface-lost events, mode changes,
-    /// realm migration, exceptions). Cutting verbose drops the typical per-launch
-    /// log size by ~95% without losing any diagnostic value.
+    /// Historically this class also lowered <see cref="Logger.Level"/> to
+    /// <see cref="LogLevel.Important"/> on Android. That has been reverted —
+    /// the framework's default verbosity is restored so osu.log captures the
+    /// full per-thread startup narrative needed to diagnose hangs. On-disk
+    /// log size is still bounded by <see cref="pruneLogDirectory"/> at every
+    /// startup (oldest-first eviction down to <see cref="MAX_LOG_BYTES"/>),
+    /// so verbose logs cannot regress the ~480 MB footprint that originally
+    /// motivated this file.
     /// </para>
     /// </summary>
     internal static class LogManagement
@@ -59,18 +58,15 @@ namespace osu.Android
         /// </summary>
         public static void Apply()
         {
-            try
-            {
-                // Setting Logger.Level is a no-op on entries already queued, but
-                // since we run from Activity.OnCreate before the framework host
-                // has been constructed (and therefore before the first framework
-                // log entry), this takes effect for the entire session.
-                Logger.Level = LogLevel.Important;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] LogManagement: could not lower Logger.Level: {e.Message}");
-            }
+            // NOTE: we used to force Logger.Level = LogLevel.Important here to
+            // shrink runtime log output during the "log explosion" debugging
+            // window. That has been reverted at user request — the default
+            // framework log verbosity is now restored so osu.log captures the
+            // full per-thread startup narrative we need to diagnose hangs.
+            // Log size is still bounded by pruneLogDirectory() below
+            // (MAX_LOG_BYTES cap with oldest-first eviction), so re-enabling
+            // verbose logging cannot regress the on-disk footprint that the
+            // 480 MB report originally exposed.
 
             try
             {

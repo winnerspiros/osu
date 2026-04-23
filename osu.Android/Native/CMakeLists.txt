@@ -86,6 +86,7 @@ add_library(osu_native SHARED
     oboe_bridge.cpp
     vulkan_bridge.cpp
     crash_handler.cpp
+    native_watchdog.cpp
 )
 
 
