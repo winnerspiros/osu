@@ -106,6 +106,15 @@ namespace osu.Android
         private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
+        // Surface.setFrameRate() compatibility constants from android.view.Surface.
+        // Hard-coded because the Xamarin/.NET-for-Android bindings do not always expose
+        // these as named fields across binding versions.
+        // https://developer.android.com/reference/android/view/Surface#FRAME_RATE_COMPATIBILITY_FIXED_SOURCE
+        private const int FRAME_RATE_COMPATIBILITY_FIXED_SOURCE = 1;
+
+        // https://developer.android.com/reference/android/view/Surface#CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
+        private const int CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS = 0;
+
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
         {
@@ -376,7 +385,30 @@ namespace osu.Android
 
             // Always select the highest refresh rate on startup, regardless of performance mode.
             // This ensures 120Hz+ displays are used at their native rate.
-            SelectHighestRefreshRate();
+            //
+            // Deferred by 5 s after LoadComplete so the initial display-mode change runs
+            // AFTER the Vulkan swapchain has stabilised, the loader screen is up, and the
+            // first burst of texture uploads (Toolbar et al.) has drained off the Draw
+            // thread. On Samsung One UI / Adreno panels, writing PreferredDisplayModeId
+            // and Surface.SetFrameRate during the cold-start swapchain bring-up can force
+            // a non-seamless mode change that destroys the SurfaceView and stalls
+            // vkAcquireNextImageKHR on the Draw thread; Update keeps ticking (so neither
+            // the managed nor the native watchdog ever dumps), the screen never updates,
+            // and ~10 s later Android raises a MotionEvent input-dispatch ANR — the
+            // exact "cold-start black screen, no sound, no touch, ANR" pattern observed
+            // in field reports. Deferring the initial call moves the mode change
+            // out of the cold-start critical window; user-driven changes via the
+            // SelectedDisplayRefreshRate dropdown and OnConfigurationChanged (DeX
+            // connect/disconnect, rotation) remain immediate because they happen long
+            // after the swapchain has settled.
+            Scheduler.AddDelayed(() =>
+            {
+                try { SelectHighestRefreshRate(); }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
+                }
+            }, 5_000);
 
             // When the user selects a different refresh rate from the settings dropdown, apply it.
             SelectedDisplayRefreshRate.BindValueChanged(e =>
@@ -682,14 +714,31 @@ namespace osu.Android
                         currentRefreshRate = (int)mode.RefreshRate;
 
                         // Set frame rate at the surface level for better compositor scheduling.
-                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE (1) tells Android we render at a
-                        // fixed rate; CHANGE_FRAME_RATE_ALWAYS (1) allows non-seamless transitions.
+                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE tells Android we render at a
+                        // fixed rate; CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS restricts the request
+                        // to mode changes the platform can perform without blanking the display
+                        // and recreating the SurfaceView's backing buffers.
+                        //
+                        // We previously passed CHANGE_FRAME_RATE_ALWAYS, which permits the
+                        // compositor to perform a non-seamless transition. On Samsung One UI /
+                        // Adreno panels that path momentarily destroys the SurfaceView and
+                        // invalidates the active VkSurfaceKHR; if it lands while the Draw
+                        // thread is mid-swapchain (e.g. during the cold-start texture-upload
+                        // burst), vkAcquireNextImageKHR can stall the present queue
+                        // indefinitely. Update keeps ticking (heartbeats fire, neither the
+                        // managed nor the native watchdog ever dumps), the screen never
+                        // updates, and ~10 s later Android raises a MotionEvent input-dispatch
+                        // ANR — the "cold-start black screen, no sound, no touch, ANR" pattern
+                        // observed in field reports. The seamless-only restriction keeps the
+                        // 120 Hz request honoured when the panel can do it without a surface
+                        // tear, and silently no-ops otherwise; either outcome is visually
+                        // unchanged but the swapchain stays alive.
                         try
                         {
                             var surface = gameActivity.GetSurface()?.Holder?.Surface;
 
                             if (surface != null && surface.IsValid)
-                                surface.SetFrameRate(mode.RefreshRate, 1, 1);
+                                surface.SetFrameRate(mode.RefreshRate, FRAME_RATE_COMPATIBILITY_FIXED_SOURCE, CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS);
                         }
                         catch
                         {
