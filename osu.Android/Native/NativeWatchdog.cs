@@ -25,7 +25,7 @@ namespace osu.Android.Native
     /// <para>
     /// All entry points are best-effort: a missing native library or a
     /// <see cref="DllNotFoundException"/> is non-fatal and silently downgraded to
-    /// a <see cref="Debug.WriteLine"/> call so startup is unaffected.
+    /// a <see cref="Debug.WriteLine(object?)"/> call so startup is unaffected.
     /// </para>
     /// </summary>
     internal static class NativeWatchdog
