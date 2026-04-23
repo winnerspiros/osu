@@ -95,6 +95,16 @@ namespace osu.Android
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
 
+        // Cold-start safety nets that MUST keep firing even if the Update thread
+        // stalls on a Veldrid glslang shader-compile burst. Held as fields so the
+        // .NET threadpool kernel timer keeps the underlying ManagedTimerHolder
+        // alive (a System.Threading.Timer with no live root is eligible for GC).
+        // See LoadComplete for the rationale (Scheduler.AddDelayed runs on the
+        // Update thread and therefore cannot be relied on to fire the very
+        // safety nets that exist to unblock that thread).
+        private System.Threading.Timer? coldStartTamingTimer;
+        private System.Threading.Timer? clearStartupSentinelTimer;
+
         // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
         // any earlier OnConfigurationChanged-driven SelectHighestRefreshRate() invocations
         // out of the cold-start swapchain bring-up window. See SelectHighestRefreshRate.
@@ -495,9 +505,19 @@ namespace osu.Android
             // on the first CompileGlslToSpirv call, which happens mid-Toolbar-load
             // (i.e. after the synchronous taming pass above has already run). Without
             // these follow-up passes, the newly-spawned worker inherits nice=-10
-            // from its parent and reproduces the starvation pattern. The chosen
-            // timestamps straddle the observed "Texture upload queue is large (100/
-            // 200/300)" events in the field runtime logs.
+            // from its parent and reproduces the starvation pattern.
+            //
+            // CRITICAL: these passes MUST run on the .NET threadpool (System.Threading.Timer),
+            // NOT on Scheduler.AddDelayed. Scheduler runs on the Update thread, which is
+            // exactly what we're trying to unblock — if the glslang worker has already
+            // started monopolising a big core at nice=-10 by the time the first deferred
+            // Scheduler tick is due, the Update thread is already starved and the tick
+            // never fires. Field tombstones (PIDs 27798/29226/499) confirm this: the +0
+            // and +500ms taming passes logged, but +1500/+3500ms never did, while a
+            // glslang worker remained at nice=-10 producing the 10s MotionEvent ANR.
+            // A kernel-managed Timer fires from the threadpool regardless of game-thread
+            // health, so the just-spawned worker is reliably caught and demoted within
+            // one tick (250 ms) of being created.
             try
             {
                 int coreCount = System.Environment.ProcessorCount;
@@ -513,27 +533,37 @@ namespace osu.Android
                     if (deferredLittleMask == 0) deferredLittleMask = totalMask;
                 }
 
-                foreach (int delayMs in new[] { 500, 1500, 3500 })
+                int capturedMask = deferredLittleMask;
+                int tickCount = 0;
+                // Tick every 250 ms, give up after ~8 s — long enough to cover the entire
+                // observed Toolbar shader-compile burst window (mid-load through drain).
+                const int tick_period_ms = 250;
+                const int max_ticks = 32;
+
+                coldStartTamingTimer = new System.Threading.Timer(_ =>
                 {
-                    int dm = delayMs;
-                    Scheduler.AddDelayed(() =>
+                    try
                     {
-                        try
-                        {
-                            int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(deferredLittleMask);
-                            if (demoted > 0)
-                                Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) at +{dm}ms", LoggingTarget.Performance);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"[osu!] Deferred TameBackgroundThreads(+{dm}ms) failed: {e.Message}");
-                        }
-                    }, delayMs);
-                }
+                        int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(capturedMask);
+                        if (demoted > 0)
+                            Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) (timer tick {tickCount + 1})", LoggingTarget.Performance);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Deferred TameBackgroundThreads (timer) failed: {e.Message}");
+                    }
+
+                    if (System.Threading.Interlocked.Increment(ref tickCount) >= max_ticks)
+                    {
+                        var t = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
+                        try { t?.Dispose(); }
+                        catch { /* ignore */ }
+                    }
+                }, state: null, dueTime: tick_period_ms, period: tick_period_ms);
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[osu!] Failed to schedule deferred TameBackgroundThreads passes: {e.Message}");
+                Debug.WriteLine($"[osu!] Failed to schedule deferred TameBackgroundThreads timer: {e.Message}");
             }
 
             Scheduler.AddDelayed(() =>
@@ -634,7 +664,36 @@ namespace osu.Android
             // before the user could reasonably trigger a manual restart. If the
             // process dies before this fires (ANR, native crash, OOM kill), the
             // sentinel persists and the next launch enters safe-mode.
-            Scheduler.AddDelayed(AndroidStartupSafeMode.ClearStartupInProgress, 10_000);
+            //
+            // Fired from a kernel-managed System.Threading.Timer rather than
+            // Scheduler.AddDelayed: the same Update-thread stall that caused the
+            // Toolbar shader-compile ANR also prevents Scheduler.AddDelayed from
+            // firing the sentinel-clear, leaving safe-mode latched forever and
+            // every relaunch hitting the identical wall (confirmed by all three
+            // field tombstones — 27798 / 29226 / 499 — starting with "CPU affinity
+            // pinning skipped (safe-mode active)"). The threadpool tick is immune
+            // to game-thread starvation, so the sentinel reliably clears whenever
+            // the activity-main thread (and therefore the process) survives the
+            // deadline, breaking the perpetual-safe-mode loop.
+            try
+            {
+                clearStartupSentinelTimer = new System.Threading.Timer(_ =>
+                {
+                    try { AndroidStartupSafeMode.ClearStartupInProgress(); }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] ClearStartupInProgress (timer) failed: {e.Message}");
+                    }
+
+                    var ct = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
+                    try { ct?.Dispose(); }
+                    catch { /* ignore */ }
+                }, state: null, dueTime: 10_000, period: System.Threading.Timeout.Infinite);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to schedule ClearStartupInProgress timer: {e.Message}");
+            }
 
             // Cold-start heartbeat instrumentation. For the first 15 s after LoadComplete
             // we emit per-second ALIVE markers from BOTH the Update thread and the Draw
@@ -1465,6 +1524,14 @@ namespace osu.Android
                 highPerformanceSession = null;
                 dexPerformanceSession?.Dispose();
                 dexPerformanceSession = null;
+
+                var cst = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
+                try { cst?.Dispose(); }
+                catch { /* ignore */ }
+
+                var sst = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
+                try { sst?.Dispose(); }
+                catch { /* ignore */ }
             }
         }
 

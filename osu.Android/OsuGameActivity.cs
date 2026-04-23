@@ -107,6 +107,20 @@ namespace osu.Android
             // OnCreate so any crash from this point onward lands in `native_crash.log`.
             CrashDiagnostics.InstallNativeHandler(this);
             CrashDiagnostics.InstallManagedExceptionHooks();
+
+            // Mirror the PREVIOUS session's internal native_crash.log into the external
+            // copy, then truncate the internal file BEFORE we write any markers for the
+            // current session. Doing this earlier (it used to run after the first three
+            // WriteAliveMarker / WriteInstallState calls) caused those three early lines
+            // to appear duplicated on disk: they were written directly to both
+            // internal+external, then the mirror appended the internal copy onto
+            // external, doubling them. Field native_crash.log files confirm this
+            // (Activity.OnCreate entry / INSTALL_STATE / StartNativeWatchdog all appear
+            // twice with identical timestamps, the rest of the file singly). Running
+            // the mirror first folds in last session's content cleanly and lets all
+            // current-session markers land exactly once in each file.
+            CrashDiagnostics.MirrorInternalLogToExternal();
+
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate entry");
             CrashDiagnostics.WriteInstallState();
             // Arm the native pthread liveness watchdog as the very next thing,
@@ -119,7 +133,6 @@ namespace osu.Android
             // monitor) is parked in __rt_sigsuspend during a stuck GC. 10s
             // threshold matches the Android system-server's own ANR window.
             CrashDiagnostics.StartNativeWatchdog(10);
-            CrashDiagnostics.MirrorInternalLogToExternal();
 
             // Crash-loop safe-mode latch. If the previous process died (ANR / native
             // crash / OOM kill) before reaching the post-LoadComplete clear point,
@@ -175,6 +188,16 @@ namespace osu.Android
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniExecutionMode (about to start)");
             LogManagement.NormaliseFrameworkIniExecutionMode();
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniExecutionMode (returned)");
+
+            // One-shot Renderer-default migration: Automatic → OpenGL on Android.
+            // Eliminates the Veldrid glslang/SPIR-V shader-compile burst that has
+            // been the proximate cause of the recurring Toolbar-time MotionEvent
+            // ANR on Adreno devices. User can still pick Vulkan from
+            // Settings → Graphics → Renderer; the migration only nudges the
+            // default and never re-runs (governed by an on-disk sentinel).
+            CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniRendererDefault (about to start)");
+            LogManagement.NormaliseFrameworkIniRendererDefault();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniRendererDefault (returned)");
 
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (about to start)");
             LogManagement.WipeShaderCacheOnceForVersion();
