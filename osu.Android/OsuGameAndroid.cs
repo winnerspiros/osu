@@ -465,6 +465,36 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Deferred initial performance-mode apply failed: {ex.Message}");
                 }
+
+                // Deferred UI-thread RequestUnbufferedDispatch(sources). Moved here from
+                // the bottom of LoadComplete so the DecorView attribute mutation no
+                // longer races the cold-start Toolbar texture-upload burst. OnCreate
+                // already requested unbuffered dispatch once (with a dummy MotionEvent),
+                // and every per-pointer DispatchTouchEvent / DispatchGenericMotionEvent
+                // re-requests it as needed, so this global set-sources call is only a
+                // latency polish for the first few real touches after the burst — it
+                // brings no benefit during the black-screen window but does take a
+                // binder IPC round-trip through ViewRootImpl, which we do not want
+                // competing with swapchain settle work.
+                try
+                {
+                    gameActivity.RunOnUiThread(() =>
+                    {
+                        try
+                        {
+                            int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
+                            gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to dispatch unbuffered-dispatch request to UI thread: {e.Message}");
+                }
             }, refreshRateDelayMs);
 
             // Clear the "startup in progress" sentinel once the current launch has
@@ -529,10 +559,18 @@ namespace osu.Android
             // local config), that synchronous fire would do native init on
             // the BDL load thread, in the silent cold-start window — exactly
             // when we are debugging a startup hang. Deferring the initial
-            // fire via Scheduler (i.e. moving it onto the next Update tick on
-            // the Update thread, after the game has finished loading) keeps
-            // the cold-start path free of synchronous native init even when a
-            // saved-true setting would otherwise force it.
+            // fire via Scheduler.AddDelayed onto the same refreshRateDelayMs
+            // timer that gates SustainedPerformanceMode / the initial refresh-
+            // rate apply / the initial performance-mode apply keeps the cold-
+            // start path free of synchronous native init even when a saved-
+            // true setting would otherwise force it, AND ensures the native
+            // init actually lands AFTER the cold-start Toolbar texture-upload
+            // burst has drained.
+            //
+            // (Prior implementations used plain Schedule(...), which only
+            // defers to the next Update tick — milliseconds, still well inside
+            // the burst. The comment correctly described the intent — "after
+            // the game has finished loading" — but the code under-delivered.)
             //
             // Default: defer (safe). Toggle off in settings to restore the
             // original immediate-init behaviour for A/B testing.
@@ -549,7 +587,7 @@ namespace osu.Android
 
             if (deferInit)
             {
-                Schedule(() =>
+                Scheduler.AddDelayed(() =>
                 {
                     try
                     {
@@ -560,7 +598,7 @@ namespace osu.Android
                     {
                         Debug.WriteLine($"[osu!] Deferred startup native init failed: {ex.Message}");
                     }
-                });
+                }, refreshRateDelayMs);
             }
             else
             {
@@ -575,25 +613,11 @@ namespace osu.Android
                 }
             }
 
-            try
-            {
-                gameActivity.RunOnUiThread(() =>
-                {
-                    try
-                    {
-                        int sources = (int)(InputSourceType.Touchscreen | InputSourceType.Stylus | InputSourceType.Mouse | InputSourceType.Touchpad);
-                        gameActivity.Window?.DecorView?.RequestUnbufferedDispatch(sources);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to request unbuffered touch dispatch: {e.Message}");
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to schedule unbuffered dispatch: {e.Message}");
-            }
+            // NOTE: the trailing RequestUnbufferedDispatch(sources) that used to live
+            // here has been moved into the refreshRateDelayMs Scheduler.AddDelayed block
+            // above, so the DecorView attribute mutation lands after the cold-start
+            // Toolbar texture-upload burst has drained. See the deferred block for the
+            // full rationale.
         }
 
         private void applyPerformanceOptimizations(bool enabled)
