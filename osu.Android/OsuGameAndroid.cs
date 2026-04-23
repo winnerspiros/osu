@@ -290,8 +290,21 @@ namespace osu.Android
                 if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
                     Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X})", LoggingTarget.Performance);
 
-                // Set update thread to urgent display priority (-8) for minimum scheduling latency.
-                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
+                // Intentionally NOT calling Process.SetThreadPriority(UrgentDisplay) here.
+                //
+                // UrgentDisplay (-8 nice) is Android's display-compositor priority, intended for
+                // short, latency-critical UI bursts. Applying it continuously to Update + Draw +
+                // Input threads — all already pinned to a 5-core big-cluster subset (mask 0xF8 on
+                // SD8G2) — creates priority inversion against Mono's GC coordinator / finalizer /
+                // JIT threads, which run at default priority on the same cores. During cold-start
+                // bursts (texture upload queue draining, shader compile, beatmap import) the
+                // game-loop threads then preempt the GC coordinator indefinitely, the STW request
+                // never completes, every managed thread (incl. the SDLActivity main UI thread)
+                // stays parked in sigsuspend, and Android tears the process down with a 10s
+                // MotionEvent ANR — the "splash → black screen → ANR" fingerprint reported in
+                // logs.zip across multiple launches. CPU pinning alone is harmless; the priority
+                // elevation is what causes the inversion. Default SDL-set priorities are
+                // sufficient and match upstream osu! / osu-framework behaviour.
 
                 int mask = affinityMask;
 
@@ -304,7 +317,6 @@ namespace osu.Android
                             try
                             {
                                 if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
-                                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
                             }
                             catch { }
                         });
@@ -314,7 +326,6 @@ namespace osu.Android
                             try
                             {
                                 if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
-                                global::Android.OS.Process.SetThreadPriority(global::Android.OS.ThreadPriority.UrgentDisplay);
                             }
                             catch { }
                         });
