@@ -81,11 +81,27 @@ jobs:
           # arm64 only — matches RuntimeIdentifiers in osu.Android.props.
           for ABI in arm64-v8a; do
             echo "::group::Building osu_native for $ABI"
-            "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
-              -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
-              -DANDROID_ABI="$ABI" \
-              -DANDROID_PLATFORM=android-33 \
-              -DCMAKE_BUILD_TYPE=Release
+            # Retry CMake configure up to 5 times: it performs the Oboe FetchContent
+            # git clone, which has intermittently failed with transient GitHub HTTP
+            # 500 errors (e.g. run 24845529416). Each retry wipes the partial build
+            # dir so FetchContent re-clones cleanly. Short backoff between attempts.
+            CONFIGURE_ATTEMPTS=5
+            for attempt in $(seq 1 $CONFIGURE_ATTEMPTS); do
+              rm -rf "build-native/$ABI"
+              if "$CMAKE_BIN" -B "build-native/$ABI" -S osu.Android/Native \
+                -DCMAKE_TOOLCHAIN_FILE="$NDK_HOME/build/cmake/android.toolchain.cmake" \
+                -DANDROID_ABI="$ABI" \
+                -DANDROID_PLATFORM=android-33 \
+                -DCMAKE_BUILD_TYPE=Release; then
+                break
+              fi
+              if [ "$attempt" -eq "$CONFIGURE_ATTEMPTS" ]; then
+                echo "::error::CMake configure failed after $CONFIGURE_ATTEMPTS attempts"
+                exit 1
+              fi
+              echo "::warning::CMake configure attempt $attempt failed (likely transient FetchContent clone error); retrying in $((attempt * 10))s"
+              sleep $((attempt * 10))
+            done
             "$CMAKE_BIN" --build "build-native/$ABI" --config Release -j "$(nproc)"
             mkdir -p "osu.Android/libs/$ABI"
             cp "build-native/$ABI/libosu_native.so" "osu.Android/libs/$ABI/"
