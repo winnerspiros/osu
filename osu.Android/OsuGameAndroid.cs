@@ -555,9 +555,9 @@ namespace osu.Android
 
                     if (System.Threading.Interlocked.Increment(ref tickCount) >= max_ticks)
                     {
-                        try { coldStartTamingTimer?.Dispose(); }
+                        var t = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
+                        try { t?.Dispose(); }
                         catch { /* ignore */ }
-                        coldStartTamingTimer = null;
                     }
                 }, state: null, dueTime: tick_period_ms, period: tick_period_ms);
             }
@@ -685,9 +685,9 @@ namespace osu.Android
                         Debug.WriteLine($"[osu!] ClearStartupInProgress (timer) failed: {e.Message}");
                     }
 
-                    try { clearStartupSentinelTimer?.Dispose(); }
+                    var ct = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
+                    try { ct?.Dispose(); }
                     catch { /* ignore */ }
-                    clearStartupSentinelTimer = null;
                 }, state: null, dueTime: 10_000, period: System.Threading.Timeout.Infinite);
             }
             catch (Exception e)
@@ -1525,13 +1525,13 @@ namespace osu.Android
                 dexPerformanceSession?.Dispose();
                 dexPerformanceSession = null;
 
-                try { coldStartTamingTimer?.Dispose(); }
+                var cst = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
+                try { cst?.Dispose(); }
                 catch { /* ignore */ }
-                coldStartTamingTimer = null;
 
-                try { clearStartupSentinelTimer?.Dispose(); }
+                var sst = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
+                try { sst?.Dispose(); }
                 catch { /* ignore */ }
-                clearStartupSentinelTimer = null;
             }
         }
 
