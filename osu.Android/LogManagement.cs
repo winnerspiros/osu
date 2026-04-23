@@ -391,6 +391,7 @@ namespace osu.Android
             {
                 Debug.WriteLine($"[osu!] LogManagement: could not write renderer-migration sentinel: {e.Message}");
             }
+        }
 
         private static string? resolveStorageRoot()
         {
