@@ -95,6 +95,11 @@ namespace osu.Android
         private Delegate? activeMixersHandler;
         private object? activeMixersList;
 
+        // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
+        // any earlier OnConfigurationChanged-driven SelectHighestRefreshRate() invocations
+        // out of the cold-start swapchain bring-up window. See SelectHighestRefreshRate.
+        private bool initialRefreshRateApplied;
+
         private object? nativeBridges;
 
         /// <summary>
@@ -403,7 +408,14 @@ namespace osu.Android
             // after the swapchain has settled.
             Scheduler.AddDelayed(() =>
             {
-                try { SelectHighestRefreshRate(); }
+                // Flip the gate FIRST, then run the actual query. Any subsequent
+                // OnConfigurationChanged-driven calls (DeX connect/disconnect, rotation)
+                // arriving after this point must be allowed to proceed normally; only
+                // the cold-start window (before this deferred call fires) is suppressed
+                // by initialRefreshRateApplied below.
+                initialRefreshRateApplied = true;
+
+                try { selectHighestRefreshRateCore(); }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
@@ -595,6 +607,30 @@ namespace osu.Android
         }
 
         public void SelectHighestRefreshRate()
+        {
+            // Cold-start gate: Android may emit one or more OnConfigurationChanged callbacks
+            // immediately after activity create (orientation/surface settling, IME visibility,
+            // top-app cgroup transitions). Each of those calls reaches here from
+            // OsuGameActivity.OnConfigurationChanged, and triggering applyDisplayMode during
+            // the Vulkan swapchain bring-up + Toolbar texture-upload burst forces a
+            // non-seamless display-mode change that destroys the SurfaceView and stalls
+            // vkAcquireNextImageKHR on the Draw thread. The Update loop keeps ticking, the
+            // screen never updates, touch is never dispatched, and ~10 s later Android
+            // raises an input-dispatch ANR — the exact "cold-start black screen, no sound,
+            // no touch" pattern observed in field reports (v172 ANRs pid 2705/5010/6100).
+            //
+            // The deferred initial selection in LoadComplete (5 s after load) is the single
+            // authoritative path for the first display-mode apply; once it has run,
+            // initialRefreshRateApplied flips and subsequent OnConfigurationChanged-driven
+            // calls (DeX connect/disconnect, rotation) proceed normally because by then
+            // the swapchain has long since stabilised.
+            if (!initialRefreshRateApplied)
+                return;
+
+            selectHighestRefreshRateCore();
+        }
+
+        private void selectHighestRefreshRateCore()
         {
             try
             {
