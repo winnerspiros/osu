@@ -106,6 +106,15 @@ namespace osu.Android
         private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
+        // Surface.setFrameRate() compatibility constants from android.view.Surface.
+        // Hard-coded because the Xamarin/.NET-for-Android bindings do not always expose
+        // these as named fields across binding versions.
+        // https://developer.android.com/reference/android/view/Surface#FRAME_RATE_COMPATIBILITY_FIXED_SOURCE
+        private const int FRAME_RATE_COMPATIBILITY_FIXED_SOURCE = 1;
+
+        // https://developer.android.com/reference/android/view/Surface#CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
+        private const int CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS = 0;
+
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
         {
@@ -387,7 +396,7 @@ namespace osu.Android
             // the managed nor the native watchdog ever dumps), the screen never updates,
             // and ~10 s later Android raises a MotionEvent input-dispatch ANR — the
             // exact "cold-start black screen, no sound, no touch, ANR" pattern observed
-            // in field logs (logs.zip). Deferring the initial call moves the mode change
+            // in field reports. Deferring the initial call moves the mode change
             // out of the cold-start critical window; user-driven changes via the
             // SelectedDisplayRefreshRate dropdown and OnConfigurationChanged (DeX
             // connect/disconnect, rotation) remain immediate because they happen long
@@ -705,12 +714,12 @@ namespace osu.Android
                         currentRefreshRate = (int)mode.RefreshRate;
 
                         // Set frame rate at the surface level for better compositor scheduling.
-                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE (1) tells Android we render at a
-                        // fixed rate; CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS (0) restricts the request
+                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE tells Android we render at a
+                        // fixed rate; CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS restricts the request
                         // to mode changes the platform can perform without blanking the display
                         // and recreating the SurfaceView's backing buffers.
                         //
-                        // We previously passed CHANGE_FRAME_RATE_ALWAYS (1), which permits the
+                        // We previously passed CHANGE_FRAME_RATE_ALWAYS, which permits the
                         // compositor to perform a non-seamless transition. On Samsung One UI /
                         // Adreno panels that path momentarily destroys the SurfaceView and
                         // invalidates the active VkSurfaceKHR; if it lands while the Draw
@@ -720,16 +729,16 @@ namespace osu.Android
                         // managed nor the native watchdog ever dumps), the screen never
                         // updates, and ~10 s later Android raises a MotionEvent input-dispatch
                         // ANR — the "cold-start black screen, no sound, no touch, ANR" pattern
-                        // observed in field logs (logs.zip). The seamless-only restriction
-                        // keeps the 120 Hz request honoured when the panel can do it without a
-                        // surface tear, and silently no-ops otherwise; either outcome is
-                        // visually unchanged but the swapchain stays alive.
+                        // observed in field reports. The seamless-only restriction keeps the
+                        // 120 Hz request honoured when the panel can do it without a surface
+                        // tear, and silently no-ops otherwise; either outcome is visually
+                        // unchanged but the swapchain stays alive.
                         try
                         {
                             var surface = gameActivity.GetSurface()?.Holder?.Surface;
 
                             if (surface != null && surface.IsValid)
-                                surface.SetFrameRate(mode.RefreshRate, 1, 0);
+                                surface.SetFrameRate(mode.RefreshRate, FRAME_RATE_COMPATIBILITY_FIXED_SOURCE, CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS);
                         }
                         catch
                         {
