@@ -220,8 +220,15 @@ namespace osu.Android
             // present-queue starvation, but on a freshly-installed APK that
             // hangs at startup we must not silently mutate framework defaults
             // before we know the cold-start path is healthy.
-            if (startupFrameSyncMigrationEnabled.Value)
+            //
+            // Additionally, if the previous launch died during startup
+            // (AndroidStartupSafeMode.IsActive) we ALWAYS skip the migration
+            // for this launch even if the user has enabled it — the goal is
+            // to recover the user back to a working game first.
+            if (startupFrameSyncMigrationEnabled.Value && !AndroidStartupSafeMode.IsActive)
                 applyAndroidFrameSyncMigrationOnce(frameworkConfig);
+            else if (startupFrameSyncMigrationEnabled.Value)
+                Debug.WriteLine("[osu!] FrameSync migration skipped this launch (safe-mode active)");
 
             stylusHandler = new AndroidStylusHandler();
             Host.AvailableInputHandlers.Add(stylusHandler);
@@ -406,6 +413,12 @@ namespace osu.Android
             // SelectedDisplayRefreshRate dropdown and OnConfigurationChanged (DeX
             // connect/disconnect, rotation) remain immediate because they happen long
             // after the swapchain has settled.
+            //
+            // Under crash-loop safe-mode (previous launch died during startup) the delay
+            // is extended to 15 s so a slow-loading device that needed >5 s to drain
+            // the texture-upload backpressure last time gets a wider safety margin.
+            int refreshRateDelayMs = AndroidStartupSafeMode.IsActive ? 15_000 : 5_000;
+
             Scheduler.AddDelayed(() =>
             {
                 // Flip the gate FIRST, then run the actual query. Any subsequent
@@ -420,7 +433,19 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
                 }
-            }, 5_000);
+            }, refreshRateDelayMs);
+
+            // Clear the "startup in progress" sentinel once the current launch has
+            // survived ~10 s past LoadComplete. The sentinel governs the NEXT launch's
+            // safe-mode decision, not the current one (AndroidStartupSafeMode.IsActive
+            // is latched at OnCreate time and never changes mid-process). Window size
+            // is chosen to be longer than typical post-LoadComplete texture-upload
+            // bursts (~3-5 s on cold start) so we don't prematurely declare success,
+            // but short enough that any genuinely surviving launch clears the sentinel
+            // before the user could reasonably trigger a manual restart. If the
+            // process dies before this fires (ANR, native crash, OOM kill), the
+            // sentinel persists and the next launch enters safe-mode.
+            Scheduler.AddDelayed(AndroidStartupSafeMode.ClearStartupInProgress, 10_000);
 
             // When the user selects a different refresh rate from the settings dropdown, apply it.
             SelectedDisplayRefreshRate.BindValueChanged(e =>
@@ -474,7 +499,11 @@ namespace osu.Android
             //
             // Default: defer (safe). Toggle off in settings to restore the
             // original immediate-init behaviour for A/B testing.
-            bool deferInit = deferStartupNativeInit.Value;
+            //
+            // Crash-loop safe-mode override: if the previous launch died
+            // during startup we ALWAYS take the deferred path for this launch
+            // regardless of the user setting.
+            bool deferInit = deferStartupNativeInit.Value || AndroidStartupSafeMode.IsActive;
 
             // Always bind the change-listener, never with the immediate fire — we
             // do the initial fire ourselves, optionally deferred.

@@ -42,6 +42,15 @@ namespace osu.Android
         public const string FLAG_DEFER_NATIVE_INIT_DISABLED = "android_startup_disable_defer_native_init.flag";
         public const string FLAG_FRAME_SYNC_MIGRATION_ENABLED = "android_startup_enable_frame_sync_migration.flag";
 
+        /// <summary>
+        /// "Startup in progress" sentinel. Dropped near the very top of <see cref="OsuGameActivity.OnCreate"/>
+        /// and cleared a few seconds after <c>OsuGame.LoadComplete</c> by <see cref="OsuGameAndroid"/>.
+        /// If a fresh <c>OnCreate</c> finds this still present, the previous launch died (ANR / native
+        /// crash / OOM kill) before reaching the post-LoadComplete clear point, and we apply one-shot
+        /// safe-mode behaviours for THIS launch only.
+        /// </summary>
+        public const string FLAG_STARTUP_IN_PROGRESS = "android_startup_in_progress.flag";
+
         private static string? resolveDir()
         {
             try
