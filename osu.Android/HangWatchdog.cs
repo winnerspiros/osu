@@ -401,6 +401,15 @@ namespace osu.Android
             {
                 Interlocked.Exchange(ref LastTickUtcMs, nowUtcMs());
 
+                // Bump the native pthread watchdog. Cheap (one __atomic_store_n
+                // on a 64-bit slot) and only does anything if the libosu_native.so
+                // entry point is present; otherwise the wrapper silently no-ops.
+                // The native watchdog is what produces hang dumps when Mono's
+                // STW GC has frozen every managed thread — without this
+                // heartbeat its timer-driven loop has nothing to compare against
+                // and would dump on first tick.
+                osu.Android.Native.NativeWatchdog.Heartbeat();
+
                 // gettid is cheap (single syscall) and only meaningfully
                 // changes on the very first tick — but we re-record it on
                 // every tick so a thread restart (e.g. ExecutionMode swap)

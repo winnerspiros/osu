@@ -57,6 +57,33 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"vulkan", @"gpu", @"graphics" },
                 },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "Clean up stale Realm fifos at startup",
+                    HintText = "Removes leftover Realm cross-process notification fifos from a previous crashed process. A stale fifo can block Realm initialisation in native code at startup.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidCleanupStaleRealmFifos),
+                })
+                {
+                    Keywords = new[] { @"realm", @"fifo", @"startup", @"hang" },
+                },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "Defer audio/Vulkan native init at startup",
+                    HintText = "Delays Oboe and Vulkan-probe initialisation until after the game has finished loading, so a slow native init cannot stall the cold-start sequence. Disable to revert to immediate init.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidDeferStartupNativeInit),
+                })
+                {
+                    Keywords = new[] { @"oboe", @"vulkan", @"defer", @"startup" },
+                },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "Auto-migrate FrameSync to VSync on first launch",
+                    HintText = "If enabled, switches the framework FrameSync default from Limit2x to VSync the first time osu! reaches load completion. Off by default — change FrameSync manually in Renderer settings if you want VSync.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidStartupFrameSyncMigrationEnabled),
+                })
+                {
+                    Keywords = new[] { @"framesync", @"vsync", @"adreno", @"renderer" },
+                },
             };
         }
 

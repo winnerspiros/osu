@@ -109,6 +109,16 @@ namespace osu.Android
             CrashDiagnostics.InstallManagedExceptionHooks();
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate entry");
             CrashDiagnostics.WriteInstallState();
+            // Arm the native pthread liveness watchdog as the very next thing,
+            // so it is running BEFORE any framework code, BEFORE Realm init,
+            // BEFORE Vulkan/Oboe/native-bridge probes, and BEFORE Mono can
+            // enter a stop-the-world GC. The watchdog runs as a pthread that
+            // never attaches to the runtime, so STW cannot suspend it — it is
+            // the only thing that can produce a /proc/self/task snapshot when
+            // every managed thread (including the managed HangWatchdog
+            // monitor) is parked in __rt_sigsuspend during a stuck GC. 10s
+            // threshold matches the Android system-server's own ANR window.
+            CrashDiagnostics.StartNativeWatchdog(10);
             CrashDiagnostics.MirrorInternalLogToExternal();
 
             // Bound on-disk runtime log footprint and lower the framework log

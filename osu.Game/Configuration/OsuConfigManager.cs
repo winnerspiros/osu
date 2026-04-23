@@ -243,6 +243,33 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidLowLatencyAudio, false);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
+
+            // --- Android startup-safety toggles ---
+            //
+            // These three ship enabled-by-default values that produce the safest
+            // cold-start path. Each can be flipped from Settings → Graphics →
+            // Android Performance to A/B-test which mitigation (if any) was
+            // actually masking the underlying startup hang the user is chasing.
+            //
+            // The native pthread watchdog is intentionally NOT toggleable: it
+            // is a pure diagnostic that never enters managed code, uses only
+            // async-signal-safe primitives, and produces bounded output (5
+            // dumps max per process). Always-on so we always have logs if a
+            // future startup hang recurs.
+            //
+            // Defaults rationale:
+            //   - AndroidCleanupStaleRealmFifos = true: defensively unlinks
+            //     stale Realm fifos that survived a previous crash and would
+            //     otherwise block Realm.GetInstance() in native code.
+            //   - AndroidDeferStartupNativeInit = true: defers Oboe/Vulkan-
+            //     probe initial-bind fire off the BDL load thread to avoid
+            //     synchronous native init during the silent cold-start window.
+            //   - AndroidStartupFrameSyncMigrationEnabled = false: stops the
+            //     silent first-launch migration that auto-rewrote FrameSync
+            //     from Limit2x → VSync. User can opt back in by toggling.
+            SetDefault(OsuSetting.AndroidCleanupStaleRealmFifos, true);
+            SetDefault(OsuSetting.AndroidDeferStartupNativeInit, true);
+            SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, false);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -502,6 +529,9 @@ namespace osu.Game.Configuration
         AndroidLowLatencyAudio,
         AndroidVulkanProbe,
         AndroidStartupFrameSyncMigrationApplied,
+        AndroidCleanupStaleRealmFifos,
+        AndroidDeferStartupNativeInit,
+        AndroidStartupFrameSyncMigrationEnabled,
         RefreshRateFullscreen,
     }
 }
