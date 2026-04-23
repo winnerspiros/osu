@@ -7,10 +7,15 @@
 #include <sched.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <sys/resource.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fcntl.h>
 #include <android/log.h>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <vector>
 #include <algorithm>
 typedef uint8_t byte;
@@ -544,6 +549,144 @@ OSU_EXPORT int nGetBigCoreMask() {
         cachedBigCoreMask.store(mask, std::memory_order_relaxed);
     }
     return mask;
+}
+
+// ============================================================
+// Background-thread taming (field-crash mitigation — see below)
+// ============================================================
+// Android cold-start black-screen / MotionEvent ANR (v177) was root-caused to
+// Veldrid's shader-compile worker running glslang::TPpContext::tokenize deep
+// inside glslang::SetupBuiltinSymbolTable at nice=-10 on a big core, starving
+// the Android main UI thread of CPU at the same moment the Draw thread is
+// draining a 300+-item texture-upload queue. Mono maps .NET
+// ThreadPriority.Highest to nice=-10 for every worker thread it spawns
+// (shader compile, finalizer, network, etc.), which is the display-
+// compositor priority class — inappropriate for CPU-heavy background work.
+//
+// This function walks /proc/self/task, reads each thread's kernel comm, and
+// for any comm matching the Mono-threadpool-worker naming pattern drops the
+// nice value to 0 and (if little_core_mask != 0) pins the thread to the
+// given LITTLE-core subset. Game-loop threads (Update/Draw/Audio/Input), the
+// Android main UI thread (tid == tgid), the calling thread, and a small
+// list of critical ART/system daemons are explicitly left alone.
+//
+// Safe to call repeatedly; subsequent calls are idempotent. Cross-thread
+// setpriority / sched_setaffinity within the same process is allowed for a
+// same-euid caller without CAP_SYS_NICE, so no root required.
+//
+// Returns: number of threads demoted (for diagnostic logging).
+static bool isCommToLeaveAlone(const char* comm) {
+    if (!comm || !*comm) return false;
+
+    // Game-loop threads created by osu-framework GameThread. These MUST stay
+    // at their elevated priority so the render/update/audio/input pipelines
+    // aren't starved by Android's scheduler during play.
+    static const char* const keep[] = {
+        "Update",       "Draw",        "Audio",        "Input",
+        "SDLActivity",  "HangWatchdog",
+        // Known-critical ART / Android daemons; leave to platform defaults.
+        "FinalizerDae", "FinalizerWat", "ReferenceQueu", "HeapTaskDaemo",
+        "Signal Catche", "Jit thread po", "Profile Saver", "binder:",
+        "perfetto",     "main",
+        // Oboe / AAudio callback threads (priority-critical for audio).
+        "AAudio",       "OboeAudio",
+    };
+
+    for (const char* p : keep) {
+        if (std::strncmp(comm, p, std::strlen(p)) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+static bool isCommToDemote(const char* comm) {
+    if (!comm) return false;
+
+    // Empty comm (unnamed thread) — definitely safe to demote; these are
+    // ad-hoc pthread_create workers that inherited nice=-10 from a parent.
+    if (*comm == '\0') return true;
+
+    // Mono threadpool worker default name: "Thread-<n>". This is the thread
+    // that was stuck in glslang::SetupBuiltinSymbolTable in the field
+    // tombstone; it's also used for network / shader / JIT helpers.
+    if (std::strncmp(comm, "Thread-", 7) == 0) return true;
+
+    // OkHttp / Okio network threads — nice=-8 observed in tombstones, no
+    // reason to outrank the main UI thread during cold start.
+    if (std::strncmp(comm, "OkHttp",     6) == 0) return true;
+    if (std::strncmp(comm, "Okio",       4) == 0) return true;
+
+    // .NET threadpool default pattern ("pool-", ".NET Thread", "TP").
+    if (std::strncmp(comm, "pool-",      5) == 0) return true;
+    if (std::strncmp(comm, ".NET",       4) == 0) return true;
+
+    return false;
+}
+
+OSU_EXPORT int nTameBackgroundThreads(int little_core_mask) {
+    DIR* dir = opendir("/proc/self/task");
+    if (!dir) return 0;
+
+    const pid_t self_tid = (pid_t)syscall(SYS_gettid);
+    const pid_t tgid = getpid();
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    bool haveCpuset = false;
+    if (little_core_mask != 0) {
+        for (int i = 0; i < 32; i++) {
+            if ((little_core_mask >> i) & 1)
+                CPU_SET(i, &cpuset);
+        }
+        haveCpuset = CPU_COUNT(&cpuset) > 0;
+    }
+
+    int demoted = 0;
+    struct dirent* ent;
+    while ((ent = readdir(dir)) != nullptr) {
+        if (ent->d_name[0] < '0' || ent->d_name[0] > '9') continue;
+
+        pid_t tid = (pid_t)std::atoi(ent->d_name);
+        if (tid <= 0) continue;
+        if (tid == self_tid) continue;
+        // Never touch the Android main UI thread — Android's input dispatcher
+        // reads from it, and any priority/affinity mutation here is exactly
+        // the class of change that causes a 10s MotionEvent ANR.
+        if (tid == tgid) continue;
+
+        char comm_path[64];
+        std::snprintf(comm_path, sizeof(comm_path), "/proc/self/task/%d/comm", (int)tid);
+        int fd = open(comm_path, O_RDONLY | O_CLOEXEC);
+        if (fd < 0) continue;
+
+        char comm[32] = {0};
+        ssize_t n = read(fd, comm, sizeof(comm) - 1);
+        close(fd);
+        if (n <= 0) continue;
+        // Strip trailing newline that the kernel appends.
+        if (comm[n - 1] == '\n') comm[n - 1] = '\0';
+
+        if (isCommToLeaveAlone(comm)) continue;
+        if (!isCommToDemote(comm)) continue;
+
+        bool changed = false;
+
+        // Raise nice from whatever it is (often -10 for Mono ThreadPriority.Highest)
+        // to 0. setpriority(PRIO_PROCESS, tid, 0) is a de-elevation and
+        // therefore does not require CAP_SYS_NICE for a same-euid caller.
+        if (setpriority(PRIO_PROCESS, tid, 0) == 0)
+            changed = true;
+
+        if (haveCpuset) {
+            if (sched_setaffinity(tid, sizeof(cpu_set_t), &cpuset) == 0)
+                changed = true;
+        }
+
+        if (changed) demoted++;
+    }
+    closedir(dir);
+    return demoted;
 }
 }
 
