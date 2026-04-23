@@ -39,10 +39,13 @@ namespace osu.Android
     internal static class LogManagement
     {
         // Hard cap on the total bytes consumed by *.log files in the log directory.
-        // 20 MiB matches the explicit user request and is large enough to retain
-        // ~30 successive Important-level launches even when each one logs an
-        // unhandled exception with full stack trace.
-        public const long MAX_LOG_BYTES = 20L * 1024 * 1024;
+        // 6 MiB is chosen so that the user's overall on-disk diagnostics budget
+        // (~20 MiB target) divides into ~6 MiB runtime logs + ~6 MiB internal
+        // native_crash.log (capped via CrashDiagnostics rotation) + ~6 MiB
+        // external native_crash.log (same cap). Important-level logs are very
+        // small per launch (~327 bytes for a clean cold start observed in the
+        // field), so 6 MiB still retains thousands of successive launches.
+        public const long MAX_LOG_BYTES = 6L * 1024 * 1024;
 
         // Subdirectory under the game storage root where the framework logger
         // writes per-session log files. Mirrors osu.Game/IO/OsuStorage.cs:140
