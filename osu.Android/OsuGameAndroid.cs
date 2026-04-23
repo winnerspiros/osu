@@ -155,7 +155,7 @@ namespace osu.Android
         /// <remarks>
         /// We must NOT take <see cref="OsuConfigManager"/> as a BDL parameter here. The
         /// dependency activator resolves BDL parameters from the parent dependency
-        /// container, but <see cref="OsuGameBase.load"/> caches <c>LocalConfig</c> into
+        /// container, but <c>OsuGameBase.load</c> caches <c>LocalConfig</c> into
         /// the child container (the one returned from <c>CreateChildDependencies</c>).
         /// Resolving <c>OsuConfigManager</c> as a parameter therefore throws
         /// <c>DependencyNotRegisteredException</c> before this method body even runs.
