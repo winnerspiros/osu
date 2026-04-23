@@ -85,6 +85,7 @@ namespace osu.Android
         private readonly Bindable<bool> cleanupStaleRealmFifos = new Bindable<bool>();
         private readonly Bindable<bool> deferStartupNativeInit = new Bindable<bool>();
         private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
+        private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -208,6 +209,7 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidCleanupStaleRealmFifos, cleanupStaleRealmFifos);
                 LocalConfig.BindWith(OsuSetting.AndroidDeferStartupNativeInit, deferStartupNativeInit);
                 LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
+                LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
 
                 // sentinelOnDisable=true → presence ⇒ "feature disabled". The
                 // safety nets default to ON, so the sentinel is created only
@@ -215,9 +217,11 @@ namespace osu.Android
                 mirrorStartupFlag(cleanupStaleRealmFifos,            AndroidStartupFlags.FLAG_CLEANUP_REALM_FIFOS_DISABLED, sentinelOnDisable: true);
                 mirrorStartupFlag(deferStartupNativeInit,            AndroidStartupFlags.FLAG_DEFER_NATIVE_INIT_DISABLED,    sentinelOnDisable: true);
                 // sentinelOnDisable=false → presence ⇒ "feature enabled". The
-                // FrameSync migration defaults to OFF, so the sentinel is
-                // created only when the user explicitly opts in.
+                // FrameSync migration and verbose-logging toggles both default
+                // to OFF, so the sentinel is created only when the user
+                // explicitly opts in.
                 mirrorStartupFlag(startupFrameSyncMigrationEnabled,  AndroidStartupFlags.FLAG_FRAME_SYNC_MIGRATION_ENABLED,  sentinelOnDisable: false);
+                mirrorStartupFlag(verboseLogging,                    AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED,       sentinelOnDisable: false);
             }
             catch (Exception e)
             {
@@ -1211,17 +1215,21 @@ namespace osu.Android
                     {
                         double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                         audioOffset.Value = suggested;
-                        Debug.WriteLine($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                        Logger.Log($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                     }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate);
-                        Debug.WriteLine("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
+                        Logger.Log("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
                     });
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[osu!] Failed to start Oboe bridge: {ex.Message}");
-                    lowLatencyAudio.Value = false;
+                    // Surface to runtime.log so a user-shared log makes Oboe failures
+                    // diagnosable. Do NOT silently flip lowLatencyAudio.Value back to
+                    // false here — persisting that flip turns a single transient init
+                    // failure into a permanent "Oboe doesn't work" for the user, with
+                    // no indication that the toggle was overridden behind their back.
+                    Logger.Log($"[osu!] Failed to start Oboe bridge: {ex.Message}", level: LogLevel.Error);
                 }
             }
             else

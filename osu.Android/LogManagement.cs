@@ -58,15 +58,31 @@ namespace osu.Android
         /// </summary>
         public static void Apply()
         {
-            // NOTE: we used to force Logger.Level = LogLevel.Important here to
-            // shrink runtime log output during the "log explosion" debugging
-            // window. That has been reverted at user request — the default
-            // framework log verbosity is now restored so osu.log captures the
-            // full per-thread startup narrative we need to diagnose hangs.
-            // Log size is still bounded by pruneLogDirectory() below
-            // (MAX_LOG_BYTES cap with oldest-first eviction), so re-enabling
-            // verbose logging cannot regress the on-disk footprint that the
-            // 480 MB report originally exposed.
+            // Verbose-logging toggle (default OFF). The framework writes
+            // ~330 KB of runtime.log + ~28 KB of input.log per launch at the
+            // default Verbose level, dominated by OpenTabletDriver per-tablet
+            // detection and SDL platform-feature probe chatter — useful when
+            // diagnosing a hang, not useful in the steady state. Default to
+            // Important so on-disk log volume drops to a few KB per launch
+            // and audio/render hot paths spend zero time formatting log
+            // messages. Users can re-enable verbose logging from
+            // Settings → Graphics → Android Performance to capture a full
+            // log when they need to share one.
+            //
+            // Sentinel-driven (not config-driven) because LogManagement.Apply
+            // runs in OsuGameActivity.OnCreate, LONG before the
+            // OsuConfigManager exists — same pattern as the other Android
+            // startup-safety flags. OsuGameAndroid mirrors the in-game
+            // bindable into the sentinel via mirrorStartupFlag.
+            try
+            {
+                bool verbose = AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED);
+                Logger.Level = verbose ? LogLevel.Verbose : LogLevel.Important;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: could not apply Logger.Level: {e.Message}");
+            }
 
             try
             {
@@ -281,15 +297,6 @@ namespace osu.Android
                 string? root = resolveStorageRoot();
                 if (root == null) return;
 
-                // Always-on Vulkan rescue (runs every launch, NOT gated by the
-                // one-shot sentinel): if the user previously selected
-                // "Renderer = Vulkan" they are now stuck on a black screen on
-                // Adreno-class devices and cannot reach the in-game settings
-                // to revert it. Force the value back to OpenGL so the next
-                // launch is recoverable. This is intentionally separate from
-                // the one-shot Automatic→OpenGL nudge below.
-                forceRendererAwayFromVulkan(root);
-
                 string sentinelPath = Path.Combine(root, renderer_migration_sentinel);
                 if (File.Exists(sentinelPath)) return;
 
@@ -399,76 +406,6 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] LogManagement: could not write renderer-migration sentinel: {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Always-on rescue path: rewrite any explicit <c>Renderer = Vulkan</c>
-        /// in <c>framework.ini</c> back to <c>Renderer = OpenGL</c>. The
-        /// Veldrid Vulkan backend reliably produces a black screen on
-        /// Adreno-class Android devices (swapchain bring-up never reaches
-        /// first present), and a user who picks Vulkan from the renderer
-        /// dropdown ends up unable to launch the game and unable to undo the
-        /// choice from inside the UI. This runs every launch (no sentinel)
-        /// so it always rescues users from that state.
-        /// </summary>
-        private static void forceRendererAwayFromVulkan(string root)
-        {
-            try
-            {
-                string iniPath = Path.Combine(root, "framework.ini");
-                if (!File.Exists(iniPath)) return;
-
-                string[] lines;
-
-                try
-                {
-                    lines = File.ReadAllLines(iniPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for Vulkan rescue: {e.Message}");
-                    return;
-                }
-
-                bool changed = false;
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    string line = lines[i];
-                    int eq = line.IndexOf('=');
-                    if (eq <= 0) continue;
-
-                    string key = line.Substring(0, eq).Trim();
-                    string value = line.Substring(eq + 1).Trim();
-
-                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
-                        continue;
-
-                    if (string.Equals(value, "Vulkan", StringComparison.Ordinal))
-                    {
-                        lines[i] = "Renderer = OpenGL";
-                        changed = true;
-                    }
-
-                    break;
-                }
-
-                if (!changed) return;
-
-                try
-                {
-                    File.WriteAllLines(iniPath, lines);
-                    Logger.Log("[osu!] Android Vulkan rescue: rewrote Renderer = Vulkan → OpenGL", LoggingTarget.Performance);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for Vulkan rescue: {e.Message}");
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] LogManagement: forceRendererAwayFromVulkan failed: {e.Message}");
             }
         }
 

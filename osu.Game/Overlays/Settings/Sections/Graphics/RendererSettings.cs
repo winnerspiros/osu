@@ -31,20 +31,23 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
 
             var rendererItems = host.GetPreferredRenderersForCurrentPlatform().ToList();
 
-            // Android: Vulkan is intentionally NOT exposed in the renderer
-            // dropdown. The Veldrid Vulkan backend reliably produces a black
-            // screen on Adreno-class devices (swapchain bring-up stalls before
-            // first present), and a user who selects it from the dropdown ends
-            // up unable to launch the game and unable to revert the choice
-            // from inside the UI. The "GPU detection (Vulkan)" toggle in
-            // Android Performance settings is unrelated — it only runs a
-            // capabilities probe via the native bridge, never the actual
-            // renderer. If the user has somehow ended up with
-            // `Renderer = Vulkan` in framework.ini (e.g. from an older build),
-            // `LogManagement.NormaliseFrameworkIniRendererDefault` rewrites it
-            // to OpenGL on next launch.
+            // Always show Vulkan on Android when the GPU supports it, so users can try it.
+            // The VulkanProbe detects feature support; even if some features are disabled (e.g. on
+            // Adreno 7xx), the renderer itself may still work and provide better performance than
+            // OpenGL ES for some workloads.
+            //
+            // Note: the Veldrid Vulkan backend currently produces a black screen on some Adreno
+            // devices (swapchain bring-up never reaches first present). Until that's fixed
+            // upstream in osu-framework / Veldrid, picking Vulkan here can leave the user
+            // unable to launch the game from the UI — they'd need to clear app data to recover.
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
-                rendererItems.RemoveAll(t => t == RendererType.Vulkan);
+            {
+                bool isSupported = game?.IsVulkanSupported ?? false;
+                bool isCurrentlySelected = renderer.Value == RendererType.Vulkan;
+
+                if ((isSupported || isCurrentlySelected) && !rendererItems.Contains(RendererType.Vulkan))
+                    rendererItems.Add(RendererType.Vulkan);
+            }
 
             if (!rendererItems.Contains(renderer.Value))
                 renderer.SetDefault();

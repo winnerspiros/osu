@@ -270,6 +270,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidCleanupStaleRealmFifos, true);
             SetDefault(OsuSetting.AndroidDeferStartupNativeInit, true);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, false);
+            SetDefault(OsuSetting.AndroidVerboseLogging, false);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -532,6 +533,7 @@ namespace osu.Game.Configuration
         AndroidCleanupStaleRealmFifos,
         AndroidDeferStartupNativeInit,
         AndroidStartupFrameSyncMigrationEnabled,
+        AndroidVerboseLogging,
         RefreshRateFullscreen,
     }
 }

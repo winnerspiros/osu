@@ -43,6 +43,17 @@ namespace osu.Android
         public const string FLAG_FRAME_SYNC_MIGRATION_ENABLED = "android_startup_enable_frame_sync_migration.flag";
 
         /// <summary>
+        /// Verbose-logging opt-in sentinel. Presence ⇒ "user has enabled
+        /// verbose framework logging". Absence ⇒ "default, quiet logging
+        /// (Important+ only)". Quiet is the default because the framework's
+        /// runtime/input log is ~330+ KB per launch on Android (mostly
+        /// OpenTabletDriver detection + SDL platform chatter) and is not
+        /// useful in the steady state. Toggle from
+        /// Settings → Graphics → Android Performance.
+        /// </summary>
+        public const string FLAG_VERBOSE_LOGGING_ENABLED = "android_startup_enable_verbose_logging.flag";
+
+        /// <summary>
         /// "Startup in progress" sentinel. Dropped near the very top of <see cref="OsuGameActivity.OnCreate"/>
         /// and cleared a few seconds after <c>OsuGame.LoadComplete</c> by <see cref="OsuGameAndroid"/>.
         /// If a fresh <c>OnCreate</c> finds this still present, the previous launch died (ANR / native

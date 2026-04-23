@@ -84,6 +84,15 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"framesync", @"vsync", @"adreno", @"renderer" },
                 },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "Verbose logging",
+                    HintText = "Off by default — only important messages are written to the on-disk log. Enable to capture full per-thread diagnostics when sharing a log to debug an issue. Takes effect on next launch. Quiet mode also avoids string-formatting work in audio/render hot paths.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidVerboseLogging),
+                })
+                {
+                    Keywords = new[] { @"log", @"debug", @"diagnostic", @"verbose" },
+                },
             };
         }
 
