@@ -42,7 +42,14 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "Low-latency audio (Oboe)",
-                    HintText = "Uses Google Oboe for AAudio low-latency output and real-time audio latency measurement. Requires native library.",
+                    HintText =
+                        "Routes osu!'s final audio through Google's Oboe library, which prefers AAudio + MMAP fast-mixer paths on modern devices "
+                        + "(falling back to OpenSL ES on older ones). Typical end-to-end output latency drops from ~80–150ms (default Android mixer) "
+                        + "to ~20–40ms on supported hardware. Oboe also reports the real hardware output latency back to the game, which is used to "
+                        + "auto-suggest the audio offset on first measurement (~2s after audio starts). "
+                        + "Requires the bundled native library; if it fails to load or the audio device refuses a low-latency stream the game "
+                        + "stays on the default mixer and an error is written to runtime.log — disable this if you hear crackles, drop-outs, "
+                        + "or wrong-pitch playback on your specific device.",
                     Current = config.GetBindable<bool>(OsuSetting.AndroidLowLatencyAudio),
                 })
                 {
