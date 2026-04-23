@@ -48,42 +48,25 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"oboe", @"aaudio", @"latency", @"audio" },
                 },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "GPU detection (Vulkan)",
-                    HintText = "Probes Vulkan GPU capabilities at startup. Requires native library.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidVulkanProbe),
-                })
-                {
-                    Keywords = new[] { @"vulkan", @"gpu", @"graphics" },
-                },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Clean up stale Realm fifos at startup",
-                    HintText = "Removes leftover Realm cross-process notification fifos from a previous crashed process. A stale fifo can block Realm initialisation in native code at startup.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidCleanupStaleRealmFifos),
-                })
-                {
-                    Keywords = new[] { @"realm", @"fifo", @"startup", @"hang" },
-                },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Defer audio/Vulkan native init at startup",
-                    HintText = "Delays Oboe and Vulkan-probe initialisation until after the game has finished loading, so a slow native init cannot stall the cold-start sequence. Disable to revert to immediate init.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidDeferStartupNativeInit),
-                })
-                {
-                    Keywords = new[] { @"oboe", @"vulkan", @"defer", @"startup" },
-                },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Auto-migrate FrameSync to VSync on first launch",
-                    HintText = "If enabled, switches the framework FrameSync default from Limit2x to VSync the first time osu! reaches load completion. Off by default — change FrameSync manually in Renderer settings if you want VSync.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidStartupFrameSyncMigrationEnabled),
-                })
-                {
-                    Keywords = new[] { @"framesync", @"vsync", @"adreno", @"renderer" },
-                },
+                // The following toggles were removed from the UI:
+                //
+                //   - "GPU detection (Vulkan)" (OsuSetting.AndroidVulkanProbe) — purely
+                //     cosmetic; only ran a Vulkan capabilities probe via the native bridge
+                //     and never touched the renderer. Default OFF in OsuConfigManager.
+                //   - "Clean up stale Realm fifos at startup" (OsuSetting.AndroidCleanupStaleRealmFifos) —
+                //     safety net for a previously-fixed Realm-fifo crash. Default ON;
+                //     not exposed because there is no good reason to disable it.
+                //   - "Defer audio/Vulkan native init at startup" (OsuSetting.AndroidDeferStartupNativeInit) —
+                //     cold-start safety net. Default ON; not exposed for the same reason.
+                //   - "Auto-migrate FrameSync to VSync on first launch"
+                //     (OsuSetting.AndroidStartupFrameSyncMigrationEnabled) — silently
+                //     mutated framework defaults; the original bug it worked around is
+                //     fixed elsewhere. Default OFF; not exposed.
+                //
+                // The underlying OsuSetting entries are intentionally kept (with their
+                // defaults) so OsuGameAndroid's BindWith / sentinel-mirror wiring still
+                // resolves cleanly without having to thread conditional registration
+                // through OsuConfigManager.
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "Verbose logging",
