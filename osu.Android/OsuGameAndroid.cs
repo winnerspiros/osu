@@ -367,31 +367,21 @@ namespace osu.Android
                 Logger.Log($"[osu!] Failed to pin threads: {e.Message}", LoggingTarget.Performance);
             }
 
-            // Always enable sustained performance mode for consistent frame delivery.
-            // This prevents thermal throttling from causing sudden FPS drops.
-            //
-            // This MUST run on the Android UI thread: SetSustainedPerformanceMode mutates
-            // window state through ViewRootImpl, which enforces single-threaded access via
-            // checkThread() and throws CalledFromWrongThreadException otherwise. On some
-            // OEM frameworks (observed on Samsung One UI / Adreno) that exception unwinds
-            // through setPrivateFlags after the underlying Surface has already been
-            // partially reconfigured, invalidating the active VkSurfaceKHR and crashing the
-            // Vulkan driver inside vkCmdBeginRendering on the next frame.
-            try
-            {
-                gameActivity.RunOnUiThread(() =>
-                {
-                    try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
-            }
+            // Sustained performance mode is applied LATER, together with the deferred
+            // display-mode / GC-latency work below. See the Scheduler.AddDelayed block
+            // further down (after base.LoadComplete()) that schedules the first apply
+            // on a refreshRateDelayMs timer. Running
+            // Window.SetSustainedPerformanceMode(true) synchronously here — during the
+            // Toolbar cold-start texture-upload burst and the Vulkan swapchain bring-up —
+            // has been observed to race the Draw thread on Samsung One UI / Adreno panels:
+            // the window-flag mutation round-trips through ViewRootImpl.setPrivateFlags
+            // and can partially reconfigure the Surface while vkAcquireNextImageKHR is in
+            // flight, stalling the present queue. Update keeps ticking (so neither the
+            // managed nor the native watchdog ever dumps), the screen never updates, and
+            // ~10 s later Android raises a MotionEvent input-dispatch ANR — the exact
+            // cold-start "black screen → no touch → ANR" fingerprint reported across
+            // multiple v174 launches in logs.zip. Deferring to the same window used by
+            // SelectHighestRefreshRate moves the mutation behind the texture-upload burst.
 
             base.LoadComplete();
 
@@ -433,6 +423,48 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
                 }
+
+                // Deferred sustained-performance-mode apply. See the comment block
+                // before base.LoadComplete() above for the rationale (Samsung One UI /
+                // Adreno Surface reconfigure race with vkAcquireNextImageKHR during the
+                // cold-start texture-upload burst). By the time this fires the
+                // swapchain has long since stabilised.
+                try
+                {
+                    gameActivity.RunOnUiThread(() =>
+                    {
+                        try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
+                }
+
+                // Deferred initial application of the user's performance-mode setting.
+                // The BindValueChanged registration below is WITHOUT the immediate-fire
+                // flag, so the very first apply (which may flip GCSettings.LatencyMode
+                // to SustainedLowLatency via AndroidHighPerformanceSessionManager) is
+                // done here, after the Toolbar texture-upload burst has drained. Running
+                // it synchronously during LoadComplete suppresses gen-2 GCs while the
+                // Draw thread is churning through hundreds of queued texture uploads,
+                // causing the managed heap to balloon, the kernel to start paging
+                // (VmSwap ~22 MB / RSS ~695 MB / memory-pressure avg10=1.34 observed in
+                // the ANR dump), the Draw thread to stall on a page-fault burst, and
+                // the main thread to miss its input-channel ACK deadline — another
+                // contributor to the MotionEvent ANR fingerprint.
+                try
+                {
+                    applyPerformanceOptimizations(performanceMode.Value);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[osu!] Deferred initial performance-mode apply failed: {ex.Message}");
+                }
             }, refreshRateDelayMs);
 
             // Clear the "startup in progress" sentinel once the current launch has
@@ -472,6 +504,11 @@ namespace osu.Android
 
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
+            // NOTE: no `true` (immediate-fire) flag — the initial apply is done inside
+            // the refreshRateDelayMs scheduler above, so the cold-start texture-upload
+            // burst completes under default GC latency. User-driven changes from the
+            // settings dropdown (and the DeX auto-flip above, whose value is picked up
+            // at defer-fire time) still take effect immediately via this subscription.
             performanceMode.BindValueChanged(e =>
             {
                 try
@@ -482,7 +519,7 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to toggle performance mode: {ex.Message}");
                 }
-            }, true);
+            });
 
             // Layer 3b — Oboe and Vulkan-probe initial-bind handling.
             //
