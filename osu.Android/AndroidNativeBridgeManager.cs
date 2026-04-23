@@ -131,6 +131,37 @@ namespace osu.Android
             catch { return 0; }
         }
 
+        /// <summary>
+        /// Demotes non-game worker threads (Mono threadpool workers, OkHttp,
+        /// Okio, .NET threadpool, generic "Thread-N") from <c>nice=-10</c>
+        /// down to <c>nice=0</c> and — if <paramref name="littleCoreMask"/>
+        /// is non-zero — pins them to the given LITTLE-core subset.
+        /// </summary>
+        /// <remarks>
+        /// Counter-measure for the Android cold-start black-screen /
+        /// MotionEvent ANR observed on v177: Mono maps
+        /// <c>ThreadPriority.Highest</c> to <c>nice=-10</c>, which is
+        /// Android's display-compositor priority class. Field tombstones
+        /// show Veldrid's shader-compile worker stuck in
+        /// <c>glslang::SetupBuiltinSymbolTable</c> at that priority on a
+        /// big core while the Draw thread is draining a 300+-item
+        /// texture-upload queue — together starving the Android main UI
+        /// thread of CPU bandwidth past the 10s input-dispatch deadline.
+        ///
+        /// Game-loop threads (Update/Draw/Audio/Input), the Android main
+        /// UI thread, and known-critical ART / Android daemons are
+        /// explicitly left alone by the native implementation. Idempotent
+        /// and safe to call repeatedly; returns the number of threads
+        /// whose scheduling was actually mutated for diagnostic logging.
+        /// Returns 0 on any failure (e.g. library not loaded).
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int TameBackgroundThreads(int littleCoreMask)
+        {
+            try { return OboeAudioBridge.nTameBackgroundThreads(littleCoreMask); }
+            catch { return 0; }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public bool IsOboeActive() => (oboeBridge as OboeAudioBridge)?.IsActive ?? false;
 

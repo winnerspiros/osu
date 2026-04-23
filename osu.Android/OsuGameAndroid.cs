@@ -404,6 +404,50 @@ namespace osu.Android
                 Logger.Log($"[osu!] Failed to pin threads: {e.Message}", LoggingTarget.Performance);
             }
 
+            // Tame background worker threads (Mono threadpool / shader-compile /
+            // OkHttp / Okio / unnamed "Thread-N" workers) out of the nice=-10
+            // display-compositor priority class Mono maps ThreadPriority.Highest
+            // to. Field tombstones from v177 show a Mono threadpool worker stuck
+            // in Veldrid's glslang::SetupBuiltinSymbolTable at nice=-10 on a big
+            // core while the Draw thread drains a 300+-item texture-upload queue
+            // — together starving the Android main UI thread past the 10s input-
+            // dispatch deadline and producing a MotionEvent ANR.
+            //
+            // The native helper walks /proc/self/task, identifies non-game
+            // workers by kernel comm, and drops them to nice=0. If we detected a
+            // big-core mask above, it ALSO pins those workers to the LITTLE-core
+            // subset (inverse of the big-core mask, masked against the real CPU
+            // count) so that shader-compile / network / finalizer work cannot
+            // preempt the Draw thread or the Android main UI thread.
+            //
+            // We apply this unconditionally — i.e. also during safe-mode — because
+            // the two latest safe-mode launches in logs.zip demonstrated that
+            // skipping CPU affinity pinning alone does NOT avoid the hang;
+            // background-thread priority elevation is the other half of the
+            // starvation equation and must be addressed independently.
+            //
+            // First apply runs synchronously here so any already-created workers
+            // are tamed immediately; additional apply passes are scheduled inside
+            // the refreshRateDelayMs block below to catch workers that are spawned
+            // later (Veldrid typically creates its shader-compile worker on first
+            // use, i.e. right when the Toolbar starts loading).
+            try
+            {
+                int coreCount = System.Environment.ProcessorCount;
+                int totalMask = coreCount >= 32 ? -1 : (1 << Math.Min(coreCount, 31)) - 1;
+                int littleMask = (~affinityMask) & totalMask;
+                if (littleMask == 0)
+                    littleMask = totalMask; // fall back to "any core" if topology unknown.
+
+                int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(littleMask);
+                if (demoted > 0)
+                    Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) to nice=0 (little-core mask=0x{littleMask:X})", LoggingTarget.Performance);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] TameBackgroundThreads (initial) failed: {e.Message}");
+            }
+
             // Sustained performance mode is applied LATER, together with the deferred
             // display-mode / GC-latency work below. See the Scheduler.AddDelayed block
             // further down (after base.LoadComplete()) that schedules the first apply
@@ -445,6 +489,52 @@ namespace osu.Android
             // is extended to 15 s so a slow-loading device that needed >5 s to drain
             // the texture-upload backpressure last time gets a wider safety margin.
             int refreshRateDelayMs = AndroidStartupSafeMode.IsActive ? 15_000 : 5_000;
+
+            // Repeat passes of background-thread taming during the Toolbar cold-start
+            // texture-upload burst. Veldrid spawns its shader-compile worker lazily
+            // on the first CompileGlslToSpirv call, which happens mid-Toolbar-load
+            // (i.e. after the synchronous taming pass above has already run). Without
+            // these follow-up passes, the newly-spawned worker inherits nice=-10
+            // from its parent and reproduces the starvation pattern. The chosen
+            // timestamps straddle the observed "Texture upload queue is large (100/
+            // 200/300)" events in the field runtime logs.
+            try
+            {
+                int coreCount = System.Environment.ProcessorCount;
+                int totalMask = coreCount >= 32 ? -1 : (1 << Math.Min(coreCount, 31)) - 1;
+                int deferredLittleMask;
+
+                if (AndroidStartupSafeMode.IsActive)
+                    deferredLittleMask = totalMask; // safe-mode: affinity disabled, use full mask.
+                else
+                {
+                    int bigMask = AndroidNativeBridgeManager.GetBigCoreMask();
+                    deferredLittleMask = (~bigMask) & totalMask;
+                    if (deferredLittleMask == 0) deferredLittleMask = totalMask;
+                }
+
+                foreach (int delayMs in new[] { 500, 1500, 3500 })
+                {
+                    int dm = delayMs;
+                    Scheduler.AddDelayed(() =>
+                    {
+                        try
+                        {
+                            int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(deferredLittleMask);
+                            if (demoted > 0)
+                                Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) at +{dm}ms", LoggingTarget.Performance);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"[osu!] Deferred TameBackgroundThreads(+{dm}ms) failed: {e.Message}");
+                        }
+                    }, delayMs);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to schedule deferred TameBackgroundThreads passes: {e.Message}");
+            }
 
             Scheduler.AddDelayed(() =>
             {
