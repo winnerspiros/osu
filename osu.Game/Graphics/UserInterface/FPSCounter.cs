@@ -59,12 +59,6 @@ namespace osu.Game.Graphics.UserInterface
         [Resolved(canBeNull: true)]
         private OsuColour colours { get; set; } = null!;
 
-        [Resolved(canBeNull: true)]
-        protected OsuGameBase? Game { get; private set; } = null!;
-
-        [Resolved(canBeNull: true)]
-        private GameHost? host { get; set; } = null!;
-
         public FPSCounter()
         {
             AutoSizeAxes = Axes.Both;
@@ -238,23 +232,7 @@ namespace osu.Game.Graphics.UserInterface
         private void updateFpsDisplay()
         {
             counterDrawFPS.Colour = getColour(displayedFpsCount / aimDrawFPS);
-            string status = $"{displayedFpsCount:#,0} fps";
-
-            if (Game != null)
-            {
-                status += $" | {host?.ResolvedRenderer.ToString()}";
-
-                if (Game.DisplayRefreshRate > 0)
-                    status += $" | {Game.DisplayRefreshRate}Hz";
-
-                if (!string.IsNullOrEmpty(Game.VulkanStatus))
-                    status += $" | {Game.VulkanStatus}";
-
-                if (Game.IsOboeEnabled)
-                    status += $" | Oboe: {Game.OboeStatus}{(Game.IsOboeActive ? $" ({Game.OboeLatency:F1}ms)" : "")}";
-            }
-
-            counterDrawFPS.Text = status;
+            counterDrawFPS.Text = $"{displayedFpsCount:#,0} fps";
         }
 
         private void updateFrameTimeDisplay()
