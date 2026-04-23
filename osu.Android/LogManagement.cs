@@ -238,6 +238,160 @@ namespace osu.Android
             }
         }
 
+        // Sentinel file dropped after the one-shot Renderer-default migration has
+        // run. Stored in the storage root next to framework.ini so a single
+        // existence check governs whether we should respect the user's currently
+        // persisted Renderer choice (sentinel present) or perform the one-time
+        // Automatic→OpenGL nudge (sentinel absent).
+        private const string renderer_migration_sentinel = "android_renderer_default_migrated.flag";
+
+        /// <summary>
+        /// One-shot migration that flips the framework default <c>Renderer</c>
+        /// choice from <c>Automatic</c> (which resolves to Vulkan on Android,
+        /// requiring runtime SPIR-V compilation via glslang) to <c>OpenGL</c>
+        /// (which uses the Adreno driver's native GLSL compiler — no glslang,
+        /// no SPIR-V, and therefore no shader-compile burst on Toolbar load).
+        ///
+        /// <para>
+        /// Why this matters: every recent black-screen ANR fingerprint in the
+        /// field tombstones (PIDs 27798 / 29226 / 499) shows a Veldrid worker
+        /// stuck inside <c>glslang::TParseContext::executeInitializer</c> /
+        /// <c>TShader::parse</c> at <c>nice=-10</c> on a big core, monopolising
+        /// the CPU during the Toolbar texture-upload burst and starving the
+        /// Update thread past the 10-second MotionEvent ANR deadline. Switching
+        /// the default away from the Vulkan-via-glslang path eliminates the
+        /// entire failure class on stock installs. Users who specifically want
+        /// Vulkan can still select it from Settings → Graphics → Renderer; the
+        /// migration only nudges the *default* and is recorded by an on-disk
+        /// sentinel so subsequent launches never overwrite an explicit choice.
+        /// </para>
+        ///
+        /// <para>
+        /// Best-effort and never throws — if the file is missing or the rewrite
+        /// fails, startup proceeds with the existing value. Must be invoked from
+        /// <c>OsuGameActivity.OnCreate</c> BEFORE the framework reads
+        /// framework.ini, alongside the existing
+        /// <see cref="NormaliseFrameworkIniExecutionMode"/> hook.
+        /// </para>
+        /// </summary>
+        public static void NormaliseFrameworkIniRendererDefault()
+        {
+            try
+            {
+                string? root = resolveStorageRoot();
+                if (root == null) return;
+
+                string sentinelPath = Path.Combine(root, renderer_migration_sentinel);
+                if (File.Exists(sentinelPath)) return;
+
+                string iniPath = Path.Combine(root, "framework.ini");
+
+                if (!File.Exists(iniPath))
+                {
+                    // Brand-new install: no framework.ini yet. Pre-create a minimal
+                    // file with just the Renderer line set; the framework will fill
+                    // in its other defaults on first save.
+                    try
+                    {
+                        File.WriteAllText(iniPath, "Renderer = OpenGL" + System.Environment.NewLine);
+                        tryDropSentinel(sentinelPath);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] LogManagement: could not pre-create framework.ini: {e.Message}");
+                    }
+                    return;
+                }
+
+                string[] lines;
+
+                try
+                {
+                    lines = File.ReadAllLines(iniPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for renderer migration: {e.Message}");
+                    return;
+                }
+
+                bool changed = false;
+                bool seenRendererLine = false;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    string value = line.Substring(eq + 1).Trim();
+
+                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
+                        continue;
+
+                    seenRendererLine = true;
+
+                    // Only nudge the default. If the user has explicitly chosen
+                    // Vulkan / OpenGLLegacy / Direct3D11 / Metal / Deferred, leave
+                    // it alone — the migration's job is to change the *default*,
+                    // not overwrite intent.
+                    if (string.Equals(value, "Automatic", StringComparison.Ordinal))
+                    {
+                        lines[i] = "Renderer = OpenGL";
+                        changed = true;
+                    }
+
+                    break;
+                }
+
+                if (!seenRendererLine)
+                {
+                    // No Renderer line at all — append one at the end of the file.
+                    var newLines = new string[lines.Length + 1];
+                    Array.Copy(lines, newLines, lines.Length);
+                    newLines[lines.Length] = "Renderer = OpenGL";
+                    lines = newLines;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    try
+                    {
+                        File.WriteAllLines(iniPath, lines);
+                        Logger.Log("[osu!] Android first-launch Renderer-default migration: Automatic → OpenGL", LoggingTarget.Performance);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for renderer migration: {e.Message}");
+                        return;
+                    }
+                }
+
+                // Drop sentinel regardless of whether we changed anything: the
+                // migration has now had its one chance to run, and any subsequent
+                // user choice (including a deliberate "Automatic") must be
+                // respected.
+                tryDropSentinel(sentinelPath);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: NormaliseFrameworkIniRendererDefault failed: {e.Message}");
+            }
+        }
+
+        private static void tryDropSentinel(string sentinelPath)
+        {
+            try
+            {
+                File.WriteAllText(sentinelPath, string.Empty);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: could not write renderer-migration sentinel: {e.Message}");
+            }
+
         private static string? resolveStorageRoot()
         {
             try
