@@ -290,25 +290,59 @@ namespace osu.Android
 
         protected override void LoadComplete()
         {
-            // Use sysfs-based CPU topology for accurate big-core detection across all SoC vendors.
-            // Falls back to generic upper-half heuristic if native library unavailable.
-            int affinityMask = AndroidNativeBridgeManager.GetBigCoreMask();
+            // Crash-loop safe-mode: bypass CPU big-core affinity pinning entirely.
+            //
+            // Pinning Update + Draw + Input to a 5-core subset (mask 0xF8 on SD8G2) is the
+            // ONLY unconditional Android-specific synchronous mutation we still perform
+            // during the cold-start window — every other customisation (SustainedPerformanceMode,
+            // RequestUnbufferedDispatch, refresh-rate selection, Oboe / Vulkan-probe init,
+            // performance-mode GC-latency flip) is already deferred behind the
+            // refreshRateDelayMs scheduler below. Field logs.zip on v2026.423.176 show both
+            // a normal launch and a safe-mode launch dying silently mid-Toolbar load
+            // (~3 s after SetHost) before any deferred work has a chance to run, with no
+            // native_crash entry, no managed exception, and the 10 s native watchdog never
+            // firing — the fingerprint of an external SIGKILL (input-ANR or LMK). With
+            // every other mutation already deferred, affinity pinning is the last
+            // candidate. Pinning to a fixed CPU subset while Mono GC / finalizer / JIT
+            // threads run on default affinity (all cores) creates contention on the same
+            // big-cluster cores during the texture-upload burst; combined with the kernel
+            // load-balancer pulling the unpinned Android Main UI thread off the LITTLE
+            // cluster (because the big cluster looks "active" but is actually saturated),
+            // touch-event ACK can miss the 5 s input-dispatch deadline. Skipping the
+            // pinning in safe-mode gives the next launch a true vanilla cold-start path:
+            // if it survives, we have isolated the cause; if it does not, we have ruled
+            // out CPU pinning and the next iteration can target the next suspect with
+            // the heartbeat data captured below.
+            int affinityMask;
 
-            if (affinityMask == 0)
+            if (AndroidStartupSafeMode.IsActive)
             {
-                int coreCount = System.Environment.ProcessorCount;
-                int bigCoreStart = Math.Max(coreCount / 2, 1);
-
-                for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
-                    affinityMask |= 1 << i;
+                affinityMask = 0;
+                CrashDiagnostics.WriteAliveMarker("LoadComplete: skipping CPU affinity pinning (safe-mode)");
+                Logger.Log("[osu!] CPU affinity pinning skipped (safe-mode active)", LoggingTarget.Performance);
+            }
+            else
+            {
+                // Use sysfs-based CPU topology for accurate big-core detection across all SoC vendors.
+                // Falls back to generic upper-half heuristic if native library unavailable.
+                affinityMask = AndroidNativeBridgeManager.GetBigCoreMask();
 
                 if (affinityMask == 0)
-                    affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+                {
+                    int coreCount = System.Environment.ProcessorCount;
+                    int bigCoreStart = Math.Max(coreCount / 2, 1);
+
+                    for (int i = bigCoreStart; i < Math.Min(coreCount, 32); i++)
+                        affinityMask |= 1 << i;
+
+                    if (affinityMask == 0)
+                        affinityMask = (1 << Math.Min(coreCount, 31)) - 1;
+                }
             }
 
             try
             {
-                if (OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
+                if (affinityMask != 0 && OboeAudioBridge.nSetThreadAffinity(affinityMask) != 0)
                     Logger.Log($"[osu!] Update thread pinned to big cores (mask=0x{affinityMask:X})", LoggingTarget.Performance);
 
                 // Intentionally NOT calling Process.SetThreadPriority(UrgentDisplay) here.
@@ -329,38 +363,41 @@ namespace osu.Android
 
                 int mask = affinityMask;
 
-                Scheduler.Add(() =>
+                if (mask != 0)
                 {
-                    try
+                    Scheduler.Add(() =>
                     {
-                        Host?.DrawThread?.Scheduler.Add(() =>
+                        try
                         {
-                            try
+                            Host?.DrawThread?.Scheduler.Add(() =>
                             {
-                                if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
-                            }
-                            catch { }
-                        });
+                                try
+                                {
+                                    if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Render thread pinned to big cores", LoggingTarget.Performance);
+                                }
+                                catch { }
+                            });
 
-                        Host?.InputThread?.Scheduler.Add(() =>
-                        {
-                            try
+                            Host?.InputThread?.Scheduler.Add(() =>
                             {
-                                if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
-                            }
-                            catch { }
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        // The enclosing try/catch only covers the Scheduler.Add call — not the
-                        // lambda body, which runs later on the update thread. Guard here so an
-                        // NRE from Host.DrawThread/Host.InputThread being null (or a Host
-                        // teardown race during startup) can't escape as an unhandled update-
-                        // thread exception and kill the framework.
-                        Debug.WriteLine($"[osu!] Failed to enqueue thread-affinity pinning for render/input threads: {e.Message}");
-                    }
-                });
+                                try
+                                {
+                                    if (OboeAudioBridge.nSetThreadAffinity(mask) != 0) Logger.Log("[osu!] Input thread pinned to big cores", LoggingTarget.Performance);
+                                }
+                                catch { }
+                            });
+                        }
+                        catch (Exception e)
+                        {
+                            // The enclosing try/catch only covers the Scheduler.Add call — not the
+                            // lambda body, which runs later on the update thread. Guard here so an
+                            // NRE from Host.DrawThread/Host.InputThread being null (or a Host
+                            // teardown race during startup) can't escape as an unhandled update-
+                            // thread exception and kill the framework.
+                            Debug.WriteLine($"[osu!] Failed to enqueue thread-affinity pinning for render/input threads: {e.Message}");
+                        }
+                    });
+                }
             }
             catch (Exception e)
             {
@@ -509,6 +546,22 @@ namespace osu.Android
             // sentinel persists and the next launch enters safe-mode.
             Scheduler.AddDelayed(AndroidStartupSafeMode.ClearStartupInProgress, 10_000);
 
+            // Cold-start heartbeat instrumentation. For the first 15 s after LoadComplete
+            // we emit per-second ALIVE markers from BOTH the Update thread and the Draw
+            // thread into native_crash.log, tagged with the originating thread name.
+            // This closes the diagnostic gap between the last "SetHost returning" marker
+            // (~22 s mark in field logs) and the planned 10 s ClearStartupInProgress
+            // marker that has so far never fired because the process is killed before
+            // it does. With per-second per-thread heartbeats, the next post-mortem can
+            // see exactly which thread (Update, Draw, both, or neither) was still alive
+            // at the moment the OS reaped the process — a critical signal for telling
+            // apart input-ANR (Main UI thread blocked but game-loop alive), Vulkan/swap-
+            // chain stall (Update alive but Draw frozen), Mono GC STW (both frozen
+            // simultaneously) and external SIGKILL/LMK (last heartbeat exactly at kill
+            // time). Markers are written via the same lock-protected appendToBoth path
+            // already used by WriteAliveMarker, so they are safe from any thread.
+            scheduleColdStartHeartbeats();
+
             // When the user selects a different refresh rate from the settings dropdown, apply it.
             SelectedDisplayRefreshRate.BindValueChanged(e =>
             {
@@ -618,6 +671,56 @@ namespace osu.Android
             // above, so the DecorView attribute mutation lands after the cold-start
             // Toolbar texture-upload burst has drained. See the deferred block for the
             // full rationale.
+        }
+
+        /// <summary>
+        /// Emits per-second "ALIVE" breadcrumbs from both the Update and Draw threads
+        /// into <c>native_crash.log</c> for the first 15 seconds after LoadComplete,
+        /// then stops. See the call site in <see cref="LoadComplete"/> for the full
+        /// rationale; this method only handles the scheduling plumbing.
+        /// </summary>
+        private void scheduleColdStartHeartbeats()
+        {
+            const int total_ticks = 15;
+
+            try
+            {
+                for (int i = 1; i <= total_ticks; i++)
+                {
+                    // Capture the loop variable into a local so each scheduled lambda
+                    // closes over its own `tick` value, not the shared `i` reference
+                    // (otherwise every lambda would log the post-loop value of `i`).
+                    int tick = i;
+
+                    // Update thread heartbeat (fires on the framework's update scheduler).
+                    Scheduler.AddDelayed(() =>
+                    {
+                        try { CrashDiagnostics.WriteAliveMarker($"cold-start heartbeat update thread tick={tick}/{total_ticks}"); }
+                        catch { /* best-effort diagnostic; never throw */ }
+                    }, tick * 1_000);
+
+                    // Draw thread heartbeat. We must hop via the update scheduler first
+                    // because Host.DrawThread.Scheduler does not expose AddDelayed on
+                    // the public surface — we enqueue an immediate Draw-thread action
+                    // from a delayed Update-thread tick to achieve the same effect.
+                    Scheduler.AddDelayed(() =>
+                    {
+                        try
+                        {
+                            Host?.DrawThread?.Scheduler.Add(() =>
+                            {
+                                try { CrashDiagnostics.WriteAliveMarker($"cold-start heartbeat draw thread tick={tick}/{total_ticks}"); }
+                                catch { }
+                            });
+                        }
+                        catch { }
+                    }, tick * 1_000);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to schedule cold-start heartbeats: {e.Message}");
+            }
         }
 
         private void applyPerformanceOptimizations(bool enabled)
