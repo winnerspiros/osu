@@ -121,6 +121,18 @@ namespace osu.Android
             CrashDiagnostics.StartNativeWatchdog(10);
             CrashDiagnostics.MirrorInternalLogToExternal();
 
+            // Crash-loop safe-mode latch. If the previous process died (ANR / native
+            // crash / OOM kill) before reaching the post-LoadComplete clear point,
+            // the IN_PROGRESS sentinel from that launch is still on disk. We then
+            // enter one-shot safe-mode for THIS launch (defer Oboe/Vulkan-probe
+            // init, skip FrameSync migration, longer refresh-rate defer) so a
+            // single transient failure does not snowball into the 3-event ANR
+            // cascade observed in field reports (PID 23459 ANR → PID 24246 SIGBUS
+            // → PID 24366 ANR within ~25 s). The call ALWAYS re-arms the
+            // sentinel before returning, so that if THIS launch also dies the
+            // next one will detect the cascade.
+            AndroidStartupSafeMode.ApplyIfPreviousLaunchFailed();
+
             // Layer 2 mitigation — defensively unlink stale Realm cross-process
             // notification fifos under Path.GetTempPath()/lazer. A leftover fifo
             // from a previously-crashed process can block Realm.GetInstance() in

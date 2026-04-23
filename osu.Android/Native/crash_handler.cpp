@@ -485,6 +485,137 @@ static bool resolveUnknownPc(int fd, uintptr_t pc) {
     return resolveViaProcMaps(fd, pc);
 }
 
+// ----------------------------------------------------------------------------
+// Async-signal-safe page-readability probe.  Returns true if at least one byte
+// at `addr` is mapped & readable.  Uses msync(MS_ASYNC) which is documented
+// signal-safe and returns ENOMEM/EFAULT for unmapped regions without faulting.
+// Aligns down to the page boundary internally.
+//
+// This lets us scan arbitrary memory (e.g. raw stack words) without risking
+// a SIGSEGV inside the handler — important because re-entry would abort the
+// dump entirely (g_inHandler latch chains straight to debuggerd).
+// ----------------------------------------------------------------------------
+static bool isAddressReadable(uintptr_t addr) {
+    if (addr < 0x10000) return false;
+    long pageSize = sysconf(_SC_PAGESIZE);
+    if (pageSize <= 0) pageSize = 4096;
+    uintptr_t page = addr & ~(uintptr_t)(pageSize - 1);
+    if (msync(reinterpret_cast<void*>(page), 1, MS_ASYNC) != 0) {
+        // ENOMEM => not mapped; EINVAL/other => treat as not safe.
+        return false;
+    }
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// Dump up to `wordCount` 8-byte words starting at `sp`, annotating each
+// candidate that resolves to a code mapping (via dladdr OR /proc/self/maps).
+// This recovers the JIT-method context that the FP-walker misses when `x29`
+// has been clobbered (observed on the SIGBUS in PID 24246 where the FP chain
+// terminated after one frame because the caller's saved FP was junk).
+//
+// Format per line:
+//   "  [sp+0xNNN] = 0xVVVVVVVVVVVVVVVV  <annotation>"
+// where annotation is the dladdr-resolved symbol/library if any, else a
+// /proc/self/maps region label if the value points into mapped code, else
+// nothing (data words are emitted unannotated for completeness).
+//
+// Skipped entirely if `sp` itself fails the readability probe.
+// ----------------------------------------------------------------------------
+static void dumpStackWords(int fd, uintptr_t sp, int wordCount) {
+    if (fd < 0 || sp == 0) return;
+    if ((sp & 0x7) != 0) {
+        writeStr(fd, "  <sp not 8-byte aligned, skipping stack-words dump>\n");
+        return;
+    }
+    if (!isAddressReadable(sp)) {
+        writeStr(fd, "  <sp not readable, skipping stack-words dump>\n");
+        return;
+    }
+
+    for (int i = 0; i < wordCount; ++i) {
+        uintptr_t addr = sp + (uintptr_t)i * 8;
+        // Re-probe at each page boundary so a stack that ends mid-dump
+        // doesn't trip a fault on the very last word.
+        if ((addr & 0xfff) == 0 && !isAddressReadable(addr)) break;
+
+        uintptr_t value = *reinterpret_cast<volatile uintptr_t*>(addr);
+
+        writeStr(fd, "  [sp+0x");
+        writeHex64(fd, (uint64_t)i * 8, 3);
+        writeStr(fd, "] = 0x");
+        writeHex64(fd, (uint64_t)value);
+
+        // Try to annotate. Filter cheaply: code values on AArch64 user-space
+        // sit between 0x10000 and 0x800000000000. Drop everything else as
+        // pure data to keep the dump readable.
+        if (value >= 0x10000 && value < 0x0000800000000000ull) {
+            Dl_info info;
+            if (dladdr(reinterpret_cast<void*>(value), &info) != 0 && info.dli_fname) {
+                writeStr(fd, "  ");
+                writeStr(fd, info.dli_fname);
+                if (info.dli_sname) {
+                    uintptr_t off = value - (uintptr_t)info.dli_saddr;
+                    writeStr(fd, " (");
+                    writeStr(fd, info.dli_sname);
+                    writeStr(fd, "+0x");
+                    writeHex64(fd, (uint64_t)off, 1);
+                    writeStr(fd, ")");
+                } else if (info.dli_fbase) {
+                    uintptr_t off = value - (uintptr_t)info.dli_fbase;
+                    writeStr(fd, " (lib+0x");
+                    writeHex64(fd, (uint64_t)off, 1);
+                    writeStr(fd, ")");
+                }
+            } else {
+                // dladdr miss — try /proc/self/maps to at least label the
+                // containing region (anonymous executable mapping = JIT).
+                resolveViaProcMaps(fd, value);
+            }
+        }
+        writeStr(fd, "\n");
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Annotate a single named register's value with its containing /proc/self/maps
+// region (if any). Used to classify x30 (LR) explicitly when the FP-walk
+// terminates early — the register dump shows only the bare hex, leaving the
+// reader to manually cross-reference against the maps section. With this
+// helper the LR's library/region appears inline.
+// ----------------------------------------------------------------------------
+static void annotateRegister(int fd, const char* name, uintptr_t value) {
+    if (fd < 0 || value < 0x10000) return;
+    writeStr(fd, "  ");
+    writeStr(fd, name);
+    writeStr(fd, " = 0x");
+    writeHex64(fd, (uint64_t)value);
+    Dl_info info;
+    if (dladdr(reinterpret_cast<void*>(value), &info) != 0 && info.dli_fname) {
+        writeStr(fd, "  ");
+        writeStr(fd, info.dli_fname);
+        if (info.dli_sname) {
+            uintptr_t off = value - (uintptr_t)info.dli_saddr;
+            writeStr(fd, " (");
+            writeStr(fd, info.dli_sname);
+            writeStr(fd, "+0x");
+            writeHex64(fd, (uint64_t)off, 1);
+            writeStr(fd, ")");
+        } else if (info.dli_fbase) {
+            uintptr_t off = value - (uintptr_t)info.dli_fbase;
+            writeStr(fd, " (lib+0x");
+            writeHex64(fd, (uint64_t)off, 1);
+            writeStr(fd, ")");
+        }
+        writeStr(fd, "\n");
+    } else {
+        writeStr(fd, "\n");
+        // Fallback: locate the containing maps region (handles JIT/anon).
+        resolveViaProcMaps(fd, value);
+        writeStr(fd, "\n");
+    }
+}
+
 
 // ----------------------------------------------------------------------------
 // Backtrace via libgcc/compiler-rt _Unwind_Backtrace.
@@ -917,6 +1048,31 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     writeStr(fd, "Backtrace (from signal context):\n");
     walkContextStack(fd, ucontext);
     if (fd >= 0) fsync(fd);
+
+#if defined(__aarch64__)
+    // Extra context for crashes where the FP chain terminates early — e.g. an
+    // indirect branch through a junk vtable that lands in JIT code with x29
+    // already clobbered. The register dump alone leaves x30 (LR) and the
+    // top-of-stack words unannotated; we attach maps/dladdr resolution here
+    // so reviewers don't have to manually cross-reference the maps section.
+    if (ucontext != nullptr) {
+        auto* uc = static_cast<ucontext_t*>(ucontext);
+        const auto& mc = uc->uc_mcontext;
+        uintptr_t lr = (uintptr_t)mc.regs[30];
+        uintptr_t sp = (uintptr_t)mc.sp;
+
+        if (lr != 0) {
+            writeStr(fd, "Register annotations:\n");
+            annotateRegister(fd, "x30 (lr)", lr);
+        }
+
+        // 64 words = 512 bytes — enough to cover at least one full frame's
+        // worth of saved registers/spill slots without flooding the dump.
+        writeStr(fd, "Stack words near sp (looking for return addresses):\n");
+        dumpStackWords(fd, sp, 64);
+        if (fd >= 0) fsync(fd);
+    }
+#endif
 
     // Memory map.  Lets us correlate any unresolved frames to library+offset
     // even when dladdr can't find a symbol (e.g. internal-namespace functions
