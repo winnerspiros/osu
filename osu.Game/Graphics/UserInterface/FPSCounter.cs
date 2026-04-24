@@ -177,6 +177,7 @@ namespace osu.Game.Graphics.UserInterface
             showFpsAdditionalInfo.BindValueChanged(v =>
             {
                 counterAdditionalInfo.Alpha = v.NewValue ? 1 : 0;
+
                 if (v.NewValue)
                 {
                     // Force a refresh on toggle so the text appears immediately.
@@ -300,6 +301,7 @@ namespace osu.Game.Graphics.UserInterface
         private void updateAdditionalInfoText()
         {
             string renderer;
+
             try
             {
                 renderer = gameHost.ResolvedRenderer.ToString();
@@ -310,6 +312,7 @@ namespace osu.Game.Graphics.UserInterface
             }
 
             string oboe;
+
             if (game == null || !game.IsOboeEnabled)
                 oboe = "off";
             else if (game.IsOboeActive)
@@ -318,6 +321,7 @@ namespace osu.Game.Graphics.UserInterface
                 oboe = "init";
 
             string refreshRate = string.Empty;
+
             if (game != null && game.DisplayRefreshRate > 0)
                 refreshRate = $" • {game.DisplayRefreshRate}Hz";
             else if (frameworkConfig != null)
