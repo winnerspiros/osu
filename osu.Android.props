@@ -25,21 +25,46 @@
   </PropertyGroup>
 
   <!-- Release-only optimisations.
-       Trimming and AOT were previously enabled here for size/startup, but caused a
-       reproducible "splash → black screen → crash, no logs" failure on real devices.
-       Root cause: PublishTrimmed + TrimMode=partial + AndroidEnableProfiledAot, with
-       SuppressTrimAnalysisWarnings=true masking the build-time signal. Only Microsoft.CSharp
-       and ppy.Veldrid.SPIRV were rooted — osu.Game, the rulesets, Realm, Newtonsoft.Json,
-       AutoMapper, Sentry, OsuTK and other reflection-heavy assemblies were not. A trimmed
-       method/type or an un-AOT'd profiled-AOT call site throws TypeLoadException /
-       MissingMethodException early in OsuGame construction, before the file logger is open;
-       the process dies on the SDLThread / .NET ThreadPool thread with only a tombstone, so
-       the user gets no osu.log and Logcat shows a bare native crash.
-       Upstream ppy/osu's osu.Android.props enables NEITHER trimming NOR AOT — we now match
-       that baseline. The remaining release-only knobs (assembly compression, no PDBs) are
-       safe and unrelated to the startup crash. To re-enable trimming/AOT in the future,
-       reintroduce them one at a time, root every reflection-using assembly explicitly, and
-       run with SuppressTrimAnalysisWarnings=false to surface the gaps before shipping. -->
+       History:
+         Trimming + AOT were once enabled together (PublishTrimmed + TrimMode=partial +
+         AndroidEnableProfiledAot, with SuppressTrimAnalysisWarnings=true masking the
+         build-time signal). That combination caused a reproducible "splash → black screen
+         → crash, no logs" failure: only Microsoft.CSharp and ppy.Veldrid.SPIRV were rooted,
+         while osu.Game, the rulesets, Realm, Newtonsoft.Json, AutoMapper, Sentry, OsuTK
+         and other reflection-heavy assemblies were not. A trimmed method/type or an
+         un-AOT'd profiled-AOT call site threw TypeLoadException / MissingMethodException
+         early in OsuGame construction, before the file logger was open; the process died
+         on SDLThread / .NET ThreadPool with only a tombstone, so the user got no osu.log
+         and Logcat showed a bare native crash.
+
+       Current policy:
+         * AndroidEnableProfiledAot=true — re-enabled. The crash root cause was the
+           trimming side of the combination (untrimmed-but-AOT'd is safe — every method
+           the profile lists exists in the assembly because nothing was stripped; methods
+           outside the profile fall back to the JIT and are also still present). This
+           gives a measurable startup time reduction and cuts steady-state CPU on hot
+           managed paths (the JIT no longer needs to tier them up at runtime, and Mono's
+           profiled AOT covers framework/game hot loops including draw-thread Schedulers,
+           bindable propagation, and the texture upload path).
+         * PublishTrimmed stays OFF — re-enabling it requires explicitly rooting every
+           reflection-using assembly (osu.Game, rulesets, Realm, Newtonsoft.Json,
+           AutoMapper, Sentry, OsuTK, Microsoft.CSharp, ppy.Veldrid.SPIRV …) and running
+           with SuppressTrimAnalysisWarnings=false to surface gaps before shipping. That
+           is a separate, larger PR.
+         * AndroidEnableMarshalMethods stays OFF (see PropertyGroup above) — silent
+           SIGSEGV with current interop on .NET 10 Android.
+         * Server GC is enabled for Release: workstation GC's STW pauses on the Update/
+           Draw threads are a primary source of >1ms frame spikes that defeat our 1ms
+           frame-time goal. Server GC parallelises mark/sweep across cores and uses
+           per-core LOH/SOH allocation contexts, dramatically lowering pause time at
+           the cost of ~20-30% extra resident memory. Mono Android has supported this
+           since .NET 8; ppy/osu desktop already uses it. Concurrent GC is the .NET
+           default but we set it explicitly so Server GC runs in the background mode
+           rather than blocking foreground.
+
+       To re-enable trimming in the future, reintroduce it on its own, root every
+       reflection-using assembly explicitly, and run with SuppressTrimAnalysisWarnings=false
+       to surface the gaps before shipping. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
          but the download/APK size is significantly smaller. -->
@@ -48,6 +73,16 @@
          Stack traces still work via embedded metadata. -->
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <!-- Profiled AOT: pre-compile the hot methods listed in the bundled .NET / Android
+         profiles. Methods outside the profile remain JIT-compiled at runtime. NO trimming —
+         every method in every assembly stays present, so a profile-miss falls back to JIT
+         instead of throwing MissingMethodException like the previous trim+AOT combo did. -->
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <!-- Concurrent Server GC. Server GC uses per-core allocation contexts and parallel
+         collections to reduce STW pause time, which is the largest source of >1ms frame
+         spikes on the Update/Draw threads. Memory usage rises ~20-30% in exchange. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

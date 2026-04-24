@@ -64,6 +64,25 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 Keywords = new[] { @"fps", @"framerate", @"custom", @"hz" },
             };
 
+            var lowLatencyItem = new SettingsItemV2(new FormEnumDropdown<LatencyMode>
+            {
+                Caption = GraphicsSettingsStrings.LowLatency,
+                Current = config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode),
+            })
+            {
+                Keywords = new[] { @"latency", @"reflex", @"input" },
+            };
+
+            // The framework's LatencyMode setting drives an ILowLatencyProvider, but the only
+            // shipped non-No-op implementations are NVIDIA Reflex on D3D11 / D3D12 (see
+            // osu-framework GameHost.TryInitializeLowLatencyProvider — it switches on
+            // BackendType and only handles Direct3D11 / Direct3D12). On Android we run on
+            // Vulkan or OpenGL ES, which fall through to NoOpLowLatencyProvider, so the
+            // setting cannot affect anything. Hide the dropdown there to avoid surfacing a
+            // dead control to the user.
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
+                lowLatencyItem.CanBeShown.Value = false;
+
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
@@ -105,14 +124,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"info", @"renderer", @"oboe", @"refresh" },
                 },
-                new SettingsItemV2(new FormEnumDropdown<LatencyMode>
-                {
-                    Caption = GraphicsSettingsStrings.LowLatency,
-                    Current = config.GetBindable<LatencyMode>(FrameworkSetting.LatencyMode),
-                })
-                {
-                    Keywords = new[] { @"latency", @"reflex", @"input" },
-                },
+                lowLatencyItem,
             };
 
             // "Custom draw rate limit" is only meaningful when the frame limiter is set to Custom
