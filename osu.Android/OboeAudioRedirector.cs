@@ -2,346 +2,347 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixing;
 
 namespace osu.Android
 {
     /// <summary>
-    /// Redirects audio from BASS mixers into an unmanaged callback (Oboe).
-    /// Discovers mixer handles via reflection since BassAudioMixer is internal to the framework.
+    /// Redirects all of the framework's BASS audio output through a single decode-only
+    /// "global" mixer that we own, so the unmanaged Oboe audio callback can pull frames
+    /// from it (instead of BASS playing audio directly via its own AudioTrack/AAudio
+    /// backend, which double-buffers on top of Oboe and defeats the whole low-latency
+    /// goal).
+    ///
+    /// <para>
+    /// Implementation rests on the framework's built-in <c>AudioManager.GlobalMixerHandle</c>
+    /// hook (see <c>osu.Framework/Audio/AudioManager.cs</c>). When this <see cref="System.Nullable{Int32}"/>
+    /// bindable holds a non-null mixer handle, every <c>BassAudioMixer.createMixer</c> call
+    /// (TrackMixer, SampleMixer, every per-store user mixer) recreates itself with the
+    /// <see cref="BassFlags.Decode"/> flag and auto-attaches itself to the global mixer
+    /// — i.e. the framework stops driving the audio device itself and produces decoded
+    /// PCM only. The global mixer's owner is then responsible for actually feeding that
+    /// PCM to whatever output backend is in use.
+    /// </para>
+    ///
+    /// <para>
+    /// On Windows the framework wires this up itself for experimental WASAPI (see
+    /// <c>osu.Framework/Threading/AudioThread.cs</c> <c>initWasapi</c> — its
+    /// <c>wasapiProcedure</c> callback is literally <c>Bass.ChannelGetData(globalMixerHandle.Value, …)</c>).
+    /// We do exactly the same thing here for Oboe on Android: <see cref="provideAudio"/>
+    /// is the unmanaged callback Oboe invokes from its real-time audio thread and it
+    /// just pulls float frames from our decode mixer.
+    /// </para>
+    ///
+    /// <para>
+    /// The previous implementation tried to attach the framework's existing playback
+    /// mixers to a master mixer at runtime via <c>BassMix.MixerAddChannel</c> + manual
+    /// <c>Bass.ChannelSetDevice</c> calls. That approach is fundamentally unsupported by
+    /// BASS — non-decode mixers cannot be added as sources to another mixer — and is
+    /// the reason the status surface read <c>[No Redirect]</c> in user logs even though
+    /// the Oboe stream itself was up and running. Routing through the framework's
+    /// official hook removes all of that brittle reflection / device juggling.
+    /// </para>
     /// </summary>
     public class OboeAudioRedirector : IDisposable
     {
-        public bool IsRedirecting => ActiveMasterMixer != 0;
+        public bool IsRedirecting => ActiveMasterMixer != 0 && globalMixerHandleSet;
 
         private readonly AudioManager audioManager;
-        private readonly HashSet<int> mixerHandles = new HashSet<int>();
-        private readonly Dictionary<int, int> originalParents = new Dictionary<int, int>();
-
-        // Cached reflection field for AudioManager's active mixers collection.
-        // Avoids repeated reflection walks on every RefreshMixers() call.
-        private System.Reflection.FieldInfo? cachedMixerField;
-        private bool mixerFieldSearched;
-
         private int masterMixer;
-        private bool devicesSilenced;
-        private int sampleRate = 44100;
-        private int lastHardwareSampleRate = 44100;
+        private int sampleRate = 48000;
+        private bool globalMixerHandleSet;
+
+        // Cached reflection accessors for the (internal) AudioManager.GlobalMixerHandle bindable.
+        // Resolved lazily on first set; both the field and the underlying Bindable<int?>.Value
+        // setter are cached because RefreshMixers can be called multiple times across the
+        // lifetime of the redirector (e.g. when the user toggles low-latency audio off/on).
+        private object? globalMixerHandleBindable;
+        private MethodInfo? globalMixerValueSetter;
+        private MethodInfo? cachedUpdateDeviceMethod;
+        private MethodInfo? cachedEnqueueActionMethod;
 
         public OboeAudioRedirector(AudioManager audioManager)
         {
             this.audioManager = audioManager;
         }
 
+        /// <summary>
+        /// Returns an unmanaged function pointer to <see cref="provideAudio"/> in a
+        /// shape Oboe's native bridge can store and invoke from its real-time callback
+        /// without needing P/Invoke marshalling per call.
+        /// </summary>
         public unsafe IntPtr Provider => (IntPtr)(delegate* unmanaged[Cdecl]<IntPtr, int, int>)&provideAudio;
 
+        /// <summary>
+        /// Establishes (or re-establishes after a sample-rate change) Oboe redirection.
+        /// Idempotent — safe to call repeatedly; previous state is torn down first.
+        /// </summary>
+        /// <param name="hardwareSampleRate">
+        /// The sample rate Oboe actually opened the AAudio stream at, as reported by
+        /// the native bridge. Falls through to the previous value if zero or negative.
+        /// </param>
         public void RefreshMixers(int hardwareSampleRate)
         {
             if (hardwareSampleRate > 0)
-                lastHardwareSampleRate = hardwareSampleRate;
+                sampleRate = hardwareSampleRate;
 
-            Console.WriteLine($"[osu!] Oboe redirector: Refreshing mixers with rate {lastHardwareSampleRate}Hz");
+            Console.WriteLine($"[osu!] Oboe redirector: refreshing master mixer @ {sampleRate}Hz");
 
-            ActiveMasterMixer = 0;
-            if (masterMixer != 0)
+            // All BASS mixer calls + framework-mixer recreation MUST run on the audio
+            // thread — BassAudioMixer.activeChannels and friends are only safe to read
+            // from there, and the framework's own WASAPI redirection (the reference
+            // implementation we mirror) is invoked from initCurrentDevice on the audio
+            // thread for exactly this reason. RefreshMixers itself is typically called
+            // from the Update thread (it's invoked from the Oboe `onStarted` callback
+            // which is marshalled there), so we have to hop.
+            //
+            // EnqueueAction on AudioComponent queues onto the audio thread and is the
+            // cleanest available primitive — but it's protected, hence the reflection.
+            if (!enqueueOnAudioThread(refreshMixersOnAudioThread))
             {
-                Bass.StreamFree(masterMixer);
-                masterMixer = 0;
+                // Fall back to running synchronously if reflection failed for any reason.
+                // The audio-thread requirement is best-effort; running off-thread will
+                // succeed in the common case (BASS is largely thread-safe) at the cost
+                // of a remote chance of a transient mixer-state race.
+                refreshMixersOnAudioThread();
             }
-
-            restoreToParents();
-            mixerHandles.Clear();
-            originalParents.Clear();
-
-            sampleRate = lastHardwareSampleRate;
-
-            // Collect mixer handles using the public BassAudioMixer.Handle property.
-            addRootMixer(audioManager.TrackMixer);
-            addRootMixer(audioManager.SampleMixer);
-
-            foreach (var mixer in getActiveMixers())
-                addRootMixer(mixer);
-
-            // Fallback: add direct handles if root traversal found nothing.
-            if (mixerHandles.Count == 0)
-            {
-                addMixer(audioManager.TrackMixer);
-                addMixer(audioManager.SampleMixer);
-
-                foreach (var mixer in getActiveMixers())
-                    addMixer(mixer);
-            }
-
-            if (mixerHandles.Count == 0)
-            {
-                Console.WriteLine("[osu!] Oboe redirector: No BASS mixers discovered. Audio may not have initialized yet.");
-                return;
-            }
-
-            Console.WriteLine($"[osu!] Oboe redirector: Found {mixerHandles.Count} mixer handle(s): {string.Join(", ", mixerHandles)}");
-
-            if (!silenceDefaultAudio())
-            {
-                Console.WriteLine("[osu!] Oboe redirector: Failed to silence default audio, aborting redirection.");
-                return;
-            }
-
-            if (!Bass.GetDeviceInfo(0, out var info) || !info.IsInitialized)
-            {
-                if (!Bass.Init(0, sampleRate) && Bass.LastError != Errors.Already) return;
-            }
-
-            if (!setupMasterMixer())
-            {
-                Console.WriteLine("[osu!] Oboe redirector: Failed to setup master mixer, restoring default audio.");
-                restoreDefaultAudio();
-                return;
-            }
-
-            ActiveMasterMixer = masterMixer;
-            Console.WriteLine($"[osu!] Oboe redirector initialized successfully: master={masterMixer}, sources={string.Join(',', mixerHandles)}");
         }
 
-        private IEnumerable<AudioMixer> getActiveMixers()
+        private void refreshMixersOnAudioThread()
         {
-            if (!mixerFieldSearched)
+            teardown();
+
+            // Decode + Float so ChannelGetData returns interleaved 32-bit float frames in
+            // exactly the format Oboe wants. MixerNonStop avoids ChannelGetData returning
+            // BASS_ERROR_ENDED (which Oboe would interpret as a stream error) when no
+            // upstream channel is currently producing data — the global mixer just
+            // emits silence in that case, matching the framework's wasapiProcedure.
+            int handle = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.MixerNonStop | BassFlags.Decode | BassFlags.Float);
+
+            if (handle == 0)
             {
-                mixerFieldSearched = true;
-                Type? type = typeof(AudioManager);
-
-                while (type != null && type != typeof(object))
-                {
-                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                    {
-                        if (field.FieldType.IsGenericType && field.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
-                        {
-                            cachedMixerField = field;
-                            break;
-                        }
-                    }
-
-                    if (cachedMixerField != null) break;
-
-                    type = type.BaseType!;
-                }
+                Console.WriteLine($"[osu!] Oboe redirector: CreateMixerStream failed: {Bass.LastError}");
+                return;
             }
 
-            if (cachedMixerField == null)
-                yield break;
+            // Match the framework's per-mixer policy of zero playback buffer for lowest
+            // possible BASS-side latency (see BassAudioMixer.createMixer).
+            Bass.ChannelSetAttribute(handle, ChannelAttribute.Buffer, 0);
 
-            object? val = cachedMixerField.GetValue(audioManager);
+            masterMixer = handle;
+            ActiveMasterMixer = handle;
 
-            if (val is IEnumerable enumerable)
+            if (!setGlobalMixerHandle(handle))
             {
-                foreach (var item in enumerable)
-                {
-                    if (item is AudioMixer mixer)
-                        yield return mixer;
-                }
-            }
-        }
-
-        private bool setupMasterMixer()
-        {
-            if (masterMixer != 0)
-            {
-                Bass.StreamFree(masterMixer);
+                Console.WriteLine("[osu!] Oboe redirector: failed to set GlobalMixerHandle, aborting redirection");
+                Bass.StreamFree(handle);
                 masterMixer = 0;
+                ActiveMasterMixer = 0;
+                return;
             }
 
-            if (!devicesSilenced) return false;
+            globalMixerHandleSet = true;
 
-            Bass.CurrentDevice = 0;
+            // The framework's existing mixers were created in playback mode (without
+            // BassFlags.Decode) — they will not auto-attach to our global mixer until
+            // they are recreated. Triggering AudioCollectionManager<T>.UpdateDevice on
+            // the AudioManager iterates every IBassAudio child (the TrackMixer, the
+            // SampleMixer, and any per-store user mixers added via AddItem) and calls
+            // BassAudioMixer.UpdateDevice, which re-runs createMixer — at which point
+            // GlobalMixerHandle.Value is non-null and the new handles are decode mixers
+            // attached to our master. From that moment on, Oboe is the only thing
+            // actually emitting audio.
+            triggerMixerRecreation();
 
-            masterMixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop);
-
-            if (masterMixer == 0)
-            {
-                Console.WriteLine($"[osu!] Failed to create BASS master mixer: {Bass.LastError}");
-                return false;
-            }
-
-            Bass.ChannelSetAttribute(masterMixer, ChannelAttribute.Buffer, 0);
-
-            int successfullyAdded = 0;
-
-            foreach (int handle in mixerHandles)
-            {
-                int parent = BassMix.ChannelGetMixer(handle);
-
-                if (parent != 0 && parent != masterMixer)
-                {
-                    originalParents[handle] = parent;
-                    BassMix.MixerRemoveChannel(handle);
-                }
-
-                if (Bass.ChannelGetDevice(handle) != 0)
-                {
-                    if (!Bass.ChannelSetDevice(handle, 0))
-                    {
-                        Console.WriteLine($"[osu!] Failed to move source mixer {handle} to silent device: {Bass.LastError}");
-                    }
-                }
-
-                if (BassMix.MixerAddChannel(masterMixer, handle, BassFlags.MixerChanNoRampin))
-                {
-                    successfullyAdded++;
-                }
-                else
-                {
-                    Console.WriteLine($"[osu!] Failed to add mixer {handle} to master mixer: {Bass.LastError}");
-                }
-            }
-
-            // Restore current device to 1 after setup to avoid affecting other audio operations
-            Bass.CurrentDevice = 1;
-
-            return successfullyAdded > 0;
+            Console.WriteLine($"[osu!] Oboe redirector active: GlobalMixerHandle={handle} sampleRate={sampleRate}Hz");
         }
 
-        private bool silenceDefaultAudio()
+        /// <summary>
+        /// Schedules <paramref name="action"/> onto the framework's audio thread via
+        /// the inherited (and protected) <c>AudioComponent.EnqueueAction</c> method.
+        /// Returns false if the reflective lookup couldn't be resolved.
+        /// </summary>
+        private bool enqueueOnAudioThread(Action action)
         {
             try
             {
-                if (!Bass.Init(0, sampleRate) && Bass.LastError != Errors.Already)
+                if (cachedEnqueueActionMethod == null)
                 {
-                    Console.WriteLine($"[osu!] Failed to initialize BASS No Sound device: {Bass.LastError}");
-                    return false;
+                    Type? t = audioManager.GetType();
+
+                    while (t != null && cachedEnqueueActionMethod == null)
+                    {
+                        cachedEnqueueActionMethod = t.GetMethod(
+                            "EnqueueAction",
+                            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                            binder: null,
+                            types: new[] { typeof(Action) },
+                            modifiers: null);
+
+                        t = t.BaseType;
+                    }
                 }
 
-                devicesSilenced = true;
+                if (cachedEnqueueActionMethod == null)
+                    return false;
+
+                cachedEnqueueActionMethod.Invoke(audioManager, new object[] { action });
                 return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[osu!] Failed to silence default audio: {e.Message}");
+                Console.WriteLine($"[osu!] enqueueOnAudioThread failed: {e.Message}");
                 return false;
             }
         }
 
-        private void restoreToParents()
+        /// <summary>
+        /// Sets the framework's <c>AudioManager.GlobalMixerHandle</c> bindable to the
+        /// given handle (or <see langword="null"/> to detach). The bindable is declared
+        /// <c>internal</c> in the framework, so we go through reflection. The value
+        /// setter is cached after first lookup.
+        /// </summary>
+        private bool setGlobalMixerHandle(int? handle)
         {
-            foreach (var kvp in originalParents)
-            {
-                int handle = kvp.Key;
-                int parent = kvp.Value;
-
-                BassMix.MixerRemoveChannel(handle);
-                Bass.ChannelSetDevice(handle, 1);
-                BassMix.MixerAddChannel(parent, handle, BassFlags.MixerChanNoRampin);
-            }
-            originalParents.Clear();
-        }
-
-        private void restoreDefaultAudio()
-        {
-            ActiveMasterMixer = 0;
-
             try
             {
-                if (masterMixer != 0)
+                if (globalMixerHandleBindable == null)
                 {
-                    Bass.StreamFree(masterMixer);
-                    masterMixer = 0;
+                    var field = typeof(AudioManager).GetField("GlobalMixerHandle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                    if (field == null)
+                    {
+                        Console.WriteLine("[osu!] AudioManager.GlobalMixerHandle field not found via reflection — framework version mismatch?");
+                        return false;
+                    }
+
+                    globalMixerHandleBindable = field.GetValue(audioManager);
+
+                    if (globalMixerHandleBindable == null)
+                    {
+                        Console.WriteLine("[osu!] AudioManager.GlobalMixerHandle bindable is null");
+                        return false;
+                    }
+
+                    // GetProperty returns the IBindable.Value get-only property when called on
+                    // the IBindable<int?> type, so go via the runtime type which is Bindable<int?>
+                    // (writable). BindingFlags.DeclaredOnly avoids resolving to a hidden interface
+                    // implementation that lacks a setter.
+                    globalMixerValueSetter = globalMixerHandleBindable.GetType()
+                                                                      .GetProperty("Value", BindingFlags.Instance | BindingFlags.Public)
+                                                                      ?.GetSetMethod();
+
+                    if (globalMixerValueSetter == null)
+                    {
+                        Console.WriteLine("[osu!] Bindable<int?>.Value setter not resolvable on GlobalMixerHandle");
+                        return false;
+                    }
                 }
 
-                // Snapshot which handles were restored to their original parents before clearing.
-                var restoredHandles = new HashSet<int>(originalParents.Keys);
-                restoreToParents();
-
-                // Only move handles that weren't already restored to their parents.
-                foreach (int handle in mixerHandles)
-                {
-                    if (restoredHandles.Contains(handle)) continue;
-
-                    BassMix.MixerRemoveChannel(handle);
-                    Bass.ChannelSetDevice(handle, 1);
-                }
-
-                devicesSilenced = false;
+                globalMixerValueSetter!.Invoke(globalMixerHandleBindable!, new object?[] { handle });
+                return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[osu!] Failed to restore default audio: {e.Message}");
+                Console.WriteLine($"[osu!] setGlobalMixerHandle failed: {e.Message}");
+                return false;
             }
-        }
-
-        private void addRootMixer(AudioMixer? mixer)
-        {
-            if (mixer == null) return;
-
-            int handle = getHandle(mixer);
-
-            if (handle == 0) return;
-
-            // Walk up the mixer chain to find the root mixer handle.
-            int current = handle;
-            int parent;
-
-            while ((parent = BassMix.ChannelGetMixer(current)) != 0)
-                current = parent;
-
-            mixerHandles.Add(current);
-        }
-
-        private void addMixer(AudioMixer? mixer)
-        {
-            if (mixer == null) return;
-
-            int handle = getHandle(mixer);
-
-            if (handle != 0)
-                mixerHandles.Add(handle);
         }
 
         /// <summary>
-        /// Gets the BASS handle from an AudioMixer via reflection.
-        /// BassAudioMixer is internal to the framework, so we access its Handle property via reflection.
-        /// The PropertyInfo is cached after first lookup since all AudioMixers share the same runtime type.
+        /// Triggers <c>AudioCollectionManager&lt;AudioManager&gt;.UpdateDevice(int)</c>
+        /// on the <see cref="audioManager"/> instance. This walks every child IBassAudio
+        /// component (most importantly every <c>BassAudioMixer</c>) and calls its
+        /// <c>UpdateDevice</c> method, which in turn calls <c>createMixer</c> — picking
+        /// up the new <c>GlobalMixerHandle.Value</c> we just set.
         /// </summary>
-        private static PropertyInfo? cachedHandleProperty;
-        private static Type? cachedHandleType;
-
-        private static int getHandle(AudioMixer mixer)
+        private void triggerMixerRecreation()
         {
             try
             {
-                var mixerType = mixer.GetType();
-
-                if (cachedHandleType != mixerType)
+                if (cachedUpdateDeviceMethod == null)
                 {
-                    cachedHandleProperty = mixerType.GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    cachedHandleType = mixerType;
+                    Type? t = typeof(AudioManager);
+
+                    while (t != null && cachedUpdateDeviceMethod == null)
+                    {
+                        cachedUpdateDeviceMethod = t.GetMethod(
+                            "UpdateDevice",
+                            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+                            binder: null,
+                            types: new[] { typeof(int) },
+                            modifiers: null);
+
+                        t = t.BaseType;
+                    }
                 }
 
-                if (cachedHandleProperty?.GetValue(mixer) is int h)
-                    return h;
-            }
-            catch
-            {
-                // Reflection failed — return 0 to indicate no handle found.
-            }
+                if (cachedUpdateDeviceMethod == null)
+                {
+                    Console.WriteLine("[osu!] AudioCollectionManager.UpdateDevice(int) not found via reflection — cannot force mixer recreation");
+                    return;
+                }
 
-            return 0;
+                cachedUpdateDeviceMethod.Invoke(audioManager, new object[] { Bass.CurrentDevice });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[osu!] triggerMixerRecreation failed: {e.Message}");
+            }
         }
 
+        /// <summary>
+        /// Reverses <see cref="RefreshMixers"/>: detaches the global mixer hook so the
+        /// framework's mixers go back to driving BASS playback themselves, then frees
+        /// our master mixer. Order matters — the global-mixer detach + recreation must
+        /// happen first so no framework mixer holds a child reference into the handle
+        /// we are about to free.
+        /// </summary>
+        private void teardown()
+        {
+            if (globalMixerHandleSet)
+            {
+                setGlobalMixerHandle(null);
+                globalMixerHandleSet = false;
+
+                // Recreate framework mixers in playback mode so audio resumes via BASS's
+                // own device output (the user is either disabling Oboe or we're tearing
+                // down because Oboe is being re-initialised at a new sample rate — in
+                // both cases we want a clean detach).
+                try { triggerMixerRecreation(); }
+                catch { /* best-effort; Dispose path must not throw */ }
+            }
+
+            ActiveMasterMixer = 0;
+
+            if (masterMixer != 0)
+            {
+                Bass.StreamFree(masterMixer);
+                masterMixer = 0;
+            }
+        }
+
+        /// <summary>
+        /// Unmanaged callback handed to the Oboe native bridge. Pulls <paramref name="numFrames"/>
+        /// stereo float frames from the global mixer into <paramref name="audioData"/>.
+        /// Mirrors <c>AudioThread.wasapiProcedure</c> in osu-framework verbatim — the
+        /// only thing different is the calling backend (Oboe instead of BassWasapi).
+        /// </summary>
         [UnmanagedCallersOnly(EntryPoint = "provideAudio", CallConvs = new[] { typeof(CallConvCdecl) })]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int provideAudio(IntPtr audioData, int numFrames)
         {
             int mixer = ActiveMasterMixer;
 
             if (mixer == 0) return 0;
 
-            int bytesToRead = numFrames * 8; // 2 channels * 4 bytes (float)
+            // 2 channels × 4 bytes per float = 8 bytes per frame.
+            int bytesToRead = numFrames * 8;
             int bytesRead = Bass.ChannelGetData(mixer, audioData, bytesToRead);
 
             if (bytesRead <= 0) return 0;
@@ -349,13 +350,22 @@ namespace osu.Android
             return bytesRead / 8;
         }
 
+        /// <summary>
+        /// Volatile because <see cref="provideAudio"/> runs on Oboe's real-time audio
+        /// thread while management writes happen on the AudioThread / Update thread.
+        /// A torn read of an int isn't possible on any platform osu! supports, but
+        /// volatile makes the cross-thread visibility explicit.
+        /// </summary>
         internal static volatile int ActiveMasterMixer;
 
         public void Dispose()
         {
-            restoreDefaultAudio();
-            mixerHandles.Clear();
-            originalParents.Clear();
+            // Tear down on the audio thread for the same reason RefreshMixers does
+            // its work there. Falling back to inline execution if the queue lookup
+            // failed mirrors the RefreshMixers fallback policy and keeps Dispose
+            // best-effort instead of throwing during shutdown.
+            if (!enqueueOnAudioThread(teardown))
+                teardown();
         }
     }
 }

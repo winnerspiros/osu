@@ -149,6 +149,24 @@ namespace osu.Game
         /// </summary>
         public Bindable<int> SelectedDisplayRefreshRate { get; } = new Bindable<int>();
 
+        /// <summary>
+        /// Whether the running device exposes physical stylus / S Pen hardware.
+        /// Used by settings UI to hide stylus-specific toggles on devices that have no stylus.
+        /// Defaults to <c>true</c> on platforms that cannot determine this (i.e. desktop tablet input
+        /// is configured separately, and on iOS the Apple Pencil setting is exposed elsewhere).
+        /// </summary>
+        public virtual bool HasStylusInput => true;
+
+        /// <summary>
+        /// Force-terminate the application from a platform-specific code path. The framework's
+        /// <see cref="osu.Framework.Game.RequestExit"/> already covers the standard "ask the user
+        /// then exit" flow on platforms whose <see cref="GameHost.CanExit"/> is <c>true</c>; this
+        /// hook exists for platforms (notably Android) where the host reports <c>CanExit=false</c>
+        /// and the only reliable way to terminate the process is a platform-specific call. The
+        /// base implementation falls back to the framework's standard <see cref="osu.Framework.Game.RequestExit"/>.
+        /// </summary>
+        public virtual void PerformPlatformExit() => RequestExit();
+
         public virtual string Version
         {
             get

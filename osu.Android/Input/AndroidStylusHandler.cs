@@ -138,25 +138,33 @@ namespace osu.Android.Input
         {
             if (!Enabled.Value) return false;
 
-            if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
+            // Cache ActionMasked once: each `e.ActionMasked` access is a JNI call into
+            // MotionEvent#getActionMasked. On a busy stylus drag the previous code did
+            // 3 reads per event (here + 2 in handlePointer) and HistorySize+1 calls to
+            // handlePointer; folding to a single read trims the per-event JNI crossings
+            // by ~2 + 2*(HistorySize+1) at no cost.
+            var actionMasked = e.ActionMasked;
+
+            if (actionMasked == MotionEventActions.HoverExit || actionMasked == MotionEventActions.Up || actionMasked == MotionEventActions.Cancel)
             {
                 if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
 
-                if (e.ActionMasked != MotionEventActions.HoverExit)
+                if (actionMasked != MotionEventActions.HoverExit)
                     return true;
             }
 
             // Process all batched historical events for maximum accuracy.
-            for (int i = 0; i < e.HistorySize; i++)
-                handlePointer(e, i);
+            int historySize = e.HistorySize;
+            for (int i = 0; i < historySize; i++)
+                handlePointer(e, i, actionMasked);
 
-            handlePointer(e, -1);
+            handlePointer(e, -1, actionMasked);
 
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void handlePointer(MotionEvent e, int historyIndex)
+        private void handlePointer(MotionEvent e, int historyIndex, MotionEventActions actionMasked)
         {
             const int pointer_index = 0;
             if (e.PointerCount <= pointer_index) return;
@@ -210,8 +218,12 @@ namespace osu.Android.Input
 
             // Button state: pressure-based click (primary) with action overrides.
             // Uses the cached threshold field rather than `PressureThreshold.Value` to skip the
-            // per-event bindable read.
-            var actionMasked = e.ActionMasked;
+            // per-event bindable read. `actionMasked` is a parameter (cached once at the top of
+            // HandleMotionEvent) so we avoid the JNI crossing for `e.ActionMasked` here.
+            // ButtonState is a single JNI read per pointer (vs. desktop mouse which we already
+            // hoist) — Move-with-Primary is the only path that needs it and stylus side-buttons
+            // are intentionally NOT mapped to right/middle (see comment block below), so a single
+            // read is unavoidable but bounded.
             var buttonState = e.ButtonState;
             bool isLeftDown = pressure >= cachedPressureThreshold;
             if (actionMasked == MotionEventActions.Down || actionMasked == MotionEventActions.ButtonPress) isLeftDown = true;

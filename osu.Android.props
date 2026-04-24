@@ -83,6 +83,19 @@
          spikes on the Update/Draw threads. Memory usage rises ~20-30% in exchange. -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <!-- Defensive explicit-set: we rely on the SDK linker to walk only Android SDK types
+         (NOT user assemblies — see PublishTrimmed=off rationale above). The .NET Android
+         SDK default is currently 'SdkOnly' but has changed across SDK versions; making it
+         explicit here pins the behaviour so a future SDK bump cannot silently flip us to
+         'Full' linking and break the reflection-heavy code paths in osu.Game / Realm /
+         Newtonsoft.Json / AutoMapper / Sentry / OsuTK. -->
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <!-- Defensive explicit-set: keep IL alongside profiled-AOT native code so any method
+         outside the bundled AOT profile has a JIT fallback (instead of MissingMethodException
+         at first call). The .NET Android SDK default is 'false' for non-trimmed builds
+         already, but we make it explicit so a future SDK bump cannot silently start
+         stripping IL and reproduce the trim-then-AOT crash class we removed above. -->
+    <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
   </PropertyGroup>
 
   <ItemGroup>

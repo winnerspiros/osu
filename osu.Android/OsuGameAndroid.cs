@@ -268,28 +268,29 @@ namespace osu.Android
 
             audioRedirector = new OboeAudioRedirector(Audio);
 
-            try
-            {
-                Type? audioType = typeof(AudioManager);
-                activeMixersList = audioType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                                            .FirstOrDefault(f => f.FieldType.IsGenericType && f.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
-                                            ?.GetValue(Audio);
-
-                if (activeMixersList != null)
-                {
-                    MethodInfo? bindMethod = activeMixersList.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (bindMethod != null)
-                    {
-                        activeMixersHandler = new NotifyCollectionChangedEventHandler(onActiveMixersChanged);
-                        bindMethod.Invoke(activeMixersList, new object[] { activeMixersHandler });
-                        Debug.WriteLine("[osu!] Oboe redirector: Successfully bound to ActiveMixers collection");
-                    }
-                }
-            }
-            catch (Exception e) { Debug.WriteLine($"[osu!] Oboe redirector: Failed to bind to ActiveMixers: {e.Message}"); }
+            // The previous implementation watched AudioManager.activeMixers via reflection
+            // and called `audioRedirector.RefreshMixers(0)` whenever a per-store user
+            // mixer was added — necessary because the old redirector held a snapshot
+            // of mixer handles and had to re-attach new ones manually.
+            //
+            // The current OboeAudioRedirector goes through the framework's official
+            // `AudioManager.GlobalMixerHandle` hook, so any subsequently-created
+            // BassAudioMixer auto-attaches itself to our master mixer inside its own
+            // `createMixer` call (see osu.Framework BassAudioMixer.cs). The watch is
+            // no longer needed and would in fact be harmful: each invocation would
+            // tear down + recreate the master mixer + force every framework mixer to
+            // recreate, producing audible audio glitches every time a sample store was
+            // added. Field declarations are kept (null) so the existing dispose-time
+            // unbind code stays a no-op without further conditionals.
+            activeMixersList = null;
+            activeMixersHandler = null;
         }
 
-        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
+        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args)
+        {
+            // Intentionally a no-op — see comment in the constructor body where the
+            // active-mixers watch was previously bound.
+        }
 
         protected override void LoadComplete()
         {
@@ -1184,6 +1185,95 @@ namespace osu.Android
 
         public override int DisplayRefreshRate => currentRefreshRate;
 
+        public override bool HasStylusInput => detectStylusHardware();
+
+        /// <summary>
+        /// Cached result of <see cref="detectStylusHardware"/>. PackageManager.HasSystemFeature()
+        /// crosses JNI and walks the system-features list; cache once on first call so the settings
+        /// section query (which can fire as the user scrolls past) is amortised.
+        /// </summary>
+        private bool? cachedHasStylusHardware;
+
+        private bool detectStylusHardware()
+        {
+            if (cachedHasStylusHardware.HasValue)
+                return cachedHasStylusHardware.Value;
+
+            try
+            {
+                var pm = gameActivity.PackageManager;
+                bool detected = false;
+
+                if (pm != null)
+                {
+                    // Samsung S Pen — covers Note, S Ultra, and Tab S series. The S Pen API is
+                    // a Samsung extension exposed under the "com.sec.feature.spen_usp" feature.
+                    if (pm.HasSystemFeature("com.sec.feature.spen_usp"))
+                        detected = true;
+                    // Generic Android stylus support — non-Samsung devices that expose a stylus
+                    // (Lenovo Tab P, Motorola Note, ChromeOS tablets in Android compat) advertise
+                    // this feature instead. Added in API 33; safe to query on older OS as a no-op
+                    // returning false.
+                    else if (pm.HasSystemFeature("android.hardware.input.stylus"))
+                        detected = true;
+                }
+
+                cachedHasStylusHardware = detected;
+                return detected;
+            }
+            catch (Exception e)
+            {
+                // Defensive: if PackageManager queries fail (extremely unlikely), default to TRUE
+                // so the user can still access the stylus-as-touch escape hatch on a misbehaving
+                // device. The toggle is harmless on devices without a stylus (it gates an
+                // input-routing branch that never fires).
+                Debug.WriteLine($"[osu!] Stylus hardware detection failed: {e.Message}");
+                cachedHasStylusHardware = true;
+                return true;
+            }
+        }
+
+        public override void PerformPlatformExit()
+        {
+            // The framework's AndroidGameHost reports CanExit=false (so host.Exit() is a no-op)
+            // and there is no clean SDL/Activity teardown path on Android — calling Activity.Finish()
+            // alone leaves the Mono runtime, the JNI-attached audio thread, the GC coordinator and
+            // the SDL main thread alive in zombie state, racing each other to a SIGSEGV. The only
+            // reliable "exit" on Android (and the documented recommendation for games) is to remove
+            // the task from recents and then terminate the process. We:
+            //   1) MoveTaskToBack so the system removes us from the foreground (mirrors the
+            //      behaviour of pressing Back at the top of the navigation stack on a normal app),
+            //   2) Finish the activity so we don't leave a stale task entry behind,
+            //   3) KillProcess(MyPid()) — the canonical "this is a game, end now" call. Mono's
+            //      finalizer thread is intentionally NOT awaited; on-disk state (Realm, settings,
+            //      log files) has already been flushed by the framework on every commit / config
+            //      change, and any in-flight realm transaction would be rolled back on next launch
+            //      anyway.
+            Logger.Log("[osu!] User requested explicit exit", LoggingTarget.Runtime);
+
+            try
+            {
+                gameActivity.RunOnUiThread(() =>
+                {
+                    try { gameActivity.MoveTaskToBack(true); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] MoveTaskToBack failed: {e.Message}"); }
+
+                    try { gameActivity.Finish(); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] Activity.Finish failed: {e.Message}"); }
+
+                    try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] KillProcess failed: {e.Message}"); }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to dispatch exit to UI thread: {e.Message}");
+                // Last-resort: kill from whatever thread we're on. KillProcess is async-signal-safe.
+                try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                catch { /* nothing more we can do */ }
+            }
+        }
+
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
         // ------------------------------------------------------------------
@@ -1671,11 +1761,28 @@ namespace osu.Android
             string? ns = h.GetType().Namespace;
             if (ns == null) return false;
 
-            // Match the framework's two built-in handler namespaces. Touch (finger) input is
-            // intentionally NOT matched: we have no Android-native touch handler, so the
-            // framework's SDL touch handler must keep running for finger gameplay to work.
+            // Match the framework's three built-in handler namespaces we replace on Android.
+            // Touch (finger) input is intentionally NOT matched: we have no Android-native
+            // touch handler, so the framework's SDL touch handler must keep running for
+            // finger gameplay to work.
+            //
+            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) is the
+            // critical fix for the "S Pen stuck top-left" bug. PenHandler subscribes to
+            // SDL3-native pen events (window.PenMove / window.PenTouch) which arrive via
+            // SDL's NDK pump and **bypass the Java MotionEvent dispatch chain entirely** —
+            // returning true from Activity.DispatchTouchEvent does NOT prevent SDL from
+            // delivering them. PenHandler then enqueues TouchInput / MousePositionAbsoluteInputFromPen
+            // alongside our AndroidStylusHandler's MousePositionAbsoluteInput, the two
+            // streams race at the InputManager, and (because SDL's pen position for a
+            // freshly-attached S Pen often arrives at (0, 0) before the first hover sample)
+            // the cursor visibly snaps to the top-left of the screen. Filtering PenHandler
+            // out of AvailableInputHandlers leaves AndroidStylusHandler as the sole source
+            // of S Pen input, with proper area mapping. PenHandler does NOT implement
+            // ITabletHandler, so the existing ITabletHandler filter does not catch it —
+            // the namespace prefix match is required.
             return ns.StartsWith("osu.Framework.Input.Handlers.Mouse", StringComparison.Ordinal)
-                || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal);
+                || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal)
+                || ns.StartsWith("osu.Framework.Input.Handlers.Pen", StringComparison.Ordinal);
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

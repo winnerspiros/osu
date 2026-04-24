@@ -4,6 +4,7 @@
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Localisation;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterfaceV2;
@@ -17,17 +18,26 @@ namespace osu.Game.Overlays.Settings.Sections.DebugSettings
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager config, FrameworkConfigManager frameworkConfig, OsuConfigManager osuConfig)
         {
+            // Show log overlay is generally-useful (it surfaces the in-memory log on
+            // screen, which we recommend to mobile users when they hit a problem) so
+            // it stays visible on every platform / build configuration.
             Add(new SettingsItemV2(new FormCheckBox
             {
                 Caption = @"Show log overlay",
                 Current = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay)
             }));
 
-            Add(new SettingsItemV2(new FormCheckBox
+            // Front-to-back-pass bypass is a renderer developer toggle; keep it gated
+            // behind IsDebugBuild so we don't surface it to users who reach this
+            // subsection only because of the Android verbose-logging entry below.
+            if (DebugUtils.IsDebugBuild)
             {
-                Caption = @"Bypass front-to-back render pass",
-                Current = config.GetBindable<bool>(DebugSetting.BypassFrontToBackPass)
-            }));
+                Add(new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = @"Bypass front-to-back render pass",
+                    Current = config.GetBindable<bool>(DebugSetting.BypassFrontToBackPass)
+                }));
+            }
 
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
             {
