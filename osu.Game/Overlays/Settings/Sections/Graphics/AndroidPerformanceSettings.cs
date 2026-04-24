@@ -43,32 +43,18 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 },
             };
 
-            // Stylus-as-touch is only meaningful on devices with a physical S Pen / stylus
-            // digitizer. Hide on devices that don't expose stylus hardware (queried via
-            // PackageManager system features) so the settings list stays focused on what
-            // actually applies — most non-Samsung phones never see the toggle have any effect.
-            // If hardware detection failed we fall back to "shown for all" so the user keeps
-            // the escape hatch on a misbehaving device (see OsuGameAndroid.detectStylusHardware).
-            if (game?.HasStylusInput ?? true)
-            {
-                children.Add(new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Treat S Pen as touch",
-                    HintText = "When enabled, S Pen / stylus input is routed through the standard touch pipeline (treated like a finger tap) instead of through the dedicated stylus handler. Useful if the stylus cursor misbehaves on your device.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidStylusAsTouch),
-                })
-                {
-                    Keywords = new[] { @"s pen", @"spen", @"stylus", @"pen", @"touch", @"samsung" },
-                });
-            }
+            // The "Treat S Pen as touch" toggle has moved to the Input → S Pen subsection
+            // (osu.Android/Input/AndroidStylusSettings.cs) so it lives next to the other
+            // stylus settings (area mapping, rotation, pressure threshold). It used to
+            // live here because it was originally implemented as an Activity-level
+            // dispatch short-circuit, but it now branches inside AndroidStylusHandler
+            // itself — placing it in the Input section is the more discoverable home.
 
             // "Exit game" — the framework's AndroidGameHost reports CanExit=false, so the
             // standard Hold-to-Exit overlay and the main-menu Exit button are not added on
-            // Android. Pressing Back in the main menu calls SuspendToBackground (the OS-default
-            // task-minimise behaviour) and there is no in-game way to fully terminate the
-            // process. This button is the explicit user-driven exit: OsuGame.RequestExit() is
-            // overridden in OsuGameAndroid to MoveTaskToBack + Finish + KillProcess(MyPid()),
-            // which is the documented way for an Android game to terminate cleanly.
+            // Android. Pressing Back in the main menu now calls PerformPlatformExit (via
+            // the OsuGame.SuspendToBackground override) — this button remains as a
+            // discoverable explicit-exit affordance for users who don't have a Back button.
             // Placed at the bottom of the section so it cannot be hit accidentally while
             // adjusting performance toggles.
             if (game != null)

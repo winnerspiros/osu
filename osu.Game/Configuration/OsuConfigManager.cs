@@ -239,8 +239,32 @@ namespace osu.Game.Configuration
 
             SetDefault(OsuSetting.DashboardSortMode, UserSortCriteria.LastVisit);
             SetDefault(OsuSetting.DashboardDisplayStyle, OverlayPanelDisplayStyle.Card);
-            SetDefault(OsuSetting.AndroidPerformanceMode, false);
-            SetDefault(OsuSetting.AndroidLowLatencyAudio, false);
+            // Android performance defaults — both ON for fresh installs.
+            //
+            //   - AndroidPerformanceMode = true:
+            //     Begins a high-performance GC session (GCLatencyMode.SustainedLowLatency
+            //     while in foreground) for the entire app lifetime, eliminating the
+            //     Gen1/Gen2 STW pauses that are the largest source of >1ms frame spikes
+            //     on the Update/Draw threads. Sustained Performance Mode + immersive
+            //     fullscreen + highest-refresh-rate are layered on top from
+            //     OsuGameAndroid. The setting was historically default-off because the
+            //     mitigations layered on it (refresh-rate switch, surface mode change)
+            //     could race the cold-start swapchain bring-up; the deferred-by-5s
+            //     scheduler in OsuGameAndroid.LoadComplete now handles that, and
+            //     AndroidStartupSafeMode catches any device-specific regression on the
+            //     next launch — so default-on is finally safe.
+            //   - AndroidLowLatencyAudio = true:
+            //     Routes BASS through Oboe (AAudio Exclusive + MMAP + StabilizedCallback)
+            //     instead of BASS's default OpenSL ES path. Cuts output latency from
+            //     ~80-120ms to ~5-15ms on devices that support MMAP, and makes the audio
+            //     callback eligible for ADPF priority hints. Initial bind is also
+            //     deferred under AndroidDeferStartupNativeInit, so default-on does not
+            //     widen the cold-start window.
+            //   - AndroidVulkanProbe stays default-off — it's a pure diagnostic that
+            //     constructs a transient VkInstance and adds startup time without
+            //     affecting steady-state performance. Power users opt in.
+            SetDefault(OsuSetting.AndroidPerformanceMode, true);
+            SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
 

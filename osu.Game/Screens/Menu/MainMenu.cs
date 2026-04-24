@@ -69,6 +69,9 @@ namespace osu.Game.Screens.Menu
         private GameHost host { get; set; }
 
         [Resolved]
+        private OsuGameBase game { get; set; }
+
+        [Resolved]
         private INotificationOverlay notifications { get; set; }
 
         [Resolved]
@@ -473,7 +476,12 @@ namespace osu.Game.Screens.Menu
                     // In the case of a host being able to exit, the back action is handled by ExitConfirmOverlay.
                     Debug.Assert(!host.CanExit);
 
-                    return host.SuspendToBackground();
+                    // Route through OsuGameBase.SuspendToBackground rather than the host directly,
+                    // so platforms (notably Android) can override "Back at top of stack" to perform
+                    // a hard exit instead of the framework default of MoveTaskToBack — the latter
+                    // leaves the audio thread mixing and GC scheduling work in the background, which
+                    // the user perceives as "I closed the app but it's still draining battery".
+                    return game.SuspendToBackground();
             }
 
             return false;

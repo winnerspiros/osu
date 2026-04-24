@@ -5,6 +5,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Android.Views;
 using osu.Framework.Bindables;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
@@ -40,6 +41,16 @@ namespace osu.Android.Input
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         private bool lastLeftDown;
+        private bool lastTouchActive;
+
+        /// <summary>
+        /// Mirrored from <see cref="osu.Game.Configuration.OsuSetting.AndroidStylusAsTouch"/>.
+        /// When true, stylus events are enqueued as <see cref="TouchInput"/> (TouchSource.Touch1)
+        /// instead of <see cref="MousePositionAbsoluteInput"/> + <see cref="MouseButtonInput"/>.
+        /// Held as a volatile field so the OS dispatch thread can read it without
+        /// crossing the managed-config bindable lock on every motion event.
+        /// </summary>
+        public volatile bool TreatAsTouch;
 
         // Cached area values for hot path (avoids bindable access per event).
         private float areaLeft, areaTop, areaWidth, areaHeight;
@@ -147,10 +158,19 @@ namespace osu.Android.Input
 
             if (actionMasked == MotionEventActions.HoverExit || actionMasked == MotionEventActions.Up || actionMasked == MotionEventActions.Cancel)
             {
-                if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
+                releaseAllButtons();
 
                 if (actionMasked != MotionEventActions.HoverExit)
                     return true;
+            }
+            else if (actionMasked == MotionEventActions.HoverEnter)
+            {
+                // Reset stale button/touch state across sleep / focus-regain cycles. The
+                // previous hover session may have ended without a clean Up if the OS
+                // dropped the activity; without this reset the next first sample can
+                // strand `lastLeftDown=true` (or `lastTouchActive=true`) and produce a
+                // phantom hold from wherever the cursor last was.
+                releaseAllButtons();
             }
 
             // Process all batched historical events for maximum accuracy.
@@ -164,6 +184,24 @@ namespace osu.Android.Input
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void releaseAllButtons()
+        {
+            if (lastLeftDown)
+            {
+                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                lastLeftDown = false;
+            }
+
+            if (lastTouchActive)
+            {
+                PendingInputs.Enqueue(new TouchInput(new[] { new Touch(TouchSource.Touch1, lastTouchPosition) }, false));
+                lastTouchActive = false;
+            }
+        }
+
+        private Vector2 lastTouchPosition;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void handlePointer(MotionEvent e, int historyIndex, MotionEventActions actionMasked)
         {
             const int pointer_index = 0;
@@ -172,6 +210,19 @@ namespace osu.Android.Input
             float rawX = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
             float rawY = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
+
+            // Drop (0, 0, 0) garbage samples. The Samsung digitizer occasionally emits a
+            // single (rawX=0, rawY=0, pressure=0) sample when the pen wakes up after sleep,
+            // when the activity regains focus, or as the very first HoverEnter sample
+            // before the real coordinate is latched. Mapping that sample produces a snap
+            // to the top-left of the screen — the long-standing "S Pen stuck top-left"
+            // bug. A real pen sample would always have *some* coordinate (the pen is
+            // physically *somewhere* on the digitizer to have triggered an event), so a
+            // strict triple-zero match is a safe filter that doesn't drop legitimate
+            // edge-of-digitizer samples (which would have pressure > 0 on contact, or
+            // non-zero hover Y/X off the screen origin).
+            if (rawX == 0f && rawY == 0f && pressure == 0f)
+                return;
 
             // Auto-expand tablet size if the digitizer reports coordinates beyond current bounds.
             // Compares against cached field values to avoid the bindable read + property access on
@@ -214,7 +265,18 @@ namespace osu.Android.Input
                 mappedY = rawY;
             }
 
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(mappedX, mappedY) });
+            var mappedPos = new Vector2(mappedX, mappedY);
+
+            // Belt-and-braces: drop pathologically out-of-bounds mapped samples. A
+            // half-initialised digitizer or a device-specific firmware glitch can emit
+            // raw coordinates a few orders of magnitude beyond the actual screen — those
+            // map to coordinates several screens away and visibly fling the cursor.
+            // The ±2x output-area window is generous enough to keep legitimate
+            // off-area samples (hover near the screen edge, area-rotation overshoot)
+            // while rejecting the obvious garbage.
+            if (mappedX < outLeft - 2f * outWidth || mappedX > outLeft + 3f * outWidth
+                || mappedY < outTop - 2f * outHeight || mappedY > outTop + 3f * outHeight)
+                return;
 
             // Button state: pressure-based click (primary) with action overrides.
             // Uses the cached threshold field rather than `PressureThreshold.Value` to skip the
@@ -230,10 +292,52 @@ namespace osu.Android.Input
             else if (actionMasked == MotionEventActions.Up || actionMasked == MotionEventActions.ButtonRelease || actionMasked == MotionEventActions.Cancel) isLeftDown = false;
             else if (actionMasked == MotionEventActions.Move && (buttonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
 
-            if (isLeftDown != lastLeftDown)
+            if (TreatAsTouch)
             {
-                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, isLeftDown));
-                lastLeftDown = isLeftDown;
+                // Route as a Touch1 event so the gameplay paths that only fire on real
+                // touch input (osu! relax/touch-device mod, mania touch columns, mobile
+                // tap suppression toggles, etc.) treat the S Pen as a finger.
+                //
+                // Two queue items per state change:
+                //   - Position update (always, so hover-only motion still moves the touch
+                //     point — needed for slider drawing in the editor and for the
+                //     OsuTouchInputMapper to track the active touch).
+                //   - Activate/deactivate when contact state changes.
+                //
+                // The companion mouse-pipeline state is force-released so a runtime toggle
+                // of the setting doesn't strand a phantom MouseButton.Left=true.
+                if (lastLeftDown)
+                {
+                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                    lastLeftDown = false;
+                }
+
+                lastTouchPosition = mappedPos;
+
+                // Position update (always emitted while the touch is active or starting).
+                if (isLeftDown || lastTouchActive)
+                    PendingInputs.Enqueue(new TouchInput(new[] { new Touch(TouchSource.Touch1, mappedPos) }, isLeftDown));
+
+                if (isLeftDown != lastTouchActive)
+                    lastTouchActive = isLeftDown;
+            }
+            else
+            {
+                // Mouse-pipeline path. Position is published as MousePositionAbsoluteInput
+                // so the desktop-style cursor tracks the pen tip even when not in contact.
+                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = mappedPos });
+
+                if (lastTouchActive)
+                {
+                    PendingInputs.Enqueue(new TouchInput(new[] { new Touch(TouchSource.Touch1, lastTouchPosition) }, false));
+                    lastTouchActive = false;
+                }
+
+                if (isLeftDown != lastLeftDown)
+                {
+                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, isLeftDown));
+                    lastLeftDown = isLeftDown;
+                }
             }
 
             // S Pen side button and eraser tip are intentionally NOT mapped to right/middle

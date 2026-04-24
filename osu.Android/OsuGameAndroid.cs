@@ -217,9 +217,16 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidHardwareAudioOffsetEnabled, hardwareAudioOffsetEnabled);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
-                // dispatch hot path reads. Subscribed (not just set once) so toggling at
-                // runtime takes effect on the very next motion event.
-                stylusAsTouch.BindValueChanged(e => OsuGameActivity.StylusAsTouch = e.NewValue, true);
+                // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
+                // set once) so toggling at runtime takes effect on the very next motion
+                // event. The handler instance may not yet exist at this point — the
+                // value is also re-applied at the bottom of registerInputHandlers() once
+                // the handler is constructed, so the initial value is never lost.
+                stylusAsTouch.BindValueChanged(e =>
+                {
+                    if (stylusHandler != null)
+                        stylusHandler.TreatAsTouch = e.NewValue;
+                }, true);
 
                 // sentinelOnDisable=true → presence ⇒ "feature disabled". The
                 // safety nets default to ON, so the sentinel is created only
@@ -1276,6 +1283,20 @@ namespace osu.Android
 
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
+        /// <summary>
+        /// On Android, "Back at the top of the navigation stack" should fully exit the
+        /// process rather than the framework default of <c>MoveTaskToBack</c>. The default
+        /// leaves the audio thread mixing, the GC scheduling work, and the Vulkan swapchain
+        /// pinned — perceived by the user as "I closed the app, why is it still draining
+        /// battery?". Routing to <see cref="PerformPlatformExit"/> reuses the documented
+        /// hard-exit dance (MoveTaskToBack + Activity.Finish + Process.KillProcess(MyPid)).
+        /// </summary>
+        public override bool SuspendToBackground()
+        {
+            PerformPlatformExit();
+            return true;
+        }
+
         // ------------------------------------------------------------------
         // Layer 3 helpers — extracted Oboe / Vulkan-probe BindValueChanged
         // bodies so the initial fire can be EITHER synchronous (the original
@@ -1639,6 +1660,12 @@ namespace osu.Android
                 mouseHandler = new AndroidMouseHandler();
                 keyboardHandler = new AndroidKeyboardHandler();
 
+                // Apply the persisted "Treat S Pen as touch" preference now that the
+                // handler instance exists. The BindValueChanged subscription installed
+                // in load() may have fired before this point (when stylusHandler was
+                // still null) — re-applying the current value here closes that race.
+                stylusHandler.TreatAsTouch = stylusAsTouch.Value;
+
                 gameActivity.StylusHandler = stylusHandler;
                 gameActivity.MouseHandler = mouseHandler;
                 gameActivity.KeyboardHandler = keyboardHandler;
@@ -1834,7 +1861,7 @@ namespace osu.Android
         public override osu.Game.Overlays.Settings.SettingsSubsection CreateSettingsSubsectionFor(osu.Framework.Input.Handlers.InputHandler handler)
         {
             if (handler is AndroidStylusHandler stylus)
-                return new osu.Game.Overlays.Settings.Sections.Input.TabletSettings(stylus);
+                return new AndroidStylusSettings(stylus);
 
             return base.CreateSettingsSubsectionFor(handler);
         }
