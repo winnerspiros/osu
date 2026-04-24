@@ -40,14 +40,12 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                 {
                     Keywords = new[] { @"hardware", @"offset", @"latency", @"calibration" },
                 },
-                new SettingsItemV2(new FormButton
+                new SettingsButtonV2
                 {
-                    Caption = "Resync hardware audio offset",
-                    ButtonText = "Resync",
+                    Text = "Resync hardware audio offset",
+                    TooltipText = "Re-measure the device's hardware output latency now and apply it to the audio offset.",
                     Action = () => game?.ResyncHardwareAudioOffset(),
-                })
-                {
-                    Keywords = new[] { @"resync", @"recalibrate", @"offset" },
+                    Keywords = new[] { @"resync", @"recalibrate", @"offset", @"hardware" },
                 },
             };
         }
