@@ -20,6 +20,7 @@ using osu.Android.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Game;
@@ -1571,11 +1572,32 @@ namespace osu.Android
                     return;
                 }
 
+                // Drop any pre-existing ITabletHandler from the framework's default handler
+                // set (SDLGameHost.CreateAvailableInputHandlers seeds an OpenTabletDriverHandler
+                // for desktop USB tablets). On Android there are no kernel-level tablet drivers
+                // for OTD to bind to, so it is non-functional and only adds detection chatter.
+                // More importantly, leaving it in the array results in TWO ITabletHandler
+                // instances once we append AndroidStylusHandler — and osu.Game queries the host
+                // with `OfType<ITabletHandler>().SingleOrDefault()` (e.g. ScalingContainer.cs:156,
+                // OsuGame.cs:257), which throws InvalidOperationException("MoreThanOneElement")
+                // and crashes the app during scene-graph bootstrap.
                 var existing = host.AvailableInputHandlers;
-                var combined = existing.AddRange(newHandlers);
+                int removedTabletHandlers = 0;
+
+                foreach (var h in existing)
+                {
+                    if (h is ITabletHandler)
+                        removedTabletHandlers++;
+                }
+
+                var filtered = removedTabletHandlers == 0
+                    ? existing
+                    : existing.RemoveAll(h => h is ITabletHandler);
+
+                var combined = filtered.AddRange(newHandlers);
                 prop.SetMethod.Invoke(host, new object[] { combined });
 
-                Logger.Log($"[osu!] Registered Android input handlers (stylus, mouse, keyboard); total handlers now {combined.Length}.", LoggingTarget.Input);
+                Logger.Log($"[osu!] Registered Android input handlers (stylus, mouse, keyboard); replaced {removedTabletHandlers} default ITabletHandler(s); total handlers now {combined.Length}.", LoggingTarget.Input);
             }
             catch (Exception e)
             {
