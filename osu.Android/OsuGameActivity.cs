@@ -394,26 +394,17 @@ namespace osu.Android
             return base.OnGenericMotionEvent(e);
         }
 
-        /// <summary>
-        /// When true, S Pen / stylus events are routed through the standard touch dispatch
-        /// pipeline (i.e. treated like a finger) instead of through <see cref="AndroidStylusHandler"/>.
-        /// Mirrored from <see cref="osu.Game.Configuration.OsuSetting.AndroidStylusAsTouch"/>
-        /// by <see cref="OsuGameAndroid"/>. Held as a volatile static so the per-event
-        /// dispatch hot path on the OS dispatch thread can read it without crossing the
-        /// managed-config bindable lock.
-        /// </summary>
-        internal static volatile bool StylusAsTouch;
-
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private bool isStylusEvent(MotionEvent e)
         {
-            // User opted to treat S Pen as plain touch input — short-circuit so the
-            // event flows to base.DispatchTouchEvent (and the framework's SDL touch
-            // handler) instead of to AndroidStylusHandler.
-            if (StylusAsTouch)
-                return false;
-
             // Source flag check is cheapest and short-circuits for the common case.
+            // Note: the "Treat S Pen as touch" toggle is intentionally NOT consulted here.
+            // We always route stylus events through AndroidStylusHandler — that handler
+            // internally branches between MousePositionAbsoluteInput and TouchInput based
+            // on the toggle (see AndroidStylusHandler.TreatAsTouch). Letting events fall
+            // through to the framework's SDL touch dispatch (the previous implementation)
+            // dropped them entirely on phones (we strip SDL's PenHandler) and on the
+            // secondary DeX display (different Window token).
             if ((e.Source & InputSourceType.Stylus) == InputSourceType.Stylus)
                 return true;
 

@@ -167,6 +167,18 @@ namespace osu.Game
         /// </summary>
         public virtual void PerformPlatformExit() => RequestExit();
 
+        /// <summary>
+        /// Send the running game to the background — invoked when the user presses Back at the
+        /// top of the navigation stack on a host whose <see cref="GameHost.CanExit"/> is
+        /// <c>false</c> (i.e. mobile platforms). The base implementation defers to
+        /// <see cref="GameHost.SuspendToBackground"/> (the framework default of "minimise the
+        /// task"). Platforms that prefer a hard exit at this point (notably Android, where
+        /// task-minimise leaves the audio thread / GC running and the user expects Back-from-menu
+        /// to fully close the app) override this to call <see cref="PerformPlatformExit"/>.
+        /// </summary>
+        /// <returns><c>true</c> if the request was handled.</returns>
+        public virtual bool SuspendToBackground() => Host.SuspendToBackground();
+
         public virtual string Version
         {
             get
