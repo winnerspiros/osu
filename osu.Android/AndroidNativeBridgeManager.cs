@@ -70,20 +70,21 @@ namespace osu.Android
 
                         if (started)
                         {
-                            Logger.Log("[osu!] Oboe bridge started successfully");
+                            Logger.Log($"[osu!] Oboe bridge started successfully (api={(bridge.IsAAudio ? "AAudio" : "OpenSLES")}, mmap={bridge.IsMMap}, rate={bridge.SampleRate}Hz, burst={bridge.FramesPerBurst}f, buffer={bridge.BufferSizeInFrames}f)");
                             logOboeInfo(bridge);
 
                             onStarted?.Invoke(bridge.SampleRate);
 
-                            scheduler.Add(new ScheduledDelegate(() =>
-                            {
-                                if (oboeBridge is not OboeAudioBridge b) return;
-
-                                double latency = b.GetOutputLatencyMs();
-
-                                if (latency > 0)
-                                    onLatencyMeasured(latency);
-                            }, 2000, 5000));
+                            // One-shot hardware-latency measurement. The native pipeline needs a few
+                            // hundred milliseconds of warm-up before AAudio reports a stable timestamp,
+                            // so we poll every 250 ms for up to ~2 s and apply the FIRST positive
+                            // reading we see. Once applied (or once the budget is exhausted), the
+                            // ScheduledDelegate cancels itself and never fires again. The previous
+                            // implementation used a 5000 ms repeat period, which kept overwriting the
+                            // user's audio offset every 5 s for the entire session — visible to the
+                            // user as a "jittering" / "auto-altering" hardware offset they could not
+                            // pin down. Use ResyncHardwareAudioOffset() for an explicit re-measure.
+                            scheduleHardwareLatencyMeasurement(scheduler, onLatencyMeasured);
                         }
                         else
                         {
@@ -103,12 +104,78 @@ namespace osu.Android
             }
         }
 
+        private ScheduledDelegate? hardwareLatencyDelegate;
+
+        /// <summary>
+        /// Schedules a one-shot hardware-latency measurement that polls the bridge every 250 ms
+        /// for up to ~2 s, applies the first positive reading via <paramref name="onLatencyMeasured"/>,
+        /// and then cancels itself. Cancels any previously-scheduled measurement.
+        /// </summary>
+        private void scheduleHardwareLatencyMeasurement(Scheduler scheduler, Action<double> onLatencyMeasured)
+        {
+            hardwareLatencyDelegate?.Cancel();
+
+            const int interval_ms = 250;
+            const int budget_ticks = 8; // 8 × 250ms = 2 s
+            int ticks = 0;
+
+            ScheduledDelegate? handle = null;
+            handle = new ScheduledDelegate(() =>
+            {
+                if (oboeBridge is not OboeAudioBridge b)
+                {
+                    handle?.Cancel();
+                    return;
+                }
+
+                double latency = b.GetOutputLatencyMs();
+                ticks++;
+
+                if (latency > 0)
+                {
+                    Logger.Log($"[osu!] Hardware audio latency measured: {latency:F1} ms (after {ticks * interval_ms} ms warm-up)");
+                    try { onLatencyMeasured(latency); }
+                    catch (Exception ex) { Logger.Log($"[osu!] Hardware-latency callback failed: {ex.Message}", level: LogLevel.Error); }
+                    handle?.Cancel();
+                    return;
+                }
+
+                if (ticks >= budget_ticks)
+                {
+                    Logger.Log("[osu!] Hardware audio latency unavailable after 2 s — leaving audio offset unchanged.", level: LogLevel.Important);
+                    handle?.Cancel();
+                }
+            }, interval_ms, interval_ms);
+
+            hardwareLatencyDelegate = handle;
+            scheduler.Add(handle);
+        }
+
+        /// <summary>
+        /// Public hook for the user-facing "Resync hardware audio offset" button. Re-runs the
+        /// one-shot measurement if the Oboe bridge is currently active. No-op otherwise.
+        /// </summary>
+        public void ResyncHardwareAudioOffset(Scheduler scheduler, Action<double> onLatencyMeasured)
+        {
+            if (oboeBridge is OboeAudioBridge)
+            {
+                Logger.Log("[osu!] Resyncing hardware audio offset (user request)");
+                scheduleHardwareLatencyMeasurement(scheduler, onLatencyMeasured);
+            }
+            else
+            {
+                Logger.Log("[osu!] Resync requested but Oboe bridge is not active — enable low-latency audio first.", level: LogLevel.Important);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StopOboeBridge()
         {
             lock (oboeLock)
             {
                 Logger.Log("[osu!] Stopping Oboe bridge...");
+                hardwareLatencyDelegate?.Cancel();
+                hardwareLatencyDelegate = null;
                 (oboeBridge as OboeAudioBridge)?.Dispose();
                 oboeBridge = null;
                 cachedOboeStatus = null;
@@ -278,6 +345,9 @@ namespace osu.Android
         {
             if (disposed) return;
             disposed = true;
+
+            try { hardwareLatencyDelegate?.Cancel(); } catch { }
+            hardwareLatencyDelegate = null;
 
             try { (oboeBridge as OboeAudioBridge)?.Dispose(); } catch { }
             oboeBridge = null;

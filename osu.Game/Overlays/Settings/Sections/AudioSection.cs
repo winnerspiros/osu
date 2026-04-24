@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
@@ -31,6 +32,9 @@ namespace osu.Game.Overlays.Settings.Sections
                 new VolumeSettings(),
                 new OffsetSettings(),
             };
+
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
+                Add(new AndroidAudioSettings());
         }
     }
 }

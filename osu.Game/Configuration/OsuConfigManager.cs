@@ -271,6 +271,9 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidDeferStartupNativeInit, true);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, false);
             SetDefault(OsuSetting.AndroidVerboseLogging, false);
+            SetDefault(OsuSetting.AndroidStylusAsTouch, false);
+            SetDefault(OsuSetting.AndroidHardwareAudioOffsetEnabled, true);
+            SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -534,6 +537,9 @@ namespace osu.Game.Configuration
         AndroidDeferStartupNativeInit,
         AndroidStartupFrameSyncMigrationEnabled,
         AndroidVerboseLogging,
+        AndroidStylusAsTouch,
+        AndroidHardwareAudioOffsetEnabled,
+        ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
     }
 }
