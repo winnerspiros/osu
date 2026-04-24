@@ -268,28 +268,29 @@ namespace osu.Android
 
             audioRedirector = new OboeAudioRedirector(Audio);
 
-            try
-            {
-                Type? audioType = typeof(AudioManager);
-                activeMixersList = audioType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                                            .FirstOrDefault(f => f.FieldType.IsGenericType && f.FieldType.GetGenericArguments().Contains(typeof(AudioMixer)))
-                                            ?.GetValue(Audio);
-
-                if (activeMixersList != null)
-                {
-                    MethodInfo? bindMethod = activeMixersList.GetType().GetMethod("BindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (bindMethod != null)
-                    {
-                        activeMixersHandler = new NotifyCollectionChangedEventHandler(onActiveMixersChanged);
-                        bindMethod.Invoke(activeMixersList, new object[] { activeMixersHandler });
-                        Debug.WriteLine("[osu!] Oboe redirector: Successfully bound to ActiveMixers collection");
-                    }
-                }
-            }
-            catch (Exception e) { Debug.WriteLine($"[osu!] Oboe redirector: Failed to bind to ActiveMixers: {e.Message}"); }
+            // The previous implementation watched AudioManager.activeMixers via reflection
+            // and called `audioRedirector.RefreshMixers(0)` whenever a per-store user
+            // mixer was added — necessary because the old redirector held a snapshot
+            // of mixer handles and had to re-attach new ones manually.
+            //
+            // The current OboeAudioRedirector goes through the framework's official
+            // `AudioManager.GlobalMixerHandle` hook, so any subsequently-created
+            // BassAudioMixer auto-attaches itself to our master mixer inside its own
+            // `createMixer` call (see osu.Framework BassAudioMixer.cs). The watch is
+            // no longer needed and would in fact be harmful: each invocation would
+            // tear down + recreate the master mixer + force every framework mixer to
+            // recreate, producing audible audio glitches every time a sample store was
+            // added. Field declarations are kept (null) so the existing dispose-time
+            // unbind code stays a no-op without further conditionals.
+            activeMixersList = null;
+            activeMixersHandler = null;
         }
 
-        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args) => Schedule(() => { if (lowLatencyAudio.Value) audioRedirector?.RefreshMixers(0); });
+        private void onActiveMixersChanged(object? sender, NotifyCollectionChangedEventArgs args)
+        {
+            // Intentionally a no-op — see comment in the constructor body where the
+            // active-mixers watch was previously bound.
+        }
 
         protected override void LoadComplete()
         {
@@ -1671,11 +1672,28 @@ namespace osu.Android
             string? ns = h.GetType().Namespace;
             if (ns == null) return false;
 
-            // Match the framework's two built-in handler namespaces. Touch (finger) input is
-            // intentionally NOT matched: we have no Android-native touch handler, so the
-            // framework's SDL touch handler must keep running for finger gameplay to work.
+            // Match the framework's three built-in handler namespaces we replace on Android.
+            // Touch (finger) input is intentionally NOT matched: we have no Android-native
+            // touch handler, so the framework's SDL touch handler must keep running for
+            // finger gameplay to work.
+            //
+            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) is the
+            // critical fix for the "S Pen stuck top-left" bug. PenHandler subscribes to
+            // SDL3-native pen events (window.PenMove / window.PenTouch) which arrive via
+            // SDL's NDK pump and **bypass the Java MotionEvent dispatch chain entirely** —
+            // returning true from Activity.DispatchTouchEvent does NOT prevent SDL from
+            // delivering them. PenHandler then enqueues TouchInput / MousePositionAbsoluteInputFromPen
+            // alongside our AndroidStylusHandler's MousePositionAbsoluteInput, the two
+            // streams race at the InputManager, and (because SDL's pen position for a
+            // freshly-attached S Pen often arrives at (0, 0) before the first hover sample)
+            // the cursor visibly snaps to the top-left of the screen. Filtering PenHandler
+            // out of AvailableInputHandlers leaves AndroidStylusHandler as the sole source
+            // of S Pen input, with proper area mapping. PenHandler does NOT implement
+            // ITabletHandler, so the existing ITabletHandler filter does not catch it —
+            // the namespace prefix match is required.
             return ns.StartsWith("osu.Framework.Input.Handlers.Mouse", StringComparison.Ordinal)
-                || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal);
+                || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal)
+                || ns.StartsWith("osu.Framework.Input.Handlers.Pen", StringComparison.Ordinal);
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

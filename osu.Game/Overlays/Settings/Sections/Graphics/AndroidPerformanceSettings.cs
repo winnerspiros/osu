@@ -40,6 +40,15 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Keywords = new[] { @"refresh", @"hz", @"display", @"dex", @"monitor" },
                 },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "Treat S Pen as touch",
+                    HintText = "When enabled, S Pen / stylus input is routed through the standard touch pipeline (treated like a finger tap) instead of through the dedicated stylus handler. Useful if the stylus cursor misbehaves on your device.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidStylusAsTouch),
+                })
+                {
+                    Keywords = new[] { @"s pen", @"spen", @"stylus", @"pen", @"touch", @"samsung" },
+                },
             };
         }
 
