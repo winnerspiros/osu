@@ -244,7 +244,7 @@ namespace osu.Android
                     }
                 }
 
-                globalMixerValueSetter.Invoke(globalMixerHandleBindable, new object?[] { handle });
+                globalMixerValueSetter!.Invoke(globalMixerHandleBindable!, new object?[] { handle });
                 return true;
             }
             catch (Exception e)
