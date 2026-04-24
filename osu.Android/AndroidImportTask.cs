@@ -5,10 +5,10 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
-using Android.Net;
 using Android.Provider;
 using osu.Framework.Logging;
 using osu.Game.Database;
+using Uri = Android.Net.Uri;
 
 namespace osu.Android
 {
