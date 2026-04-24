@@ -87,6 +87,8 @@ namespace osu.Android
         private readonly Bindable<bool> deferStartupNativeInit = new Bindable<bool>();
         private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
         private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
+        private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
+        private readonly Bindable<bool> hardwareAudioOffsetEnabled = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -211,6 +213,13 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidDeferStartupNativeInit, deferStartupNativeInit);
                 LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
                 LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
+                LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
+                LocalConfig.BindWith(OsuSetting.AndroidHardwareAudioOffsetEnabled, hardwareAudioOffsetEnabled);
+
+                // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
+                // dispatch hot path reads. Subscribed (not just set once) so toggling at
+                // runtime takes effect on the very next motion event.
+                stylusAsTouch.BindValueChanged(e => OsuGameActivity.StylusAsTouch = e.NewValue, true);
 
                 // sentinelOnDisable=true → presence ⇒ "feature disabled". The
                 // safety nets default to ON, so the sentinel is created only
@@ -1193,9 +1202,19 @@ namespace osu.Android
                 {
                     startOboeBridge(latency =>
                     {
+                        // Gate the auto-write of AudioOffset behind the user toggle. The Oboe bridge
+                        // still measures and reports hardware latency for the FPS-counter "additional
+                        // info" overlay and for explicit Resync requests, but only mutates the user's
+                        // AudioOffset when they have asked us to.
+                        if (!hardwareAudioOffsetEnabled.Value)
+                        {
+                            Logger.Log($"[osu!] Hardware audio offset disabled — measured {latency:F1}ms but leaving AudioOffset unchanged.");
+                            return;
+                        }
+
                         double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                         audioOffset.Value = suggested;
-                        Logger.Log($"[osu!] Audio offset auto-suggested: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                        Logger.Log($"[osu!] Audio offset auto-applied: {suggested:F1}ms (hardware latency={latency:F1}ms)");
                     }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate);
@@ -1218,6 +1237,21 @@ namespace osu.Android
                 audioRedirector?.Dispose();
                 audioRedirector = new OboeAudioRedirector(Audio);
             }
+        }
+
+        public override void ResyncHardwareAudioOffset()
+        {
+            if (nativeBridges is not AndroidNativeBridgeManager mgr)
+                return;
+
+            mgr.ResyncHardwareAudioOffset(Scheduler, latency =>
+            {
+                // Resync is an explicit user request — apply unconditionally regardless of
+                // the auto-apply toggle (the user just clicked the button to ask for it).
+                double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
+                audioOffset.Value = suggested;
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+            });
         }
 
         private void handleVulkanProbeChanged(ValueChangedEvent<bool> e)
@@ -1581,28 +1615,67 @@ namespace osu.Android
                 // with `OfType<ITabletHandler>().SingleOrDefault()` (e.g. ScalingContainer.cs:156,
                 // OsuGame.cs:257), which throws InvalidOperationException("MoreThanOneElement")
                 // and crashes the app during scene-graph bootstrap.
+                //
+                // Also drop the framework's built-in SDL mouse and keyboard handlers when we
+                // succeed in creating the Android equivalents below. On Android both the
+                // framework's SDL pump AND our Activity-level dispatch override fire for the
+                // same hardware events (mouse hover, keyboard press, etc.); when both
+                // handlers translate the same physical event into framework input the cursor
+                // / key state oscillates between the two readings, producing the visible
+                // "10 fps" / juddery cursor the user reported and double-fired key presses.
+                // We always take precedence: our handlers run on the OS dispatch thread with
+                // unbuffered dispatch and process the full historical sample buffer for
+                // maximum accuracy and performance, which is the explicit user requirement.
                 var existing = host.AvailableInputHandlers;
                 int removedTabletHandlers = 0;
+                int removedDuplicateHandlers = 0;
 
                 foreach (var h in existing)
                 {
                     if (h is ITabletHandler)
                         removedTabletHandlers++;
+                    else if (isFrameworkDuplicateOfAndroidHandler(h))
+                        removedDuplicateHandlers++;
                 }
 
-                var filtered = removedTabletHandlers == 0
+                var filtered = (removedTabletHandlers == 0 && removedDuplicateHandlers == 0)
                     ? existing
-                    : existing.RemoveAll(h => h is ITabletHandler);
+                    : existing.RemoveAll(h => h is ITabletHandler || isFrameworkDuplicateOfAndroidHandler(h));
 
                 var combined = filtered.AddRange(newHandlers);
                 prop.SetMethod.Invoke(host, new object[] { combined });
 
-                Logger.Log($"[osu!] Registered Android input handlers (stylus, mouse, keyboard); replaced {removedTabletHandlers} default ITabletHandler(s); total handlers now {combined.Length}.", LoggingTarget.Input);
+                Logger.Log($"[osu!] Registered Android input handlers (stylus, mouse, keyboard); replaced {removedTabletHandlers} default ITabletHandler(s) and {removedDuplicateHandlers} framework SDL mouse/keyboard handler(s); total handlers now {combined.Length}.", LoggingTarget.Input);
             }
             catch (Exception e)
             {
                 Logger.Log($"[osu!] Failed to register Android input handlers: {e.Message}", LoggingTarget.Input, LogLevel.Important);
             }
+        }
+
+        /// <summary>
+        /// Returns true for framework-built-in mouse/keyboard handlers that we want to suppress
+        /// in favour of the lower-latency Android-native equivalents. Identification is by
+        /// declaring assembly + namespace prefix (the SDL mouse/keyboard handlers live under
+        /// <c>osu.Framework.Input.Handlers.Mouse</c> / <c>osu.Framework.Input.Handlers.Keyboard</c>),
+        /// which avoids hard-coding the concrete SDL handler type names that have historically
+        /// changed across SDL2 → SDL3 framework upgrades.
+        /// </summary>
+        private static bool isFrameworkDuplicateOfAndroidHandler(osu.Framework.Input.Handlers.InputHandler h)
+        {
+            // Never strip our own handlers (paranoia — they are added AFTER filtering, but the
+            // filter runs against the existing array first).
+            if (h is AndroidMouseHandler || h is AndroidKeyboardHandler || h is AndroidStylusHandler)
+                return false;
+
+            string? ns = h.GetType().Namespace;
+            if (ns == null) return false;
+
+            // Match the framework's two built-in handler namespaces. Touch (finger) input is
+            // intentionally NOT matched: we have no Android-native touch handler, so the
+            // framework's SDL touch handler must keep running for finger gameplay to work.
+            return ns.StartsWith("osu.Framework.Input.Handlers.Mouse", StringComparison.Ordinal)
+                || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal);
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

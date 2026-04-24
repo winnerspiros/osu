@@ -40,8 +40,6 @@ namespace osu.Android.Input
         private readonly Bindable<TabletInfo?> tablet = new Bindable<TabletInfo?>();
 
         private bool lastLeftDown;
-        private bool lastRightDown;
-        private bool lastEraserDown;
 
         // Cached area values for hot path (avoids bindable access per event).
         private float areaLeft, areaTop, areaWidth, areaHeight;
@@ -143,7 +141,6 @@ namespace osu.Android.Input
             if (e.ActionMasked == MotionEventActions.HoverExit || e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.Cancel)
             {
                 if (lastLeftDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false)); lastLeftDown = false; }
-                if (lastRightDown) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false)); lastRightDown = false; }
 
                 if (e.ActionMasked != MotionEventActions.HoverExit)
                     return true;
@@ -227,21 +224,13 @@ namespace osu.Android.Input
                 lastLeftDown = isLeftDown;
             }
 
-            // S Pen button → right click.
-            bool isRightDown = (buttonState & MotionEventButtonState.StylusPrimary) != 0;
-            if (isRightDown != lastRightDown)
-            {
-                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, isRightDown));
-                lastRightDown = isRightDown;
-            }
-
-            // Eraser → middle click.
-            bool isEraserDown = (buttonState & MotionEventButtonState.StylusSecondary) != 0 || e.GetToolType(pointer_index) == MotionEventToolType.Eraser;
-            if (isEraserDown != lastEraserDown)
-            {
-                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Middle, isEraserDown));
-                lastEraserDown = isEraserDown;
-            }
+            // S Pen side button and eraser tip are intentionally NOT mapped to right/middle
+            // mouse buttons. On Samsung devices a stray button-bit on a normal tap was
+            // synthesizing a right-click, which opened in-game context overlays at whatever
+            // position the desktop-style mouse cursor was last at (often (0,0) — the
+            // "stuck top-left options" the user reported). Pressure-only left-click is the
+            // expected pen-as-pointer behaviour and matches how the framework handles
+            // graphics-tablet styli on desktop.
         }
     }
 }

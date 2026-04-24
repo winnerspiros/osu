@@ -128,6 +128,13 @@ namespace osu.Game
 
         public virtual double OboeLatency => -1;
 
+        /// <summary>
+        /// Re-runs the hardware audio latency measurement and applies the result to
+        /// <see cref="OsuSetting.AudioOffset"/>. No-op outside of Android. Safe to call at
+        /// any time; the measurement is bounded (~2 seconds) and stops on its own.
+        /// </summary>
+        public virtual void ResyncHardwareAudioOffset() { }
+
         public virtual string VulkanStatus => string.Empty;
 
         public virtual int DisplayRefreshRate => 0;

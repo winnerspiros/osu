@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -23,6 +24,7 @@ namespace osu.Game.Graphics.UserInterface
     {
         private OsuSpriteText counterUpdateFrameTime = null!;
         private OsuSpriteText counterDrawFPS = null!;
+        private OsuSpriteText counterAdditionalInfo = null!;
 
         private Container mainContent = null!;
 
@@ -32,11 +34,14 @@ namespace osu.Game.Graphics.UserInterface
 
         private const double min_time_between_updates = 10;
 
+        private const double additional_info_update_interval_ms = 1000;
+
         private const double spike_time_ms = 20;
 
         private const float idle_background_alpha = 0.4f;
 
         private readonly BindableBool showFpsDisplay = new BindableBool(true);
+        private readonly BindableBool showFpsAdditionalInfo = new BindableBool();
 
         private double displayedFpsCount;
         private double displayedFrameTime;
@@ -47,9 +52,20 @@ namespace osu.Game.Graphics.UserInterface
         private double aimUpdateFPS;
 
         private double lastUpdate;
+        private double lastAdditionalInfoUpdate;
+        private string? lastAdditionalInfoText;
         private ThrottledFrameClock drawClock = null!;
         private ThrottledFrameClock updateClock = null!;
         private ThrottledFrameClock inputClock = null!;
+
+        [Resolved]
+        private GameHost gameHost { get; set; } = null!;
+
+        [Resolved(canBeNull: true)]
+        private OsuGameBase? game { get; set; }
+
+        [Resolved(canBeNull: true)]
+        private FrameworkConfigManager? frameworkConfig { get; set; }
 
         /// <summary>
         /// The last time value where the display was required (due to a significant change or hovering).
@@ -91,6 +107,19 @@ namespace osu.Game.Graphics.UserInterface
                                 },
                             }
                         },
+                        // Additional info sits above the main FPS box (Anchor TopRight + Origin
+                        // BottomRight) so its bottom-right corner is flush with the top-right of
+                        // mainContent. Outside of the masked background and not auto-sized into
+                        // the box, so toggling it on never reflows or resizes the FPS counter.
+                        counterAdditionalInfo = new OsuSpriteText
+                        {
+                            Anchor = Anchor.TopRight,
+                            Origin = Anchor.BottomRight,
+                            Margin = new MarginPadding { Bottom = 1 },
+                            Font = OsuFont.Default.With(fixedWidth: true, size: 11, weight: FontWeight.SemiBold),
+                            Spacing = new Vector2(-1),
+                            Alpha = 0,
+                        },
                         counters = new Container
                         {
                             Anchor = Anchor.TopRight,
@@ -123,6 +152,7 @@ namespace osu.Game.Graphics.UserInterface
             };
 
             config.BindWith(OsuSetting.ShowFpsDisplay, showFpsDisplay);
+            config.BindWith(OsuSetting.ShowFpsAdditionalInfo, showFpsAdditionalInfo);
 
             drawClock = gameHost.DrawThread.Clock;
             updateClock = gameHost.UpdateThread.Clock;
@@ -143,6 +173,18 @@ namespace osu.Game.Graphics.UserInterface
             }, true);
 
             State.BindValueChanged(state => showFpsDisplay.Value = state.NewValue == Visibility.Visible);
+
+            showFpsAdditionalInfo.BindValueChanged(v =>
+            {
+                counterAdditionalInfo.Alpha = v.NewValue ? 1 : 0;
+
+                if (v.NewValue)
+                {
+                    // Force a refresh on toggle so the text appears immediately.
+                    lastAdditionalInfoText = null;
+                    updateAdditionalInfoText();
+                }
+            }, true);
         }
 
         protected override void PopIn() => this.FadeIn(100);
@@ -203,6 +245,12 @@ namespace osu.Game.Graphics.UserInterface
                 lastUpdate = Time.Current;
             }
 
+            if (showFpsAdditionalInfo.Value && Time.Current - lastAdditionalInfoUpdate > additional_info_update_interval_ms)
+            {
+                updateAdditionalInfoText();
+                lastAdditionalInfoUpdate = Time.Current;
+            }
+
             bool hasSignificantChanges = aimRatesChanged
                                          || hasDrawSpike
                                          || hasUpdateSpike
@@ -242,6 +290,56 @@ namespace osu.Game.Graphics.UserInterface
                 : $"{displayedFrameTime:N0} ms";
 
             counterUpdateFrameTime.Colour = getColour((1000 / displayedFrameTime) / aimUpdateFPS);
+        }
+
+        /// <summary>
+        /// Renders a compact one-line summary of the active renderer, Oboe audio status, and
+        /// the current display refresh rate above the FPS digits. Refreshed at most once per
+        /// second to keep cost negligible. Only mutates the sprite when the rendered text
+        /// actually changes, so we avoid invalidating the FPS-counter layout on every tick.
+        /// </summary>
+        private void updateAdditionalInfoText()
+        {
+            string renderer;
+
+            try
+            {
+                renderer = gameHost.ResolvedRenderer.ToString();
+            }
+            catch
+            {
+                renderer = "?";
+            }
+
+            string oboe;
+
+            if (game == null || !game.IsOboeEnabled)
+                oboe = "off";
+            else if (game.IsOboeActive)
+                oboe = !string.IsNullOrEmpty(game.OboeStatus) ? game.OboeStatus : "on";
+            else
+                oboe = "init";
+
+            string refreshRate = string.Empty;
+
+            if (game != null && game.DisplayRefreshRate > 0)
+                refreshRate = $" • {game.DisplayRefreshRate}Hz";
+            else if (frameworkConfig != null)
+            {
+                int hz = (int)Math.Round(drawClock.MaximumUpdateHz);
+                if (hz > 0 && hz < 10000)
+                    refreshRate = $" • {hz}Hz";
+            }
+
+            string text = $"{renderer} • Oboe: {oboe}{refreshRate}";
+
+            if (text == lastAdditionalInfoText)
+                return;
+
+            lastAdditionalInfoText = text;
+            counterAdditionalInfo.Text = text;
+            counterAdditionalInfo.Colour = colours.Gray9;
+            requestDisplay();
         }
 
         private bool updateAimFPS()
