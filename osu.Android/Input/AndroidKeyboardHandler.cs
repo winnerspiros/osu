@@ -60,7 +60,13 @@ namespace osu.Android.Input
             Enabled.Value = true;
         }
 
-        public override bool Initialize(GameHost host) => true;
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            return true;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleKeyEvent(KeyEvent e)

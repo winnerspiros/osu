@@ -244,38 +244,17 @@ namespace osu.Android
             else if (startupFrameSyncMigrationEnabled.Value)
                 Debug.WriteLine("[osu!] FrameSync migration skipped this launch (safe-mode active)");
 
-            stylusHandler = new AndroidStylusHandler();
-            Host.AvailableInputHandlers.Add(stylusHandler);
-            gameActivity.StylusHandler = stylusHandler;
-
-            // Pass actual display dimensions to the stylus handler so the tablet area
-            // matches the real digitizer/screen size (not a hardcoded placeholder).
-            try
-            {
-                var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
-
-                if (metrics != null)
-                {
-                    var bounds = metrics.Bounds;
-                    int displayWidth = bounds.Width();
-                    int displayHeight = bounds.Height();
-
-                    if (displayWidth > 0 && displayHeight > 0)
-                        stylusHandler.SetDisplaySize(displayWidth, displayHeight);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[osu!] Failed to get display size for stylus handler: {e.Message}");
-            }
-
-            mouseHandler = new AndroidMouseHandler();
-            Host.AvailableInputHandlers.Add(mouseHandler);
-            gameActivity.MouseHandler = mouseHandler;
-
-            keyboardHandler = new AndroidKeyboardHandler();
-            Host.AvailableInputHandlers.Add(keyboardHandler);
-            gameActivity.KeyboardHandler = keyboardHandler;
+            // NOTE: the three Android input handlers (stylus / mouse / keyboard) used to
+            // be created here and registered via `Host.AvailableInputHandlers.Add(...)`.
+            // That call is silently a no-op: `GameHost.AvailableInputHandlers` is an
+            // `ImmutableArray<InputHandler>` (see GameHost.cs in osu-framework), so
+            // `.Add(...)` returns a brand-new array and the result is discarded — the
+            // host's actual handler list is never updated, the input thread never polls
+            // our handlers, and S Pen / mouse / keyboard input that we intercepted in
+            // `OsuGameActivity.Dispatch*Event` was enqueued into a `PendingInputs`
+            // queue that no consumer ever drained. Registration now happens in
+            // `SetHost()` (synchronously, on the GameHost thread) via reflective
+            // replacement of the immutable array — see `registerAndroidInputHandlers`.
 
             audioRedirector = new OboeAudioRedirector(Audio);
 
@@ -1478,6 +1457,11 @@ namespace osu.Android
             base.SetHost(host);
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (base.SetHost returned)");
 
+            // Register the three Android-specific input handlers (S Pen / mouse / keyboard)
+            // synchronously on the GameHost thread, immediately after the host has finished
+            // populating its built-in handler array. See `registerAndroidInputHandlers`.
+            registerAndroidInputHandlers(host);
+
             // Bracket each per-thread Scheduler.Add registration so that — even
             // without the native watchdog firing — a freeze inside one of these
             // schedule-on-thread submissions narrows the window to a single
@@ -1497,6 +1481,106 @@ namespace osu.Android
                 host.Window.CursorState |= CursorState.Hidden;
 
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (returning)");
+        }
+
+        /// <summary>
+        /// Register the three fork-specific Android input handlers (S Pen / mouse / keyboard)
+        /// with the host so the input thread polls them every frame.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see cref="GameHost.AvailableInputHandlers"/> is an
+        /// <see cref="System.Collections.Immutable.ImmutableArray{T}"/> with a private setter,
+        /// populated once at host setup from <c>CreateAvailableInputHandlers()</c>. Calling
+        /// <c>.Add(...)</c> on it returns a *new* immutable array and discards the result —
+        /// the host's actual handler list is never mutated, so the input thread loop
+        /// (<c>foreach (var h in AvailableInputHandlers)</c>) never sees handlers added via
+        /// that pattern. Their <c>PendingInputs</c> then stay queued forever and S Pen / mouse
+        /// / keyboard events that we intercept in <see cref="OsuGameActivity"/> vanish.
+        /// </para>
+        /// <para>
+        /// Fix: build the handlers here, run their <see cref="osu.Framework.Input.Handlers.InputHandler.Initialize"/>
+        /// (the framework would normally do this at <c>CreateAvailableInputHandlers</c> time),
+        /// then reflectively replace the immutable-array property with the union of the host's
+        /// existing handlers and ours. Done synchronously on the GameHost thread immediately
+        /// after <c>base.SetHost</c>, so the input thread sees the full set on its first poll.
+        /// </para>
+        /// </remarks>
+        private void registerAndroidInputHandlers(GameHost host)
+        {
+            try
+            {
+                stylusHandler = new AndroidStylusHandler();
+                mouseHandler = new AndroidMouseHandler();
+                keyboardHandler = new AndroidKeyboardHandler();
+
+                gameActivity.StylusHandler = stylusHandler;
+                gameActivity.MouseHandler = mouseHandler;
+                gameActivity.KeyboardHandler = keyboardHandler;
+
+                // Match the screen / digitiser dimensions for tablet area mapping.
+                try
+                {
+                    var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
+
+                    if (metrics != null)
+                    {
+                        var bounds = metrics.Bounds;
+                        int displayWidth = bounds.Width();
+                        int displayHeight = bounds.Height();
+
+                        if (displayWidth > 0 && displayHeight > 0)
+                            stylusHandler.SetDisplaySize(displayWidth, displayHeight);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to get display size for stylus handler: {e.Message}");
+                }
+
+                // Initialize each handler the same way the framework would in
+                // CreateAvailableInputHandlers — sets the protected Host field on the base
+                // class and runs handler-specific bindable wiring. Skip-on-failure: a single
+                // misbehaving handler must not knock out the other two.
+                var newHandlers = new osu.Framework.Input.Handlers.InputHandler[] { stylusHandler, mouseHandler, keyboardHandler };
+
+                foreach (var h in newHandlers)
+                {
+                    try
+                    {
+                        if (!h.Initialize(host))
+                            Debug.WriteLine($"[osu!] Input handler {h.GetType().Name} declined to initialize.");
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Input handler {h.GetType().Name} threw during Initialize: {e.Message}");
+                    }
+                }
+
+                // Reflectively replace AvailableInputHandlers with the union of the host's
+                // existing immutable array and our three handlers. The property has a private
+                // setter; we use reflection because the framework does not expose a public
+                // RegisterInputHandler API. Reading + writing an ImmutableArray<T> reference
+                // is atomic, so the input thread either sees the old array or the new one —
+                // never a torn state.
+                var prop = typeof(GameHost).GetProperty(nameof(GameHost.AvailableInputHandlers), BindingFlags.Public | BindingFlags.Instance);
+
+                if (prop?.SetMethod == null)
+                {
+                    Logger.Log("[osu!] Could not locate setter for GameHost.AvailableInputHandlers — Android input handlers will be inactive.", LoggingTarget.Input, LogLevel.Important);
+                    return;
+                }
+
+                var existing = host.AvailableInputHandlers;
+                var combined = existing.AddRange(newHandlers);
+                prop.SetMethod.Invoke(host, new object[] { combined });
+
+                Logger.Log($"[osu!] Registered Android input handlers (stylus, mouse, keyboard); total handlers now {combined.Length}.", LoggingTarget.Input);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"[osu!] Failed to register Android input handlers: {e.Message}", LoggingTarget.Input, LogLevel.Important);
+            }
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();

@@ -28,7 +28,13 @@ namespace osu.Android.Input
             Enabled.Value = true;
         }
 
-        public override bool Initialize(GameHost host) => true;
+        public override bool Initialize(GameHost host)
+        {
+            if (!base.Initialize(host))
+                return false;
+
+            return true;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleMotionEvent(MotionEvent e)
@@ -64,14 +70,27 @@ namespace osu.Android.Input
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(x, y) });
 
+            // Drive button state purely from MotionEvent.ButtonState — the bitmask is
+            // already authoritative for which physical buttons are currently held, across
+            // every action type (Move, ButtonPress, ButtonRelease, Down, Up). The previous
+            // implementation also force-set `left = true` on any `Down`/`ButtonPress` and
+            // `false` on any `Up`/`ButtonRelease`, which collapsed every right-click /
+            // middle-click / forward-click into a spurious left-click (an osu! hit) — the
+            // exact opposite of the README's "all 5 buttons" promise. ButtonState alone
+            // already covers the touchscreen-Down case for trackpads (Primary bit set on
+            // tap) so no override is needed.
+            //
+            // Mouse back/forward are exposed as MouseButton.Button1/Button2 (the README's
+            // "all 5 buttons"). On devices that *additionally* synthesise a Keycode.Back
+            // for the back button, OsuGameActivity.DispatchKeyEvent also translates that
+            // into Escape for menu navigation (README: "Mouse back button = Escape"); the
+            // small overlap on those devices is harmless because Button1 has no default
+            // binding in osu! and so cannot trigger an unintended gameplay hit.
             bool left = (e.ButtonState & MotionEventButtonState.Primary) != 0;
             bool right = (e.ButtonState & MotionEventButtonState.Secondary) != 0;
             bool middle = (e.ButtonState & MotionEventButtonState.Tertiary) != 0;
             bool back = (e.ButtonState & MotionEventButtonState.Back) != 0;
             bool forward = (e.ButtonState & MotionEventButtonState.Forward) != 0;
-
-            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.ButtonPress) left = true;
-            if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.ButtonRelease) left = false;
 
             if (left != lastLeft) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, left)); lastLeft = left; }
             if (right != lastRight) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, right)); lastRight = right; }

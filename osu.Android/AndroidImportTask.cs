@@ -1,11 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Net;
 using Android.Provider;
+using osu.Framework.Logging;
 using osu.Game.Database;
 
 namespace osu.Android
@@ -25,7 +27,24 @@ namespace osu.Android
 
         public override void DeleteFile()
         {
-            contentResolver.Delete(uri, null, null);
+            try
+            {
+                contentResolver.Delete(uri, null, null);
+            }
+            catch (Java.Lang.SecurityException e)
+            {
+                // Some third-party file managers (notably MIUI's `com.android.fileexplorer`)
+                // share content URIs without granting the receiving app write permission, so
+                // the post-import source-file delete throws SecurityException. The import
+                // itself has already succeeded by this point; failing to delete the original
+                // is a best-effort cleanup, so swallow the exception and log at info level
+                // instead of letting it surface as a user-facing red error notification.
+                Logger.Log($"Skipped deleting imported source file (provider denied write access): {e.Message}", LoggingTarget.Database);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"Failed to delete imported source file: {e.Message}", LoggingTarget.Database);
+            }
         }
 
         public static async Task<AndroidImportTask?> Create(ContentResolver contentResolver, Uri uri)
