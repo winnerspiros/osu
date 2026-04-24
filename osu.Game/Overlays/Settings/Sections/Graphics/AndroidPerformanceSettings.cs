@@ -76,7 +76,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 children.Add(new DangerousSettingsButtonV2
                 {
                     Text = "Exit game",
-                    Action = game.RequestExit,
+                    Action = game.PerformPlatformExit,
                 });
             }
 

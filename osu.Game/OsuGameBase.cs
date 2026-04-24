@@ -158,11 +158,14 @@ namespace osu.Game
         public virtual bool HasStylusInput => true;
 
         /// <summary>
-        /// Request that the game exit. No-op on platforms whose host does not allow programmatic exit
-        /// (e.g. mobile platforms where <see cref="GameHost.CanExit"/> is <c>false</c>); the Android
-        /// override force-terminates the process as a last-resort exit option.
+        /// Force-terminate the application from a platform-specific code path. The framework's
+        /// <see cref="osu.Framework.Game.RequestExit"/> already covers the standard "ask the user
+        /// then exit" flow on platforms whose <see cref="GameHost.CanExit"/> is <c>true</c>; this
+        /// hook exists for platforms (notably Android) where the host reports <c>CanExit=false</c>
+        /// and the only reliable way to terminate the process is a platform-specific call. The
+        /// base implementation falls back to the framework's standard <see cref="osu.Framework.Game.RequestExit"/>.
         /// </summary>
-        public virtual void RequestExit() => Host?.Exit();
+        public virtual void PerformPlatformExit() => RequestExit();
 
         public virtual string Version
         {

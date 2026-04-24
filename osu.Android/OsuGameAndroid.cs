@@ -1233,7 +1233,7 @@ namespace osu.Android
             }
         }
 
-        public override void RequestExit()
+        public override void PerformPlatformExit()
         {
             // The framework's AndroidGameHost reports CanExit=false (so host.Exit() is a no-op)
             // and there is no clean SDL/Activity teardown path on Android — calling Activity.Finish()
