@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Game Mode declaration for the Android Game Manager (API 33+).
+
+    osu! is a rhythm game whose timing model REQUIRES that the OS does not silently
+    cap our frame rate, force resolution downscaling, or otherwise interpose between
+    our render output and the display compositor. Each of the four flags below opts
+    OUT of the corresponding OS-level Game Mode intervention:
+
+      supportsBatteryGameMode="false"
+        Tell the OS we do not consent to "Battery" mode adjustments. With this set to
+        true the system may cap us at 30Hz on AOSP / Pixel devices when battery saver
+        is on — a 50% drop in input-to-photon update rate that destroys aim/timing.
+
+      supportsPerformanceGameMode="false"
+        We already pin big cores ourselves (see OboeBridge::start CPU affinity, and
+        OsuGameAndroid.LoadComplete thread affinity), enable sustained performance
+        mode at the right time, and request the highest seamless refresh rate. The
+        OS Game Manager's "performance" branch overlaps with all of these and on some
+        OEM ROMs (one-off Pixel 7 reports) flips the panel back to 60Hz to "save
+        thermals", undoing our 120Hz selection.
+
+      allowGameDownscaling="false"
+        Refuse the OS-driven render-resolution downscaler. The framework already has
+        a Scaling container (osu.Game.Configuration.OsuSetting.Scaling) the user
+        can use; an OS-imposed second downscaler stacks on top and breaks
+        hit-object pixel-perfect alignment.
+
+      allowGameFpsOverride="false"
+        Refuse the OS Game Mode FPS override (the AOSP "limit FPS" toggle). osu!
+        gameplay timing is locked to the chosen FrameSync / refresh rate; an OS
+        override silently halves frame rate and shifts perceived latency.
+-->
+<game-mode-config xmlns:android="http://schemas.android.com/apk/res/android"
+    android:supportsBatteryGameMode="false"
+    android:supportsPerformanceGameMode="false"
+    android:allowGameDownscaling="false"
+    android:allowGameFpsOverride="false" />

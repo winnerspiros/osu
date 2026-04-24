@@ -10,7 +10,7 @@
 	  reaches DispatchKeyEvent and the OS default for root-task activities (moveTaskToBack,
 	  i.e. minimise) takes over instead.
 	-->
-	<application android:allowBackup="true" android:supportsRtl="true" android:label="osu!" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:largeHeap="true" android:hardwareAccelerated="true" android:extractNativeLibs="false" android:enableOnBackInvokedCallback="false">
+	<application android:allowBackup="true" android:supportsRtl="true" android:label="osu!" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:largeHeap="true" android:hardwareAccelerated="true" android:extractNativeLibs="false" android:enableOnBackInvokedCallback="false" android:appCategory="game">
         <provider android:name="androidx.core.content.FileProvider" android:authorities="sh.ppy.osulazer.fileprovider" android:grantUriPermissions="true" android:exported="false">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/filepaths" />
         </provider>
@@ -20,5 +20,14 @@
              This enables vendor-specific optimizations (performance boost, thermal management,
              display refresh rate priority) on Samsung devices automatically. -->
         <meta-data android:name="com.samsung.android.game.biz" android:value="true" />
+        <!-- Android 13+ Game Mode opt-out (https://developer.android.com/games/gamemode/gamemode-api).
+             We explicitly disable Battery- and Performance-mode interventions, FPS override, and
+             downscaling. A rhythm game's input-to-audio latency budget is hard-bound by the
+             active refresh rate and the audio burst cadence — letting the OS Game Manager cap
+             our framerate (typical "battery saver" downscale: 60Hz → 30Hz) or downscale our
+             render resolution (typical "battery saver" downscale: 100% → 75%) breaks both
+             timing accuracy AND visual hit-circle alignment. We already manage thermals, refresh
+             rate, and sustained performance ourselves (see OsuGameAndroid.LoadComplete). -->
+        <meta-data android:name="android.game_mode_config" android:resource="@xml/gamemode_config" />
     </application>
 </manifest>

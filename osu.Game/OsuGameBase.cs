@@ -149,6 +149,21 @@ namespace osu.Game
         /// </summary>
         public Bindable<int> SelectedDisplayRefreshRate { get; } = new Bindable<int>();
 
+        /// <summary>
+        /// Whether the running device exposes physical stylus / S Pen hardware.
+        /// Used by settings UI to hide stylus-specific toggles on devices that have no stylus.
+        /// Defaults to <c>true</c> on platforms that cannot determine this (i.e. desktop tablet input
+        /// is configured separately, and on iOS the Apple Pencil setting is exposed elsewhere).
+        /// </summary>
+        public virtual bool HasStylusInput => true;
+
+        /// <summary>
+        /// Request that the game exit. No-op on platforms whose host does not allow programmatic exit
+        /// (e.g. mobile platforms where <see cref="GameHost.CanExit"/> is <c>false</c>); the Android
+        /// override force-terminates the process as a last-resort exit option.
+        /// </summary>
+        public virtual void RequestExit() => Host?.Exit();
+
         public virtual string Version
         {
             get

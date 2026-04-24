@@ -1185,6 +1185,95 @@ namespace osu.Android
 
         public override int DisplayRefreshRate => currentRefreshRate;
 
+        public override bool HasStylusInput => detectStylusHardware();
+
+        /// <summary>
+        /// Cached result of <see cref="detectStylusHardware"/>. PackageManager.HasSystemFeature()
+        /// crosses JNI and walks the system-features list; cache once on first call so the settings
+        /// section query (which can fire as the user scrolls past) is amortised.
+        /// </summary>
+        private bool? cachedHasStylusHardware;
+
+        private bool detectStylusHardware()
+        {
+            if (cachedHasStylusHardware.HasValue)
+                return cachedHasStylusHardware.Value;
+
+            try
+            {
+                var pm = gameActivity.PackageManager;
+                bool detected = false;
+
+                if (pm != null)
+                {
+                    // Samsung S Pen — covers Note, S Ultra, and Tab S series. The S Pen API is
+                    // a Samsung extension exposed under the "com.sec.feature.spen_usp" feature.
+                    if (pm.HasSystemFeature("com.sec.feature.spen_usp"))
+                        detected = true;
+                    // Generic Android stylus support — non-Samsung devices that expose a stylus
+                    // (Lenovo Tab P, Motorola Note, ChromeOS tablets in Android compat) advertise
+                    // this feature instead. Added in API 33; safe to query on older OS as a no-op
+                    // returning false.
+                    else if (pm.HasSystemFeature("android.hardware.input.stylus"))
+                        detected = true;
+                }
+
+                cachedHasStylusHardware = detected;
+                return detected;
+            }
+            catch (Exception e)
+            {
+                // Defensive: if PackageManager queries fail (extremely unlikely), default to TRUE
+                // so the user can still access the stylus-as-touch escape hatch on a misbehaving
+                // device. The toggle is harmless on devices without a stylus (it gates an
+                // input-routing branch that never fires).
+                Debug.WriteLine($"[osu!] Stylus hardware detection failed: {e.Message}");
+                cachedHasStylusHardware = true;
+                return true;
+            }
+        }
+
+        public override void RequestExit()
+        {
+            // The framework's AndroidGameHost reports CanExit=false (so host.Exit() is a no-op)
+            // and there is no clean SDL/Activity teardown path on Android — calling Activity.Finish()
+            // alone leaves the Mono runtime, the JNI-attached audio thread, the GC coordinator and
+            // the SDL main thread alive in zombie state, racing each other to a SIGSEGV. The only
+            // reliable "exit" on Android (and the documented recommendation for games) is to remove
+            // the task from recents and then terminate the process. We:
+            //   1) MoveTaskToBack so the system removes us from the foreground (mirrors the
+            //      behaviour of pressing Back at the top of the navigation stack on a normal app),
+            //   2) Finish the activity so we don't leave a stale task entry behind,
+            //   3) KillProcess(MyPid()) — the canonical "this is a game, end now" call. Mono's
+            //      finalizer thread is intentionally NOT awaited; on-disk state (Realm, settings,
+            //      log files) has already been flushed by the framework on every commit / config
+            //      change, and any in-flight realm transaction would be rolled back on next launch
+            //      anyway.
+            Logger.Log("[osu!] User requested explicit exit", LoggingTarget.Runtime);
+
+            try
+            {
+                gameActivity.RunOnUiThread(() =>
+                {
+                    try { gameActivity.MoveTaskToBack(true); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] MoveTaskToBack failed: {e.Message}"); }
+
+                    try { gameActivity.Finish(); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] Activity.Finish failed: {e.Message}"); }
+
+                    try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] KillProcess failed: {e.Message}"); }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to dispatch exit to UI thread: {e.Message}");
+                // Last-resort: kill from whatever thread we're on. KillProcess is async-signal-safe.
+                try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                catch { /* nothing more we can do */ }
+            }
+        }
+
         public double GetMeasuredAudioLatencyMs() => getMeasuredAudioLatencyFromBridge();
 
         // ------------------------------------------------------------------

@@ -86,11 +86,18 @@ namespace osu.Android.Input
             // into Escape for menu navigation (README: "Mouse back button = Escape"); the
             // small overlap on those devices is harmless because Button1 has no default
             // binding in osu! and so cannot trigger an unintended gameplay hit.
-            bool left = (e.ButtonState & MotionEventButtonState.Primary) != 0;
-            bool right = (e.ButtonState & MotionEventButtonState.Secondary) != 0;
-            bool middle = (e.ButtonState & MotionEventButtonState.Tertiary) != 0;
-            bool back = (e.ButtonState & MotionEventButtonState.Back) != 0;
-            bool forward = (e.ButtonState & MotionEventButtonState.Forward) != 0;
+            //
+            // Cache ButtonState into a local before the five bit-tests below: each access
+            // of `e.ButtonState` is a JNI method call into MotionEvent#getButtonState, and
+            // on a multi-button mouse a single Move sample with HistorySize=20 ends up
+            // doing 5 × 21 = 105 redundant JNI crossings per event. Folding to a single
+            // read drops that to 21 crossings (only the per-sample one we cannot avoid).
+            var buttonState = e.ButtonState;
+            bool left = (buttonState & MotionEventButtonState.Primary) != 0;
+            bool right = (buttonState & MotionEventButtonState.Secondary) != 0;
+            bool middle = (buttonState & MotionEventButtonState.Tertiary) != 0;
+            bool back = (buttonState & MotionEventButtonState.Back) != 0;
+            bool forward = (buttonState & MotionEventButtonState.Forward) != 0;
 
             if (left != lastLeft) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, left)); lastLeft = left; }
             if (right != lastRight) { PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, right)); lastRight = right; }
