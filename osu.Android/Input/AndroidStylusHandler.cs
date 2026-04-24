@@ -47,6 +47,14 @@ namespace osu.Android.Input
         private float areaLeft, areaTop, areaWidth, areaHeight;
         private float outLeft, outTop, outWidth, outHeight;
         private float rotSin, rotCos;
+        private bool useRotation;
+        private float cachedPressureThreshold;
+
+        // Cached tablet bounds — updated whenever `tablet.Value` is reassigned. Avoids
+        // three bindable reads + property accesses per historical pointer sample in the
+        // hot path. A local-field comparison is a single un-locked memory read.
+        private float cachedTabletSizeX = 1920;
+        private float cachedTabletSizeY = 1080;
 
         private const float deg_to_rad = MathF.PI / 180f;
 
@@ -66,6 +74,7 @@ namespace osu.Android.Input
             OutputAreaSize.BindValueChanged(_ => updateCachedTransform());
             OutputAreaOffset.BindValueChanged(_ => updateCachedTransform());
             Rotation.BindValueChanged(_ => updateCachedTransform());
+            PressureThreshold.BindValueChanged(v => cachedPressureThreshold = v.NewValue, true);
 
             return base.Initialize(host);
         }
@@ -78,6 +87,8 @@ namespace osu.Android.Input
         {
             var size = new Vector2(width, height);
             tablet.Value = new TabletInfo("S Pen", size);
+            cachedTabletSizeX = width;
+            cachedTabletSizeY = height;
 
             // Default: full digitizer area mapped to full screen (1:1 passthrough).
             AreaSize.Default = size;
@@ -117,7 +128,9 @@ namespace osu.Android.Input
             outWidth = oSize.X;
             outHeight = oSize.Y;
 
-            float radians = deg_to_rad * Rotation.Value;
+            float rotation = Rotation.Value;
+            useRotation = rotation != 0;
+            float radians = deg_to_rad * rotation;
             rotSin = MathF.Sin(radians);
             rotCos = MathF.Cos(radians);
         }
@@ -156,11 +169,15 @@ namespace osu.Android.Input
             float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
 
             // Auto-expand tablet size if the digitizer reports coordinates beyond current bounds.
-            if (tablet.Value == null || rawX > tablet.Value.Size.X || rawY > tablet.Value.Size.Y)
+            // Compares against cached field values to avoid the bindable read + property access on
+            // every historical sample (which can fire 5-20× per MotionEvent on busy stylus drags).
+            if (rawX > cachedTabletSizeX || rawY > cachedTabletSizeY)
             {
-                var currentSize = tablet.Value?.Size ?? Vector2.Zero;
-                var newSize = new Vector2(Math.Max(rawX + 1, currentSize.X), Math.Max(rawY + 1, currentSize.Y));
-                tablet.Value = new TabletInfo("S Pen", newSize);
+                float newW = MathF.Max(rawX + 1, cachedTabletSizeX);
+                float newH = MathF.Max(rawY + 1, cachedTabletSizeY);
+                cachedTabletSizeX = newW;
+                cachedTabletSizeY = newH;
+                tablet.Value = new TabletInfo("S Pen", new Vector2(newW, newH));
             }
 
             // Apply tablet area → output area coordinate mapping.
@@ -173,7 +190,7 @@ namespace osu.Android.Input
                 float normY = (rawY - areaTop) / areaHeight;
 
                 // Apply rotation around center of normalized space.
-                if (Rotation.Value != 0)
+                if (useRotation)
                 {
                     float cx = normX - 0.5f;
                     float cy = normY - 0.5f;
@@ -195,10 +212,14 @@ namespace osu.Android.Input
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2(mappedX, mappedY) });
 
             // Button state: pressure-based click (primary) with action overrides.
-            bool isLeftDown = pressure >= PressureThreshold.Value;
-            if (e.ActionMasked == MotionEventActions.Down || e.ActionMasked == MotionEventActions.ButtonPress) isLeftDown = true;
-            else if (e.ActionMasked == MotionEventActions.Up || e.ActionMasked == MotionEventActions.ButtonRelease || e.ActionMasked == MotionEventActions.Cancel) isLeftDown = false;
-            else if (e.ActionMasked == MotionEventActions.Move && (e.ButtonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
+            // Uses the cached threshold field rather than `PressureThreshold.Value` to skip the
+            // per-event bindable read.
+            var actionMasked = e.ActionMasked;
+            var buttonState = e.ButtonState;
+            bool isLeftDown = pressure >= cachedPressureThreshold;
+            if (actionMasked == MotionEventActions.Down || actionMasked == MotionEventActions.ButtonPress) isLeftDown = true;
+            else if (actionMasked == MotionEventActions.Up || actionMasked == MotionEventActions.ButtonRelease || actionMasked == MotionEventActions.Cancel) isLeftDown = false;
+            else if (actionMasked == MotionEventActions.Move && (buttonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
 
             if (isLeftDown != lastLeftDown)
             {
@@ -207,7 +228,7 @@ namespace osu.Android.Input
             }
 
             // S Pen button → right click.
-            bool isRightDown = (e.ButtonState & MotionEventButtonState.StylusPrimary) != 0;
+            bool isRightDown = (buttonState & MotionEventButtonState.StylusPrimary) != 0;
             if (isRightDown != lastRightDown)
             {
                 PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, isRightDown));
@@ -215,7 +236,7 @@ namespace osu.Android.Input
             }
 
             // Eraser → middle click.
-            bool isEraserDown = (e.ButtonState & MotionEventButtonState.StylusSecondary) != 0 || e.GetToolType(pointer_index) == MotionEventToolType.Eraser;
+            bool isEraserDown = (buttonState & MotionEventButtonState.StylusSecondary) != 0 || e.GetToolType(pointer_index) == MotionEventToolType.Eraser;
             if (isEraserDown != lastEraserDown)
             {
                 PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Middle, isEraserDown));

@@ -1369,6 +1369,12 @@ namespace osu.Game
             if (entry.Exception is SentryOnlyDiagnosticsException)
                 return;
 
+            // Suppress informational startup configuration notices that the framework
+            // emits at Important level for log-file visibility. They are useful to keep
+            // in the on-disk runtime log, but they should not pop a user-facing notification.
+            if (entry.Message.StartsWith("Android thread priority set", StringComparison.Ordinal))
+                return;
+
             const int short_term_display_limit = 3;
 
             if (generalLogRecentCount < short_term_display_limit)

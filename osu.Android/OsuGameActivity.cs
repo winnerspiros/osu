@@ -298,8 +298,16 @@ namespace osu.Android
         {
             if (e == null) return false;
 
-            // Intercept mouse back button which often triggers Keycode.Back
-            if (e.KeyCode == Keycode.Back && (e.Source.HasFlag(InputSourceType.Mouse) || e.Source.HasFlag(InputSourceType.Stylus)))
+            // The Back key on Android defaults (via OnBackPressed → finish()) to minimising
+            // a single-activity task. That is wrong for a game: users expect Back to navigate
+            // backwards (close overlays, pop screens, exit to main menu). Translate every
+            // Back-key event into Escape, regardless of source (HW key, mouse side button,
+            // S Pen button, remote, etc.) so it flows through the standard in-game
+            // OnExiting / overlay-dismiss chain. The only exception is when the source is a
+            // physical keyboard whose key map already covers Back via Keycode.Escape — but
+            // Android keyboards report a real Escape key as Keycode.Escape, not Back, so
+            // unconditional translation is safe.
+            if (e.KeyCode == Keycode.Back)
             {
                 if (e.Action == KeyEventActions.Down)
                     KeyboardHandler?.HandleKeyEvent(new KeyEvent(KeyEventActions.Down, Keycode.Escape));

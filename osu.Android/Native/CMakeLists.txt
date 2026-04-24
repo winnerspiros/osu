@@ -42,17 +42,30 @@ set(OBOE_BUILD_TESTS OFF CACHE BOOL "Disable Oboe tests" FORCE)
 set(OBOE_BUILD_EXAMPLES OFF CACHE BOOL "Disable Oboe examples" FORCE)
 set(OBOE_BUILD_DOCS OFF CACHE BOOL "Disable Oboe docs" FORCE)
 
-# Download and build Oboe main branch from source to ensure we have the latest
-# features and fixes (ADPF performance hints, workload management, spatialization,
-# API 36 compatibility) regardless of the build environment.
-# main is preferred over pinned tags because Oboe releases infrequently (~yearly)
-# and the main branch accumulates significant latency-critical improvements between tags.
-# GIT_SHALLOW TRUE: only fetch the tip of main (no history) — significantly faster CI checkout.
+# Build Oboe from source, pinned to a specific tip-of-`main` commit. We pin (rather
+# than tracking the floating `main` ref) for two reasons:
+#   1. CMake's FetchContent caches the source after first configure — with a moving
+#      ref, builds can silently drift to whatever `main` happened to be when the
+#      cache was populated, which makes "rebuild from a clean tree" non-reproducible
+#      across machines and CI runs.
+#   2. Bumping the pin is a deliberate, reviewable action: each bump shows up as a
+#      single line diff, so an Oboe regression is trivially bisectable.
+#
+# Why `main` at all (and not the latest tagged release)? Oboe tags infrequently
+# (~yearly) and the `main` branch accumulates significant latency-critical
+# improvements between tags (ADPF performance hints, workload management,
+# spatialization, API 36 compatibility). Bump this SHA periodically.
+#
+# Last bumped: 2026-04 — google/oboe@e5c061bb06657c9b953b0af33ba1651421661414
+#               (tip of main, "Update OboeTester to v2.8.13")
+#
+# GIT_SHALLOW FALSE: shallow + a non-branch SHA is flaky on some git/server combos,
+# and Oboe's history is tiny anyway (a full clone is well under 5 MB).
 include(FetchContent)
 FetchContent_Declare(oboe
     GIT_REPOSITORY https://github.com/google/oboe.git
-    GIT_TAG main
-    GIT_SHALLOW TRUE
+    GIT_TAG e5c061bb06657c9b953b0af33ba1651421661414
+    GIT_SHALLOW FALSE
 )
 FetchContent_MakeAvailable(oboe)
 

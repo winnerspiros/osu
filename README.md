@@ -179,17 +179,14 @@ Settings → Graphics → Renderer now exposes the full set of fork-added option
 
 ---
 
-### 🛡️ Stability improvements
+### 🛡️ Robustness improvements
 
-This fork includes several hardening fixes on top of upstream:
+A few hardening fixes on top of upstream that are not directly performance-related but keep the app behaving correctly across edge cases:
 
-- **Multi-threaded execution lock-in (v145+)** — the framework's `ExecutionMode = SingleThread` is force-set to `MultiThreaded` on every startup and the threading-mode toggle is removed from Settings → Graphics → Renderer. SingleThread on Android collapsed the SDL/Vulkan thread onto the same thread that delivers the `SurfaceHolder.Callback`, so `VeldridDevice`'s 5-second `SurfaceHandle` poll deadlocked and Vulkan device creation crashed on a null function pointer (`SDLThread` `SI_TKILL` ~5 s into launch). The same risk applies to iOS Metal drawable attach; on desktop SingleThread is strictly slower with no UX benefit, so the lock-in is unconditional across all platforms.
-- **Sentry-safe init** — the app gracefully handles a missing/placeholder Sentry DSN instead of failing on startup
-- **Graceful native library loading** — if the Oboe or Vulkan native libraries are missing, the app continues without them
-- **JNI surface safety** — proper lifecycle management with atomic swaps and timeouts to prevent race conditions between Android surface creation and destruction
-- **Trimmer-safe builds** — critical reflection-heavy assemblies are protected from .NET IL trimming so release builds behave the same as debug
-- **Architecture-correct native libraries (v144+)** — `osu.Android.props` strips desktop runtime `.so` files (`runtimes/{linux,osx,ios,maccatalyst,win,…}-*/native/`) from the Android publish set and only marks Android-RID assets as `AssetType=native`, so the proper Android arm64 BASS libraries from `ppy.osu.Framework.Android`'s AAR (`jni/arm64-v8a/`) always win over the desktop `.so` files transitively pulled in by `ppy.osu.Framework.NativeLibs`. The release workflow scans every shipped `libbass*.so` for `GLIBC_*` versioned symbols (only present in glibc-linked Linux ELFs) and fails the build if any are found, so an architecture mismatch can never reach a release.
-- **IPC / WebSocket hardening (v144+)** — desktop external-integrations server (env-var gated, `localhost`-only) tightened on top of upstream: `WebSocketChannel` now uses a strict `UTF8Encoding(throwOnInvalidBytes: true)` decoder so malformed payloads are rejected with `InvalidPayloadData` instead of being silently replaced with `U+FFFD`, and the message-size guard accepts payloads of exactly `max_message_size` bytes (was off-by-one); `WebSocketServer.Dispose()` now cancels the request loop and waits briefly for it to exit before tearing down the cancellation/reset-event handles to avoid an `ObjectDisposedException` race on shutdown; `OsuWebSocketProvider.Dispose()` swaps the server reference under a local, properly disposes the bounded `CancellationTokenSource` via `using`, and always disposes the `WebSocketServer` in a `finally` so listener handles can't leak across screen transitions.
+- **Multi-threaded execution lock-in (v145+)** — the framework's `ExecutionMode = SingleThread` is force-set to `MultiThreaded` on every startup and the threading-mode toggle is removed from Settings → Graphics → Renderer. SingleThread is strictly slower than MultiThreaded with no UX benefit, so the lock-in is unconditional across all platforms.
+- **Sentry-safe init** — the app gracefully handles a missing/placeholder Sentry DSN.
+- **Architecture-correct native libraries (v144+)** — `osu.Android.props` strips desktop runtime `.so` files (`runtimes/{linux,osx,ios,maccatalyst,win,…}-*/native/`) from the Android publish set and only marks Android-RID assets as `AssetType=native`, so the proper Android arm64 BASS libraries from `ppy.osu.Framework.Android`'s AAR (`jni/arm64-v8a/`) always win over the desktop `.so` files transitively pulled in by `ppy.osu.Framework.NativeLibs`. The release workflow scans every shipped `libbass*.so` for `GLIBC_*` versioned symbols (only present in glibc-linked Linux ELFs) and fails the build if any are found.
+- **IPC / WebSocket polish (v144+)** — desktop external-integrations server (env-var gated, `localhost`-only) tightened on top of upstream: `WebSocketChannel` now uses a strict `UTF8Encoding(throwOnInvalidBytes: true)` decoder so malformed payloads are rejected with `InvalidPayloadData` instead of being silently replaced with `U+FFFD`, and the message-size guard accepts payloads of exactly `max_message_size` bytes (was off-by-one); `WebSocketServer.Dispose()` cancels the request loop and waits briefly for it to exit before tearing down the cancellation/reset-event handles; `OsuWebSocketProvider.Dispose()` swaps the server reference under a local, properly disposes the bounded `CancellationTokenSource` via `using`, and always disposes the `WebSocketServer` in a `finally` so listener handles can't leak across screen transitions.
 - **Ranked-play song-preview playback (v144+)** — restored the `Enabled`/`CardHovered` → `PreviewTrack.Start()/Stop()` wiring on `RankedPlayCard.SongPreviewContainer` that was lost in upstream's "playback rewrite" merge. The bind now happens in the `LoadComponentAsync` continuation (so previews never race the track's async load), with both bindables driving a single `updatePlaybackState()` callback.
 
 ---
@@ -251,11 +248,11 @@ The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) 
 **Platform targeting:**
 - Full `osu.Framework.Android` / `osu.Framework.iOS` implementations.
 - Android minimum bumped to **API 33** (matches app manifest), target API 36.
-- Android release config: profiled AOT (`AndroidEnableProfiledAot`), partial trimming, `AndroidStripILAfterAOT=false` (avoids `plt_entry` crashes), no LLVM (incompatible with profiled AOT).
+- Android release config: profiled AOT (`AndroidEnableProfiledAot`), partial trimming, `AndroidStripILAfterAOT=false`, no LLVM (incompatible with profiled AOT).
 - iOS: `SupportedOSPlatformVersion` 13.4, trim-analysis warnings suppressed with `[DynamicallyAccessedMembers]` and `[UnconditionalSuppressMessage]`.
 
-**Stability fixes consumed by the Android build:**
-- Null `ANativeWindow` guard in `VkSurfaceUtil` prevents SIGSEGV at `pc=0x0` from invalid Vulkan function pointers.
+**Android-specific framework polish:**
+- Null `ANativeWindow` guard in `VkSurfaceUtil`.
 - `VeldridDevice` polls `SurfaceHandle` for up to 5 s when the Android surface is not yet ready.
 - `DrawThread.OnInitialize()` wraps the initial `BeginFrame` in try-catch for graceful handling before surface readiness.
 - NRE fix in `GraphicsPipeline.cs` (null-conditional `ResourceLayouts?.Length`).
