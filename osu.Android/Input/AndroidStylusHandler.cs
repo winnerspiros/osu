@@ -173,14 +173,47 @@ namespace osu.Android.Input
                 releaseAllButtons();
             }
 
+            // Locate the actual stylus pointer rather than blindly reading index 0. When
+            // a finger is also touching the screen (palm-on-screen while writing, common
+            // with the S Pen), the stylus is frequently delivered at pointer index 1
+            // and index 0 is the finger. Reading the finger's coordinates and feeding
+            // them into the stylus pipeline produced exactly the "stuck top-left" snap
+            // the user reports — when the finger is briefly at (0,0) (the bottom-left
+            // origin in window coords on some devices, or a transient lift sample) the
+            // mapped output is the screen origin.
+            //
+            // Falling back to 0 keeps the existing behaviour for the well-formed
+            // single-pointer case where every pointer in the event is the stylus.
+            int stylusPointerIndex = findStylusPointerIndex(e);
+            if (stylusPointerIndex < 0) return true;
+
             // Process all batched historical events for maximum accuracy.
             int historySize = e.HistorySize;
             for (int i = 0; i < historySize; i++)
-                handlePointer(e, i, actionMasked);
+                handlePointer(e, i, actionMasked, stylusPointerIndex);
 
-            handlePointer(e, -1, actionMasked);
+            handlePointer(e, -1, actionMasked, stylusPointerIndex);
 
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int findStylusPointerIndex(MotionEvent e)
+        {
+            int count = e.PointerCount;
+            if (count <= 0) return -1;
+
+            for (int i = 0; i < count; i++)
+            {
+                var toolType = e.GetToolType(i);
+                if (toolType == MotionEventToolType.Stylus || toolType == MotionEventToolType.Eraser)
+                    return i;
+            }
+
+            // No pointer self-identifies as a stylus (some devices/SDKs lose the tool-type
+            // tag on hover-only events even when MotionEvent.Source still has the Stylus
+            // bit). Default to index 0 to preserve the existing single-pointer behaviour.
+            return 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -202,26 +235,27 @@ namespace osu.Android.Input
         private Vector2 lastTouchPosition;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void handlePointer(MotionEvent e, int historyIndex, MotionEventActions actionMasked)
+        private void handlePointer(MotionEvent e, int historyIndex, MotionEventActions actionMasked, int pointerIndex)
         {
-            const int pointer_index = 0;
-            if (e.PointerCount <= pointer_index) return;
+            if (e.PointerCount <= pointerIndex) return;
 
-            float rawX = historyIndex < 0 ? e.GetX(pointer_index) : e.GetHistoricalX(pointer_index, historyIndex);
-            float rawY = historyIndex < 0 ? e.GetY(pointer_index) : e.GetHistoricalY(pointer_index, historyIndex);
-            float pressure = historyIndex < 0 ? e.GetPressure(pointer_index) : e.GetHistoricalPressure(pointer_index, historyIndex);
+            float rawX = historyIndex < 0 ? e.GetX(pointerIndex) : e.GetHistoricalX(pointerIndex, historyIndex);
+            float rawY = historyIndex < 0 ? e.GetY(pointerIndex) : e.GetHistoricalY(pointerIndex, historyIndex);
+            float pressure = historyIndex < 0 ? e.GetPressure(pointerIndex) : e.GetHistoricalPressure(pointerIndex, historyIndex);
 
-            // Drop (0, 0, 0) garbage samples. The Samsung digitizer occasionally emits a
-            // single (rawX=0, rawY=0, pressure=0) sample when the pen wakes up after sleep,
-            // when the activity regains focus, or as the very first HoverEnter sample
-            // before the real coordinate is latched. Mapping that sample produces a snap
-            // to the top-left of the screen — the long-standing "S Pen stuck top-left"
-            // bug. A real pen sample would always have *some* coordinate (the pen is
-            // physically *somewhere* on the digitizer to have triggered an event), so a
-            // strict triple-zero match is a safe filter that doesn't drop legitimate
-            // edge-of-digitizer samples (which would have pressure > 0 on contact, or
-            // non-zero hover Y/X off the screen origin).
-            if (rawX == 0f && rawY == 0f && pressure == 0f)
+            // Drop (0, 0) garbage samples regardless of pressure. The Samsung digitizer
+            // emits a (rawX=0, rawY=0) sample when the pen wakes up after sleep, when
+            // the activity regains focus, and as the very first HoverEnter/Down sample
+            // before the real coordinate is latched. Older versions only filtered when
+            // pressure was also exactly zero — but device logs show contact-down and
+            // ButtonPress samples occasionally landing at (0, 0) with pressure > 0,
+            // which would still snap the cursor to the top-left.
+            //
+            // A real pen sample is *physically somewhere* on the digitizer to have
+            // triggered the event, so a strict (rawX==0 && rawY==0) match is a safe
+            // filter — legitimate edge-of-digitizer samples will always have at least
+            // sub-pixel float noise on one of the two axes.
+            if (rawX == 0f && rawY == 0f)
                 return;
 
             // Auto-expand tablet size if the digitizer reports coordinates beyond current bounds.
