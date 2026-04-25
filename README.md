@@ -98,8 +98,8 @@ Turn it on and the game squeezes every bit of performance from your hardware:
 The game queries your screen's supported modes and picks the highest refresh rate automatically:
 
 - Supports 60 / 90 / 120 / 144 / 165 Hz panels (and beyond)
-- Tells the Android compositor your target frame rate for optimal scheduling
-- On Samsung DeX, it finds and uses the external display's best mode
+- Tells the Android compositor your target frame rate for optimal scheduling (`Surface.SetFrameRate` with the *seamless-only* flag, so a mode change can never destroy the active Vulkan swapchain mid-frame)
+- On Samsung DeX, queries the active (external) display's mode list via `Activity.Display` / `DisplayManager`
 
 ---
 
@@ -107,11 +107,13 @@ The game queries your screen's supported modes and picks the highest refresh rat
 
 Plug your phone into a monitor and play on the big screen:
 
-- **Auto-detected** — the game knows when you're in DeX mode
-- Performance mode and immersive fullscreen turn on automatically
-- External display refresh rate is detected and applied
-- Keyboard + mouse input works seamlessly (no extra setup)
-- The game stays alive during display transitions (no restart)
+- **Auto-detected** via `UiMode.TypeDesk` — the game knows when you're in DeX mode
+- Performance mode and immersive fullscreen turn on automatically when DeX is connected
+- The active display's mode list is enumerated and the highest refresh rate is **requested** via `WindowManagerLayoutParams.PreferredDisplayModeId` (see honest caveat below)
+- Keyboard + mouse input works because of the dedicated `AndroidMouseHandler` / `AndroidKeyboardHandler` (those handlers aren't DeX-specific — they apply equally to USB peripherals on a phone)
+- The Activity is annotated with `ConfigurationChanges = …UiMode|ScreenSize|ScreenLayout|Density|…` so the game stays alive across DeX dock/undock without a full process restart
+
+> **Honest caveat:** Samsung DeX runs your activity inside a virtual display that is fully managed by Samsung's compositor. From a regular (non-system) app, **there is no public Android API to enumerate the physical monitor's true EDID mode list or to force a specific resolution/refresh rate on the HDMI link** — the only public hook is `WindowManagerLayoutParams.PreferredDisplayModeId`, which DeX treats as a hint and frequently ignores. The mode list returned by `display.GetSupportedModes()` for the DeX virtual display is whatever DeX itself chooses to advertise, not the monitor's full mode list. Resolution change is not attempted (no public API exists). The DeX-mode fast-path in this fork is therefore: detect DeX, flip performance + immersive toggles, ask the compositor nicely for the highest refresh rate it will admit to. Anything beyond that requires the vendor-private `com.samsung.android.dex.SDexManager`, which is signature-protected and not callable from a normal app.
 
 ---
 

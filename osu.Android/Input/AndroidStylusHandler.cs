@@ -78,6 +78,28 @@ namespace osu.Android.Input
             // Default size will be updated by SetDisplaySize once the display metrics are known.
             tablet.Value = new TabletInfo("S Pen", new Vector2(1920, 1080));
 
+            // Eagerly seed the area / output bindables so:
+            //  1. The tablet-area-selection UI in TabletSettings has a valid (non-zero)
+            //     `tablet.Size` to render against on the very first open of the settings panel,
+            //     even if it is opened before SetDisplaySize has run.
+            //  2. The hot path in `handlePointer` always takes the explicit area-mapping
+            //     branch instead of falling back to raw passthrough when areaWidth/areaHeight
+            //     are zero — keeping the cursor pinned to the configured area mapping rather
+            //     than emitting raw digitizer coordinates that may not align with the
+            //     activity window in DeX / multi-window scenarios.
+            //
+            // Only assigned if the bindable is still at its `default(Vector2)` (i.e. nothing
+            // has been deserialised from the framework's input config yet). A previously
+            // persisted user-configured area is preserved.
+            if (AreaSize.Value == default)
+                AreaSize.Value = new Vector2(1920, 1080);
+            if (AreaOffset.Value == default)
+                AreaOffset.Value = new Vector2(960, 540);
+            if (OutputAreaSize.Value == default)
+                OutputAreaSize.Value = new Vector2(1920, 1080);
+            if (OutputAreaOffset.Value == default)
+                OutputAreaOffset.Value = new Vector2(960, 540);
+
             AreaSize.BindValueChanged(_ => updateCachedTransform());
             AreaOffset.BindValueChanged(_ => updateCachedTransform());
             OutputAreaSize.BindValueChanged(_ => updateCachedTransform());
@@ -85,16 +107,34 @@ namespace osu.Android.Input
             Rotation.BindValueChanged(_ => updateCachedTransform());
             PressureThreshold.BindValueChanged(v => cachedPressureThreshold = v.NewValue, true);
 
+            // Force one initial cache population so `areaWidth` / `outWidth` are non-zero
+            // before the very first MotionEvent arrives (BindValueChanged above only fires
+            // on subsequent changes).
+            updateCachedTransform();
+
             return base.Initialize(host);
         }
 
         /// <summary>
-        /// Sets the digitizer/display dimensions. Must be called after the display is known.
-        /// This sets the full tablet area and default output area.
+        /// Sets the digitizer/display dimensions. Must be called after the display is known,
+        /// and re-called from <see cref="OsuGameAndroid.RefreshStylusDisplaySize"/> on each
+        /// configuration change (orientation, DeX connect/disconnect, foldable hinge) so the
+        /// digitiser bounds stay aligned with the current <c>MotionEvent</c> coordinate range.
         /// </summary>
         public void SetDisplaySize(int width, int height)
         {
             var size = new Vector2(width, height);
+
+            // Capture the previous auto-default before mutating the cached field, so we can
+            // distinguish "user has never customised the tablet area" (current value equals
+            // the previously installed auto-default) from "user picked a custom area"
+            // (current value differs from both the old auto-default and the legacy
+            // 1920x1080 ctor default). This is the path that actually matters on
+            // orientation flips: the value we previously auto-installed is itself a
+            // legitimate-looking custom Vector2, so the legacy `value == default ||
+            // value == 1920x1080` guard would refuse to refresh it after a rotation.
+            var previousAuto = new Vector2(cachedTabletSizeX, cachedTabletSizeY);
+
             tablet.Value = new TabletInfo("S Pen", size);
             cachedTabletSizeX = width;
             cachedTabletSizeY = height;
@@ -106,13 +146,18 @@ namespace osu.Android.Input
             OutputAreaOffset.Default = size / 2;
 
             // Only set current values if they haven't been configured by the user yet.
-            if (AreaSize.Value == default || AreaSize.Value == new Vector2(1920, 1080))
+            // "Not configured" = still at the framework default(Vector2), still at the
+            // legacy 1920x1080 ctor default seeded in Initialize, or still at the
+            // auto-default we installed on a previous SetDisplaySize call (so a phone
+            // rotation re-syncs the area mapping rather than leaving the user pinned to
+            // the previous orientation's bounds).
+            if (AreaSize.Value == default || AreaSize.Value == new Vector2(1920, 1080) || AreaSize.Value == previousAuto)
             {
                 AreaSize.Value = size;
                 AreaOffset.Value = size / 2;
             }
 
-            if (OutputAreaSize.Value == default || OutputAreaSize.Value == new Vector2(1920, 1080))
+            if (OutputAreaSize.Value == default || OutputAreaSize.Value == new Vector2(1920, 1080) || OutputAreaSize.Value == previousAuto)
             {
                 OutputAreaSize.Value = size;
                 OutputAreaOffset.Value = size / 2;

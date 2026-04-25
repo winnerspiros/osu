@@ -1151,7 +1151,15 @@ namespace osu.Android
 
                     if (gameActivity.IsDeX && displays != null)
                     {
-                        // In DeX, prefer external displays (ID != 0) sorted by highest refresh rate.
+                        // In DeX, prefer external displays (ID != 0). Sort by highest reported
+                        // refresh rate when mode metadata is available, but DO NOT fall back
+                        // to display 0 (the phone's internal panel) just because the external
+                        // happens to report a null mode list — when DeX is active the user is
+                        // looking at the external monitor and refresh-rate hints must target
+                        // that surface even if the mode list is empty (typical DeX virtual
+                        // display reports a single mode at most). Only fall through to the
+                        // internal panel if there is genuinely no non-zero display ID at all
+                        // (extremely defensive — DeX always exposes at least one).
                         display = displays.Where(d => d.DisplayId != 0)
                                           .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
                                           .FirstOrDefault()
@@ -1671,24 +1679,7 @@ namespace osu.Android
                 gameActivity.KeyboardHandler = keyboardHandler;
 
                 // Match the screen / digitiser dimensions for tablet area mapping.
-                try
-                {
-                    var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
-
-                    if (metrics != null)
-                    {
-                        var bounds = metrics.Bounds;
-                        int displayWidth = bounds.Width();
-                        int displayHeight = bounds.Height();
-
-                        if (displayWidth > 0 && displayHeight > 0)
-                            stylusHandler.SetDisplaySize(displayWidth, displayHeight);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Failed to get display size for stylus handler: {e.Message}");
-                }
+                applyStylusDisplaySize(stylusHandler);
 
                 // Initialize each handler the same way the framework would in
                 // CreateAvailableInputHandlers — sets the protected Host field on the base
@@ -1768,6 +1759,132 @@ namespace osu.Android
             {
                 Logger.Log($"[osu!] Failed to register Android input handlers: {e.Message}", LoggingTarget.Input, LogLevel.Important);
             }
+        }
+
+        /// <summary>
+        /// Resolves the digitiser dimensions for the active window and pushes them into the
+        /// <see cref="AndroidStylusHandler"/>. Used both at handler-registration time and
+        /// from <see cref="OsuGameActivity.OnConfigurationChanged"/> so orientation /
+        /// DeX-connect / foldable-hinge transitions keep the tablet-area mapping aligned
+        /// with the actual <c>MotionEvent.GetX/Y</c> coordinate ranges.
+        ///
+        /// <para>
+        /// We deliberately prefer <see cref="WindowManager.CurrentWindowMetrics"/> over
+        /// <c>MaximumWindowMetrics</c>: on a phone whose activity is locked to landscape
+        /// (<see cref="OsuGameActivity"/> is annotated <c>ScreenOrientation.Landscape</c>),
+        /// <c>MaximumWindowMetrics</c> historically returns the natural-orientation
+        /// (portrait) bounds — e.g. <c>(1440 × 3088)</c> on a Galaxy S25 Ultra — while
+        /// <see cref="MotionEvent.GetX"/>/<c>GetY</c> are delivered in the *current*
+        /// (landscape) orientation, i.e. <c>0..3088 × 0..1440</c>. Caching the wrong-axis
+        /// digitiser size into the handler is exactly what produces the "S Pen stuck near
+        /// the top-left" regression: any non-default tablet-area selection persisted from
+        /// a previous session ends up dividing by the wrong axis and pinning the cursor
+        /// to a small rectangle at the screen origin.
+        /// </para>
+        ///
+        /// <para>
+        /// As a final defensive guard the resolved bounds are normalised to landscape
+        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked on phones —
+        /// this neutralises the residual case where an OEM still hands back portrait
+        /// bounds for the current metrics on certain Android skins.
+        /// </para>
+        /// </summary>
+        private void applyStylusDisplaySize(AndroidStylusHandler handler)
+        {
+            try
+            {
+                int width = 0;
+                int height = 0;
+
+                // Preferred: current window metrics (returns bounds in *current* orientation).
+                try
+                {
+                    var current = gameActivity.WindowManager?.CurrentWindowMetrics;
+
+                    if (current != null)
+                    {
+                        var b = current.Bounds;
+                        width = b.Width();
+                        height = b.Height();
+                    }
+                }
+                catch
+                {
+                    // Some Android skins / API levels can throw here on reload. Fall through.
+                }
+
+                // Fallback 1: maximum window metrics (historic path; may be portrait-biased).
+                if (width <= 0 || height <= 0)
+                {
+                    try
+                    {
+                        var max = gameActivity.WindowManager?.MaximumWindowMetrics;
+
+                        if (max != null)
+                        {
+                            var b = max.Bounds;
+                            width = b.Width();
+                            height = b.Height();
+                        }
+                    }
+                    catch
+                    {
+                        // Ignored — fall through to the legacy DisplayMetrics route.
+                    }
+                }
+
+                // Fallback 2: legacy DisplayMetrics (covers very old paths and DeX virtual displays).
+                if (width <= 0 || height <= 0)
+                {
+                    try
+                    {
+                        var dm = gameActivity.Resources?.DisplayMetrics;
+
+                        if (dm != null)
+                        {
+                            width = dm.WidthPixels;
+                            height = dm.HeightPixels;
+                        }
+                    }
+                    catch
+                    {
+                        // Give up silently; AndroidStylusHandler keeps its previous
+                        // cached size and continues with the existing area mapping.
+                    }
+                }
+
+                if (width <= 0 || height <= 0)
+                    return;
+
+                // Canonicalise to landscape since the phone activity is landscape-locked
+                // (see [Activity(ScreenOrientation = ScreenOrientation.Landscape)] on
+                // OsuGameActivity). Tablets / DeX run in FullUser orientation so the
+                // canonicalisation is harmless — we still get a (W, H) pair whose major
+                // axis matches MotionEvent.GetX's range.
+                int w = Math.Max(width, height);
+                int h = Math.Min(width, height);
+
+                handler.SetDisplaySize(w, h);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to apply stylus display size: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Re-pushes the current display dimensions into the active
+        /// <see cref="AndroidStylusHandler"/>. Called from
+        /// <see cref="OsuGameActivity.OnConfigurationChanged"/> so an orientation flip,
+        /// DeX connect/disconnect, or foldable-hinge change refreshes the tablet-area
+        /// mapping to match the new <c>MotionEvent</c> coordinate range.
+        /// </summary>
+        public void RefreshStylusDisplaySize()
+        {
+            var handler = stylusHandler;
+            if (handler == null) return;
+
+            applyStylusDisplaySize(handler);
         }
 
         /// <summary>

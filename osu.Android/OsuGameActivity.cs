@@ -605,6 +605,12 @@ namespace osu.Android
             // external monitor change, rotation).
             (game as OsuGameAndroid)?.SelectHighestRefreshRate();
 
+            // Re-publish the digitiser size to AndroidStylusHandler so the tablet-area
+            // mapping tracks orientation / DeX / foldable-hinge transitions. Without this
+            // the handler keeps the bounds it cached at startup and the cursor drifts off
+            // the actual MotionEvent X/Y ranges after a rotation flip.
+            (game as OsuGameAndroid)?.RefreshStylusDisplaySize();
+
             // When entering DeX mode, apply immersive mode and auto-enable performance mode.
             if (!wasDeX && IsDeX)
             {
