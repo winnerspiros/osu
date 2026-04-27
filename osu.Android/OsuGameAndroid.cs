@@ -115,18 +115,25 @@ namespace osu.Android
         private System.Threading.Timer? clearStartupSentinelTimer;
 
         // Set true the FIRST time the Draw thread executes a scheduled lambda
-        // after LoadComplete. Used to gate AndroidStartupSafeMode.ClearStartupInProgress
-        // — if the Draw thread never reaches the heartbeat by the 25 s deadline
-        // we deliberately leave the IN_PROGRESS sentinel armed so the NEXT
-        // launch enters safe-mode (which forces Renderer = OpenGL via
-        // LogManagement.ForceOpenGLRendererIfSafeMode). This catches the
-        // Vulkan-on-Android black-screen failure mode that the user has
-        // reproduced on multiple Adreno phones (cross-driver, not a single-
-        // device quirk): Update thread is alive, threadpool timers are alive,
-        // but the Draw thread is stuck inside the Veldrid Vulkan present
-        // queue. Without this gate the threadpool timer fires
-        // ClearStartupInProgress regardless, the user force-closes the black
-        // screen, and the next launch RE-ATTEMPTS Vulkan into the same wall.
+        // after LoadComplete. The same heartbeat lambda also queues
+        // AndroidStartupSafeMode.ClearStartupInProgress onto a threadpool
+        // worker, so the IN_PROGRESS sentinel clears within ~1 s of LoadComplete
+        // on a healthy renderer (instead of being gated on the 25 s watchdog
+        // below). This prevents a perpetual safe-mode loop in which a user
+        // who restarts the app within 25 s of LoadComplete (e.g. immediately
+        // after switching Settings → Renderer → Vulkan) is permanently locked
+        // to OpenGL because LogManagement.ForceOpenGLRendererIfSafeMode
+        // rewrites their choice on every subsequent boot.
+        //
+        // The 25 s threadpool timer below remains as a fast-fail watchdog: if
+        // the heartbeat NEVER fires (Draw thread genuinely wedged inside the
+        // Veldrid Vulkan present queue — the cross-driver Adreno failure mode
+        // reproduced on multiple phones), we deliberately leave the
+        // IN_PROGRESS sentinel armed so the NEXT launch enters safe-mode
+        // (which forces Renderer = OpenGL via
+        // LogManagement.ForceOpenGLRendererIfSafeMode) and KillProcess so
+        // the user gets an automatic restart-into-safe-mode in 1-2 s instead
+        // of staring at a black screen.
         //
         // Deadline raised from 10 s → 25 s alongside the ppy.osu.Framework
         // 2026.427.4 bump (which pulled in winnerspiros/veldrid b314005:
@@ -789,7 +796,58 @@ namespace osu.Android
             // the gate below leaves IN_PROGRESS sentinel armed for next launch.
             try
             {
-                Host?.DrawThread?.Scheduler.Add(() => drawThreadEverPresented = true);
+                Host?.DrawThread?.Scheduler.Add(() =>
+                {
+                    drawThreadEverPresented = true;
+
+                    // Clear the IN_PROGRESS sentinel as soon as the Draw thread
+                    // has demonstrably presented (i.e. successfully dequeued and
+                    // executed a scheduled lambda). This is the actual signal of
+                    // renderer health — once it fires we know the Vulkan/OpenGL
+                    // path is up, so there is no reason to wait the full 25 s
+                    // watchdog window before letting the next launch boot in
+                    // normal mode.
+                    //
+                    // Why this matters: the previous design only cleared the
+                    // sentinel from the 25 s threadpool timer below, which meant
+                    // any user who restarted the app within 25 s of LoadComplete
+                    // (e.g. immediately after flipping Settings → Renderer →
+                    // Vulkan and being prompted to restart) was permanently
+                    // trapped in safe-mode. Safe-mode rewrites their Vulkan
+                    // choice back to OpenGL via LogManagement
+                    // .ForceOpenGLRendererIfSafeMode on every subsequent boot,
+                    // making it impossible to escape OpenGL.
+                    //
+                    // Clearing here closes that window: a healthy renderer
+                    // surfaces the clear within ~1 s of LoadComplete, so any
+                    // realistic user-initiated restart afterwards boots in
+                    // normal mode and respects the user's renderer choice.
+                    //
+                    // File I/O is hopped to a threadpool worker so the Draw
+                    // thread never blocks on disk. ClearStartupInProgress is
+                    // idempotent (Interlocked.Exchange guard), so the 25 s
+                    // timer's else-branch remains safe as a belt-and-braces
+                    // fallback for the (vanishingly unlikely) case where the
+                    // threadpool hop is dropped.
+                    try
+                    {
+                        System.Threading.ThreadPool.QueueUserWorkItem(static _ =>
+                        {
+                            try
+                            {
+                                AndroidStartupSafeMode.ClearStartupInProgress();
+                            }
+                            catch (Exception clearEx)
+                            {
+                                Debug.WriteLine($"[osu!] ClearStartupInProgress (Draw-thread heartbeat) failed: {clearEx.Message}");
+                            }
+                        });
+                    }
+                    catch (Exception queueEx)
+                    {
+                        Debug.WriteLine($"[osu!] Could not queue ClearStartupInProgress from Draw-thread heartbeat: {queueEx.Message}");
+                    }
+                });
             }
             catch (Exception ex)
             {
