@@ -50,10 +50,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private double? lastFinalCountdownSamplePlayback;
 
         private Sample? timeUpSample;
-        private bool finalBuzzerPlayed;
+        private bool finalBuzzerPlayed { get; set; }
 
         private DateTimeOffset stageEndTime;
         private TimeSpan stageDuration;
+
+        /// <summary>
+        /// Whether the local user has played a card themselves.
+        /// </summary>
+        private bool hasPlayedCard { get; set; }
 
         public PickScreen()
         {
@@ -127,14 +132,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             }
         }
 
-        private bool shouldPlayWarningSample
-        {
-            get => matchInfo.Stage.Value == RankedPlayStage.CardPlay
-                   && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
-                   && stageEndTime - DateTimeOffset.Now < TimeSpan.FromSeconds(warning_time_threshold)
-                   && !field;
-            set;
-        }
+        private bool warningSamplesEnabled
+            => matchInfo.Stage.Value == RankedPlayStage.CardPlay
+               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold)
+               && !hasPlayedCard;
 
         private bool shouldPlayWarningSample
             => warningSamplesEnabled
@@ -258,7 +259,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             if (selection != null)
             {
-                shouldPlayWarningSample = true;
+                hasPlayedCard = true;
                 playerHand.SelectionMode = HandSelectionMode.Disabled;
 
                 Client.PlayCard(selection.Card).FireAndForget();
