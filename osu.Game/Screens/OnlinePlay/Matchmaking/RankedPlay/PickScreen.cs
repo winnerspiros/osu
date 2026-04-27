@@ -136,10 +136,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             set;
         }
 
-        private bool shouldPlayWarningSample
-            => warningSamplesEnabled
-               && stageEndTime - DateTimeOffset.Now > TimeSpan.FromSeconds(0)
-               && stageEndTime - DateTimeOffset.Now <= TimeSpan.FromSeconds(warning_time_threshold);
+        private bool warningSamplesEnabled
+            => matchInfo.Stage.Value == RankedPlayStage.CardPlay
+               && stageDuration > TimeSpan.FromSeconds(warning_time_threshold);
 
         private bool shouldPlayFinalWarningSamples
             => warningSamplesEnabled
