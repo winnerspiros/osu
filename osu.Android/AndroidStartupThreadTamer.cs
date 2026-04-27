@@ -53,10 +53,26 @@ namespace osu.Android
             try
             {
                 startedUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                littleCoreMask = computeLittleCoreMask();
+
+                // When the user has selected Vulkan, the Adreno / Mali / Xclipse driver
+                // spawns its own internal worker pool during vkCreateInstance /
+                // vkCreateSwapchainKHR, and those workers are NOT in our keep-alone list
+                // (we only know a subset of vendor-specific comm names — see
+                // oboe_bridge.cpp::isCommToLeaveAlone). Pinning them to the LITTLE-core
+                // subset reliably stalls vkQueuePresentKHR on the Draw thread (field
+                // logs show "Update tick 1, Draw tick 0" → black-screen ANR).
+                //
+                // Pass mask=0 to TameBackgroundThreads in that case — the helper still
+                // performs the priority renice (which is what fixes the original
+                // glslang-at-nice=-10 starvation), it just skips sched_setaffinity.
+                bool vulkanConfigured = false;
+                try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
+                catch { /* swallow — pre-framework call site, no logger yet */ }
+
+                littleCoreMask = vulkanConfigured ? 0 : computeLittleCoreMask();
 
                 timer = new Timer(_ => tick(), state: null, dueTime: 0, period: period_ms);
-                CrashDiagnostics.WriteAliveMarker($"AndroidStartupThreadTamer.Start (period={period_ms}ms, max={max_runtime_ms}ms, littleMask=0x{littleCoreMask:X})");
+                CrashDiagnostics.WriteAliveMarker($"AndroidStartupThreadTamer.Start (period={period_ms}ms, max={max_runtime_ms}ms, littleMask=0x{littleCoreMask:X}{(vulkanConfigured ? " — Vulkan: affinity skipped" : "")})");
             }
             catch (Exception e)
             {

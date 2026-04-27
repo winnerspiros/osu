@@ -212,6 +212,22 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
+            // Diagnostic: log every audio-offset change so the next runtime.log conclusively
+            // shows whether the user's slider value reaches the global bindable. Field reports
+            // of "moving audio offset doesn't sync hitsounds" are ambiguous without this:
+            // either (a) the slider isn't writing to the bound setting (in which case we'd
+            // see no log line on slider drag), (b) it is writing but FramedBeatmapClock isn't
+            // re-reading (would still see lines here), or (c) the offset is shifting the
+            // gameplay clock correctly but Oboe pipeline introduces a constant-latency
+            // confounder that makes the audible shift smaller than expected.
+            // The first launch has BindValueChanged firing once with the persisted value
+            // (so we always log the *current* value at startup); subsequent fires are user-
+            // driven slider drags or Resync-from-hardware applies.
+            audioOffset.BindValueChanged(e =>
+            {
+                Logger.Log($"[osu!] AudioOffset changed: {e.OldValue:F1}ms → {e.NewValue:F1}ms", LoggingTarget.Performance);
+            }, true);
+
             // Bind the three Android startup-safety toggles. The BindWith call
             // wires each persistent OsuConfigManager setting to a long-lived
             // field bindable, then a value-changed handler mirrors the current
@@ -337,6 +353,37 @@ namespace osu.Android
             // if it survives, we have isolated the cause; if it does not, we have ruled
             // out CPU pinning and the next iteration can target the next suspect with
             // the heartbeat data captured below.
+            //
+            // Vulkan-renderer override: when the user has selected Vulkan, ALSO skip
+            // big-core affinity pinning of the Draw + Input threads, and ALSO skip
+            // the LITTLE-core affinity pin of background workers further below
+            // (only the renice-to-zero pass runs). Rationale: the Adreno / Mali /
+            // Xclipse Vulkan driver spawns its own internal worker pool during
+            // vkCreateInstance / vkCreateSwapchainKHR, and those workers are NOT
+            // in our keep-alone list (we only know a subset of vendor-specific
+            // comm names). Pinning the Draw thread to a fixed 5-core subset while
+            // the driver workers are simultaneously demoted to the inverse 3-core
+            // LITTLE subset reliably stalls vkQueuePresentKHR — the field-observed
+            // failure mode is exactly "Update tick 1, Draw tick 0" with the Draw
+            // thread blocked inside Veldrid's swapchain present queue and never
+            // reaching the post-LoadComplete heartbeat lambda. On OpenGL/ANGLE the
+            // same pinning is harmless (ANGLE is single-threaded on the GL driver
+            // side) — hence the renderer-conditional override here rather than a
+            // blanket policy change.
+            //
+            // The framework-side root cause (vkAcquireNextImageKHR with no timeout
+            // → indefinite block when the swapchain is in a transient lost state)
+            // lives in winnerspiros/veldrid `copilot/fix-vkacquirenextimage-deadlock`
+            // and needs to be published as a new ppy.Veldrid NuGet for upstream
+            // consumption. These overrides are the largest application-layer
+            // mitigation we can apply until that lands.
+            bool vulkanConfigured = false;
+            try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
+            catch (Exception e) { Debug.WriteLine($"[osu!] IsVulkanConfigured probe failed: {e.Message}"); }
+
+            if (vulkanConfigured)
+                Logger.Log("[osu!] Vulkan renderer detected from framework.ini — backing off Draw/Input big-core pinning and background-worker LITTLE-core pinning to keep Adreno/Mali driver workers schedulable.", LoggingTarget.Performance);
+
             int affinityMask;
 
             if (AndroidStartupSafeMode.IsActive)
@@ -385,7 +432,11 @@ namespace osu.Android
                 // elevation is what causes the inversion. Default SDL-set priorities are
                 // sufficient and match upstream osu! / osu-framework behaviour.
 
-                int mask = affinityMask;
+                // On Vulkan, do NOT pin the Draw or Input threads to big cores — see the
+                // top-of-LoadComplete comment. The Update thread alone keeps its pin (it
+                // doesn't directly contend with the GPU driver workers) so we still benefit
+                // from kernel-clock stability on the game-loop tick.
+                int mask = vulkanConfigured ? 0 : affinityMask;
 
                 if (mask != 0)
                 {
@@ -450,6 +501,11 @@ namespace osu.Android
             // background-thread priority elevation is the other half of the
             // starvation equation and must be addressed independently.
             //
+            // VULKAN OVERRIDE: pass mask=0 so the helper only does the renice-to-0
+            // pass and skips sched_setaffinity. See the top-of-LoadComplete
+            // rationale comment — pinning unidentified driver workers to the
+            // LITTLE subset is what stalls vkQueuePresentKHR.
+            //
             // First apply runs synchronously here so any already-created workers
             // are tamed immediately; additional apply passes are scheduled inside
             // the refreshRateDelayMs block below to catch workers that are spawned
@@ -459,13 +515,13 @@ namespace osu.Android
             {
                 int coreCount = System.Environment.ProcessorCount;
                 int totalMask = coreCount >= 32 ? -1 : (1 << Math.Min(coreCount, 31)) - 1;
-                int littleMask = (~affinityMask) & totalMask;
-                if (littleMask == 0)
+                int littleMask = vulkanConfigured ? 0 : (~affinityMask) & totalMask;
+                if (!vulkanConfigured && littleMask == 0)
                     littleMask = totalMask; // fall back to "any core" if topology unknown.
 
                 int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(littleMask);
                 if (demoted > 0)
-                    Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) to nice=0 (little-core mask=0x{littleMask:X})", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) to nice=0 (little-core mask=0x{littleMask:X}{(vulkanConfigured ? " — affinity skipped for Vulkan" : "")})", LoggingTarget.Performance);
             }
             catch (Exception e)
             {
@@ -540,6 +596,8 @@ namespace osu.Android
 
                 if (AndroidStartupSafeMode.IsActive)
                     deferredLittleMask = totalMask; // safe-mode: affinity disabled, use full mask.
+                else if (vulkanConfigured)
+                    deferredLittleMask = 0; // Vulkan: skip affinity pinning entirely (renice-only).
                 else
                 {
                     int bigMask = AndroidNativeBridgeManager.GetBigCoreMask();
@@ -1984,6 +2042,61 @@ namespace osu.Android
             if (handler == null) return;
 
             applyStylusDisplaySize(handler);
+
+            // Defence-in-depth: re-strip any framework duplicate handlers that may
+            // have been re-instantiated on a window/Surface recreate (e.g. DeX
+            // connect / disconnect, foldable hinge, multi-window resize, locale
+            // change). The framework's AvailableInputHandlers is an ImmutableArray
+            // with no change notification, so we cannot subscribe; piggy-backing
+            // on the configuration-change hook is the cheapest reliable trigger.
+            // No-op if nothing has been re-added since the SetHost-time strip.
+            ReFilterFrameworkDuplicateHandlers();
+        }
+
+        /// <summary>
+        /// Re-runs the framework-handler strip pass against the current
+        /// <see cref="GameHost.AvailableInputHandlers"/>. Safe to call repeatedly:
+        /// if no framework duplicates have re-appeared since the SetHost-time
+        /// strip, this is a no-op.
+        /// </summary>
+        /// <remarks>
+        /// Called from <see cref="RefreshStylusDisplaySize"/> so any
+        /// configuration change that touches the window also re-validates the
+        /// handler set. Field reports of "S Pen stuck top-left after toggling
+        /// DeX / rotating the device" are consistent with a framework
+        /// <c>PenHandler</c> being re-instantiated by the SDL window recreate
+        /// and racing <see cref="AndroidStylusHandler"/>; this guard makes the
+        /// race impossible without rebooting the app.
+        /// </remarks>
+        public void ReFilterFrameworkDuplicateHandlers()
+        {
+            try
+            {
+                var host = Host;
+                if (host == null) return;
+
+                var prop = typeof(GameHost).GetProperty(nameof(GameHost.AvailableInputHandlers), BindingFlags.Public | BindingFlags.Instance);
+                if (prop?.SetMethod == null) return;
+
+                var existing = host.AvailableInputHandlers;
+                int dupes = 0;
+
+                foreach (var h in existing)
+                {
+                    if (isFrameworkDuplicateOfAndroidHandler(h)) dupes++;
+                }
+
+                if (dupes == 0) return;
+
+                var filtered = existing.RemoveAll(h => isFrameworkDuplicateOfAndroidHandler(h));
+                prop.SetMethod.Invoke(host, new object[] { filtered });
+
+                Logger.Log($"[osu!] Re-stripped {dupes} framework duplicate handler(s) on configuration change (defence-in-depth against SDL window-recreate re-instantiation).", LoggingTarget.Input);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] ReFilterFrameworkDuplicateHandlers failed: {e.Message}");
+            }
         }
 
         /// <summary>

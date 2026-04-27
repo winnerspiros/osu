@@ -590,6 +590,34 @@ static bool isCommToLeaveAlone(const char* comm) {
         "perfetto",     "main",
         // Oboe / AAudio callback threads (priority-critical for audio).
         "AAudio",       "OboeAudio",
+        // GPU driver workers — MUST be left alone for Vulkan to ever present a
+        // frame on Adreno / Mali / Xclipse. The driver spawns its own worker
+        // pool around vkCreateInstance / vkCreateSwapchainKHR, and demoting any
+        // of these to LITTLE cores at nice=0 reliably stalls vkQueuePresentKHR
+        // on the Draw thread (visible in field logs as "Update tick 1, Draw
+        // tick 0" → black-screen ANR on Vulkan launches). Names below cover the
+        // observed comms across vendors:
+        //   - Qualcomm Adreno user-space driver: "qcom-",  "kgsl-",
+        //     "Adreno",   "GraphicsWor",  "queue-msm",  "QSEECOMD",
+        //     "RenderEngine", "MaliCmdStream"
+        //   - ARM Mali blob driver:            "mali-",  "MaliWorker",
+        //     "ARM-MaliGPU"
+        //   - Samsung Xclipse / AMD RDNA3:     "xclipse",  "RGP-",  "AMDVLK"
+        //   - Generic Vulkan loader / SwiftShader: "Swift",  "vk-loader"
+        // Match by short prefix to be tolerant of vendor suffix differences.
+        "qcom-",        "kgsl-",        "Adreno",       "GraphicsWor",
+        "queue-msm",    "QSEECOMD",     "RenderEngine", "MaliCmdStream",
+        "mali-",        "MaliWorker",   "ARM-MaliGPU",
+        "xclipse",      "RGP-",         "AMDVLK",
+        "Swift",        "vk-loader",
+        // Veldrid + glslang/SPIRV-cross workers MUST also keep big-core
+        // affinity when Vulkan is the active renderer — they sit in the
+        // critical path of vkCreateGraphicsPipelines, which the Draw thread
+        // blocks on waiting for the first frame. We can't reliably tell
+        // renderer at this layer, so the cheap fix is to leave them alone
+        // unconditionally — on OpenGL/ANGLE the same workers are dormant
+        // (ANGLE compiles GLSL directly) so this is a no-op there.
+        "glslang",      "SPIRV-",       "Veldrid",
     };
 
     for (const char* p : keep) {

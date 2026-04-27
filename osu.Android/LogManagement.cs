@@ -583,6 +583,73 @@ namespace osu.Android
             }
         }
 
+        /// <summary>
+        /// Reads the persisted <c>Renderer</c> value from <c>framework.ini</c> on
+        /// disk WITHOUT consulting the framework (which is not constructed yet at
+        /// the call sites that need this). Returns the value verbatim
+        /// (e.g. <c>"Vulkan"</c>, <c>"OpenGL"</c>, <c>"Automatic"</c>) or
+        /// <see langword="null"/> if the file/key is missing.
+        /// </summary>
+        /// <remarks>
+        /// Used by the cold-start CPU-affinity / thread-taming code in
+        /// <c>OsuGameAndroid.LoadComplete</c> to back off from aggressive
+        /// background-worker affinity pinning when the user has chosen Vulkan —
+        /// the Adreno / Mali driver spawns its own internal worker threads
+        /// during <c>vkCreateInstance</c> / <c>vkCreateSwapchainKHR</c>, and
+        /// pinning them to LITTLE cores at any priority reliably stalls
+        /// <c>vkQueuePresentKHR</c> on the Draw thread (visible in field logs as
+        /// "Update tick 1, Draw tick 0" → black-screen ANR).
+        /// </remarks>
+        public static string? ReadConfiguredRenderer()
+        {
+            try
+            {
+                string? root = resolveStorageRoot();
+                if (root == null) return null;
+
+                string iniPath = Path.Combine(root, "framework.ini");
+                if (!File.Exists(iniPath)) return null;
+
+                string[] lines;
+
+                try { lines = File.ReadAllLines(iniPath); }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for ReadConfiguredRenderer: {e.Message}");
+                    return null;
+                }
+
+                foreach (string line in lines)
+                {
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
+                        continue;
+
+                    return line.Substring(eq + 1).Trim();
+                }
+
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: ReadConfiguredRenderer failed: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convenience wrapper — true if the persisted renderer is exactly
+        /// <c>Vulkan</c> (case-insensitive). False for OpenGL/Automatic/missing.
+        /// </summary>
+        public static bool IsVulkanConfigured()
+        {
+            string? renderer = ReadConfiguredRenderer();
+            return renderer != null && string.Equals(renderer, "Vulkan", StringComparison.OrdinalIgnoreCase);
+        }
+
         // Sentinel file dropped after a successful one-shot shader-cache wipe.
         // Stored alongside the cache itself (not in the cache directory, which
         // we delete) so the marker survives the wipe. The file payload is the
