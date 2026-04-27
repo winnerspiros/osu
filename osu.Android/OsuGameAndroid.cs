@@ -734,7 +734,7 @@ namespace osu.Android
                                     + "=== DRAW_THREAD_NEVER_PRESENTED ===\n"
                                     + $"  utc_time = {DateTime.UtcNow:O}\n"
                                     + "  reason   = Draw thread did not execute a scheduled lambda within 10s of LoadComplete\n"
-                                    + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; next launch will enter safe-mode\n"
+                                    + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; killing process so next launch enters safe-mode\n"
                                     + "             (which forces Renderer = OpenGL via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
                                     + "  suspect  = Vulkan present-queue deadlock (Veldrid VkSwapchain.AcquireNextImage / QueuePresent\n"
                                     + "             with unbounded timeout) — reproduced on multiple Adreno generations in this fork\n"
@@ -747,6 +747,32 @@ namespace osu.Android
 
                             // IMPORTANT: do NOT call ClearStartupInProgress here. Leaving the
                             // sentinel set is the whole point of the gate.
+
+                            // Active fast-fail: kill the process so the user gets an automatic
+                            // restart-into-safe-mode in ~1-2 s instead of staring at a black
+                            // screen until the OS ANR-kills (~30 s) or they manually force-quit.
+                            // The IN_PROGRESS sentinel is already armed from
+                            // AndroidStartupSafeMode.ApplyIfPreviousLaunchFailed in OnCreate, so
+                            // the next launch is guaranteed to boot in OpenGL via
+                            // LogManagement.ForceOpenGLRendererIfSafeMode. KillProcess is
+                            // async-signal-safe and works from any thread (including this
+                            // threadpool worker — we deliberately do NOT round-trip through
+                            // the Activity UI thread because that thread is itself frequently
+                            // stuck waiting on the Vulkan present-queue deadlock).
+                            //
+                            // PerformPlatformExit() goes through RunOnUiThread which would
+                            // never fire if the UI thread is blocked, defeating the whole
+                            // point of the fast-fail. Direct KillProcess gives a deterministic
+                            // 1-2 s restart cycle (Activity.onDestroy + Application restart by
+                            // the launcher) instead of an indefinite hang.
+                            try
+                            {
+                                Logger.Log("[osu!] Vulkan stall detected — restarting in OpenGL via safe-mode latch", LoggingTarget.Performance, LogLevel.Important);
+                            }
+                            catch { /* logger may itself be stalled if the framework took a draw lock */ }
+
+                            try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                            catch (Exception ex) { Debug.WriteLine($"[osu!] Vulkan-stall fast-fail KillProcess failed: {ex.Message}"); }
                         }
                         else
                         {
