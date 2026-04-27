@@ -72,9 +72,10 @@ namespace osu.Android.Native
         public bool SupportsHostImageCopy => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsHostImageCopy(nativePtr) != 0;
         public bool SupportsPushDescriptors => !disposed && nativePtr != IntPtr.Zero && nVulkanSupportsPushDescriptors(nativePtr) != 0;
 
-        public bool DisablePresentId => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentId(nativePtr) != 0;
-        public bool DisablePresentWait => !disposed && nativePtr != IntPtr.Zero && nVulkanDisablePresentWait(nativePtr) != 0;
-        public bool DisableGraphicsPipelineLibrary => !disposed && nativePtr != IntPtr.Zero && nVulkanDisableGraphicsPipelineLibrary(nativePtr) != 0;
+        // NOTE: DisablePresentId / DisablePresentWait / DisableGraphicsPipelineLibrary
+        // were removed alongside their native-side blacklist. Veldrid (winnerspiros/veldrid
+        // PR #12) makes those decisions itself based on driver query — keeping a parallel
+        // managed-side blacklist would either duplicate that logic or conflict with it.
 
         public bool IsRecommended => IsAvailable && MeetsVulkan13 && SupportsDynamicRendering && SupportsSynchronization2 && SupportsGraphicsPipelineLibrary && SupportsShaderObject;
 
@@ -108,9 +109,6 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nVulkanSupportsGlobalPriority(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsMemoryBudget(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsSurfaceMaintenance1(IntPtr ptr);
-        [DllImport(lib_name)] private static extern byte nVulkanDisablePresentId(IntPtr ptr);
-        [DllImport(lib_name)] private static extern byte nVulkanDisablePresentWait(IntPtr ptr);
-        [DllImport(lib_name)] private static extern byte nVulkanDisableGraphicsPipelineLibrary(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanMeetsVulkan14(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsHostImageCopy(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nVulkanSupportsPushDescriptors(IntPtr ptr);

@@ -153,7 +153,13 @@ namespace osu.Android
             const int window_ms = 2000;
             const int max_samples = window_ms / sample_interval_ms; // ~13
 
-            var samples = new System.Collections.Generic.List<double>(max_samples);
+            // Fixed-size buffer rather than List<double>: max_samples is known at
+            // compile time, so the List's heap-allocated backing T[] + per-Add
+            // bounds-check / count-bump is wasted work for a 13-element buffer
+            // measured once per user click. The whole resync now allocates
+            // exactly one double[13] (vs List<double> + the wrapped double[]).
+            double[] samples = new double[max_samples];
+            int samplesCount = 0;
             int ticks = 0;
 
             ScheduledDelegate? handle = null;
@@ -172,26 +178,26 @@ namespace osu.Android
                 // Drop the very first reading: AAudio's getTimestamp() needs a few hundred
                 // milliseconds of pulled frames before its reported presentation latency
                 // stabilises, and the warm-up sample tends to be biased high.
-                if (ticks > 1 && latency > 0)
-                    samples.Add(latency);
+                if (ticks > 1 && latency > 0 && samplesCount < samples.Length)
+                    samples[samplesCount++] = latency;
 
                 if (ticks * sample_interval_ms >= window_ms)
                 {
                     handle?.Cancel();
                     hardwareLatencyDelegate = null;
 
-                    if (samples.Count == 0)
+                    if (samplesCount == 0)
                     {
                         Logger.Log("[osu!] Hardware audio latency unavailable after 2 s — leaving audio offset unchanged.", level: LogLevel.Important);
                         return;
                     }
 
-                    samples.Sort();
-                    double median = samples.Count % 2 == 1
-                        ? samples[samples.Count / 2]
-                        : 0.5 * (samples[samples.Count / 2 - 1] + samples[samples.Count / 2]);
+                    Array.Sort(samples, 0, samplesCount);
+                    double median = samplesCount % 2 == 1
+                        ? samples[samplesCount / 2]
+                        : 0.5 * (samples[samplesCount / 2 - 1] + samples[samplesCount / 2]);
 
-                    Logger.Log($"[osu!] Hardware audio latency measured: median={median:F1} ms (n={samples.Count}, range=[{samples[0]:F1}, {samples[^1]:F1}] ms)");
+                    Logger.Log($"[osu!] Hardware audio latency measured: median={median:F1} ms (n={samplesCount}, range=[{samples[0]:F1}, {samples[samplesCount - 1]:F1}] ms)");
 
                     try { onLatencyMeasured(median); }
                     catch (Exception ex) { Logger.Log($"[osu!] Hardware-latency callback failed: {ex.Message}", level: LogLevel.Error); }
@@ -331,10 +337,7 @@ namespace osu.Android
             int major = (ver >> 22) & 0x3FF;
             int minor = (ver >> 12) & 0x3FF;
 
-            cachedVulkanStatus = $"Vk{major}.{minor}"
-                                 + (probe.DisablePresentId ? " [NoID]" : "")
-                                 + (probe.DisablePresentWait ? " [NoWait]" : "")
-                                 + (probe.DisableGraphicsPipelineLibrary ? " [NoGPL]" : "");
+            cachedVulkanStatus = $"Vk{major}.{minor}";
             return cachedVulkanStatus;
         }
 

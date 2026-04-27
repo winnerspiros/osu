@@ -1428,7 +1428,15 @@ namespace osu.Android
                         int.TryParse(rateStr, out hardwareSampleRate);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // GetSystemService / GetProperty are JNI calls that can throw
+                // RuntimeException on niche OEM stacks (e.g. early DeX bootstrap).
+                // Falling through with hardwareSampleRate=0 is correct — Oboe will
+                // fall back to its own AAudio query — but log so it's not invisible
+                // when investigating a sample-rate mismatch report.
+                Logger.Log($"[osu!] AAudio sample-rate query failed: {ex.Message}", level: LogLevel.Important);
+            }
 
             nativeBridges ??= new AndroidNativeBridgeManager();
 
