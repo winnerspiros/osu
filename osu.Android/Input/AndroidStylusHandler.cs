@@ -240,8 +240,17 @@ namespace osu.Android.Input
             {
                 releaseAllButtons();
 
-                if (actionMasked != MotionEventActions.HoverExit)
-                    return true;
+                // Functionally equivalent to the previous structure
+                // (`if (actionMasked != HoverExit) return true;`) for Up + Cancel —
+                // both already returned true here. The behavioural change is solely
+                // for HoverExit: previously it fell through into handlePointer,
+                // which on some Samsung firmwares would re-publish a stale or (0,0)
+                // coordinate (racing the releaseAllButtons() above and pinning the
+                // cursor to the screen origin even with the corner-garbage filter
+                // in handlePointer). Returning here unconditionally preserves
+                // whatever lastTouchPosition the last legitimate Move sample
+                // established.
+                return true;
             }
             else if (actionMasked == MotionEventActions.HoverEnter)
             {
@@ -372,13 +381,24 @@ namespace osu.Android.Input
             // ButtonPress samples occasionally landing at (0, 0) with pressure > 0,
             // which would still snap the cursor to the top-left.
             //
+            // ALSO drop near-axis-zero samples: some Samsung firmwares (observed on
+            // S23U / S25U with One UI 7+) emit a single garbage sample at coordinates
+            // like (0, 1.0), (0, 2.5), (1, 0), (2, 0) on S-Pen wake-up — just below the
+            // strict (0,0) threshold but still pinning the cursor to the literal corner.
+            // The keep-out band is conservative (<5px on the zero-axis) so legitimate
+            // edge-of-digitizer samples (which always have at least sub-pixel float
+            // noise on BOTH axes) are not affected.
+            //
             // A real pen sample is *physically somewhere* on the digitizer to have
-            // triggered the event, so a strict (rawX==0 && rawY==0) match is a safe
-            // filter — legitimate edge-of-digitizer samples will always have at least
-            // sub-pixel float noise on one of the two axes.
-            if (rawX == 0f && rawY == 0f)
+            // triggered the event, so a strict near-corner match is a safe filter.
+            bool isCornerGarbage =
+                (rawX == 0f && rawY == 0f)
+                || (rawX == 0f && rawY < 5f)
+                || (rawY == 0f && rawX < 5f);
+
+            if (isCornerGarbage)
             {
-                // Always log the FIRST (0,0) drop of each pen session at
+                // Always log the FIRST corner-garbage drop of each pen session at
                 // Important level so it surfaces in default-policy logs;
                 // subsequent drops in the same session are silently
                 // counted to avoid log spam on a chatty digitiser.
@@ -386,8 +406,8 @@ namespace osu.Android.Input
                 {
                     var toolType = e.GetToolType(pointerIndex);
                     Logger.Log(
-                        $"[osu!] AndroidStylusHandler: dropped (0,0) sample "
-                        + $"(action={actionMasked}, toolType={toolType}, pointerIndex={pointerIndex}, "
+                        $"[osu!] AndroidStylusHandler: dropped near-corner sample "
+                        + $"(rawX={rawX:0.00}, rawY={rawY:0.00}, action={actionMasked}, toolType={toolType}, pointerIndex={pointerIndex}, "
                         + $"pointerCount={e.PointerCount}, pressure={pressure:0.000}). "
                         + "If the cursor is stuck top-left this confirms our drop guard fired; "
                         + "if it is still stuck the leak is on a different code path.",

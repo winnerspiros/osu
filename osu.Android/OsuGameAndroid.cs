@@ -80,6 +80,12 @@ namespace osu.Android
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
 
+        // Last UTC ms timestamp at which the AudioOffset diagnostic log line fired.
+        // Used to rate-limit the diagnostic so a slider drag (which can fire 30+
+        // change events per second) doesn't spam the runtime.log. See the
+        // BindValueChanged subscription in load() for the rate-limit policy.
+        private long lastLoggedAudioOffsetMs;
+
         // Layer 2/3 startup-safety toggles. Held as fields so the BindValueChanged
         // subscriptions installed in load() outlive the BDL frame and continue to
         // mirror updates into the on-disk sentinel files for the next launch.
@@ -110,7 +116,7 @@ namespace osu.Android
 
         // Set true the FIRST time the Draw thread executes a scheduled lambda
         // after LoadComplete. Used to gate AndroidStartupSafeMode.ClearStartupInProgress
-        // — if the Draw thread never reaches the heartbeat by the 10 s deadline
+        // — if the Draw thread never reaches the heartbeat by the 25 s deadline
         // we deliberately leave the IN_PROGRESS sentinel armed so the NEXT
         // launch enters safe-mode (which forces Renderer = OpenGL via
         // LogManagement.ForceOpenGLRendererIfSafeMode). This catches the
@@ -121,6 +127,16 @@ namespace osu.Android
         // queue. Without this gate the threadpool timer fires
         // ClearStartupInProgress regardless, the user force-closes the black
         // screen, and the next launch RE-ATTEMPTS Vulkan into the same wall.
+        //
+        // Deadline raised from 10 s → 25 s alongside the ppy.osu.Framework
+        // 2026.427.4 bump (which pulled in winnerspiros/veldrid b314005:
+        // VkSurfaceKHR loss recovery + bounded vkAcquireNextImageKHR). The
+        // framework now self-heals from a transient surface loss in 1-3 s on a
+        // good day, but a recovery that lands DURING the cold-start Toolbar
+        // texture-upload burst (600+ items) plus full swapchain+VkSurface
+        // rebuild can legitimately consume 8-12 s on Adreno. 25 s leaves clear
+        // headroom for that worst-case while still firing on a genuinely
+        // wedged renderer.
         private volatile bool drawThreadEverPresented;
 
         // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
@@ -211,6 +227,36 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
+
+            // Diagnostic: log audio-offset changes so the next runtime.log conclusively
+            // shows whether the user's slider value reaches the global bindable. Field
+            // reports of "moving audio offset doesn't sync hitsounds" are ambiguous
+            // without this: either (a) the slider isn't writing to the bound setting
+            // (in which case we'd see no log line on slider drag), (b) it is writing
+            // but FramedBeatmapClock isn't re-reading (would still see lines here), or
+            // (c) the offset is shifting the gameplay clock correctly but Oboe pipeline
+            // introduces a constant-latency confounder that makes the audible shift
+            // smaller than expected.
+            //
+            // Rate-limited to avoid log spam while the user is actively dragging the
+            // slider (which can fire 30+ changes/sec): emit only when the delta exceeds
+            // 0.5ms OR ≥2s have elapsed since the last log. The first fire (initial
+            // bind, OldValue==NewValue) is also always emitted so the persisted value
+            // is captured at startup.
+            audioOffset.BindValueChanged(e =>
+            {
+                double delta = Math.Abs(e.NewValue - e.OldValue);
+                long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                bool firstFire = lastLoggedAudioOffsetMs == 0;
+                bool deltaSignificant = delta >= 0.5;
+                bool elapsedSignificant = (nowMs - lastLoggedAudioOffsetMs) >= 2_000;
+
+                if (firstFire || deltaSignificant || elapsedSignificant)
+                {
+                    Logger.Log($"[osu!] AudioOffset changed: {e.OldValue:F1}ms → {e.NewValue:F1}ms", LoggingTarget.Performance);
+                    lastLoggedAudioOffsetMs = nowMs;
+                }
+            }, true);
 
             // Bind the three Android startup-safety toggles. The BindWith call
             // wires each persistent OsuConfigManager setting to a long-lived
@@ -337,6 +383,37 @@ namespace osu.Android
             // if it survives, we have isolated the cause; if it does not, we have ruled
             // out CPU pinning and the next iteration can target the next suspect with
             // the heartbeat data captured below.
+            //
+            // Vulkan-renderer override: when the user has selected Vulkan, ALSO skip
+            // big-core affinity pinning of the Draw + Input threads, and ALSO skip
+            // the LITTLE-core affinity pin of background workers further below
+            // (only the renice-to-zero pass runs). Rationale: the Adreno / Mali /
+            // Xclipse Vulkan driver spawns its own internal worker pool during
+            // vkCreateInstance / vkCreateSwapchainKHR, and those workers are NOT
+            // in our keep-alone list (we only know a subset of vendor-specific
+            // comm names). Pinning the Draw thread to a fixed 5-core subset while
+            // the driver workers are simultaneously demoted to the inverse 3-core
+            // LITTLE subset reliably stalls vkQueuePresentKHR — the field-observed
+            // failure mode is exactly "Update tick 1, Draw tick 0" with the Draw
+            // thread blocked inside Veldrid's swapchain present queue and never
+            // reaching the post-LoadComplete heartbeat lambda. On OpenGL/ANGLE the
+            // same pinning is harmless (ANGLE is single-threaded on the GL driver
+            // side) — hence the renderer-conditional override here rather than a
+            // blanket policy change.
+            //
+            // The framework-side root cause (vkAcquireNextImageKHR with no timeout
+            // → indefinite block when the swapchain is in a transient lost state)
+            // lives in winnerspiros/veldrid `copilot/fix-vkacquirenextimage-deadlock`
+            // and needs to be published as a new ppy.Veldrid NuGet for upstream
+            // consumption. These overrides are the largest application-layer
+            // mitigation we can apply until that lands.
+            bool vulkanConfigured = false;
+            try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
+            catch (Exception e) { Debug.WriteLine($"[osu!] IsVulkanConfigured probe failed: {e.Message}"); }
+
+            if (vulkanConfigured)
+                Logger.Log("[osu!] Vulkan renderer detected from framework.ini — backing off Draw/Input big-core pinning and background-worker LITTLE-core pinning to keep Adreno/Mali driver workers schedulable.", LoggingTarget.Performance);
+
             int affinityMask;
 
             if (AndroidStartupSafeMode.IsActive)
@@ -385,7 +462,11 @@ namespace osu.Android
                 // elevation is what causes the inversion. Default SDL-set priorities are
                 // sufficient and match upstream osu! / osu-framework behaviour.
 
-                int mask = affinityMask;
+                // On Vulkan, do NOT pin the Draw or Input threads to big cores — see the
+                // top-of-LoadComplete comment. The Update thread alone keeps its pin (it
+                // doesn't directly contend with the GPU driver workers) so we still benefit
+                // from kernel-clock stability on the game-loop tick.
+                int mask = vulkanConfigured ? 0 : affinityMask;
 
                 if (mask != 0)
                 {
@@ -450,6 +531,11 @@ namespace osu.Android
             // background-thread priority elevation is the other half of the
             // starvation equation and must be addressed independently.
             //
+            // VULKAN OVERRIDE: pass mask=0 so the helper only does the renice-to-0
+            // pass and skips sched_setaffinity. See the top-of-LoadComplete
+            // rationale comment — pinning unidentified driver workers to the
+            // LITTLE subset is what stalls vkQueuePresentKHR.
+            //
             // First apply runs synchronously here so any already-created workers
             // are tamed immediately; additional apply passes are scheduled inside
             // the refreshRateDelayMs block below to catch workers that are spawned
@@ -459,13 +545,13 @@ namespace osu.Android
             {
                 int coreCount = System.Environment.ProcessorCount;
                 int totalMask = coreCount >= 32 ? -1 : (1 << Math.Min(coreCount, 31)) - 1;
-                int littleMask = (~affinityMask) & totalMask;
-                if (littleMask == 0)
+                int littleMask = vulkanConfigured ? 0 : (~affinityMask) & totalMask;
+                if (!vulkanConfigured && littleMask == 0)
                     littleMask = totalMask; // fall back to "any core" if topology unknown.
 
                 int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(littleMask);
                 if (demoted > 0)
-                    Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) to nice=0 (little-core mask=0x{littleMask:X})", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Tamed {demoted} background worker thread(s) to nice=0 (little-core mask=0x{littleMask:X}{(vulkanConfigured ? " — affinity skipped for Vulkan" : "")})", LoggingTarget.Performance);
             }
             catch (Exception e)
             {
@@ -540,6 +626,8 @@ namespace osu.Android
 
                 if (AndroidStartupSafeMode.IsActive)
                     deferredLittleMask = totalMask; // safe-mode: affinity disabled, use full mask.
+                else if (vulkanConfigured)
+                    deferredLittleMask = 0; // Vulkan: skip affinity pinning entirely (renice-only).
                 else
                 {
                     int bigMask = AndroidNativeBridgeManager.GetBigCoreMask();
@@ -669,15 +757,16 @@ namespace osu.Android
             }, refreshRateDelayMs);
 
             // Clear the "startup in progress" sentinel once the current launch has
-            // survived ~10 s past LoadComplete. The sentinel governs the NEXT launch's
+            // survived ~25 s past LoadComplete. The sentinel governs the NEXT launch's
             // safe-mode decision, not the current one (AndroidStartupSafeMode.IsActive
             // is latched at OnCreate time and never changes mid-process). Window size
             // is chosen to be longer than typical post-LoadComplete texture-upload
-            // bursts (~3-5 s on cold start) so we don't prematurely declare success,
-            // but short enough that any genuinely surviving launch clears the sentinel
-            // before the user could reasonably trigger a manual restart. If the
-            // process dies before this fires (ANR, native crash, OOM kill), the
-            // sentinel persists and the next launch enters safe-mode.
+            // bursts plus a worst-case Veldrid surface-lost recovery cycle (~8-12 s on
+            // Adreno) so we don't prematurely declare a recoverable transient failure
+            // a permanent one, but short enough that any genuinely surviving launch
+            // clears the sentinel before the user could reasonably trigger a manual
+            // restart. If the process dies before this fires (ANR, native crash, OOM
+            // kill), the sentinel persists and the next launch enters safe-mode.
             //
             // Fired from a kernel-managed System.Threading.Timer rather than
             // Scheduler.AddDelayed: the same Update-thread stall that caused the
@@ -718,7 +807,7 @@ namespace osu.Android
                     try
                     {
                         // Vulkan-stall gate: if the Draw thread never executed
-                        // its first scheduled lambda within 10 s of LoadComplete,
+                        // its first scheduled lambda within 25 s of LoadComplete,
                         // we assume the renderer is hung. Leave the IN_PROGRESS
                         // sentinel armed so the next launch will enter safe-mode
                         // (which rewrites Renderer = OpenGL via
@@ -733,11 +822,13 @@ namespace osu.Android
                                     "\n=========================================================\n"
                                     + "=== DRAW_THREAD_NEVER_PRESENTED ===\n"
                                     + $"  utc_time = {DateTime.UtcNow:O}\n"
-                                    + "  reason   = Draw thread did not execute a scheduled lambda within 10s of LoadComplete\n"
+                                    + "  reason   = Draw thread did not execute a scheduled lambda within 25s of LoadComplete\n"
                                     + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; killing process so next launch enters safe-mode\n"
                                     + "             (which forces Renderer = OpenGL via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
-                                    + "  suspect  = Vulkan present-queue deadlock (Veldrid VkSwapchain.AcquireNextImage / QueuePresent\n"
-                                    + "             with unbounded timeout) — reproduced on multiple Adreno generations in this fork\n"
+                                    + "  suspect  = Vulkan present-queue deadlock that survives Veldrid's bounded vkAcquireNextImageKHR\n"
+                                    + "             + VkSurfaceKHR-loss recovery (i.e. a genuinely broken Vulkan stack on this device,\n"
+                                    + "             not a transient surface loss). The framework's recovery cycle should fit comfortably\n"
+                                    + "             inside 25 s — if we tripped this gate, the device is reproducibly stuck.\n"
                                     + "=== END DRAW_THREAD_NEVER_PRESENTED ===\n\n");
                             }
                             catch (Exception ex)
@@ -787,20 +878,20 @@ namespace osu.Android
                     var ct = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
                     try { ct?.Dispose(); }
                     catch { /* ignore */ }
-                }, state: null, dueTime: 10_000, period: System.Threading.Timeout.Infinite);
+                }, state: null, dueTime: 25_000, period: System.Threading.Timeout.Infinite);
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] Failed to schedule ClearStartupInProgress timer: {e.Message}");
             }
 
-            // Cold-start heartbeat instrumentation. For the first 15 s after LoadComplete
+            // Cold-start heartbeat instrumentation. For the first 30 s after LoadComplete
             // we emit per-second ALIVE markers from BOTH the Update thread and the Draw
             // thread into native_crash.log, tagged with the originating thread name.
             // This closes the diagnostic gap between the last "SetHost returning" marker
-            // (~22 s mark in field logs) and the planned 10 s ClearStartupInProgress
-            // marker that has so far never fired because the process is killed before
-            // it does. With per-second per-thread heartbeats, the next post-mortem can
+            // (~22 s mark in field logs) and the 25 s ClearStartupInProgress marker that
+            // has so far never fired because the process is killed before it does. With
+            // per-second per-thread heartbeats, the next post-mortem can
             // see exactly which thread (Update, Draw, both, or neither) was still alive
             // at the moment the OS reaped the process — a critical signal for telling
             // apart input-ANR (Main UI thread blocked but game-loop alive), Vulkan/swap-
@@ -929,7 +1020,7 @@ namespace osu.Android
         /// </summary>
         private void scheduleColdStartHeartbeats()
         {
-            const int total_ticks = 15;
+            const int total_ticks = 30;
 
             try
             {
@@ -1346,6 +1437,28 @@ namespace osu.Android
             }
         }
 
+        /// <summary>
+        /// On Android the framework's <c>AndroidGameHost</c> reports <c>CanExit = false</c>,
+        /// so the default <see cref="OsuGame.AttemptExit"/> (which navigates back to the main
+        /// menu and then calls <c>Host.Exit()</c>) terminates as a no-op and the activity
+        /// stays running indefinitely.
+        ///
+        /// <para>
+        /// The most user-visible regression of this is changing the renderer in
+        /// Settings → Graphics → Renderer: the confirm dialog tells the user "the game will
+        /// close, please open it again" and then nothing happens — they have to swipe the
+        /// task away by hand for the new renderer to take effect.
+        /// </para>
+        ///
+        /// <para>
+        /// Bypass the no-op chain and route straight to <see cref="PerformPlatformExit"/>,
+        /// which performs the documented Android hard-exit dance (MoveTaskToBack +
+        /// Activity.Finish + KillProcess) so the next launch picks up the new
+        /// <c>framework.ini</c> renderer setting cleanly.
+        /// </para>
+        /// </summary>
+        public override void AttemptExit() => PerformPlatformExit();
+
         public override void PerformPlatformExit()
         {
             // The framework's AndroidGameHost reports CanExit=false (so host.Exit() is a no-op)
@@ -1469,7 +1582,34 @@ namespace osu.Android
             try
             {
                 if (e.NewValue)
+                {
+                    // Hazard: when the framework's renderer is Vulkan, Veldrid is in
+                    // the middle of (or has already completed) its own vkCreateInstance.
+                    // Spinning up a SECOND VkInstance from this probe — for what is
+                    // ultimately a "show device info in Settings" cosmetic feature —
+                    // is a known Adreno driver hazard during the cold-start window:
+                    // two concurrent VkInstances in one process can corrupt internal
+                    // driver bookkeeping and reproduce the exact "Update ticks, Draw
+                    // never presents" stall this PR's framework bump is meant to fix.
+                    //
+                    // The probe is only useful when the renderer is OpenGL/Auto — in
+                    // that case it surfaces "Vulkan available, consider enabling it"
+                    // information without an active Veldrid VkInstance to fight with.
+                    // When the renderer is already Vulkan, the framework itself has
+                    // queried the device, so the probe contributes nothing actionable
+                    // and risks the very stall we're trying to eliminate.
+                    bool vulkanConfigured = false;
+                    try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
+                    catch (Exception ex) { Debug.WriteLine($"[osu!] Vulkan probe gate: IsVulkanConfigured failed: {ex.Message}"); }
+
+                    if (vulkanConfigured)
+                    {
+                        Logger.Log("[osu!] Vulkan probe suppressed — renderer is already Vulkan (avoids concurrent VkInstance during Adreno cold-start)", LoggingTarget.Performance);
+                        return;
+                    }
+
                     startVulkanProbe();
+                }
                 else
                     stopVulkanProbe();
             }
@@ -1984,6 +2124,61 @@ namespace osu.Android
             if (handler == null) return;
 
             applyStylusDisplaySize(handler);
+
+            // Defence-in-depth: re-strip any framework duplicate handlers that may
+            // have been re-instantiated on a window/Surface recreate (e.g. DeX
+            // connect / disconnect, foldable hinge, multi-window resize, locale
+            // change). The framework's AvailableInputHandlers is an ImmutableArray
+            // with no change notification, so we cannot subscribe; piggy-backing
+            // on the configuration-change hook is the cheapest reliable trigger.
+            // No-op if nothing has been re-added since the SetHost-time strip.
+            ReFilterFrameworkDuplicateHandlers();
+        }
+
+        /// <summary>
+        /// Re-runs the framework-handler strip pass against the current
+        /// <see cref="GameHost.AvailableInputHandlers"/>. Safe to call repeatedly:
+        /// if no framework duplicates have re-appeared since the SetHost-time
+        /// strip, this is a no-op.
+        /// </summary>
+        /// <remarks>
+        /// Called from <see cref="RefreshStylusDisplaySize"/> so any
+        /// configuration change that touches the window also re-validates the
+        /// handler set. Field reports of "S Pen stuck top-left after toggling
+        /// DeX / rotating the device" are consistent with a framework
+        /// <c>PenHandler</c> being re-instantiated by the SDL window recreate
+        /// and racing <see cref="AndroidStylusHandler"/>; this guard makes the
+        /// race impossible without rebooting the app.
+        /// </remarks>
+        public void ReFilterFrameworkDuplicateHandlers()
+        {
+            try
+            {
+                var host = Host;
+                if (host == null) return;
+
+                var prop = typeof(GameHost).GetProperty(nameof(GameHost.AvailableInputHandlers), BindingFlags.Public | BindingFlags.Instance);
+                if (prop?.SetMethod == null) return;
+
+                var existing = host.AvailableInputHandlers;
+                int dupes = 0;
+
+                foreach (var h in existing)
+                {
+                    if (isFrameworkDuplicateOfAndroidHandler(h)) dupes++;
+                }
+
+                if (dupes == 0) return;
+
+                var filtered = existing.RemoveAll(h => isFrameworkDuplicateOfAndroidHandler(h));
+                prop.SetMethod.Invoke(host, new object[] { filtered });
+
+                Logger.Log($"[osu!] Re-stripped {dupes} framework duplicate handler(s) on configuration change (defence-in-depth against SDL window-recreate re-instantiation).", LoggingTarget.Input);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] ReFilterFrameworkDuplicateHandlers failed: {e.Message}");
+            }
         }
 
         /// <summary>
