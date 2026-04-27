@@ -266,6 +266,20 @@ namespace osu.Android
         // many threads were skipped).
         private const int proc_snapshot_byte_cap = 128 * 1024;
 
+        /// <summary>
+        /// Build a one-shot <c>/proc/self/task</c> snapshot suitable for inclusion in a
+        /// diagnostic block emitted from outside <see cref="HangWatchdog"/> (e.g. the
+        /// Vulkan-stall fast-fail in <c>OsuGameAndroid</c>). Same per-thread fields and
+        /// the same <see cref="proc_snapshot_byte_cap"/> truncation behaviour as the
+        /// in-watchdog dumps, so dump consumers can rely on a single format.
+        /// </summary>
+        public static string CaptureProcTaskSnapshot()
+        {
+            var sb = new StringBuilder();
+            appendProcTaskSnapshot(sb);
+            return sb.ToString();
+        }
+
         private static void appendProcTaskSnapshot(StringBuilder sb)
         {
             try

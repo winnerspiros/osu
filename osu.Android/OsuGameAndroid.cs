@@ -818,6 +818,22 @@ namespace osu.Android
                         {
                             try
                             {
+                                // Capture a /proc/self/task snapshot of every thread BEFORE
+                                // KillProcess. Each row carries the kernel `wchan` (name of the
+                                // kernel function the thread is sleeping in) and `syscall`
+                                // (active syscall number + user-space PC), which together
+                                // pinpoint exactly where the Draw thread is stuck — typically
+                                // a futex inside the GPU driver's vkQueuePresentKHR /
+                                // vkAcquireNextImageKHR, an Adreno binder wait, etc.
+                                //
+                                // Without this we have no visibility into Vulkan stalls beyond
+                                // "Draw thread didn't tick", which makes every report opaque.
+                                // The same snapshot logic is used by HangWatchdog for in-flight
+                                // hangs; here we reuse it in the fatal-stall path.
+                                string snapshot;
+                                try { snapshot = HangWatchdog.CaptureProcTaskSnapshot(); }
+                                catch (Exception snapEx) { snapshot = $"  (snapshot failed: {snapEx.Message})\n"; }
+
                                 CrashDiagnostics.AppendDiagnosticBlock(
                                     "\n=========================================================\n"
                                     + "=== DRAW_THREAD_NEVER_PRESENTED ===\n"
@@ -829,6 +845,15 @@ namespace osu.Android
                                     + "             + VkSurfaceKHR-loss recovery (i.e. a genuinely broken Vulkan stack on this device,\n"
                                     + "             not a transient surface loss). The framework's recovery cycle should fit comfortably\n"
                                     + "             inside 25 s — if we tripped this gate, the device is reproducibly stuck.\n"
+                                    + "  hint     = grep the snapshot below for `comm=Draw` / `comm=Audio` / `comm=Update` rows;\n"
+                                    + "             `wchan` names the kernel function the thread is sleeping in (e.g. `futex_wait_queue`,\n"
+                                    + "             `pipe_wait`), `syscall` carries the active syscall number + user-space PC. If the\n"
+                                    + "             Draw thread shows wchan=futex_* and syscall=98 (futex), the call originates from\n"
+                                    + "             vulkan.adreno.so; if it shows wchan=binder_*, the WSI is blocked on a SurfaceFlinger\n"
+                                    + "             round-trip; if it shows wchan=`do_epoll_wait`, the driver is parked between presents\n"
+                                    + "             (i.e. the freeze is upstream — likely a missed scheduler tick).\n"
+                                    + "\n--- /proc/self/task snapshot ---\n"
+                                    + snapshot
                                     + "=== END DRAW_THREAD_NEVER_PRESENTED ===\n\n");
                             }
                             catch (Exception ex)
