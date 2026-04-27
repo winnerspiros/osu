@@ -487,8 +487,8 @@ namespace osu.Android
                 long maxPayload = native_crash_log_max_bytes / 2;
                 if (payload.Length > maxPayload)
                 {
-                    payload = payload.Substring(0, (int)maxPayload)
-                              + $"\n  (… payload truncated at {maxPayload} bytes; full size was {payload.Length})\n";
+                    payload = string.Concat(payload.AsSpan(0, (int)maxPayload),
+                              $"\n  (… payload truncated at {maxPayload} bytes; full size was {payload.Length})\n");
                 }
 
                 using var fs = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
