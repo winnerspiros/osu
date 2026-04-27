@@ -169,21 +169,31 @@ namespace osu.Android
         }
 
         /// <summary>
-        /// If the on-disk <c>framework.ini</c> still has the framework's stale
-        /// Android default of <c>ExecutionMode = SingleThread</c>, rewrite it
-        /// to <c>MultiThreaded</c> in place before the framework loads it.
+        /// Pin <c>ExecutionMode = MultiThreaded</c> in the on-disk
+        /// <c>framework.ini</c> before the framework loads it.
         ///
         /// <para>
         /// Background: <c>osu.Framework.Android.AndroidGameHost.SetupConfig</c>
-        /// historically registered SingleThread as the framework default. The
-        /// first launch of any older build therefore persisted SingleThread to
-        /// disk. <c>OsuGameBase.load()</c> later force-sets MultiThreaded, but
-        /// only *after* the host has already started in SingleThread for ~1
-        /// second — the runtime log shows two consecutive
-        /// "Execution mode changed to ..." entries, with the GameThread set
-        /// being torn down and re-created in between. Rewriting the on-disk
-        /// value here closes the gap on already-installed clients without
-        /// requiring a "delete framework.ini" support instruction.
+        /// historically registered SingleThread as the framework default
+        /// (removed upstream in <c>ppy.osu.Framework 2026.427.2</c>; see commit
+        /// <c>e756469</c>). The first launch of any older build therefore
+        /// persisted SingleThread to disk, and any user with an existing
+        /// <c>framework.ini</c> from a pre-fix build can still be running with
+        /// the SingleThread loop on a single OS thread — a single slow Vulkan
+        /// submit then blocks Android-lifecycle JNI callbacks and produces a
+        /// black-screen ANR (the failure mode this method exists to prevent).
+        /// </para>
+        ///
+        /// <para>
+        /// Hardening: rather than only rewriting the literal value
+        /// <c>SingleThread</c>, this method now ensures the file ALWAYS contains
+        /// <c>ExecutionMode = MultiThreaded</c> — it appends the line if the key
+        /// is missing entirely (e.g. a fresh install whose framework.ini was
+        /// pre-created by <see cref="NormaliseFrameworkIniRendererDefault"/> and
+        /// only contains the Renderer line) and rewrites any non-MultiThreaded
+        /// value (SingleThread, DeferredThread, …). The MultiThreaded execution
+        /// model is the only one tested + supported on Android, so unconditional
+        /// pinning is safe.
         /// </para>
         ///
         /// <para>
@@ -215,6 +225,7 @@ namespace osu.Android
                 }
 
                 bool changed = false;
+                bool seenExecutionModeLine = false;
 
                 for (int i = 0; i < lines.Length; i++)
                 {
@@ -228,13 +239,25 @@ namespace osu.Android
                     if (!string.Equals(key, "ExecutionMode", StringComparison.Ordinal))
                         continue;
 
-                    if (string.Equals(value, "SingleThread", StringComparison.Ordinal))
+                    seenExecutionModeLine = true;
+
+                    if (!string.Equals(value, "MultiThreaded", StringComparison.Ordinal))
                     {
                         lines[i] = "ExecutionMode = MultiThreaded";
                         changed = true;
                     }
 
                     break;
+                }
+
+                if (!seenExecutionModeLine)
+                {
+                    // No ExecutionMode line at all — append one at the end of the file.
+                    var newLines = new string[lines.Length + 1];
+                    Array.Copy(lines, newLines, lines.Length);
+                    newLines[lines.Length] = "ExecutionMode = MultiThreaded";
+                    lines = newLines;
+                    changed = true;
                 }
 
                 if (!changed) return;
@@ -406,6 +429,132 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] LogManagement: could not write renderer-migration sentinel: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Safe-mode renderer fallback: when the previous launch died before reaching the
+        /// post-LoadComplete clear point (i.e. <see cref="AndroidStartupSafeMode.IsActive"/>
+        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c> for
+        /// THIS launch only.
+        ///
+        /// <para>
+        /// Why: the recurring black-screen ANR fingerprint is a Vulkan-path Toolbar-time
+        /// stall on Adreno (driver MAILBOX deadlock + glslang shader-compile burst). If
+        /// the user has explicitly picked Vulkan and the previous launch died inside it,
+        /// re-attempting Vulkan immediately reproduces the same hang. Falling back to the
+        /// proven-good OpenGL path for one launch breaks the cascade — the safe-mode
+        /// latch is naturally cleared by <see cref="AndroidStartupSafeMode.ClearStartupInProgress"/>
+        /// once the launch survives, so the user's original Vulkan choice is restored on
+        /// the very next normal launch (this method only acts while safe-mode is active).
+        /// </para>
+        ///
+        /// <para>
+        /// Bypasses the <c>renderer_migration_sentinel</c> deliberately —
+        /// <see cref="NormaliseFrameworkIniRendererDefault"/> is one-shot and intentionally
+        /// respects user intent on subsequent launches; this method's job is precisely the
+        /// opposite (override user intent for one rescue launch). Records nothing on disk;
+        /// the latch lives in the IN_PROGRESS sentinel managed by <see cref="AndroidStartupSafeMode"/>.
+        /// </para>
+        ///
+        /// <para>
+        /// Best-effort and never throws — if the file is missing, malformed, or the rewrite
+        /// fails, startup proceeds with the existing value.
+        /// </para>
+        /// </summary>
+        public static void ForceOpenGLRendererIfSafeMode()
+        {
+            try
+            {
+                if (!AndroidStartupSafeMode.IsActive)
+                    return;
+
+                string? root = resolveStorageRoot();
+                if (root == null) return;
+
+                string iniPath = Path.Combine(root, "framework.ini");
+
+                if (!File.Exists(iniPath))
+                {
+                    // No framework.ini yet (brand-new install whose previous launch
+                    // died before any framework code ran) — pre-create with the
+                    // safe renderer choice so the framework picks it up on first read.
+                    try
+                    {
+                        File.WriteAllText(iniPath, "Renderer = OpenGL" + System.Environment.NewLine);
+                        Logger.Log("[osu!] Android safe-mode renderer fallback: pre-created framework.ini with Renderer = OpenGL", LoggingTarget.Performance);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] LogManagement: could not pre-create framework.ini for safe-mode: {e.Message}");
+                    }
+                    return;
+                }
+
+                string[] lines;
+
+                try
+                {
+                    lines = File.ReadAllLines(iniPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for safe-mode renderer fallback: {e.Message}");
+                    return;
+                }
+
+                bool changed = false;
+                bool seenRendererLine = false;
+                string? previousValue = null;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    string value = line.Substring(eq + 1).Trim();
+
+                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
+                        continue;
+
+                    seenRendererLine = true;
+                    previousValue = value;
+
+                    if (!string.Equals(value, "OpenGL", StringComparison.Ordinal))
+                    {
+                        lines[i] = "Renderer = OpenGL";
+                        changed = true;
+                    }
+
+                    break;
+                }
+
+                if (!seenRendererLine)
+                {
+                    var newLines = new string[lines.Length + 1];
+                    Array.Copy(lines, newLines, lines.Length);
+                    newLines[lines.Length] = "Renderer = OpenGL";
+                    lines = newLines;
+                    changed = true;
+                }
+
+                if (!changed) return;
+
+                try
+                {
+                    File.WriteAllLines(iniPath, lines);
+                    Logger.Log($"[osu!] Android safe-mode renderer fallback: Renderer {previousValue ?? "(unset)"} → OpenGL (one launch only)", LoggingTarget.Performance);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for safe-mode renderer fallback: {e.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: ForceOpenGLRendererIfSafeMode failed: {e.Message}");
             }
         }
 

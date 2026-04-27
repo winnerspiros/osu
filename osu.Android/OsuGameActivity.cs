@@ -199,6 +199,19 @@ namespace osu.Android
             LogManagement.NormaliseFrameworkIniRendererDefault();
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniRendererDefault (returned)");
 
+            // One-shot safe-mode rescue: if the previous launch died (typically the
+            // recurring Adreno-Vulkan Toolbar-time ANR), force Renderer = OpenGL for
+            // THIS launch only so the user is not trapped in a Vulkan crash loop.
+            // No-op when AndroidStartupSafeMode.IsActive is false. Bypasses the
+            // one-shot Renderer-migration sentinel deliberately — its job is to
+            // respect user intent on healthy launches; this method's job is the
+            // opposite (override user intent for one rescue launch). Original
+            // renderer choice is restored on the next normal launch because
+            // safe-mode self-clears after LoadComplete + delay.
+            CrashDiagnostics.WriteAliveMarker("LogManagement.ForceOpenGLRendererIfSafeMode (about to start)");
+            LogManagement.ForceOpenGLRendererIfSafeMode();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.ForceOpenGLRendererIfSafeMode (returned)");
+
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (about to start)");
             LogManagement.WipeShaderCacheOnceForVersion();
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (returned)");
