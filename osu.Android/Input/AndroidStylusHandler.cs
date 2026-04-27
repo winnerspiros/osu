@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
@@ -42,6 +43,29 @@ namespace osu.Android.Input
 
         private bool lastLeftDown;
         private bool lastTouchActive;
+
+        // Per-hover-session diagnostic counter. Reset on every HoverEnter and
+        // bumped on every MotionEvent that lands inside HandleMotionEvent.
+        // When Logger.Level == Verbose, the first
+        // <see cref="diagnostic_lines_per_session"/> events of each session
+        // log a one-line dump of the raw MotionEvent (source, pointer count,
+        // per-pointer tool type / coords / pressure, chosen pointer index).
+        // This is the signal we are missing from field reports of the "S Pen
+        // stuck top-left" snap — every guard in the handler already drops
+        // (0,0) samples and clamps out-of-bounds mapped coords, so the next
+        // hypothesis is "events are arriving on a path other than this
+        // handler". The session-counted dump lets a user with verbose
+        // logging enabled capture exactly what their digitiser is sending.
+        private int sessionDiagnosticEventsLogged;
+
+        // Counter of (rawX==0 && rawY==0) samples dropped per session, also
+        // reset on HoverEnter. The first drop of each session is logged at
+        // Important level (so it appears even with the default
+        // non-verbose log policy) — subsequent drops in the same session are
+        // silently counted.
+        private int sessionZeroDropsLogged;
+
+        private const int diagnostic_lines_per_session = 10;
 
         /// <summary>
         /// Mirrored from <see cref="osu.Game.Configuration.OsuSetting.AndroidStylusAsTouch"/>.
@@ -227,6 +251,12 @@ namespace osu.Android.Input
                 // strand `lastLeftDown=true` (or `lastTouchActive=true`) and produce a
                 // phantom hold from wherever the cursor last was.
                 releaseAllButtons();
+
+                // Reset per-session diagnostic counters so we get a fresh
+                // verbose-event window + Important-level (0,0)-drop log on
+                // each new pen-on-screen session.
+                sessionDiagnosticEventsLogged = 0;
+                sessionZeroDropsLogged = 0;
             }
 
             // Locate the actual stylus pointer rather than blindly reading index 0. When
@@ -242,6 +272,18 @@ namespace osu.Android.Input
             // single-pointer case where every pointer in the event is the stylus.
             int stylusPointerIndex = findStylusPointerIndex(e);
             if (stylusPointerIndex < 0) return true;
+
+            // Verbose-only per-session event dump (gated to keep the hot
+            // path zero-cost in the default Important log policy). Every
+            // call into a Logger property goes through a single static
+            // field read — comparable to the bindable reads we already
+            // tolerate in the per-event path — so the cost when verbose
+            // is OFF is one short-circuited compare and a method return.
+            if (sessionDiagnosticEventsLogged < diagnostic_lines_per_session && Logger.Level >= LogLevel.Verbose)
+            {
+                logEventDiagnostic(e, actionMasked, stylusPointerIndex);
+                sessionDiagnosticEventsLogged++;
+            }
 
             // Process all batched historical events for maximum accuracy.
             int historySize = e.HistorySize;
@@ -335,7 +377,27 @@ namespace osu.Android.Input
             // filter — legitimate edge-of-digitizer samples will always have at least
             // sub-pixel float noise on one of the two axes.
             if (rawX == 0f && rawY == 0f)
+            {
+                // Always log the FIRST (0,0) drop of each pen session at
+                // Important level so it surfaces in default-policy logs;
+                // subsequent drops in the same session are silently
+                // counted to avoid log spam on a chatty digitiser.
+                if (sessionZeroDropsLogged == 0)
+                {
+                    var toolType = e.GetToolType(pointerIndex);
+                    Logger.Log(
+                        $"[osu!] AndroidStylusHandler: dropped (0,0) sample "
+                        + $"(action={actionMasked}, toolType={toolType}, pointerIndex={pointerIndex}, "
+                        + $"pointerCount={e.PointerCount}, pressure={pressure:0.000}). "
+                        + "If the cursor is stuck top-left this confirms our drop guard fired; "
+                        + "if it is still stuck the leak is on a different code path.",
+                        LoggingTarget.Input,
+                        LogLevel.Important);
+                }
+
+                sessionZeroDropsLogged++;
                 return;
+            }
 
             // Auto-expand tablet size if the digitizer reports coordinates beyond current bounds.
             // Compares against cached field values to avoid the bindable read + property access on
@@ -460,6 +522,44 @@ namespace osu.Android.Input
             // "stuck top-left options" the user reported). Pressure-only left-click is the
             // expected pen-as-pointer behaviour and matches how the framework handles
             // graphics-tablet styli on desktop.
+        }
+
+        // Verbose-only diagnostic dump of a single MotionEvent. Called at most
+        // <see cref="diagnostic_lines_per_session"/> times per pen session;
+        // safe to do per-pointer JNI reads here because we are gated to ≤10
+        // calls/session. Output is intentionally one line so it is grep-able
+        // alongside the rest of the input log.
+        private static void logEventDiagnostic(MotionEvent e, MotionEventActions action, int chosenPointerIndex)
+        {
+            try
+            {
+                int pointerCount = e.PointerCount;
+                var sb = new System.Text.StringBuilder(256);
+                sb.Append("[osu!] AndroidStylusHandler: event ");
+                sb.Append("action=").Append(action);
+                sb.Append(" source=0x").Append(((int)e.Source).ToString("x"));
+                sb.Append(" pointerCount=").Append(pointerCount);
+                sb.Append(" chosenIndex=").Append(chosenPointerIndex);
+                sb.Append(" pointers=[");
+
+                for (int i = 0; i < pointerCount; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append("i=").Append(i);
+                    sb.Append(" tool=").Append(e.GetToolType(i));
+                    sb.Append(" x=").Append(e.GetX(i).ToString("0.0"));
+                    sb.Append(" y=").Append(e.GetY(i).ToString("0.0"));
+                    sb.Append(" p=").Append(e.GetPressure(i).ToString("0.000"));
+                }
+
+                sb.Append(']');
+                Logger.Log(sb.ToString(), LoggingTarget.Input, LogLevel.Verbose);
+            }
+            catch (Exception ex)
+            {
+                // Diagnostics must never throw out of the input hot path.
+                Logger.Log($"[osu!] AndroidStylusHandler: logEventDiagnostic failed: {ex.Message}", LoggingTarget.Input, LogLevel.Verbose);
+            }
         }
     }
 }

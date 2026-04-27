@@ -134,6 +134,15 @@ namespace osu.Android
             // threshold matches the Android system-server's own ANR window.
             CrashDiagnostics.StartNativeWatchdog(10);
 
+            // The v188 ANR trace shows the failing Vulkan cold-start window saturating
+            // CPU/IO while several generic Mono/Java workers are still at nice=-10
+            // (including a BitmapFactory.decodeStream worker) before any
+            // LoadComplete-side mitigation can run. Start the worker-priority tamer
+            // immediately from OnCreate so lazily-spawned decode/shader/texture workers
+            // are demoted within one 250ms tick during swapchain bring-up, not after the
+            // first frame has already failed to present.
+            AndroidStartupThreadTamer.Start();
+
             // Crash-loop safe-mode latch. If the previous process died (ANR / native
             // crash / OOM kill) before reaching the post-LoadComplete clear point,
             // the IN_PROGRESS sentinel from that launch is still on disk. We then

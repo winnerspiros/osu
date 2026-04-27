@@ -33,6 +33,6 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.427.1" />
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2026.427.3" />
   </ItemGroup>
 </Project>

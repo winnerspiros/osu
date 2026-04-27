@@ -984,8 +984,22 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     g_inHandler = 1;
 
     // Open the dump file (append).  If g_logPath is empty we still log to logcat.
+    //
+    // Pre-rotate runaway: if the existing log is more than 4× the soft cap
+    // (12 MiB) — the same threshold CrashDiagnostics.rotateIfTooLarge uses
+    // for in-place truncation — unlink it before opening so the crash dump
+    // lands in a fresh file. Otherwise a stale 100 MB+ log left behind by an
+    // older build (or by a tight ANR-restart loop that never gave the
+    // managed rotation a chance to run) would have this dump appended to
+    // the end where the user is least likely to find it. fstat is async-
+    // signal-safe; unlink is too.
     int fd = -1;
     if (g_logPath[0] != '\0') {
+        constexpr off_t kRunawayCapBytes = 4LL * 3 * 1024 * 1024;
+        struct stat st{};
+        if (stat(g_logPath, &st) == 0 && S_ISREG(st.st_mode) && st.st_size > kRunawayCapBytes) {
+            (void)unlink(g_logPath);
+        }
         fd = open(g_logPath, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
     }
 
