@@ -116,7 +116,7 @@ namespace osu.Android
 
         // Set true the FIRST time the Draw thread executes a scheduled lambda
         // after LoadComplete. Used to gate AndroidStartupSafeMode.ClearStartupInProgress
-        // — if the Draw thread never reaches the heartbeat by the 10 s deadline
+        // — if the Draw thread never reaches the heartbeat by the 25 s deadline
         // we deliberately leave the IN_PROGRESS sentinel armed so the NEXT
         // launch enters safe-mode (which forces Renderer = OpenGL via
         // LogManagement.ForceOpenGLRendererIfSafeMode). This catches the
@@ -127,6 +127,16 @@ namespace osu.Android
         // queue. Without this gate the threadpool timer fires
         // ClearStartupInProgress regardless, the user force-closes the black
         // screen, and the next launch RE-ATTEMPTS Vulkan into the same wall.
+        //
+        // Deadline raised from 10 s → 25 s alongside the ppy.osu.Framework
+        // 2026.427.4 bump (which pulled in winnerspiros/veldrid b314005:
+        // VkSurfaceKHR loss recovery + bounded vkAcquireNextImageKHR). The
+        // framework now self-heals from a transient surface loss in 1-3 s on a
+        // good day, but a recovery that lands DURING the cold-start Toolbar
+        // texture-upload burst (600+ items) plus full swapchain+VkSurface
+        // rebuild can legitimately consume 8-12 s on Adreno. 25 s leaves clear
+        // headroom for that worst-case while still firing on a genuinely
+        // wedged renderer.
         private volatile bool drawThreadEverPresented;
 
         // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
@@ -747,15 +757,16 @@ namespace osu.Android
             }, refreshRateDelayMs);
 
             // Clear the "startup in progress" sentinel once the current launch has
-            // survived ~10 s past LoadComplete. The sentinel governs the NEXT launch's
+            // survived ~25 s past LoadComplete. The sentinel governs the NEXT launch's
             // safe-mode decision, not the current one (AndroidStartupSafeMode.IsActive
             // is latched at OnCreate time and never changes mid-process). Window size
             // is chosen to be longer than typical post-LoadComplete texture-upload
-            // bursts (~3-5 s on cold start) so we don't prematurely declare success,
-            // but short enough that any genuinely surviving launch clears the sentinel
-            // before the user could reasonably trigger a manual restart. If the
-            // process dies before this fires (ANR, native crash, OOM kill), the
-            // sentinel persists and the next launch enters safe-mode.
+            // bursts plus a worst-case Veldrid surface-lost recovery cycle (~8-12 s on
+            // Adreno) so we don't prematurely declare a recoverable transient failure
+            // a permanent one, but short enough that any genuinely surviving launch
+            // clears the sentinel before the user could reasonably trigger a manual
+            // restart. If the process dies before this fires (ANR, native crash, OOM
+            // kill), the sentinel persists and the next launch enters safe-mode.
             //
             // Fired from a kernel-managed System.Threading.Timer rather than
             // Scheduler.AddDelayed: the same Update-thread stall that caused the
@@ -796,7 +807,7 @@ namespace osu.Android
                     try
                     {
                         // Vulkan-stall gate: if the Draw thread never executed
-                        // its first scheduled lambda within 10 s of LoadComplete,
+                        // its first scheduled lambda within 25 s of LoadComplete,
                         // we assume the renderer is hung. Leave the IN_PROGRESS
                         // sentinel armed so the next launch will enter safe-mode
                         // (which rewrites Renderer = OpenGL via
@@ -811,11 +822,13 @@ namespace osu.Android
                                     "\n=========================================================\n"
                                     + "=== DRAW_THREAD_NEVER_PRESENTED ===\n"
                                     + $"  utc_time = {DateTime.UtcNow:O}\n"
-                                    + "  reason   = Draw thread did not execute a scheduled lambda within 10s of LoadComplete\n"
+                                    + "  reason   = Draw thread did not execute a scheduled lambda within 25s of LoadComplete\n"
                                     + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; killing process so next launch enters safe-mode\n"
                                     + "             (which forces Renderer = OpenGL via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
-                                    + "  suspect  = Vulkan present-queue deadlock (Veldrid VkSwapchain.AcquireNextImage / QueuePresent\n"
-                                    + "             with unbounded timeout) — reproduced on multiple Adreno generations in this fork\n"
+                                    + "  suspect  = Vulkan present-queue deadlock that survives Veldrid's bounded vkAcquireNextImageKHR\n"
+                                    + "             + VkSurfaceKHR-loss recovery (i.e. a genuinely broken Vulkan stack on this device,\n"
+                                    + "             not a transient surface loss). The framework's recovery cycle should fit comfortably\n"
+                                    + "             inside 25 s — if we tripped this gate, the device is reproducibly stuck.\n"
                                     + "=== END DRAW_THREAD_NEVER_PRESENTED ===\n\n");
                             }
                             catch (Exception ex)
@@ -865,20 +878,20 @@ namespace osu.Android
                     var ct = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
                     try { ct?.Dispose(); }
                     catch { /* ignore */ }
-                }, state: null, dueTime: 10_000, period: System.Threading.Timeout.Infinite);
+                }, state: null, dueTime: 25_000, period: System.Threading.Timeout.Infinite);
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] Failed to schedule ClearStartupInProgress timer: {e.Message}");
             }
 
-            // Cold-start heartbeat instrumentation. For the first 15 s after LoadComplete
+            // Cold-start heartbeat instrumentation. For the first 30 s after LoadComplete
             // we emit per-second ALIVE markers from BOTH the Update thread and the Draw
             // thread into native_crash.log, tagged with the originating thread name.
             // This closes the diagnostic gap between the last "SetHost returning" marker
-            // (~22 s mark in field logs) and the planned 10 s ClearStartupInProgress
-            // marker that has so far never fired because the process is killed before
-            // it does. With per-second per-thread heartbeats, the next post-mortem can
+            // (~22 s mark in field logs) and the 25 s ClearStartupInProgress marker that
+            // has so far never fired because the process is killed before it does. With
+            // per-second per-thread heartbeats, the next post-mortem can
             // see exactly which thread (Update, Draw, both, or neither) was still alive
             // at the moment the OS reaped the process — a critical signal for telling
             // apart input-ANR (Main UI thread blocked but game-loop alive), Vulkan/swap-
@@ -1007,7 +1020,7 @@ namespace osu.Android
         /// </summary>
         private void scheduleColdStartHeartbeats()
         {
-            const int total_ticks = 15;
+            const int total_ticks = 30;
 
             try
             {
@@ -1424,6 +1437,28 @@ namespace osu.Android
             }
         }
 
+        /// <summary>
+        /// On Android the framework's <c>AndroidGameHost</c> reports <c>CanExit = false</c>,
+        /// so the default <see cref="OsuGame.AttemptExit"/> (which navigates back to the main
+        /// menu and then calls <c>Host.Exit()</c>) terminates as a no-op and the activity
+        /// stays running indefinitely.
+        ///
+        /// <para>
+        /// The most user-visible regression of this is changing the renderer in
+        /// Settings → Graphics → Renderer: the confirm dialog tells the user "the game will
+        /// close, please open it again" and then nothing happens — they have to swipe the
+        /// task away by hand for the new renderer to take effect.
+        /// </para>
+        ///
+        /// <para>
+        /// Bypass the no-op chain and route straight to <see cref="PerformPlatformExit"/>,
+        /// which performs the documented Android hard-exit dance (MoveTaskToBack +
+        /// Activity.Finish + KillProcess) so the next launch picks up the new
+        /// <c>framework.ini</c> renderer setting cleanly.
+        /// </para>
+        /// </summary>
+        public override void AttemptExit() => PerformPlatformExit();
+
         public override void PerformPlatformExit()
         {
             // The framework's AndroidGameHost reports CanExit=false (so host.Exit() is a no-op)
@@ -1547,7 +1582,34 @@ namespace osu.Android
             try
             {
                 if (e.NewValue)
+                {
+                    // Hazard: when the framework's renderer is Vulkan, Veldrid is in
+                    // the middle of (or has already completed) its own vkCreateInstance.
+                    // Spinning up a SECOND VkInstance from this probe — for what is
+                    // ultimately a "show device info in Settings" cosmetic feature —
+                    // is a known Adreno driver hazard during the cold-start window:
+                    // two concurrent VkInstances in one process can corrupt internal
+                    // driver bookkeeping and reproduce the exact "Update ticks, Draw
+                    // never presents" stall this PR's framework bump is meant to fix.
+                    //
+                    // The probe is only useful when the renderer is OpenGL/Auto — in
+                    // that case it surfaces "Vulkan available, consider enabling it"
+                    // information without an active Veldrid VkInstance to fight with.
+                    // When the renderer is already Vulkan, the framework itself has
+                    // queried the device, so the probe contributes nothing actionable
+                    // and risks the very stall we're trying to eliminate.
+                    bool vulkanConfigured = false;
+                    try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
+                    catch (Exception ex) { Debug.WriteLine($"[osu!] Vulkan probe gate: IsVulkanConfigured failed: {ex.Message}"); }
+
+                    if (vulkanConfigured)
+                    {
+                        Logger.Log("[osu!] Vulkan probe suppressed — renderer is already Vulkan (avoids concurrent VkInstance during Adreno cold-start)", LoggingTarget.Performance);
+                        return;
+                    }
+
                     startVulkanProbe();
+                }
                 else
                     stopVulkanProbe();
             }
