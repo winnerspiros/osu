@@ -553,7 +553,10 @@ namespace osu.Android
                 try
                 {
                     File.WriteAllLines(iniPath, lines);
-                    Logger.Log($"[osu!] Android safe-mode renderer fallback: Renderer {previousValue ?? "(unset)"} → OpenGL (persisted; user can re-select Vulkan from Settings → Graphics → Renderer)", LoggingTarget.Performance);
+                    string reason = AndroidStartupSafeMode.DrawThreadNativeCrashTriggered
+                        ? "Draw-thread native crash detected"
+                        : "previous launch died before LoadComplete clear point";
+                    Logger.Log($"[osu!] Android safe-mode renderer fallback ({reason}): Renderer {previousValue ?? "(unset)"} → OpenGL (persisted; user can re-select Vulkan from Settings → Graphics → Renderer)", LoggingTarget.Performance);
                 }
                 catch (Exception e)
                 {

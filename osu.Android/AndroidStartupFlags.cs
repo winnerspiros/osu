@@ -62,6 +62,15 @@ namespace osu.Android
         /// </summary>
         public const string FLAG_STARTUP_IN_PROGRESS = "android_startup_in_progress.flag";
 
+        /// <summary>
+        /// Stores the fingerprint (uptime_ns + pid) of the most recent native crash for which
+        /// <see cref="AndroidStartupSafeMode"/> already applied a one-shot Draw-thread-crash
+        /// safe-mode latch. Lets us detect "previous launch crashed on the Draw thread" via
+        /// <c>native_crash.log</c> without re-triggering safe-mode on every subsequent launch
+        /// for the same crash event. Value sentinel (file contents matter, not just presence).
+        /// </summary>
+        public const string FLAG_LAST_NATIVE_CRASH_CONSUMED = "android_last_native_crash_consumed.flag";
+
         private static string? resolveDir()
         {
             try
@@ -122,6 +131,48 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] AndroidStartupFlags.Set({flagName}, {set}) failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Read the textual contents of a value-sentinel file. Returns <c>null</c> if the
+        /// file does not exist, the storage directory cannot be resolved, or any I/O error
+        /// occurs. Used by callers that need a non-boolean value (e.g. a fingerprint) and
+        /// want it to survive across process launches. Never throws.
+        /// </summary>
+        public static string? ReadValue(string flagName)
+        {
+            try
+            {
+                string? dir = resolveDir();
+                if (dir == null) return null;
+                string path = Path.Combine(dir, flagName);
+                if (!File.Exists(path)) return null;
+                return File.ReadAllText(path);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] AndroidStartupFlags.ReadValue({flagName}) failed: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Write <paramref name="value"/> as the contents of a value-sentinel file (overwriting
+        /// any prior content). Companion to <see cref="ReadValue"/>. Never throws.
+        /// </summary>
+        public static void WriteValue(string flagName, string value)
+        {
+            try
+            {
+                string? dir = resolveDir();
+                if (dir == null) return;
+                string path = Path.Combine(dir, flagName);
+                File.WriteAllText(path, value);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] AndroidStartupFlags.WriteValue({flagName}) failed: {e.Message}");
             }
         }
     }

@@ -49,6 +49,8 @@ namespace osu.Android
         // and only ever flips false→true on a single thread).
         private static bool isActive;
 
+        private static bool drawThreadNativeCrashTriggered;
+
         private static int clearScheduled;
 
         /// <summary>
@@ -57,6 +59,14 @@ namespace osu.Android
         /// <see cref="ApplyIfPreviousLaunchFailed"/> has run.
         /// </summary>
         public static bool IsActive => isActive;
+
+        /// <summary>
+        /// True iff <see cref="IsActive"/> was set by the Draw-thread native-crash trigger
+        /// (rather than by the <see cref="AndroidStartupFlags.FLAG_STARTUP_IN_PROGRESS"/>
+        /// "previous launch died before LoadComplete" sentinel). Lets log lines explain
+        /// WHICH safety net forced the conservative defaults.
+        /// </summary>
+        public static bool DrawThreadNativeCrashTriggered => drawThreadNativeCrashTriggered;
 
         /// <summary>
         /// Inspect the on-disk <see cref="AndroidStartupFlags.FLAG_STARTUP_IN_PROGRESS"/>
@@ -97,6 +107,15 @@ namespace osu.Android
                     }
                 }
 
+                // Second, narrower trigger: catch the case where the previous
+                // launch crashed natively on the Draw thread AFTER the
+                // post-LoadComplete ClearStartupInProgress already removed the
+                // sentinel above. This covers Vulkan SIGSEGV-after-LoadComplete
+                // (the "black screen on every relaunch" cascade observed in the
+                // field — see logs.zip). Fingerprint-keyed so the same crash
+                // does not re-trigger safe-mode on every subsequent launch.
+                applyIfPreviousDrawThreadNativeCrash();
+
                 // Re-arm (or arm for the first time) so that if THIS process dies
                 // before ClearStartupInProgress runs, the next launch sees the
                 // sentinel and enters safe-mode itself.
@@ -105,6 +124,57 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] AndroidStartupSafeMode.ApplyIfPreviousLaunchFailed failed: {e.Message}");
+            }
+        }
+
+        private static void applyIfPreviousDrawThreadNativeCrash()
+        {
+            try
+            {
+                var crash = CrashDiagnostics.DetectPreviousDrawThreadNativeCrash();
+                if (crash == null) return;
+
+                string fingerprint = crash.Value.Fingerprint;
+                string? consumed = AndroidStartupFlags.ReadValue(AndroidStartupFlags.FLAG_LAST_NATIVE_CRASH_CONSUMED);
+
+                // Already handled this exact crash on a previous launch — do
+                // not re-trigger safe-mode for it. The user may have already
+                // re-selected Vulkan from settings; respecting that intent
+                // matters more than the stale crash record.
+                if (string.Equals(consumed, fingerprint, StringComparison.Ordinal))
+                    return;
+
+                isActive = true;
+                drawThreadNativeCrashTriggered = true;
+
+                try
+                {
+                    CrashDiagnostics.AppendDiagnosticBlock(
+                        "\n=========================================================\n"
+                        + "=== ANDROID STARTUP SAFE-MODE ACTIVATED (Draw-thread crash trigger) ===\n"
+                        + $"  utc_time     = {DateTime.UtcNow:O}\n"
+                        + "  reason       = previous launch crashed natively on the Draw thread\n"
+                        + $"  signal       = {crash.Value.Signal}\n"
+                        + $"  thread_name  = {crash.Value.ThreadName}\n"
+                        + $"  top_frame    = {crash.Value.TopFrame}\n"
+                        + $"  fingerprint  = {fingerprint}\n"
+                        + "  effects      = defer Oboe/Vulkan-probe init; skip FrameSync migration; longer refresh-rate defer; force Renderer = OpenGL\n"
+                        + "=== END SAFE-MODE BANNER ===\n\n");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] AndroidStartupSafeMode: failed to append Draw-thread-crash diagnostic block: {e.Message}");
+                }
+
+                // Stamp the consumed sentinel BEFORE returning so a subsequent
+                // launch does not re-apply the same trigger if THIS launch
+                // succeeds. If this launch also crashes the FLAG_STARTUP_IN_PROGRESS
+                // path will catch it.
+                AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_LAST_NATIVE_CRASH_CONSUMED, fingerprint);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] applyIfPreviousDrawThreadNativeCrash failed: {e.Message}");
             }
         }
 
