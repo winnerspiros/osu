@@ -1768,12 +1768,12 @@ namespace osu.Android
         /// with the actual <c>MotionEvent.GetX/Y</c> coordinate ranges.
         ///
         /// <para>
-        /// We deliberately prefer <see cref="WindowManager.CurrentWindowMetrics"/> over
+        /// We deliberately prefer <c>WindowManager.CurrentWindowMetrics</c> over
         /// <c>MaximumWindowMetrics</c>: on a phone whose activity is locked to landscape
         /// (<see cref="OsuGameActivity"/> is annotated <c>ScreenOrientation.Landscape</c>),
         /// <c>MaximumWindowMetrics</c> historically returns the natural-orientation
         /// (portrait) bounds — e.g. <c>(1440 × 3088)</c> on a Galaxy S25 Ultra — while
-        /// <see cref="MotionEvent.GetX"/>/<c>GetY</c> are delivered in the *current*
+        /// <c>MotionEvent.GetX(int)</c>/<c>GetY(int)</c> are delivered in the *current*
         /// (landscape) orientation, i.e. <c>0..3088 × 0..1440</c>. Caching the wrong-axis
         /// digitiser size into the handler is exactly what produces the "S Pen stuck near
         /// the top-left" regression: any non-default tablet-area selection persisted from
