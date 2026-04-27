@@ -140,12 +140,47 @@ inline void writeDec(int fd, long long v)
     (void)safeWrite(fd, buf + pos, sizeof(buf) - (size_t)pos);
 }
 
+// Hard cap on `g_logPath` size enforced from the native side. Mirrors the
+// 3 MiB cap CrashDiagnostics.cs uses on its managed write paths. The
+// native watchdog runs OUTSIDE Mono, so it cannot share the managed
+// rotation logic — without an independent cap, a pre-existing oversized
+// log left by an older build (or a tight ANR-restart loop that never gives
+// the managed side a chance to rotate) grows without bound through the
+// O_APPEND writes below. 4× cap is the same runaway threshold
+// CrashDiagnostics.rotation_runaway_multiplier uses.
+constexpr off_t kNativeLogCapBytes = 3LL * 1024 * 1024;
+constexpr off_t kNativeLogRunawayCapBytes = kNativeLogCapBytes * 4;
+
 // Open the configured log path for append.  Returns -1 if no path is set or
 // open fails.  Mode 0644 mirrors what the rest of the diagnostics pipeline
 // uses for native_crash.log.
+//
+// Before opening, fstat the existing file: if it is over the runaway cap,
+// unlink it so the subsequent open(O_CREAT) starts a fresh file. We pick the
+// runaway cap (rather than the soft cap) because under ordinary operation
+// CrashDiagnostics.rotateIfTooLarge handles rotation at the soft cap; we only
+// need to act when the managed side cannot or has not run yet.
+//
+// Async-signal safe: open/unlink/fstat are all safe to call from a signal
+// handler (which is where this is invoked from crash_handler.cpp).
 inline int openLogAppend()
 {
     if (g_logPath[0] == '\0') return -1;
+
+    // Best-effort runaway check. Errors fall through silently to the open()
+    // below: a missing file (ENOENT) is the normal case before first write,
+    // and any other stat error means we cannot judge the size — let the
+    // open proceed and rely on the managed rotation on the next startup.
+    struct stat st{};
+    if (stat(g_logPath, &st) == 0 && S_ISREG(st.st_mode) && st.st_size > kNativeLogRunawayCapBytes)
+    {
+        // Best-effort unlink. If we cannot unlink (EACCES on a FUSE mount),
+        // we still proceed to open in append mode — at worst we add another
+        // bounded write to the existing oversized file rather than producing
+        // no diagnostic at all.
+        (void)unlink(g_logPath);
+    }
+
     int fd = open(g_logPath, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC, 0644);
     return fd; // -1 ok, caller checks
 }
