@@ -108,6 +108,21 @@ namespace osu.Android
         private System.Threading.Timer? coldStartTamingTimer;
         private System.Threading.Timer? clearStartupSentinelTimer;
 
+        // Set true the FIRST time the Draw thread executes a scheduled lambda
+        // after LoadComplete. Used to gate AndroidStartupSafeMode.ClearStartupInProgress
+        // — if the Draw thread never reaches the heartbeat by the 10 s deadline
+        // we deliberately leave the IN_PROGRESS sentinel armed so the NEXT
+        // launch enters safe-mode (which forces Renderer = OpenGL via
+        // LogManagement.ForceOpenGLRendererIfSafeMode). This catches the
+        // Vulkan-on-Android black-screen failure mode that the user has
+        // reproduced on multiple Adreno phones (cross-driver, not a single-
+        // device quirk): Update thread is alive, threadpool timers are alive,
+        // but the Draw thread is stuck inside the Veldrid Vulkan present
+        // queue. Without this gate the threadpool timer fires
+        // ClearStartupInProgress regardless, the user force-closes the black
+        // screen, and the next launch RE-ATTEMPTS Vulkan into the same wall.
+        private volatile bool drawThreadEverPresented;
+
         // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
         // any earlier OnConfigurationChanged-driven SelectHighestRefreshRate() invocations
         // out of the cold-start swapchain bring-up window. See SelectHighestRefreshRate.
@@ -674,11 +689,70 @@ namespace osu.Android
             // to game-thread starvation, so the sentinel reliably clears whenever
             // the activity-main thread (and therefore the process) survives the
             // deadline, breaking the perpetual-safe-mode loop.
+            // Schedule a one-shot lambda on the Draw thread that flips the
+            // drawThreadEverPresented flag. This runs AS SOON AS the Draw
+            // thread next dequeues a scheduled action, which in practice
+            // happens once it has presented at least one frame (Veldrid pumps
+            // the framework scheduler at the start of each Draw iteration).
+            // If the Draw thread is stuck in vkAcquireNextImageKHR /
+            // vkQueuePresentKHR (the failure mode reproduced across Adreno
+            // GPUs in this fork's Vulkan path), the lambda never runs and
+            // the gate below leaves IN_PROGRESS sentinel armed for next launch.
+            try
+            {
+                Host?.DrawThread?.Scheduler.Add(() => drawThreadEverPresented = true);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[osu!] Could not schedule Draw-thread first-frame heartbeat: {ex.Message}");
+                // Failsafe: if we can't even schedule the heartbeat, treat
+                // it as presented so we don't latch safe-mode forever on a
+                // pathologically small framework change.
+                drawThreadEverPresented = true;
+            }
+
             try
             {
                 clearStartupSentinelTimer = new System.Threading.Timer(_ =>
                 {
-                    try { AndroidStartupSafeMode.ClearStartupInProgress(); }
+                    try
+                    {
+                        // Vulkan-stall gate: if the Draw thread never executed
+                        // its first scheduled lambda within 10 s of LoadComplete,
+                        // we assume the renderer is hung. Leave the IN_PROGRESS
+                        // sentinel armed so the next launch will enter safe-mode
+                        // (which rewrites Renderer = OpenGL via
+                        // LogManagement.ForceOpenGLRendererIfSafeMode) and
+                        // append a diagnostic block flagging the cause so the
+                        // next-session log clearly identifies it.
+                        if (!drawThreadEverPresented)
+                        {
+                            try
+                            {
+                                CrashDiagnostics.AppendDiagnosticBlock(
+                                    "\n=========================================================\n"
+                                    + "=== DRAW_THREAD_NEVER_PRESENTED ===\n"
+                                    + $"  utc_time = {DateTime.UtcNow:O}\n"
+                                    + "  reason   = Draw thread did not execute a scheduled lambda within 10s of LoadComplete\n"
+                                    + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; next launch will enter safe-mode\n"
+                                    + "             (which forces Renderer = OpenGL via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
+                                    + "  suspect  = Vulkan present-queue deadlock (Veldrid VkSwapchain.AcquireNextImage / QueuePresent\n"
+                                    + "             with unbounded timeout) — reproduced on multiple Adreno generations in this fork\n"
+                                    + "=== END DRAW_THREAD_NEVER_PRESENTED ===\n\n");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"[osu!] DRAW_THREAD_NEVER_PRESENTED diagnostic block failed: {ex.Message}");
+                            }
+
+                            // IMPORTANT: do NOT call ClearStartupInProgress here. Leaving the
+                            // sentinel set is the whole point of the gate.
+                        }
+                        else
+                        {
+                            AndroidStartupSafeMode.ClearStartupInProgress();
+                        }
+                    }
                     catch (Exception e)
                     {
                         Debug.WriteLine($"[osu!] ClearStartupInProgress (timer) failed: {e.Message}");

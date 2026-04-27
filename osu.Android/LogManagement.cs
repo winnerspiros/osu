@@ -435,26 +435,34 @@ namespace osu.Android
         /// <summary>
         /// Safe-mode renderer fallback: when the previous launch died before reaching the
         /// post-LoadComplete clear point (i.e. <see cref="AndroidStartupSafeMode.IsActive"/>
-        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c> for
-        /// THIS launch only.
+        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c>.
         ///
         /// <para>
         /// Why: the recurring black-screen ANR fingerprint is a Vulkan-path Toolbar-time
-        /// stall on Adreno (driver MAILBOX deadlock + glslang shader-compile burst). If
-        /// the user has explicitly picked Vulkan and the previous launch died inside it,
-        /// re-attempting Vulkan immediately reproduces the same hang. Falling back to the
-        /// proven-good OpenGL path for one launch breaks the cascade — the safe-mode
-        /// latch is naturally cleared by <see cref="AndroidStartupSafeMode.ClearStartupInProgress"/>
-        /// once the launch survives, so the user's original Vulkan choice is restored on
-        /// the very next normal launch (this method only acts while safe-mode is active).
+        /// stall on Adreno (driver MAILBOX deadlock + glslang shader-compile burst),
+        /// and the failure has been reproduced across multiple Adreno generations
+        /// (high-end 740 and a lower-end model with Vulkan &lt; 1.3) — i.e. it is a
+        /// cross-driver issue, not a single-device quirk. If the user has explicitly
+        /// picked Vulkan and the previous launch died inside it, re-attempting Vulkan
+        /// immediately reproduces the same hang.
+        /// </para>
+        ///
+        /// <para>
+        /// Persistence: the rewrite is to disk, so the OpenGL choice STICKS until the
+        /// user explicitly re-selects Vulkan from Settings → Graphics → Renderer. This
+        /// is a deliberate change from the earlier "rescue for one launch" design —
+        /// because Vulkan-on-Android is unreliable across the entire fork's GPU range,
+        /// silently flipping back to Vulkan on the next normal launch would just walk
+        /// the user into the same black screen again. The user's intent is captured
+        /// only when they make a fresh active choice in settings (which writes through
+        /// the framework's normal config pipeline and overrides the value we wrote here).
         /// </para>
         ///
         /// <para>
         /// Bypasses the <c>renderer_migration_sentinel</c> deliberately —
         /// <see cref="NormaliseFrameworkIniRendererDefault"/> is one-shot and intentionally
         /// respects user intent on subsequent launches; this method's job is precisely the
-        /// opposite (override user intent for one rescue launch). Records nothing on disk;
-        /// the latch lives in the IN_PROGRESS sentinel managed by <see cref="AndroidStartupSafeMode"/>.
+        /// opposite (override user intent when their previous Vulkan launch died).
         /// </para>
         ///
         /// <para>
@@ -545,7 +553,7 @@ namespace osu.Android
                 try
                 {
                     File.WriteAllLines(iniPath, lines);
-                    Logger.Log($"[osu!] Android safe-mode renderer fallback: Renderer {previousValue ?? "(unset)"} → OpenGL (one launch only)", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Android safe-mode renderer fallback: Renderer {previousValue ?? "(unset)"} → OpenGL (persisted; user can re-select Vulkan from Settings → Graphics → Renderer)", LoggingTarget.Performance);
                 }
                 catch (Exception e)
                 {
