@@ -619,7 +619,7 @@ namespace osu.Android
             int lineEnd = block.IndexOf('\n', idx);
             if (lineEnd < 0) lineEnd = block.Length;
             string line = block.Substring(idx, lineEnd - idx).TrimEnd('\r').Trim();
-            if (line.Length > 240) line = line.Substring(0, 240) + "…";
+            if (line.Length > 240) line = string.Concat(line.AsSpan(0, 240), "…");
             return line;
         }
 
