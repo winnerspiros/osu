@@ -240,12 +240,16 @@ namespace osu.Android.Input
             {
                 releaseAllButtons();
 
-                // For HoverExit specifically: do NOT continue into handlePointer below.
-                // The trailing HoverExit sample on some Samsung firmwares carries stale or
-                // (0,0) coordinates that — even with the (0,0) drop guard — can race the
-                // releaseAllButtons() above and re-publish a phantom MousePositionAbsolute
-                // at the screen origin. Returning here preserves whatever lastTouchPosition
-                // the last legitimate Move sample established.
+                // Functionally equivalent to the previous structure
+                // (`if (actionMasked != HoverExit) return true;`) for Up + Cancel —
+                // both already returned true here. The behavioural change is solely
+                // for HoverExit: previously it fell through into handlePointer,
+                // which on some Samsung firmwares would re-publish a stale or (0,0)
+                // coordinate (racing the releaseAllButtons() above and pinning the
+                // cursor to the screen origin even with the corner-garbage filter
+                // in handlePointer). Returning here unconditionally preserves
+                // whatever lastTouchPosition the last legitimate Move sample
+                // established.
                 return true;
             }
             else if (actionMasked == MotionEventActions.HoverEnter)

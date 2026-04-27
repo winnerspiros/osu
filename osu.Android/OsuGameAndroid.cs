@@ -80,6 +80,12 @@ namespace osu.Android
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
 
+        // Last UTC ms timestamp at which the AudioOffset diagnostic log line fired.
+        // Used to rate-limit the diagnostic so a slider drag (which can fire 30+
+        // change events per second) doesn't spam the runtime.log. See the
+        // BindValueChanged subscription in load() for the rate-limit policy.
+        private long lastLoggedAudioOffsetMs;
+
         // Layer 2/3 startup-safety toggles. Held as fields so the BindValueChanged
         // subscriptions installed in load() outlive the BDL frame and continue to
         // mirror updates into the on-disk sentinel files for the next launch.
@@ -212,20 +218,34 @@ namespace osu.Android
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
-            // Diagnostic: log every audio-offset change so the next runtime.log conclusively
-            // shows whether the user's slider value reaches the global bindable. Field reports
-            // of "moving audio offset doesn't sync hitsounds" are ambiguous without this:
-            // either (a) the slider isn't writing to the bound setting (in which case we'd
-            // see no log line on slider drag), (b) it is writing but FramedBeatmapClock isn't
-            // re-reading (would still see lines here), or (c) the offset is shifting the
-            // gameplay clock correctly but Oboe pipeline introduces a constant-latency
-            // confounder that makes the audible shift smaller than expected.
-            // The first launch has BindValueChanged firing once with the persisted value
-            // (so we always log the *current* value at startup); subsequent fires are user-
-            // driven slider drags or Resync-from-hardware applies.
+            // Diagnostic: log audio-offset changes so the next runtime.log conclusively
+            // shows whether the user's slider value reaches the global bindable. Field
+            // reports of "moving audio offset doesn't sync hitsounds" are ambiguous
+            // without this: either (a) the slider isn't writing to the bound setting
+            // (in which case we'd see no log line on slider drag), (b) it is writing
+            // but FramedBeatmapClock isn't re-reading (would still see lines here), or
+            // (c) the offset is shifting the gameplay clock correctly but Oboe pipeline
+            // introduces a constant-latency confounder that makes the audible shift
+            // smaller than expected.
+            //
+            // Rate-limited to avoid log spam while the user is actively dragging the
+            // slider (which can fire 30+ changes/sec): emit only when the delta exceeds
+            // 0.5ms OR ≥2s have elapsed since the last log. The first fire (initial
+            // bind, OldValue==NewValue) is also always emitted so the persisted value
+            // is captured at startup.
             audioOffset.BindValueChanged(e =>
             {
-                Logger.Log($"[osu!] AudioOffset changed: {e.OldValue:F1}ms → {e.NewValue:F1}ms", LoggingTarget.Performance);
+                double delta = Math.Abs(e.NewValue - e.OldValue);
+                long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                bool firstFire = lastLoggedAudioOffsetMs == 0;
+                bool deltaSignificant = delta >= 0.5;
+                bool elapsedSignificant = (nowMs - lastLoggedAudioOffsetMs) >= 2_000;
+
+                if (firstFire || deltaSignificant || elapsedSignificant)
+                {
+                    Logger.Log($"[osu!] AudioOffset changed: {e.OldValue:F1}ms → {e.NewValue:F1}ms", LoggingTarget.Performance);
+                    lastLoggedAudioOffsetMs = nowMs;
+                }
             }, true);
 
             // Bind the three Android startup-safety toggles. The BindWith call
