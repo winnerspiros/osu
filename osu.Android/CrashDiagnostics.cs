@@ -461,6 +461,168 @@ namespace osu.Android
         /// </summary>
         public static void AppendDiagnosticBlock(string payload) => appendToBoth(payload);
 
+        /// <summary>
+        /// Result of <see cref="DetectPreviousDrawThreadNativeCrash"/>: a synopsis of the
+        /// most recent <c>[osu!] NATIVE CRASH</c> block in <c>native_crash.log</c> (when one
+        /// exists and was on the Draw thread with a fatal signal). The
+        /// <see cref="Fingerprint"/> is stable across process launches for the same crash
+        /// event, so a one-shot consumer (e.g. <see cref="AndroidStartupSafeMode"/>) can
+        /// avoid re-applying the same trigger more than once.
+        /// </summary>
+        public readonly struct DrawThreadNativeCrashInfo
+        {
+            public string Fingerprint { get; }
+            public string Signal { get; }
+            public string ThreadName { get; }
+            public string TopFrame { get; }
+
+            public DrawThreadNativeCrashInfo(string fingerprint, string signal, string threadName, string topFrame)
+            {
+                Fingerprint = fingerprint;
+                Signal = signal;
+                ThreadName = threadName;
+                TopFrame = topFrame;
+            }
+        }
+
+        // Bound the read used by DetectPreviousDrawThreadNativeCrash. The native crash
+        // block + register dump + backtrace is ~2 KB; 256 KiB easily covers the most
+        // recent block even when the file also contains many ALIVE markers and a
+        // HangWatchdog dump from the previous process.
+        private const long crash_log_scan_byte_cap = 256L * 1024;
+
+        /// <summary>
+        /// Inspect the on-disk <c>native_crash.log</c> for the most recent
+        /// <c>[osu!] NATIVE CRASH</c> block and return synopsis information when that block
+        /// describes a Draw-thread fatal-signal crash (SIGSEGV / SIGBUS / SIGABRT). Used by
+        /// <see cref="AndroidStartupSafeMode.ApplyIfPreviousLaunchFailed"/> as a SECOND
+        /// safe-mode trigger that catches Vulkan crashes which happen AFTER the
+        /// <see cref="AndroidStartupFlags.FLAG_STARTUP_IN_PROGRESS"/> sentinel was already
+        /// cleared (the existing trigger only catches "died before LoadComplete+10s").
+        ///
+        /// <para>
+        /// Reads the LAST <see cref="crash_log_scan_byte_cap"/> bytes of the log only. Best-
+        /// effort: returns <c>null</c> on any I/O error or missing file; never throws.
+        /// Inspects the EXTERNAL log first (since
+        /// <see cref="MirrorInternalLogToExternal"/> rolls the previous launch's internal
+        /// log into the external file at the very top of <c>OnCreate</c>) and falls back
+        /// to internal if external is unavailable.
+        /// </para>
+        /// </summary>
+        public static DrawThreadNativeCrashInfo? DetectPreviousDrawThreadNativeCrash()
+        {
+            try
+            {
+                var fromExternal = scanForDrawThreadCrash(externalDir);
+                if (fromExternal != null) return fromExternal;
+
+                return scanForDrawThreadCrash(internalDir);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] DetectPreviousDrawThreadNativeCrash outer failure: {e.Message}");
+                return null;
+            }
+        }
+
+        private static DrawThreadNativeCrashInfo? scanForDrawThreadCrash(string? dir)
+        {
+            if (dir == null) return null;
+
+            try
+            {
+                string path = Path.Combine(dir, CRASH_LOG_NAME);
+                if (!File.Exists(path)) return null;
+
+                string tail;
+
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    long start = Math.Max(0, fs.Length - crash_log_scan_byte_cap);
+                    fs.Seek(start, SeekOrigin.Begin);
+                    using var sr = new StreamReader(fs);
+                    tail = sr.ReadToEnd();
+                }
+
+                if (string.IsNullOrEmpty(tail)) return null;
+
+                const string crash_marker = "[osu!] NATIVE CRASH";
+                int last = tail.LastIndexOf(crash_marker, StringComparison.Ordinal);
+                if (last < 0) return null;
+
+                // Bound the per-block scan to a small window after the marker —
+                // a single crash block is well under 8 KiB even with a long
+                // backtrace; this also stops us reading into the next ALIVE
+                // marker section if a subsequent launch already started writing.
+                int blockEnd = Math.Min(tail.Length, last + 8 * 1024);
+                string block = tail.Substring(last, blockEnd - last);
+
+                string? signal = extractField(block, "signal      = ");
+                string? threadName = extractField(block, "thread_name = ");
+                string? uptime = extractField(block, "uptime_ns   = ");
+                string? pid = extractField(block, "pid         = ");
+
+                // Required fields. The native handler always writes these, but
+                // a partially-flushed block (e.g. truncated mid-write by a
+                // sibling process) might not contain them.
+                if (signal == null || threadName == null) return null;
+
+                bool isFatalSignal = signal.StartsWith("SIGSEGV", StringComparison.Ordinal)
+                                     || signal.StartsWith("SIGBUS", StringComparison.Ordinal)
+                                     || signal.StartsWith("SIGABRT", StringComparison.Ordinal);
+                if (!isFatalSignal) return null;
+
+                // Match the framework's draw thread name. The native handler
+                // writes a TRUNCATED thread name (Linux pthread_setname is
+                // capped at 16 chars including NUL) so "Draw (GameThread)"
+                // appears as "Draw (GameThrea" — substring match is correct.
+                if (!threadName.StartsWith("Draw", StringComparison.Ordinal)) return null;
+
+                string topFrame = extractTopFrame(block);
+
+                // Fingerprint: uptime_ns + pid uniquely identify a single
+                // crash event. Fall back to a hash-ish substring of the
+                // block if either is missing (rare — would require a
+                // truncated block that still passed the signal/thread
+                // checks above).
+                string fingerprint = (uptime != null && pid != null)
+                    ? $"u{uptime}-p{pid}"
+                    : "block:" + ((uint)block.GetHashCode()).ToString("x");
+
+                return new DrawThreadNativeCrashInfo(fingerprint, signal, threadName, topFrame);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] scanForDrawThreadCrash({dir}) failed: {e.Message}");
+                return null;
+            }
+        }
+
+        private static string? extractField(string block, string keyWithEquals)
+        {
+            int idx = block.IndexOf(keyWithEquals, StringComparison.Ordinal);
+            if (idx < 0) return null;
+            int valueStart = idx + keyWithEquals.Length;
+            int newlineEnd = block.IndexOf('\n', valueStart);
+            if (newlineEnd < 0) newlineEnd = block.Length;
+            return block.Substring(valueStart, newlineEnd - valueStart).TrimEnd('\r');
+        }
+
+        // Extract the "#00 pc 0x... <symbol>" line from the backtrace section of a
+        // native-crash block, or return "(unknown)" if it cannot be located.
+        // Truncated to a sane length so it fits cleanly in a one-line diagnostic.
+        private static string extractTopFrame(string block)
+        {
+            const string marker = "#00 pc ";
+            int idx = block.IndexOf(marker, StringComparison.Ordinal);
+            if (idx < 0) return "(unknown)";
+            int lineEnd = block.IndexOf('\n', idx);
+            if (lineEnd < 0) lineEnd = block.Length;
+            string line = block.Substring(idx, lineEnd - idx).TrimEnd('\r').Trim();
+            if (line.Length > 240) line = line.Substring(0, 240) + "…";
+            return line;
+        }
+
         private static void tryAppend(string? dir, string payload)
         {
             if (dir == null) return;
