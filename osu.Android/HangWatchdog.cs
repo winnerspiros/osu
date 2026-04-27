@@ -257,6 +257,15 @@ namespace osu.Android
             }
         }
 
+        // Hard cap on the StringBuilder grown by appendProcTaskSnapshot. A
+        // process with hundreds of attached threads (Mono finalizer + thread
+        // pool, Realm, Sentry, OpenTabletDriver, BASS, Vulkan driver, etc.)
+        // can produce snapshots in the hundreds of KB. Combined with
+        // CrashDiagnostics.tryAppend's per-payload cap (cap/2), capping here
+        // first keeps the truncation marker meaningful (we know exactly how
+        // many threads were skipped).
+        private const int proc_snapshot_byte_cap = 128 * 1024;
+
         private static void appendProcTaskSnapshot(StringBuilder sb)
         {
             try
@@ -285,8 +294,23 @@ namespace osu.Android
                 // state between two snapshots taken 10s apart during a long hang.
                 collected.Sort(StringComparer.Ordinal);
 
+                int snapshotStart = sb.Length;
+                int emitted = 0;
+
                 foreach (string tid in collected)
                 {
+                    // Bounded output: stop emitting per-tid records once we'd
+                    // exceed the snapshot byte cap. The remaining tids are
+                    // summarised in a single trailing line so the dump
+                    // consumer knows the truncation happened and how many
+                    // threads were elided.
+                    if (sb.Length - snapshotStart >= proc_snapshot_byte_cap)
+                    {
+                        sb.Append($"  (… /proc/self/task snapshot truncated at {proc_snapshot_byte_cap} bytes; "
+                                  + $"emitted {emitted}/{collected.Count} threads)\n");
+                        break;
+                    }
+
                     string basePath = "/proc/self/task/" + tid;
 
                     string comm = readProcLine(basePath + "/comm", 64);
@@ -300,6 +324,8 @@ namespace osu.Android
                       .Append(" wchan=").Append(wchan)
                       .Append(" syscall=").Append(syscall)
                       .Append('\n');
+
+                    emitted++;
                 }
             }
             catch (Exception e)

@@ -34,6 +34,16 @@ namespace osu.Android
         public const string CRASH_LOG_NAME = "native_crash.log";
         public const string SENTINEL_NAME = "crash_handler_installed.txt";
 
+        // Subdirectory under each storage root where we write native_crash.log
+        // and the install-state sentinel. Mirrors the framework logger's own
+        // "logs" subdir (osu.Game/IO/OsuStorage.cs:140 — Logger.Storage =
+        // UnderlyingStorage.GetStorageForDirectory("logs")) so users find ALL
+        // diagnostic files in the same external folder when they pull files
+        // for a bug report. Pre-2026.04.27 builds wrote native_crash.log
+        // directly in the storage root; resolveDirs() migrates those files
+        // into the new subdir on first run.
+        public const string LOGS_SUBDIR = "logs";
+
         // Hard size cap on a single native_crash.log file. When reached we rotate the
         // file to "<name>.1" (overwriting any previous backup) and start a fresh log.
         // This bounds *each* of the internal and external locations to ~2× the cap
@@ -222,19 +232,37 @@ namespace osu.Android
                 // of which appends the previous process's full HangWatchdog
                 // dump set to the external log. Without this rotation the
                 // external file grew to hundreds of MB on the user's device
-                // (one report: 480 MB across a single afternoon). Rotating
-                // *before* the append guarantees the resulting file is at most
-                // <native_crash_log_max_bytes + this_payload_size>, and a
-                // single ".1" backup retains the previous generation.
+                // (one report: 480 MB across a single afternoon, and a
+                // 500 MB native_crash.log.1 captured during a 2026.04.27
+                // test session). Rotating *before* the append guarantees the
+                // resulting file is at most <native_crash_log_max_bytes +
+                // this_payload_size>, and a single ".1" backup retains the
+                // previous generation.
+                //
+                // We also rotate the SOURCE (internal) log before mirroring,
+                // because a pre-existing oversized internal log left behind by
+                // an older build (or by the native handler appending past the
+                // managed cap during a crash) could otherwise be copied
+                // verbatim into the external path on the very next startup —
+                // re-introducing the unbounded growth this method exists to
+                // prevent. After rotation, the internal payload we mirror is
+                // bounded to native_crash_log_max_bytes.
+                rotateIfTooLarge(internalPath);
                 rotateIfTooLarge(externalPath);
 
                 try
                 {
                     // Append, not overwrite — keep external as the running historical log.
+                    // CopyTo() is bounded by the post-rotation internal size
+                    // cap above, so the external file cannot grow by more than
+                    // ~native_crash_log_max_bytes per mirror call. Even so, we
+                    // belt-and-braces cap the per-call payload here so a
+                    // future change to the rotation threshold cannot quietly
+                    // remove this guarantee.
                     using (var src = new FileStream(internalPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var dst = new FileStream(externalPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
                     {
-                        src.CopyTo(dst);
+                        copyBounded(src, dst, native_crash_log_max_bytes);
                         dst.Flush();
                     }
                 }
@@ -448,6 +476,21 @@ namespace osu.Android
                 // ~2× the cap regardless of how long the loop runs.
                 rotateIfTooLarge(path);
 
+                // Belt-and-braces: cap the per-call payload at half the file
+                // cap so a single oversized write (e.g. a HangWatchdog dump
+                // emitted from a process with hundreds of attached threads)
+                // cannot itself exceed the rotation budget. The payload is
+                // sliced from the FRONT — the head of a diagnostic block has
+                // the per-event metadata + reason which is the actionable
+                // signal; the tail is typically a continuation of the
+                // /proc/self/task snapshot which truncates gracefully.
+                long maxPayload = native_crash_log_max_bytes / 2;
+                if (payload.Length > maxPayload)
+                {
+                    payload = payload.Substring(0, (int)maxPayload)
+                              + $"\n  (… payload truncated at {maxPayload} bytes; full size was {payload.Length})\n";
+                }
+
                 using var fs = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
                 using var sw = new StreamWriter(fs);
                 sw.Write(payload);
@@ -458,6 +501,45 @@ namespace osu.Android
                 Debug.WriteLine($"[osu!] CrashDiagnostics.tryAppend({dir}) failed: {e.Message}");
             }
         }
+
+        // Bounded src→dst copy. Stops after `maxBytes`, appending a single
+        // truncation marker so the consumer can tell the difference between a
+        // file that ended naturally and one that ran out of budget. Never
+        // throws — diagnostics paths must be failsafe.
+        private static void copyBounded(Stream src, Stream dst, long maxBytes)
+        {
+            try
+            {
+                byte[] buffer = new byte[64 * 1024];
+                long remaining = maxBytes;
+                int n;
+                while (remaining > 0 && (n = src.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining))) > 0)
+                {
+                    dst.Write(buffer, 0, n);
+                    remaining -= n;
+                }
+
+                if (remaining == 0 && src.CanRead && src.Position < src.Length)
+                {
+                    byte[] marker = System.Text.Encoding.UTF8.GetBytes(
+                        $"\n  (… mirror truncated at {maxBytes} bytes; source was {src.Length})\n");
+                    dst.Write(marker, 0, marker.Length);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] CrashDiagnostics.copyBounded failed: {e.Message}");
+            }
+        }
+
+        // Pathological-size threshold: if the live file is more than this
+        // multiple of the cap, rotation would just preserve unactionable bulk
+        // forever in the .1 backup, so we delete instead. Picked at 4× so
+        // ordinary "slightly over the cap" (a single oversized HangWatchdog
+        // dump or a partial mirror copy) still rotates normally and retains
+        // its history, while a 50 MB / 500 MB file from an older buggy build
+        // gets nuked on first sight of the new code.
+        private const int rotation_runaway_multiplier = 4;
 
         // If <path> exists and is at or above the size cap, move it to
         // "<path>.1" (overwriting any previous backup) so the next write starts
@@ -480,6 +562,21 @@ namespace osu.Android
                 try { if (File.Exists(backup)) File.Delete(backup); }
                 catch (Exception e) { Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: could not delete prior backup {backup}: {e.Message}"); }
 
+                // Runaway-size short-circuit: if the live file is many multiples
+                // of the cap (e.g. a 500 MB native_crash.log.1 left behind by
+                // an older build), rotating it to <path>.1 would just preserve
+                // the runaway payload as the new backup. The rest of the
+                // diagnostics pipeline already capped per-write payloads, so
+                // anything THIS large is by definition pre-existing garbage we
+                // cannot make actionable. Truncate in place instead.
+                if (length > native_crash_log_max_bytes * rotation_runaway_multiplier)
+                {
+                    Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: {path} is runaway ({length} bytes); truncating in place rather than rotating");
+                    try { File.WriteAllText(path, string.Empty); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] CrashDiagnostics.rotateIfTooLarge: runaway truncate failed: {e.Message}"); }
+                    return;
+                }
+
                 try { File.Move(path, backup); }
                 catch (Exception e)
                 {
@@ -499,27 +596,78 @@ namespace osu.Android
 
         private static void resolveDirs(Context context)
         {
+            string? rawInternal = null;
+            string? rawExternal = null;
+
             try
             {
-                if (internalDir == null)
-                {
-                    var f = context.FilesDir;
-                    if (f != null && !string.IsNullOrEmpty(f.AbsolutePath))
-                        internalDir = f.AbsolutePath;
-                }
+                var f = context.FilesDir;
+                if (f != null && !string.IsNullOrEmpty(f.AbsolutePath))
+                    rawInternal = f.AbsolutePath;
             }
             catch (Exception e) { Debug.WriteLine($"[osu!] Could not resolve internal FilesDir: {e.Message}"); }
 
             try
             {
-                if (externalDir == null)
-                {
-                    var e = context.GetExternalFilesDir(null);
-                    if (e != null && !string.IsNullOrEmpty(e.AbsolutePath))
-                        externalDir = e.AbsolutePath;
-                }
+                var e = context.GetExternalFilesDir(null);
+                if (e != null && !string.IsNullOrEmpty(e.AbsolutePath))
+                    rawExternal = e.AbsolutePath;
             }
             catch (Exception ex) { Debug.WriteLine($"[osu!] Could not resolve external files dir: {ex.Message}"); }
+
+            // Resolve the per-storage `logs/` subdirs (matching the framework
+            // logger's own location) and best-effort migrate any pre-existing
+            // native_crash.log[/.1] from the storage root into the subdir.
+            if (internalDir == null && rawInternal != null)
+                internalDir = ensureLogsSubdir(rawInternal);
+            if (externalDir == null && rawExternal != null)
+                externalDir = ensureLogsSubdir(rawExternal);
+        }
+
+        // Resolve `<root>/logs`, create it if missing, and one-shot migrate any
+        // pre-existing native_crash.log[.1] from `<root>` into `<root>/logs`.
+        // Falls back to `<root>` if the subdir cannot be created so we never
+        // lose the diagnostics target completely.
+        private static string ensureLogsSubdir(string root)
+        {
+            try
+            {
+                string logs = Path.Combine(root, LOGS_SUBDIR);
+
+                try { Directory.CreateDirectory(logs); }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Could not create logs subdir under {root}: {e.Message}");
+                    return root;
+                }
+
+                // Best-effort migration of pre-2026.04.27 layouts. Move (not
+                // copy) so we don't double-count toward the prune budget.
+                migrateLegacyFile(Path.Combine(root, CRASH_LOG_NAME), Path.Combine(logs, CRASH_LOG_NAME));
+                migrateLegacyFile(Path.Combine(root, CRASH_LOG_NAME + crash_log_backup_suffix), Path.Combine(logs, CRASH_LOG_NAME + crash_log_backup_suffix));
+                migrateLegacyFile(Path.Combine(root, SENTINEL_NAME), Path.Combine(logs, SENTINEL_NAME));
+
+                return logs;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] ensureLogsSubdir({root}) failed: {e.Message}");
+                return root;
+            }
+        }
+
+        private static void migrateLegacyFile(string oldPath, string newPath)
+        {
+            try
+            {
+                if (!File.Exists(oldPath)) return;
+                if (File.Exists(newPath)) { try { File.Delete(oldPath); } catch { /* keep both rather than throw */ } return; }
+                File.Move(oldPath, newPath);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] migrateLegacyFile {oldPath} → {newPath} failed: {e.Message}");
+            }
         }
     }
 }

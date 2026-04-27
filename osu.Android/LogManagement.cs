@@ -108,7 +108,7 @@ namespace osu.Android
 
             try
             {
-                files = new DirectoryInfo(logsDir).GetFiles("*.log", SearchOption.TopDirectoryOnly);
+                files = new DirectoryInfo(logsDir).GetFiles("*.log*", SearchOption.TopDirectoryOnly);
             }
             catch (Exception e)
             {
