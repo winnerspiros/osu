@@ -43,10 +43,14 @@ public:
         bool supportsHostImageCopy = false;
         bool supportsPushDescriptors = false;
 
-        // Quirks / Blacklist flags
-        bool disablePresentId = false;
-        bool disablePresentWait = false;
-        bool disableGraphicsPipelineLibrary = false;
+        // NOTE: Per-vendor blacklist flags (disablePresentId / disablePresentWait /
+        // disableGraphicsPipelineLibrary) were removed. Veldrid (winnerspiros/veldrid
+        // PR #12) now decides these per-driver itself based on the actual driver query
+        // (e.g. forced VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR on Android, no-opt-in
+        // VK_KHR_incremental_present on Qualcomm vendor 0x5143). Keeping a parallel
+        // managed-side blacklist would either duplicate that logic or, worse, conflict
+        // with it — the values were never propagated to Veldrid anyway and lived only
+        // in a diagnostic status string.
     };
 
     VulkanProbe();

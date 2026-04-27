@@ -809,6 +809,24 @@ namespace osu.Game.Database
                 SchemaVersion = schema_version,
                 MigrationCallback = onMigration,
                 FallbackPipePath = tempPathLocation,
+                // Cap the number of active Realm snapshot versions kept in-flight.
+                //
+                // Without this cap (Realm's default is uncapped), heavy concurrent reads on
+                // rotation / DeX dock-undock / large library imports keep snapshot versions
+                // pinned across the Update + Audio + Draw + JNI threads, allowing them to
+                // pile up faster than Realm can collapse them. On Android this surfaces as a
+                // first-chance `RealmException("Number of active versions exceeded the limit")`
+                // every few rotations — each exception is non-trivially expensive on ART's
+                // unwinder and the `try/catch` overhead in the Update loop is visible on the
+                // frame-time graph (suggested in winnerspiros/veldrid PR #12 follow-ups
+                // alongside the Vulkan present-path hardening).
+                //
+                // 64 is a healthy cap: well above the "true" working-set we observe (we've
+                // never seen more than ~8 active versions in normal play, ~24 during a
+                // beatmap import burst), so it never gets hit during legitimate use, but
+                // low enough that a runaway leak fast-fails rather than turning into a
+                // multi-megabyte heap crawl.
+                MaxNumberOfActiveVersions = 64,
             };
         }
 

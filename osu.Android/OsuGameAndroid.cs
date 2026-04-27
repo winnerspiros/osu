@@ -88,7 +88,6 @@ namespace osu.Android
         private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
         private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
-        private readonly Bindable<bool> hardwareAudioOffsetEnabled = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -214,7 +213,6 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
                 LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
-                LocalConfig.BindWith(OsuSetting.AndroidHardwareAudioOffsetEnabled, hardwareAudioOffsetEnabled);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -1151,7 +1149,15 @@ namespace osu.Android
 
                     if (gameActivity.IsDeX && displays != null)
                     {
-                        // In DeX, prefer external displays (ID != 0) sorted by highest refresh rate.
+                        // In DeX, prefer external displays (ID != 0). Sort by highest reported
+                        // refresh rate when mode metadata is available, but DO NOT fall back
+                        // to display 0 (the phone's internal panel) just because the external
+                        // happens to report a null mode list — when DeX is active the user is
+                        // looking at the external monitor and refresh-rate hints must target
+                        // that surface even if the mode list is empty (typical DeX virtual
+                        // display reports a single mode at most). Only fall through to the
+                        // internal panel if there is genuinely no non-zero display ID at all
+                        // (extremely defensive — DeX always exposes at least one).
                         display = displays.Where(d => d.DisplayId != 0)
                                           .OrderByDescending(d => d.GetSupportedModes()?.Max(m => m.RefreshRate) ?? 0)
                                           .FirstOrDefault()
@@ -1311,22 +1317,14 @@ namespace osu.Android
             {
                 try
                 {
-                    startOboeBridge(latency =>
-                    {
-                        // Gate the auto-write of AudioOffset behind the user toggle. The Oboe bridge
-                        // still measures and reports hardware latency for the FPS-counter "additional
-                        // info" overlay and for explicit Resync requests, but only mutates the user's
-                        // AudioOffset when they have asked us to.
-                        if (!hardwareAudioOffsetEnabled.Value)
-                        {
-                            Logger.Log($"[osu!] Hardware audio offset disabled — measured {latency:F1}ms but leaving AudioOffset unchanged.");
-                            return;
-                        }
-
-                        double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
-                        audioOffset.Value = suggested;
-                        Logger.Log($"[osu!] Audio offset auto-applied: {suggested:F1}ms (hardware latency={latency:F1}ms)");
-                    }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
+                    // Hardware-latency measurement is intentionally NOT performed automatically
+                    // on Oboe start. The previous implementation polled for ~2 s and silently
+                    // overwrote the user's AudioOffset with the first AAudio reading, which
+                    // collided with users tweaking offset manually. Hardware offset is now
+                    // exclusively user-triggered through Settings → Audio → Android → "Resync
+                    // hardware audio offset" (see ResyncHardwareAudioOffset below), which runs
+                    // a 2 s sampling window and applies the median.
+                    startOboeBridge(audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate);
                         Logger.Log("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
@@ -1357,11 +1355,12 @@ namespace osu.Android
 
             mgr.ResyncHardwareAudioOffset(Scheduler, latency =>
             {
-                // Resync is an explicit user request — apply unconditionally regardless of
-                // the auto-apply toggle (the user just clicked the button to ask for it).
+                // Hardware-latency measurement is exclusively user-triggered now (no auto-apply
+                // on Oboe start), so this callback only ever runs in response to an explicit
+                // button click. Apply the median directly.
                 double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
-                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms)");
             });
         }
 
@@ -1415,7 +1414,7 @@ namespace osu.Android
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
+        private void startOboeBridge(IntPtr provider, Action<int>? onStarted = null)
         {
             int hardwareSampleRate = 0;
 
@@ -1429,12 +1428,20 @@ namespace osu.Android
                         int.TryParse(rateStr, out hardwareSampleRate);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // GetSystemService / GetProperty are JNI calls that can throw
+                // RuntimeException on niche OEM stacks (e.g. early DeX bootstrap).
+                // Falling through with hardwareSampleRate=0 is correct — Oboe will
+                // fall back to its own AAudio query — but log so it's not invisible
+                // when investigating a sample-rate mismatch report.
+                Logger.Log($"[osu!] AAudio sample-rate query failed: {ex.Message}", level: LogLevel.Important);
+            }
 
             nativeBridges ??= new AndroidNativeBridgeManager();
 
             if (nativeBridges is AndroidNativeBridgeManager mgr)
-                mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider, hardwareSampleRate, onStarted);
+                mgr.StartOboeBridge(provider, hardwareSampleRate, onStarted);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1671,24 +1678,7 @@ namespace osu.Android
                 gameActivity.KeyboardHandler = keyboardHandler;
 
                 // Match the screen / digitiser dimensions for tablet area mapping.
-                try
-                {
-                    var metrics = gameActivity.WindowManager?.MaximumWindowMetrics;
-
-                    if (metrics != null)
-                    {
-                        var bounds = metrics.Bounds;
-                        int displayWidth = bounds.Width();
-                        int displayHeight = bounds.Height();
-
-                        if (displayWidth > 0 && displayHeight > 0)
-                            stylusHandler.SetDisplaySize(displayWidth, displayHeight);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Failed to get display size for stylus handler: {e.Message}");
-                }
+                applyStylusDisplaySize(stylusHandler);
 
                 // Initialize each handler the same way the framework would in
                 // CreateAvailableInputHandlers — sets the protected Host field on the base
@@ -1771,6 +1761,132 @@ namespace osu.Android
         }
 
         /// <summary>
+        /// Resolves the digitiser dimensions for the active window and pushes them into the
+        /// <see cref="AndroidStylusHandler"/>. Used both at handler-registration time and
+        /// from <see cref="OsuGameActivity.OnConfigurationChanged"/> so orientation /
+        /// DeX-connect / foldable-hinge transitions keep the tablet-area mapping aligned
+        /// with the actual <c>MotionEvent.GetX/Y</c> coordinate ranges.
+        ///
+        /// <para>
+        /// We deliberately prefer <c>WindowManager.CurrentWindowMetrics</c> over
+        /// <c>MaximumWindowMetrics</c>: on a phone whose activity is locked to landscape
+        /// (<see cref="OsuGameActivity"/> is annotated <c>ScreenOrientation.Landscape</c>),
+        /// <c>MaximumWindowMetrics</c> historically returns the natural-orientation
+        /// (portrait) bounds — e.g. <c>(1440 × 3088)</c> on a Galaxy S25 Ultra — while
+        /// <c>MotionEvent.GetX(int)</c>/<c>GetY(int)</c> are delivered in the *current*
+        /// (landscape) orientation, i.e. <c>0..3088 × 0..1440</c>. Caching the wrong-axis
+        /// digitiser size into the handler is exactly what produces the "S Pen stuck near
+        /// the top-left" regression: any non-default tablet-area selection persisted from
+        /// a previous session ends up dividing by the wrong axis and pinning the cursor
+        /// to a small rectangle at the screen origin.
+        /// </para>
+        ///
+        /// <para>
+        /// As a final defensive guard the resolved bounds are normalised to landscape
+        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked on phones —
+        /// this neutralises the residual case where an OEM still hands back portrait
+        /// bounds for the current metrics on certain Android skins.
+        /// </para>
+        /// </summary>
+        private void applyStylusDisplaySize(AndroidStylusHandler handler)
+        {
+            try
+            {
+                int width = 0;
+                int height = 0;
+
+                // Preferred: current window metrics (returns bounds in *current* orientation).
+                try
+                {
+                    var current = gameActivity.WindowManager?.CurrentWindowMetrics;
+
+                    if (current != null)
+                    {
+                        var b = current.Bounds;
+                        width = b.Width();
+                        height = b.Height();
+                    }
+                }
+                catch
+                {
+                    // Some Android skins / API levels can throw here on reload. Fall through.
+                }
+
+                // Fallback 1: maximum window metrics (historic path; may be portrait-biased).
+                if (width <= 0 || height <= 0)
+                {
+                    try
+                    {
+                        var max = gameActivity.WindowManager?.MaximumWindowMetrics;
+
+                        if (max != null)
+                        {
+                            var b = max.Bounds;
+                            width = b.Width();
+                            height = b.Height();
+                        }
+                    }
+                    catch
+                    {
+                        // Ignored — fall through to the legacy DisplayMetrics route.
+                    }
+                }
+
+                // Fallback 2: legacy DisplayMetrics (covers very old paths and DeX virtual displays).
+                if (width <= 0 || height <= 0)
+                {
+                    try
+                    {
+                        var dm = gameActivity.Resources?.DisplayMetrics;
+
+                        if (dm != null)
+                        {
+                            width = dm.WidthPixels;
+                            height = dm.HeightPixels;
+                        }
+                    }
+                    catch
+                    {
+                        // Give up silently; AndroidStylusHandler keeps its previous
+                        // cached size and continues with the existing area mapping.
+                    }
+                }
+
+                if (width <= 0 || height <= 0)
+                    return;
+
+                // Canonicalise to landscape since the phone activity is landscape-locked
+                // (see [Activity(ScreenOrientation = ScreenOrientation.Landscape)] on
+                // OsuGameActivity). Tablets / DeX run in FullUser orientation so the
+                // canonicalisation is harmless — we still get a (W, H) pair whose major
+                // axis matches MotionEvent.GetX's range.
+                int w = Math.Max(width, height);
+                int h = Math.Min(width, height);
+
+                handler.SetDisplaySize(w, h);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to apply stylus display size: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Re-pushes the current display dimensions into the active
+        /// <see cref="AndroidStylusHandler"/>. Called from
+        /// <see cref="OsuGameActivity.OnConfigurationChanged"/> so an orientation flip,
+        /// DeX connect/disconnect, or foldable-hinge change refreshes the tablet-area
+        /// mapping to match the new <c>MotionEvent</c> coordinate range.
+        /// </summary>
+        public void RefreshStylusDisplaySize()
+        {
+            var handler = stylusHandler;
+            if (handler == null) return;
+
+            applyStylusDisplaySize(handler);
+        }
+
+        /// <summary>
         /// Returns true for framework-built-in mouse/keyboard handlers that we want to suppress
         /// in favour of the lower-latency Android-native equivalents. Identification is by
         /// declaring assembly + namespace prefix (the SDL mouse/keyboard handlers live under
@@ -1793,20 +1909,15 @@ namespace osu.Android
             // touch handler, so the framework's SDL touch handler must keep running for
             // finger gameplay to work.
             //
-            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) is the
-            // critical fix for the "S Pen stuck top-left" bug. PenHandler subscribes to
-            // SDL3-native pen events (window.PenMove / window.PenTouch) which arrive via
-            // SDL's NDK pump and **bypass the Java MotionEvent dispatch chain entirely** —
-            // returning true from Activity.DispatchTouchEvent does NOT prevent SDL from
-            // delivering them. PenHandler then enqueues TouchInput / MousePositionAbsoluteInputFromPen
-            // alongside our AndroidStylusHandler's MousePositionAbsoluteInput, the two
-            // streams race at the InputManager, and (because SDL's pen position for a
-            // freshly-attached S Pen often arrives at (0, 0) before the first hover sample)
-            // the cursor visibly snaps to the top-left of the screen. Filtering PenHandler
-            // out of AvailableInputHandlers leaves AndroidStylusHandler as the sole source
-            // of S Pen input, with proper area mapping. PenHandler does NOT implement
-            // ITabletHandler, so the existing ITabletHandler filter does not catch it —
-            // the namespace prefix match is required.
+            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) was
+            // originally added because PenHandler subscribed to SDL3-native pen events
+            // (window.PenMove / window.PenTouch) which arrive via SDL's NDK pump and bypass
+            // the Java MotionEvent dispatch chain entirely — racing AndroidStylusHandler and
+            // producing the "S Pen stuck top-left" snap. As of ppy.osu.Framework 2026.427.1
+            // (winnerspiros/osu-framework PR #20) the framework no longer instantiates
+            // PenHandler at all on Android, so this match is now defence-in-depth (it costs
+            // nothing — PenHandler simply never appears in AvailableInputHandlers — and
+            // protects against a future framework regression that re-enables it).
             return ns.StartsWith("osu.Framework.Input.Handlers.Mouse", StringComparison.Ordinal)
                 || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal)
                 || ns.StartsWith("osu.Framework.Input.Handlers.Pen", StringComparison.Ordinal);

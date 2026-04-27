@@ -50,21 +50,11 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             // dispatch short-circuit, but it now branches inside AndroidStylusHandler
             // itself — placing it in the Input section is the more discoverable home.
 
-            // "Exit game" — the framework's AndroidGameHost reports CanExit=false, so the
-            // standard Hold-to-Exit overlay and the main-menu Exit button are not added on
-            // Android. Pressing Back in the main menu now calls PerformPlatformExit (via
-            // the OsuGame.SuspendToBackground override) — this button remains as a
-            // discoverable explicit-exit affordance for users who don't have a Back button.
-            // Placed at the bottom of the section so it cannot be hit accidentally while
-            // adjusting performance toggles.
-            if (game != null)
-            {
-                children.Add(new DangerousSettingsButtonV2
-                {
-                    Text = "Exit game",
-                    Action = game.PerformPlatformExit,
-                });
-            }
+            // The "Exit game" button was removed at user request — Pressing Back in the
+            // main menu already calls PerformPlatformExit (via the OsuGameAndroid
+            // SuspendToBackground override), which fully terminates the process. Devices
+            // without a software / hardware Back gesture can use the system Recents app
+            // swipe to dismiss osu! the same way every other Android app is closed.
 
             Children = children;
         }

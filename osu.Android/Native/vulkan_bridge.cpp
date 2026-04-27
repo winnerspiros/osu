@@ -170,42 +170,16 @@ void VulkanProbe::queryModernExtensions(VkPhysicalDevice device) {
     }
 
     // ── Vendor-specific GPU quirks ──────────────────────────────────────
-    // Qualcomm Adreno 7xx series: known flickering with PresentId/PresentWait
-    // and broken Graphics Pipeline Library compilation on some driver versions.
-    // Only target 7xx (730/740/750) — other Adreno generations are unaffected.
-    if (deviceInfo_.vendorId == 0x5143) {
-        const auto& name = deviceInfo_.deviceName;
-        bool isAdreno7xx = name.find("730") != std::string::npos ||
-                           name.find("740") != std::string::npos ||
-                           name.find("750") != std::string::npos;
-        if (isAdreno7xx) {
-            LOGI("Adreno 7xx GPU detected: applying performance and flickering overrides");
-            deviceInfo_.disablePresentId = true;
-            deviceInfo_.disablePresentWait = true;
-            deviceInfo_.disableGraphicsPipelineLibrary = true;
-        }
-    }
-
-    // ARM Mali (Samsung Exynos, MediaTek Dimensity, Google Tensor):
-    // Vendor ID 0x13B5 = ARM. Early Mali-G710/G715/G720 drivers have buggy
-    // Graphics Pipeline Library support that causes shader compilation stalls.
-    if (deviceInfo_.vendorId == 0x13B5) {
-        if (deviceInfo_.deviceName.find("Mali") != std::string::npos) {
-            LOGI("ARM Mali GPU detected: applying vendor quirks");
-            // Mali GPUs commonly report GPL support but the implementation
-            // causes stalls on pipeline creation. Disable to avoid hitching.
-            deviceInfo_.disableGraphicsPipelineLibrary = true;
-        }
-    }
-
-    // Imagination Technologies PowerVR (older Samsung, some MediaTek):
-    // Vendor ID 0x1010 = ImgTec. Disable advanced features for stability.
-    if (deviceInfo_.vendorId == 0x1010) {
-        LOGI("PowerVR GPU detected: disabling advanced Vulkan features");
-        deviceInfo_.disablePresentId = true;
-        deviceInfo_.disablePresentWait = true;
-        deviceInfo_.disableGraphicsPipelineLibrary = true;
-    }
+    // Removed: per-vendor disablePresentId / disablePresentWait /
+    // disableGraphicsPipelineLibrary blacklists for Adreno 7xx / Mali / PowerVR.
+    //
+    // These flags were never propagated to Veldrid — they only fed
+    // AndroidNativeBridgeManager.GetVulkanStatus's diagnostic string. As of
+    // winnerspiros/veldrid PR #12 the renderer makes these decisions itself
+    // based on the actual driver query (forced VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
+    // on Android, no-opt-in VK_KHR_incremental_present on Qualcomm 0x5143, etc.),
+    // so the parallel native-side blacklist is dead code. Removed to shrink the
+    // probe surface.
 }
 
 void VulkanProbe::queryVulkan13Features(VkPhysicalDevice device) {
@@ -257,9 +231,6 @@ OSU_EXPORT byte nVulkanSupportsShaderObject(intptr_t ptr) { return (ptr && reint
 OSU_EXPORT byte nVulkanSupportsGlobalPriority(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsGlobalPriority) ? 1 : 0; }
 OSU_EXPORT byte nVulkanSupportsMemoryBudget(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsMemoryBudget) ? 1 : 0; }
 OSU_EXPORT byte nVulkanSupportsSurfaceMaintenance1(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsSurfaceMaintenance1) ? 1 : 0; }
-OSU_EXPORT byte nVulkanDisablePresentId(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disablePresentId) ? 1 : 0; }
-OSU_EXPORT byte nVulkanDisablePresentWait(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disablePresentWait) ? 1 : 0; }
-OSU_EXPORT byte nVulkanDisableGraphicsPipelineLibrary(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().disableGraphicsPipelineLibrary) ? 1 : 0; }
 OSU_EXPORT byte nVulkanMeetsVulkan14(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().meetsVulkan14) ? 1 : 0; }
 OSU_EXPORT byte nVulkanSupportsHostImageCopy(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsHostImageCopy) ? 1 : 0; }
 OSU_EXPORT byte nVulkanSupportsPushDescriptors(intptr_t ptr) { return (ptr && reinterpret_cast<VulkanProbe*>(ptr)->getDeviceInfo().supportsPushDescriptors) ? 1 : 0; }

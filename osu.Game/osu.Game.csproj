@@ -38,10 +38,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="ppy.osu.Framework" Version="2026.423.1" />
+    <PackageReference Include="ppy.osu.Framework" Version="2026.427.1" />
     <!--
       Explicitly pin `ppy.Veldrid.SPIRV` to the winnerspiros fork build that
-      `ppy.osu.Framework 2026.423.1` was compiled against. This version is the only
+      `ppy.osu.Framework 2026.427.1` was compiled against. This version is the only
       one whose `runtimes/android-arm64/native/libveldrid-spirv.so` is aligned to 16 KB
       pages (required by Android 16+). It lives only as a release asset on
       <https://github.com/winnerspiros/veldrid-spirv/releases/tag/1.0> and is vendored

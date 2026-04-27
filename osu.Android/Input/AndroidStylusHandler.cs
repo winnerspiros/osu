@@ -67,6 +67,15 @@ namespace osu.Android.Input
 
         private const float deg_to_rad = MathF.PI / 180f;
 
+        /// <summary>
+        /// Legacy ctor / pre-init default size for tablet area + output area. Used both as
+        /// the eager-seed value in <see cref="Initialize"/> (so the area-mapping branch is
+        /// always taken on the first frame) and as a "user has never customised" sentinel
+        /// in <see cref="SetDisplaySize"/> when deciding whether to overwrite the persisted
+        /// area with a freshly-resolved display size.
+        /// </summary>
+        private static readonly Vector2 legacy_default_size = new Vector2(1920, 1080);
+
         public AndroidStylusHandler()
         {
             Enabled.Default = true;
@@ -76,7 +85,31 @@ namespace osu.Android.Input
         public override bool Initialize(GameHost host)
         {
             // Default size will be updated by SetDisplaySize once the display metrics are known.
-            tablet.Value = new TabletInfo("S Pen", new Vector2(1920, 1080));
+            tablet.Value = new TabletInfo("S Pen", legacy_default_size);
+
+            // Eagerly seed the area / output bindables so:
+            //  1. The tablet-area-selection UI in TabletSettings has a valid (non-zero)
+            //     `tablet.Size` to render against on the very first open of the settings panel,
+            //     even if it is opened before SetDisplaySize has run.
+            //  2. The hot path in `handlePointer` always takes the explicit area-mapping
+            //     branch instead of falling back to raw passthrough when areaWidth/areaHeight
+            //     are zero — keeping the cursor pinned to the configured area mapping rather
+            //     than emitting raw digitizer coordinates that may not align with the
+            //     activity window in DeX / multi-window scenarios.
+            //
+            // Only assigned if the bindable is still at its `default(Vector2)` (i.e. nothing
+            // has been deserialised from the framework's input config yet). A previously
+            // persisted user-configured area is preserved.
+            var legacyDefaultOffset = legacy_default_size / 2;
+
+            if (AreaSize.Value == default)
+                AreaSize.Value = legacy_default_size;
+            if (AreaOffset.Value == default)
+                AreaOffset.Value = legacyDefaultOffset;
+            if (OutputAreaSize.Value == default)
+                OutputAreaSize.Value = legacy_default_size;
+            if (OutputAreaOffset.Value == default)
+                OutputAreaOffset.Value = legacyDefaultOffset;
 
             AreaSize.BindValueChanged(_ => updateCachedTransform());
             AreaOffset.BindValueChanged(_ => updateCachedTransform());
@@ -85,16 +118,34 @@ namespace osu.Android.Input
             Rotation.BindValueChanged(_ => updateCachedTransform());
             PressureThreshold.BindValueChanged(v => cachedPressureThreshold = v.NewValue, true);
 
+            // Force one initial cache population so `areaWidth` / `outWidth` are non-zero
+            // before the very first MotionEvent arrives (BindValueChanged above only fires
+            // on subsequent changes).
+            updateCachedTransform();
+
             return base.Initialize(host);
         }
 
         /// <summary>
-        /// Sets the digitizer/display dimensions. Must be called after the display is known.
-        /// This sets the full tablet area and default output area.
+        /// Sets the digitizer/display dimensions. Must be called after the display is known,
+        /// and re-called from <see cref="OsuGameAndroid.RefreshStylusDisplaySize"/> on each
+        /// configuration change (orientation, DeX connect/disconnect, foldable hinge) so the
+        /// digitiser bounds stay aligned with the current <c>MotionEvent</c> coordinate range.
         /// </summary>
         public void SetDisplaySize(int width, int height)
         {
             var size = new Vector2(width, height);
+
+            // Capture the previous auto-default before mutating the cached field, so we can
+            // distinguish "user has never customised the tablet area" (current value equals
+            // the previously installed auto-default) from "user picked a custom area"
+            // (current value differs from both the old auto-default and the legacy
+            // 1920x1080 ctor default). This is the path that actually matters on
+            // orientation flips: the value we previously auto-installed is itself a
+            // legitimate-looking custom Vector2, so the legacy `value == default ||
+            // value == 1920x1080` guard would refuse to refresh it after a rotation.
+            var previousAuto = new Vector2(cachedTabletSizeX, cachedTabletSizeY);
+
             tablet.Value = new TabletInfo("S Pen", size);
             cachedTabletSizeX = width;
             cachedTabletSizeY = height;
@@ -106,13 +157,18 @@ namespace osu.Android.Input
             OutputAreaOffset.Default = size / 2;
 
             // Only set current values if they haven't been configured by the user yet.
-            if (AreaSize.Value == default || AreaSize.Value == new Vector2(1920, 1080))
+            // "Not configured" = still at the framework default(Vector2), still at the
+            // legacy 1920x1080 ctor default seeded in Initialize, or still at the
+            // auto-default we installed on a previous SetDisplaySize call (so a phone
+            // rotation re-syncs the area mapping rather than leaving the user pinned to
+            // the previous orientation's bounds).
+            if (AreaSize.Value == default || AreaSize.Value == legacy_default_size || AreaSize.Value == previousAuto)
             {
                 AreaSize.Value = size;
                 AreaOffset.Value = size / 2;
             }
 
-            if (OutputAreaSize.Value == default || OutputAreaSize.Value == new Vector2(1920, 1080))
+            if (OutputAreaSize.Value == default || OutputAreaSize.Value == legacy_default_size || OutputAreaSize.Value == previousAuto)
             {
                 OutputAreaSize.Value = size;
                 OutputAreaOffset.Value = size / 2;
@@ -203,6 +259,8 @@ namespace osu.Android.Input
             int count = e.PointerCount;
             if (count <= 0) return -1;
 
+            // First pass: explicit Stylus / Eraser tool type wins. This is the well-formed
+            // case for the Samsung S Pen and most internal digitisers.
             for (int i = 0; i < count; i++)
             {
                 var toolType = e.GetToolType(i);
@@ -210,9 +268,30 @@ namespace osu.Android.Input
                     return i;
             }
 
-            // No pointer self-identifies as a stylus (some devices/SDKs lose the tool-type
-            // tag on hover-only events even when MotionEvent.Source still has the Stylus
-            // bit). Default to index 0 to preserve the existing single-pointer behaviour.
+            // Second pass: some external HID digitisers — most notably Wacom USB tablets
+            // connected via USB-OTG to a phone — enumerate as a HID-class device and report
+            // the pen tip with ToolType.Mouse (or .Unknown) rather than .Stylus, even though
+            // MotionEvent.Source still carries the Stylus bit (which is exactly why
+            // OsuGameActivity.isStylusEvent routed the event here). When a finger is also on
+            // the screen at the same time (palm-rest / accidental touch while drawing),
+            // pointer index 0 is the finger and the Wacom pen lives at index 1+. The
+            // previous fallback returned 0 unconditionally and fed the finger's coordinates
+            // into the stylus pipeline — when the finger was briefly near a screen edge or
+            // lifting, the mapped output snapped the cursor to the corresponding corner,
+            // reproducing the same "stuck top-left" symptom Samsung S Pen exhibited before
+            // the (0,0) filter and pointer-index resolver were introduced.
+            //
+            // Prefer the first non-Finger pointer to skip the finger touch and pick up the
+            // Wacom pen at whatever index it landed on.
+            for (int i = 0; i < count; i++)
+            {
+                if (e.GetToolType(i) != MotionEventToolType.Finger)
+                    return i;
+            }
+
+            // No pointer self-identifies as anything but a finger — fall back to index 0
+            // to preserve the existing single-pointer behaviour for digitisers that lose
+            // tool-type tagging entirely on hover-only events.
             return 0;
         }
 
