@@ -50,7 +50,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private double? lastFinalCountdownSamplePlayback;
 
         private Sample? timeUpSample;
-        private bool finalBuzzerPlayed;
+        private bool finalBuzzerPlayed { get; set; }
 
         private DateTimeOffset stageEndTime;
         private TimeSpan stageDuration;
@@ -58,7 +58,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         /// <summary>
         /// Whether the local user has played a card themselves.
         /// </summary>
-        private bool hasPlayedCard;
+        private bool hasPlayedCard { get; set; }
 
         public PickScreen()
         {
