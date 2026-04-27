@@ -317,10 +317,17 @@ namespace osu.Android
                 return true;
             }
 
-            if (KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e))
-                return true;
-
-            return base.DispatchKeyEvent(e);
+            // Forward to AndroidKeyboardHandler for game-key routing (osu! keybinds, navigation,
+            // etc.) AND always pass the event to base.DispatchKeyEvent so SDL3's SurfaceView
+            // can convert it into SDL_TEXTINPUT events for focused text fields (chat, search,
+            // username, settings text controls, …). Returning true from the handler-only path
+            // would consume the event before SDL sees it, breaking external keyboard typing on
+            // Android. No double-key concern: the framework's own SDL KeyboardHandler is stripped
+            // in OsuGameAndroid.registerAndroidInputHandlers so SDL will not emit a duplicate
+            // KeyboardKeyInput; only its TextInput pathway remains active.
+            bool handledByGameInput = KeyboardHandler != null && KeyboardHandler.HandleKeyEvent(e);
+            bool handledBySdl = base.DispatchKeyEvent(e);
+            return handledByGameInput || handledBySdl;
         }
 
         public override bool DispatchTouchEvent(MotionEvent? e)

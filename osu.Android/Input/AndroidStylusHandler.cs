@@ -259,6 +259,8 @@ namespace osu.Android.Input
             int count = e.PointerCount;
             if (count <= 0) return -1;
 
+            // First pass: explicit Stylus / Eraser tool type wins. This is the well-formed
+            // case for the Samsung S Pen and most internal digitisers.
             for (int i = 0; i < count; i++)
             {
                 var toolType = e.GetToolType(i);
@@ -266,9 +268,30 @@ namespace osu.Android.Input
                     return i;
             }
 
-            // No pointer self-identifies as a stylus (some devices/SDKs lose the tool-type
-            // tag on hover-only events even when MotionEvent.Source still has the Stylus
-            // bit). Default to index 0 to preserve the existing single-pointer behaviour.
+            // Second pass: some external HID digitisers — most notably Wacom USB tablets
+            // connected via USB-OTG to a phone — enumerate as a HID-class device and report
+            // the pen tip with ToolType.Mouse (or .Unknown) rather than .Stylus, even though
+            // MotionEvent.Source still carries the Stylus bit (which is exactly why
+            // OsuGameActivity.isStylusEvent routed the event here). When a finger is also on
+            // the screen at the same time (palm-rest / accidental touch while drawing),
+            // pointer index 0 is the finger and the Wacom pen lives at index 1+. The
+            // previous fallback returned 0 unconditionally and fed the finger's coordinates
+            // into the stylus pipeline — when the finger was briefly near a screen edge or
+            // lifting, the mapped output snapped the cursor to the corresponding corner,
+            // reproducing the same "stuck top-left" symptom Samsung S Pen exhibited before
+            // the (0,0) filter and pointer-index resolver were introduced.
+            //
+            // Prefer the first non-Finger pointer to skip the finger touch and pick up the
+            // Wacom pen at whatever index it landed on.
+            for (int i = 0; i < count; i++)
+            {
+                if (e.GetToolType(i) != MotionEventToolType.Finger)
+                    return i;
+            }
+
+            // No pointer self-identifies as anything but a finger — fall back to index 0
+            // to preserve the existing single-pointer behaviour for digitisers that lose
+            // tool-type tagging entirely on hover-only events.
             return 0;
         }
 

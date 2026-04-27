@@ -10,8 +10,8 @@ using osu.Game.Graphics.UserInterfaceV2;
 namespace osu.Game.Overlays.Settings.Sections.Audio
 {
     /// <summary>
-    /// Android-specific audio settings — low-latency Oboe output and the optional
-    /// hardware-latency audio offset auto-calibration.
+    /// Android-specific audio settings — low-latency Oboe output and an explicit,
+    /// user-triggered hardware-latency audio-offset re-measurement button.
     /// </summary>
     public partial class AndroidAudioSettings : SettingsSubsection
     {
@@ -31,21 +31,21 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                 {
                     Keywords = new[] { @"oboe", @"aaudio", @"latency" },
                 },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "Hardware audio offset",
-                    HintText = "Measures the device's reported hardware output latency once and applies it to the audio offset above. Re-runs on each launch and whenever the audio device changes; use \"Resync\" below to re-measure on demand.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidHardwareAudioOffsetEnabled),
-                })
-                {
-                    Keywords = new[] { @"hardware", @"offset", @"latency", @"calibration" },
-                },
+                // Explicit Resync only — the previous "auto-apply on Oboe start" toggle and
+                // its 2 s startup pop-up have been removed because they silently overwrote
+                // the user's manual AudioOffset every cold launch (and again every time the
+                // audio device changed), making the offset feel "jittery". Hardware-latency
+                // measurement is now exclusively triggered by clicking the button below: it
+                // runs a 2 s sampling window, drops the warm-up sample, and applies the
+                // median of the remaining AAudio readings to AudioOffset. The button no-ops
+                // (logging "already measuring") if clicked again within the active window,
+                // so users can mash it without producing partial measurements.
                 new SettingsButtonV2
                 {
                     Text = "Resync hardware audio offset",
-                    TooltipText = "Re-measure the device's hardware output latency now and apply it to the audio offset.",
+                    TooltipText = "Measures the device's reported hardware output latency over a 2 s window and applies the median to the audio offset above.",
                     Action = () => game?.ResyncHardwareAudioOffset(),
-                    Keywords = new[] { @"resync", @"recalibrate", @"offset", @"hardware" },
+                    Keywords = new[] { @"resync", @"recalibrate", @"offset", @"hardware", @"latency", @"calibration" },
                 },
             };
         }

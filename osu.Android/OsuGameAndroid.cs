@@ -88,7 +88,6 @@ namespace osu.Android
         private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
         private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
-        private readonly Bindable<bool> hardwareAudioOffsetEnabled = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -214,7 +213,6 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
                 LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
-                LocalConfig.BindWith(OsuSetting.AndroidHardwareAudioOffsetEnabled, hardwareAudioOffsetEnabled);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -1319,22 +1317,14 @@ namespace osu.Android
             {
                 try
                 {
-                    startOboeBridge(latency =>
-                    {
-                        // Gate the auto-write of AudioOffset behind the user toggle. The Oboe bridge
-                        // still measures and reports hardware latency for the FPS-counter "additional
-                        // info" overlay and for explicit Resync requests, but only mutates the user's
-                        // AudioOffset when they have asked us to.
-                        if (!hardwareAudioOffsetEnabled.Value)
-                        {
-                            Logger.Log($"[osu!] Hardware audio offset disabled — measured {latency:F1}ms but leaving AudioOffset unchanged.");
-                            return;
-                        }
-
-                        double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
-                        audioOffset.Value = suggested;
-                        Logger.Log($"[osu!] Audio offset auto-applied: {suggested:F1}ms (hardware latency={latency:F1}ms)");
-                    }, audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
+                    // Hardware-latency measurement is intentionally NOT performed automatically
+                    // on Oboe start. The previous implementation polled for ~2 s and silently
+                    // overwrote the user's AudioOffset with the first AAudio reading, which
+                    // collided with users tweaking offset manually. Hardware offset is now
+                    // exclusively user-triggered through Settings → Audio → Android → "Resync
+                    // hardware audio offset" (see ResyncHardwareAudioOffset below), which runs
+                    // a 2 s sampling window and applies the median.
+                    startOboeBridge(audioRedirector != null ? audioRedirector.Provider : IntPtr.Zero, sampleRate =>
                     {
                         audioRedirector?.RefreshMixers(sampleRate);
                         Logger.Log("[osu!] Audio redirector refreshed with hardware sample rate: " + sampleRate);
@@ -1365,11 +1355,12 @@ namespace osu.Android
 
             mgr.ResyncHardwareAudioOffset(Scheduler, latency =>
             {
-                // Resync is an explicit user request — apply unconditionally regardless of
-                // the auto-apply toggle (the user just clicked the button to ask for it).
+                // Hardware-latency measurement is exclusively user-triggered now (no auto-apply
+                // on Oboe start), so this callback only ever runs in response to an explicit
+                // button click. Apply the median directly.
                 double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
-                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (hardware latency={latency:F1}ms)");
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms)");
             });
         }
 
@@ -1423,7 +1414,7 @@ namespace osu.Android
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void startOboeBridge(Action<double> onLatencyMeasured, IntPtr provider, Action<int>? onStarted = null)
+        private void startOboeBridge(IntPtr provider, Action<int>? onStarted = null)
         {
             int hardwareSampleRate = 0;
 
@@ -1442,7 +1433,7 @@ namespace osu.Android
             nativeBridges ??= new AndroidNativeBridgeManager();
 
             if (nativeBridges is AndroidNativeBridgeManager mgr)
-                mgr.StartOboeBridge(Scheduler, onLatencyMeasured, provider, hardwareSampleRate, onStarted);
+                mgr.StartOboeBridge(provider, hardwareSampleRate, onStarted);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1910,20 +1901,15 @@ namespace osu.Android
             // touch handler, so the framework's SDL touch handler must keep running for
             // finger gameplay to work.
             //
-            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) is the
-            // critical fix for the "S Pen stuck top-left" bug. PenHandler subscribes to
-            // SDL3-native pen events (window.PenMove / window.PenTouch) which arrive via
-            // SDL's NDK pump and **bypass the Java MotionEvent dispatch chain entirely** —
-            // returning true from Activity.DispatchTouchEvent does NOT prevent SDL from
-            // delivering them. PenHandler then enqueues TouchInput / MousePositionAbsoluteInputFromPen
-            // alongside our AndroidStylusHandler's MousePositionAbsoluteInput, the two
-            // streams race at the InputManager, and (because SDL's pen position for a
-            // freshly-attached S Pen often arrives at (0, 0) before the first hover sample)
-            // the cursor visibly snaps to the top-left of the screen. Filtering PenHandler
-            // out of AvailableInputHandlers leaves AndroidStylusHandler as the sole source
-            // of S Pen input, with proper area mapping. PenHandler does NOT implement
-            // ITabletHandler, so the existing ITabletHandler filter does not catch it —
-            // the namespace prefix match is required.
+            // The Pen namespace match (osu.Framework.Input.Handlers.Pen.PenHandler) was
+            // originally added because PenHandler subscribed to SDL3-native pen events
+            // (window.PenMove / window.PenTouch) which arrive via SDL's NDK pump and bypass
+            // the Java MotionEvent dispatch chain entirely — racing AndroidStylusHandler and
+            // producing the "S Pen stuck top-left" snap. As of ppy.osu.Framework 2026.427.1
+            // (winnerspiros/osu-framework PR #20) the framework no longer instantiates
+            // PenHandler at all on Android, so this match is now defence-in-depth (it costs
+            // nothing — PenHandler simply never appears in AvailableInputHandlers — and
+            // protects against a future framework regression that re-enables it).
             return ns.StartsWith("osu.Framework.Input.Handlers.Mouse", StringComparison.Ordinal)
                 || ns.StartsWith("osu.Framework.Input.Handlers.Keyboard", StringComparison.Ordinal)
                 || ns.StartsWith("osu.Framework.Input.Handlers.Pen", StringComparison.Ordinal);

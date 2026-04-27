@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
+using osu.Framework.Bindables;
 
 namespace osu.Android
 {
@@ -19,12 +20,13 @@ namespace osu.Android
     /// goal).
     ///
     /// <para>
-    /// Implementation rests on the framework's built-in <c>AudioManager.GlobalMixerHandle</c>
-    /// hook (see <c>osu.Framework/Audio/AudioManager.cs</c>). When this <see cref="System.Nullable{Int32}"/>
-    /// bindable holds a non-null mixer handle, every <c>BassAudioMixer.createMixer</c> call
-    /// (TrackMixer, SampleMixer, every per-store user mixer) recreates itself with the
-    /// <see cref="BassFlags.Decode"/> flag and auto-attaches itself to the global mixer
-    /// — i.e. the framework stops driving the audio device itself and produces decoded
+    /// Implementation rests on the framework's public <c>AudioManager.GlobalMixerHandle</c>
+    /// hook (see <c>osu.Framework/Audio/AudioManager.cs</c> — exposed publicly in
+    /// winnerspiros/osu-framework PR #20 specifically for this redirector). When this
+    /// <see cref="System.Nullable{Int32}"/> bindable holds a non-null mixer handle, every
+    /// <c>BassAudioMixer.createMixer</c> call (TrackMixer, SampleMixer, every per-store user mixer)
+    /// recreates itself with the <see cref="BassFlags.Decode"/> flag and auto-attaches itself to the
+    /// global mixer — i.e. the framework stops driving the audio device itself and produces decoded
     /// PCM only. The global mixer's owner is then responsible for actually feeding that
     /// PCM to whatever output backend is in use.
     /// </para>
@@ -57,12 +59,11 @@ namespace osu.Android
         private int sampleRate = 48000;
         private bool globalMixerHandleSet;
 
-        // Cached reflection accessors for the (internal) AudioManager.GlobalMixerHandle bindable.
-        // Resolved lazily on first set; both the field and the underlying Bindable<int?>.Value
-        // setter are cached because RefreshMixers can be called multiple times across the
-        // lifetime of the redirector (e.g. when the user toggles low-latency audio off/on).
-        private object? globalMixerHandleBindable;
-        private MethodInfo? globalMixerValueSetter;
+        // Cached writable handle to AudioManager.GlobalMixerHandle. The framework exposes
+        // the bindable as IBindable<int?> (read-only interface), but the underlying field
+        // is a Bindable<int?> — so we down-cast once and reuse it. Method-level reflection
+        // for EnqueueAction / UpdateDevice is kept (those remain internal/protected).
+        private Bindable<int?>? globalMixerHandleWritable;
         private MethodInfo? cachedUpdateDeviceMethod;
         private MethodInfo? cachedEnqueueActionMethod;
 
@@ -202,49 +203,29 @@ namespace osu.Android
         }
 
         /// <summary>
-        /// Sets the framework's <c>AudioManager.GlobalMixerHandle</c> bindable to the
-        /// given handle (or <see langword="null"/> to detach). The bindable is declared
-        /// <c>internal</c> in the framework, so we go through reflection. The value
-        /// setter is cached after first lookup.
+        /// Sets the framework's <see cref="AudioManager.GlobalMixerHandle"/> bindable to the
+        /// given handle (or <see langword="null"/> to detach). The bindable is exposed
+        /// publicly by the framework (winnerspiros/osu-framework PR #20) as
+        /// <c>IBindable&lt;int?&gt;</c>; the underlying instance is a writable
+        /// <c>Bindable&lt;int?&gt;</c>, so a one-time down-cast lets us set the value
+        /// without any reflection.
         /// </summary>
         private bool setGlobalMixerHandle(int? handle)
         {
             try
             {
-                if (globalMixerHandleBindable == null)
+                if (globalMixerHandleWritable == null)
                 {
-                    var field = typeof(AudioManager).GetField("GlobalMixerHandle", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    globalMixerHandleWritable = audioManager.GlobalMixerHandle as Bindable<int?>;
 
-                    if (field == null)
+                    if (globalMixerHandleWritable == null)
                     {
-                        Console.WriteLine("[osu!] AudioManager.GlobalMixerHandle field not found via reflection — framework version mismatch?");
-                        return false;
-                    }
-
-                    globalMixerHandleBindable = field.GetValue(audioManager);
-
-                    if (globalMixerHandleBindable == null)
-                    {
-                        Console.WriteLine("[osu!] AudioManager.GlobalMixerHandle bindable is null");
-                        return false;
-                    }
-
-                    // GetProperty returns the IBindable.Value get-only property when called on
-                    // the IBindable<int?> type, so go via the runtime type which is Bindable<int?>
-                    // (writable). BindingFlags.DeclaredOnly avoids resolving to a hidden interface
-                    // implementation that lacks a setter.
-                    globalMixerValueSetter = globalMixerHandleBindable.GetType()
-                                                                      .GetProperty("Value", BindingFlags.Instance | BindingFlags.Public)
-                                                                      ?.GetSetMethod();
-
-                    if (globalMixerValueSetter == null)
-                    {
-                        Console.WriteLine("[osu!] Bindable<int?>.Value setter not resolvable on GlobalMixerHandle");
+                        Console.WriteLine("[osu!] AudioManager.GlobalMixerHandle is not a writable Bindable<int?> — framework version mismatch?");
                         return false;
                     }
                 }
 
-                globalMixerValueSetter!.Invoke(globalMixerHandleBindable!, new object?[] { handle });
+                globalMixerHandleWritable.Value = handle;
                 return true;
             }
             catch (Exception e)
