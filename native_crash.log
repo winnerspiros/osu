@@ -1,0 +1,392 @@
+=== ALIVE [2026-04-28T11:59:51.2320605Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/logs/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files/logs external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files/logs ===
+=== ALIVE [2026-04-28T11:59:51.2382072Z] CrashDiagnostics.StartNativeWatchdog (threshold=10s) ===
+=== ALIVE [2026-04-28T11:59:51.2426304Z] AndroidStartupThreadTamer.Start (period=250ms, max=25000ms, littleMask=0x7) ===
+=== ALIVE [2026-04-28T11:59:51.2470011Z] RealmFifoCleanup ran (deleted=0) ===
+=== ALIVE [2026-04-28T11:59:51.2472645Z] LogManagement.Apply (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2544971Z] LogManagement.Apply (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2546821Z] LogManagement.NormaliseFrameworkIniExecutionMode (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2549997Z] LogManagement.NormaliseFrameworkIniExecutionMode (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2551486Z] LogManagement.NormaliseFrameworkIniRendererDefault (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2567114Z] LogManagement.NormaliseFrameworkIniRendererDefault (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2568560Z] LogManagement.ForceOpenGLRendererIfSafeMode (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2569843Z] LogManagement.ForceOpenGLRendererIfSafeMode (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2572074Z] LogManagement.WipeShaderCacheOnceForVersion (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2613556Z] LogManagement.WipeShaderCacheOnceForVersion (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2953165Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-28T11:59:51.9697092Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-28T11:59:51.9701946Z] OsuGameAndroid.SetHost (about to ReinstallNativeHandler) ===
+=== ALIVE [2026-04-28T11:59:51.9705090Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-28T11:59:51.9706653Z] OsuGameAndroid.SetHost (ReinstallNativeHandler returned) ===
+=== ALIVE [2026-04-28T11:59:51.9707772Z] OsuGameAndroid.SetHost (about to call base.SetHost) ===
+=== ALIVE [2026-04-28T11:59:52.0288082Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
+=== ALIVE [2026-04-28T11:59:52.0422314Z] OsuGameAndroid.SetHost (about to start HangWatchdog) ===
+=== ALIVE [2026-04-28T11:59:52.0430727Z] HangWatchdog.Start (threshold=5000ms, cooldown=30000ms) ===
+=== ALIVE [2026-04-28T11:59:52.0432434Z] OsuGameAndroid.SetHost (HangWatchdog started) ===
+=== ALIVE [2026-04-28T11:59:52.0433647Z] OsuGameAndroid.SetHost (returning) ===
+=== ALIVE [2026-04-28T11:59:54.2768165Z] AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed) ===
+=== ALIVE [2026-04-28T11:59:54.4337329Z] cold-start heartbeat update thread tick=1/30 ===
+=== ALIVE [2026-04-28T11:59:54.4577872Z] cold-start heartbeat draw thread tick=1/30 ===
+=== ALIVE [2026-04-28T11:59:55.4937242Z] cold-start heartbeat update thread tick=2/30 ===
+=== ALIVE [2026-04-28T11:59:55.5056246Z] cold-start heartbeat draw thread tick=2/30 ===
+=== ALIVE [2026-04-28T11:59:56.3659389Z] cold-start heartbeat update thread tick=3/30 ===
+=== ALIVE [2026-04-28T11:59:56.3703268Z] cold-start heartbeat draw thread tick=3/30 ===
+=== ALIVE [2026-04-28T11:59:57.3913332Z] cold-start heartbeat update thread tick=4/30 ===
+=== ALIVE [2026-04-28T11:59:57.4155509Z] cold-start heartbeat draw thread tick=4/30 ===
+=== ALIVE [2026-04-28T11:59:58.3841543Z] cold-start heartbeat update thread tick=5/30 ===
+=== ALIVE [2026-04-28T11:59:58.4755603Z] cold-start heartbeat draw thread tick=5/30 ===
+=== ALIVE [2026-04-28T11:59:59.3648233Z] cold-start heartbeat update thread tick=6/30 ===
+=== ALIVE [2026-04-28T11:59:59.3696260Z] cold-start heartbeat draw thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:00:00.3653577Z] cold-start heartbeat update thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:00:00.4213546Z] cold-start heartbeat draw thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:00:01.3700492Z] cold-start heartbeat update thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:00:01.3746441Z] cold-start heartbeat draw thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:00:02.3655229Z] cold-start heartbeat update thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:00:02.3669243Z] cold-start heartbeat draw thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:00:03.3653658Z] cold-start heartbeat update thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:00:03.3703983Z] cold-start heartbeat draw thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:00:04.4247541Z] cold-start heartbeat update thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:00:04.4344136Z] cold-start heartbeat draw thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:00:05.3648083Z] cold-start heartbeat update thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:00:05.3684301Z] cold-start heartbeat draw thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:00:06.3646842Z] cold-start heartbeat update thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:00:06.3652585Z] cold-start heartbeat draw thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:00:07.3644632Z] cold-start heartbeat update thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:00:07.3659438Z] cold-start heartbeat draw thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:00:08.3715944Z] cold-start heartbeat update thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:00:08.3779781Z] cold-start heartbeat draw thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:00:09.3662858Z] cold-start heartbeat update thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:00:09.3673387Z] cold-start heartbeat draw thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:00:10.3658367Z] cold-start heartbeat update thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:00:10.3690504Z] cold-start heartbeat draw thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:00:11.3664094Z] cold-start heartbeat update thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:00:11.3709445Z] cold-start heartbeat draw thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:00:12.3790701Z] cold-start heartbeat update thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:00:12.3811538Z] cold-start heartbeat draw thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:00:13.7838030Z] cold-start heartbeat update thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:00:13.7932320Z] cold-start heartbeat draw thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:00:14.3650543Z] cold-start heartbeat update thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:00:14.3695435Z] cold-start heartbeat draw thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:00:15.3651217Z] cold-start heartbeat update thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:00:15.3811840Z] cold-start heartbeat draw thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:00:16.2442268Z] AndroidStartupThreadTamer.Stop (totalDemoted=1564) ===
+=== ALIVE [2026-04-28T12:00:16.3677413Z] cold-start heartbeat update thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:00:16.3701793Z] cold-start heartbeat draw thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:00:17.3658226Z] cold-start heartbeat update thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:00:17.3673716Z] cold-start heartbeat draw thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:00:18.3650062Z] cold-start heartbeat update thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:00:18.3676127Z] cold-start heartbeat draw thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:00:19.3661966Z] cold-start heartbeat update thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:00:19.3688412Z] cold-start heartbeat draw thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:00:20.3656218Z] cold-start heartbeat update thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:00:20.3703612Z] cold-start heartbeat draw thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:00:21.3664470Z] cold-start heartbeat update thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:00:21.3675431Z] cold-start heartbeat draw thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:00:22.3673764Z] cold-start heartbeat update thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:00:22.3704302Z] cold-start heartbeat draw thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:00:23.3668162Z] cold-start heartbeat update thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:00:23.3688746Z] cold-start heartbeat draw thread tick=30/30 ===
+=== ALIVE [2026-04-28T11:59:51.2320605Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/logs/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files/logs external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files/logs ===
+=== ALIVE [2026-04-28T11:59:51.2382072Z] CrashDiagnostics.StartNativeWatchdog (threshold=10s) ===
+=== ALIVE [2026-04-28T11:59:51.2426304Z] AndroidStartupThreadTamer.Start (period=250ms, max=25000ms, littleMask=0x7) ===
+=== ALIVE [2026-04-28T11:59:51.2470011Z] RealmFifoCleanup ran (deleted=0) ===
+=== ALIVE [2026-04-28T11:59:51.2472645Z] LogManagement.Apply (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2544971Z] LogManagement.Apply (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2546821Z] LogManagement.NormaliseFrameworkIniExecutionMode (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2549997Z] LogManagement.NormaliseFrameworkIniExecutionMode (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2551486Z] LogManagement.NormaliseFrameworkIniRendererDefault (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2567114Z] LogManagement.NormaliseFrameworkIniRendererDefault (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2568560Z] LogManagement.ForceOpenGLRendererIfSafeMode (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2569843Z] LogManagement.ForceOpenGLRendererIfSafeMode (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2572074Z] LogManagement.WipeShaderCacheOnceForVersion (about to start) ===
+=== ALIVE [2026-04-28T11:59:51.2613556Z] LogManagement.WipeShaderCacheOnceForVersion (returned) ===
+=== ALIVE [2026-04-28T11:59:51.2953165Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-28T11:59:51.9697092Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-28T11:59:51.9701946Z] OsuGameAndroid.SetHost (about to ReinstallNativeHandler) ===
+=== ALIVE [2026-04-28T11:59:51.9705090Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-28T11:59:51.9706653Z] OsuGameAndroid.SetHost (ReinstallNativeHandler returned) ===
+=== ALIVE [2026-04-28T11:59:51.9707772Z] OsuGameAndroid.SetHost (about to call base.SetHost) ===
+=== ALIVE [2026-04-28T11:59:52.0288082Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
+=== ALIVE [2026-04-28T11:59:52.0422314Z] OsuGameAndroid.SetHost (about to start HangWatchdog) ===
+=== ALIVE [2026-04-28T11:59:52.0430727Z] HangWatchdog.Start (threshold=5000ms, cooldown=30000ms) ===
+=== ALIVE [2026-04-28T11:59:52.0432434Z] OsuGameAndroid.SetHost (HangWatchdog started) ===
+=== ALIVE [2026-04-28T11:59:52.0433647Z] OsuGameAndroid.SetHost (returning) ===
+=== ALIVE [2026-04-28T11:59:54.2768165Z] AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed) ===
+=== ALIVE [2026-04-28T11:59:54.4337329Z] cold-start heartbeat update thread tick=1/30 ===
+=== ALIVE [2026-04-28T11:59:54.4577872Z] cold-start heartbeat draw thread tick=1/30 ===
+=== ALIVE [2026-04-28T11:59:55.4937242Z] cold-start heartbeat update thread tick=2/30 ===
+=== ALIVE [2026-04-28T11:59:55.5056246Z] cold-start heartbeat draw thread tick=2/30 ===
+=== ALIVE [2026-04-28T11:59:56.3659389Z] cold-start heartbeat update thread tick=3/30 ===
+=== ALIVE [2026-04-28T11:59:56.3703268Z] cold-start heartbeat draw thread tick=3/30 ===
+=== ALIVE [2026-04-28T11:59:57.3913332Z] cold-start heartbeat update thread tick=4/30 ===
+=== ALIVE [2026-04-28T11:59:57.4155509Z] cold-start heartbeat draw thread tick=4/30 ===
+=== ALIVE [2026-04-28T11:59:58.3841543Z] cold-start heartbeat update thread tick=5/30 ===
+=== ALIVE [2026-04-28T11:59:58.4755603Z] cold-start heartbeat draw thread tick=5/30 ===
+=== ALIVE [2026-04-28T11:59:59.3648233Z] cold-start heartbeat update thread tick=6/30 ===
+=== ALIVE [2026-04-28T11:59:59.3696260Z] cold-start heartbeat draw thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:00:00.3653577Z] cold-start heartbeat update thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:00:00.4213546Z] cold-start heartbeat draw thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:00:01.3700492Z] cold-start heartbeat update thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:00:01.3746441Z] cold-start heartbeat draw thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:00:02.3655229Z] cold-start heartbeat update thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:00:02.3669243Z] cold-start heartbeat draw thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:00:03.3653658Z] cold-start heartbeat update thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:00:03.3703983Z] cold-start heartbeat draw thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:00:04.4247541Z] cold-start heartbeat update thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:00:04.4344136Z] cold-start heartbeat draw thread tick=11/30 ===
+
+=========================================================
+=== MANAGED EXCEPTION ===
+  source     = FirstChanceException (ArgumentOutOfRangeException)
+  utc_time   = 2026-04-28T12:00:04.6554228Z
+  thread_id  = 18
+  thread_name= Update (GameThread)
+
+System.ArgumentOutOfRangeException: Arg_ArgumentOutOfRangeException Arg_ParamName_Name, Get from RealmResults index: 0 beyond range of: 0
+=== END OF MANAGED EXCEPTION ===
+
+=== ALIVE [2026-04-28T12:00:05.3648083Z] cold-start heartbeat update thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:00:05.3684301Z] cold-start heartbeat draw thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:00:06.3646842Z] cold-start heartbeat update thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:00:06.3652585Z] cold-start heartbeat draw thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:00:07.3644632Z] cold-start heartbeat update thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:00:07.3659438Z] cold-start heartbeat draw thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:00:08.3715944Z] cold-start heartbeat update thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:00:08.3779781Z] cold-start heartbeat draw thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:00:09.3662858Z] cold-start heartbeat update thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:00:09.3673387Z] cold-start heartbeat draw thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:00:10.3658367Z] cold-start heartbeat update thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:00:10.3690504Z] cold-start heartbeat draw thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:00:11.3664094Z] cold-start heartbeat update thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:00:11.3709445Z] cold-start heartbeat draw thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:00:12.3790701Z] cold-start heartbeat update thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:00:12.3811538Z] cold-start heartbeat draw thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:00:13.7838030Z] cold-start heartbeat update thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:00:13.7932320Z] cold-start heartbeat draw thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:00:14.3650543Z] cold-start heartbeat update thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:00:14.3695435Z] cold-start heartbeat draw thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:00:15.3651217Z] cold-start heartbeat update thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:00:15.3811840Z] cold-start heartbeat draw thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:00:16.2442268Z] AndroidStartupThreadTamer.Stop (totalDemoted=1564) ===
+=== ALIVE [2026-04-28T12:00:16.3677413Z] cold-start heartbeat update thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:00:16.3701793Z] cold-start heartbeat draw thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:00:17.3658226Z] cold-start heartbeat update thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:00:17.3673716Z] cold-start heartbeat draw thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:00:18.3650062Z] cold-start heartbeat update thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:00:18.3676127Z] cold-start heartbeat draw thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:00:19.3661966Z] cold-start heartbeat update thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:00:19.3688412Z] cold-start heartbeat draw thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:00:20.3656218Z] cold-start heartbeat update thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:00:20.3703612Z] cold-start heartbeat draw thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:00:21.3664470Z] cold-start heartbeat update thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:00:21.3675431Z] cold-start heartbeat draw thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:00:22.3673764Z] cold-start heartbeat update thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:00:22.3704302Z] cold-start heartbeat draw thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:00:23.3668162Z] cold-start heartbeat update thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:00:23.3688746Z] cold-start heartbeat draw thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:00:51.8208310Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/logs/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files/logs external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files/logs ===
+=== ALIVE [2026-04-28T12:00:51.8224836Z] CrashDiagnostics.StartNativeWatchdog (threshold=10s) ===
+=== ALIVE [2026-04-28T12:00:51.8287301Z] AndroidStartupThreadTamer.Start (period=250ms, max=25000ms, littleMask=0x7) ===
+=== ALIVE [2026-04-28T12:00:51.8397323Z] RealmFifoCleanup ran (deleted=3) ===
+=== ALIVE [2026-04-28T12:00:51.8399540Z] LogManagement.Apply (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8434399Z] LogManagement.Apply (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8436540Z] LogManagement.NormaliseFrameworkIniExecutionMode (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8440718Z] LogManagement.NormaliseFrameworkIniExecutionMode (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8442417Z] LogManagement.NormaliseFrameworkIniRendererDefault (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8453701Z] LogManagement.NormaliseFrameworkIniRendererDefault (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8455720Z] LogManagement.ForceOpenGLRendererIfSafeMode (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8457244Z] LogManagement.ForceOpenGLRendererIfSafeMode (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8458698Z] LogManagement.WipeShaderCacheOnceForVersion (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8496045Z] LogManagement.WipeShaderCacheOnceForVersion (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8871540Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-28T12:00:52.6542005Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-28T12:00:52.6546366Z] OsuGameAndroid.SetHost (about to ReinstallNativeHandler) ===
+=== ALIVE [2026-04-28T12:00:52.6550914Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-28T12:00:52.6553195Z] OsuGameAndroid.SetHost (ReinstallNativeHandler returned) ===
+=== ALIVE [2026-04-28T12:00:52.6554746Z] OsuGameAndroid.SetHost (about to call base.SetHost) ===
+=== ALIVE [2026-04-28T12:00:52.7382097Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
+=== ALIVE [2026-04-28T12:00:52.7534836Z] OsuGameAndroid.SetHost (about to start HangWatchdog) ===
+=== ALIVE [2026-04-28T12:00:52.7545713Z] HangWatchdog.Start (threshold=5000ms, cooldown=30000ms) ===
+=== ALIVE [2026-04-28T12:00:52.7548011Z] OsuGameAndroid.SetHost (HangWatchdog started) ===
+=== ALIVE [2026-04-28T12:00:52.7549817Z] OsuGameAndroid.SetHost (returning) ===
+=== ALIVE [2026-04-28T12:00:54.9175771Z] AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed) ===
+=== ALIVE [2026-04-28T12:00:55.2479705Z] cold-start heartbeat update thread tick=1/30 ===
+=== ALIVE [2026-04-28T12:00:55.2680891Z] cold-start heartbeat draw thread tick=1/30 ===
+=== ALIVE [2026-04-28T12:00:56.1989265Z] cold-start heartbeat update thread tick=2/30 ===
+=== ALIVE [2026-04-28T12:00:56.2001826Z] cold-start heartbeat draw thread tick=2/30 ===
+=== ALIVE [2026-04-28T12:00:57.1989747Z] cold-start heartbeat update thread tick=3/30 ===
+=== ALIVE [2026-04-28T12:00:57.2011483Z] cold-start heartbeat draw thread tick=3/30 ===
+=== ALIVE [2026-04-28T12:00:58.2050677Z] cold-start heartbeat update thread tick=4/30 ===
+=== ALIVE [2026-04-28T12:00:58.2128198Z] cold-start heartbeat draw thread tick=4/30 ===
+=== ALIVE [2026-04-28T12:00:59.2061354Z] cold-start heartbeat update thread tick=5/30 ===
+=== ALIVE [2026-04-28T12:00:59.2115098Z] cold-start heartbeat draw thread tick=5/30 ===
+=== ALIVE [2026-04-28T12:01:00.1983201Z] cold-start heartbeat update thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:01:00.2055140Z] cold-start heartbeat draw thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:01:01.1991823Z] cold-start heartbeat update thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:01:01.2036047Z] cold-start heartbeat draw thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:01:02.1992038Z] cold-start heartbeat update thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:01:02.2007939Z] cold-start heartbeat draw thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:01:03.1993529Z] cold-start heartbeat update thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:01:03.2037822Z] cold-start heartbeat draw thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:01:04.1981900Z] cold-start heartbeat update thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:01:04.2015408Z] cold-start heartbeat draw thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:01:05.2034664Z] cold-start heartbeat update thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:01:05.2079324Z] cold-start heartbeat draw thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:01:06.1989519Z] cold-start heartbeat update thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:01:06.2051488Z] cold-start heartbeat draw thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:01:07.1989207Z] cold-start heartbeat update thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:01:07.2052076Z] cold-start heartbeat draw thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:01:08.3688936Z] cold-start heartbeat update thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:01:08.3746138Z] cold-start heartbeat draw thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:01:09.2031768Z] cold-start heartbeat update thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:01:09.2038924Z] cold-start heartbeat draw thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:01:10.1999167Z] cold-start heartbeat update thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:01:10.2029850Z] cold-start heartbeat draw thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:01:11.1995426Z] cold-start heartbeat update thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:01:11.2054642Z] cold-start heartbeat draw thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:01:12.1984034Z] cold-start heartbeat update thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:01:12.2011480Z] cold-start heartbeat draw thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:01:13.1988275Z] cold-start heartbeat update thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:01:13.2011176Z] cold-start heartbeat draw thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:01:14.1998116Z] cold-start heartbeat update thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:01:14.2027081Z] cold-start heartbeat draw thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:01:15.1996470Z] cold-start heartbeat update thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:01:15.2012395Z] cold-start heartbeat draw thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:01:16.1991844Z] cold-start heartbeat update thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:01:16.2092848Z] cold-start heartbeat draw thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:01:16.8275250Z] AndroidStartupThreadTamer.Stop (totalDemoted=1569) ===
+=== ALIVE [2026-04-28T12:01:17.1996928Z] cold-start heartbeat update thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:01:17.2040997Z] cold-start heartbeat draw thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:01:18.1986900Z] cold-start heartbeat update thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:01:18.2013052Z] cold-start heartbeat draw thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:01:19.1991356Z] cold-start heartbeat update thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:01:19.2001729Z] cold-start heartbeat draw thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:01:20.2050355Z] cold-start heartbeat update thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:01:20.2093945Z] cold-start heartbeat draw thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:01:21.1987931Z] cold-start heartbeat update thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:01:21.2072595Z] cold-start heartbeat draw thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:01:22.2017263Z] cold-start heartbeat update thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:01:22.2088614Z] cold-start heartbeat draw thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:01:23.1986708Z] cold-start heartbeat update thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:01:23.2058804Z] cold-start heartbeat draw thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:01:24.1984929Z] cold-start heartbeat update thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:01:24.2033456Z] cold-start heartbeat draw thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:00:51.8208310Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/logs/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files/logs external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files/logs ===
+=== ALIVE [2026-04-28T12:00:51.8224836Z] CrashDiagnostics.StartNativeWatchdog (threshold=10s) ===
+=== ALIVE [2026-04-28T12:00:51.8287301Z] AndroidStartupThreadTamer.Start (period=250ms, max=25000ms, littleMask=0x7) ===
+=== ALIVE [2026-04-28T12:00:51.8397323Z] RealmFifoCleanup ran (deleted=3) ===
+=== ALIVE [2026-04-28T12:00:51.8399540Z] LogManagement.Apply (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8434399Z] LogManagement.Apply (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8436540Z] LogManagement.NormaliseFrameworkIniExecutionMode (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8440718Z] LogManagement.NormaliseFrameworkIniExecutionMode (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8442417Z] LogManagement.NormaliseFrameworkIniRendererDefault (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8453701Z] LogManagement.NormaliseFrameworkIniRendererDefault (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8455720Z] LogManagement.ForceOpenGLRendererIfSafeMode (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8457244Z] LogManagement.ForceOpenGLRendererIfSafeMode (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8458698Z] LogManagement.WipeShaderCacheOnceForVersion (about to start) ===
+=== ALIVE [2026-04-28T12:00:51.8496045Z] LogManagement.WipeShaderCacheOnceForVersion (returned) ===
+=== ALIVE [2026-04-28T12:00:51.8871540Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-28T12:00:52.6542005Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-28T12:00:52.6546366Z] OsuGameAndroid.SetHost (about to ReinstallNativeHandler) ===
+=== ALIVE [2026-04-28T12:00:52.6550914Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-28T12:00:52.6553195Z] OsuGameAndroid.SetHost (ReinstallNativeHandler returned) ===
+=== ALIVE [2026-04-28T12:00:52.6554746Z] OsuGameAndroid.SetHost (about to call base.SetHost) ===
+=== ALIVE [2026-04-28T12:00:52.7382097Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
+=== ALIVE [2026-04-28T12:00:52.7534836Z] OsuGameAndroid.SetHost (about to start HangWatchdog) ===
+=== ALIVE [2026-04-28T12:00:52.7545713Z] HangWatchdog.Start (threshold=5000ms, cooldown=30000ms) ===
+=== ALIVE [2026-04-28T12:00:52.7548011Z] OsuGameAndroid.SetHost (HangWatchdog started) ===
+=== ALIVE [2026-04-28T12:00:52.7549817Z] OsuGameAndroid.SetHost (returning) ===
+=== ALIVE [2026-04-28T12:00:54.9175771Z] AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed) ===
+=== ALIVE [2026-04-28T12:00:55.2479705Z] cold-start heartbeat update thread tick=1/30 ===
+=== ALIVE [2026-04-28T12:00:55.2680891Z] cold-start heartbeat draw thread tick=1/30 ===
+=== ALIVE [2026-04-28T12:00:56.1989265Z] cold-start heartbeat update thread tick=2/30 ===
+=== ALIVE [2026-04-28T12:00:56.2001826Z] cold-start heartbeat draw thread tick=2/30 ===
+=== ALIVE [2026-04-28T12:00:57.1989747Z] cold-start heartbeat update thread tick=3/30 ===
+=== ALIVE [2026-04-28T12:00:57.2011483Z] cold-start heartbeat draw thread tick=3/30 ===
+=== ALIVE [2026-04-28T12:00:58.2050677Z] cold-start heartbeat update thread tick=4/30 ===
+=== ALIVE [2026-04-28T12:00:58.2128198Z] cold-start heartbeat draw thread tick=4/30 ===
+=== ALIVE [2026-04-28T12:00:59.2061354Z] cold-start heartbeat update thread tick=5/30 ===
+=== ALIVE [2026-04-28T12:00:59.2115098Z] cold-start heartbeat draw thread tick=5/30 ===
+=== ALIVE [2026-04-28T12:01:00.1983201Z] cold-start heartbeat update thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:01:00.2055140Z] cold-start heartbeat draw thread tick=6/30 ===
+=== ALIVE [2026-04-28T12:01:01.1991823Z] cold-start heartbeat update thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:01:01.2036047Z] cold-start heartbeat draw thread tick=7/30 ===
+=== ALIVE [2026-04-28T12:01:02.1992038Z] cold-start heartbeat update thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:01:02.2007939Z] cold-start heartbeat draw thread tick=8/30 ===
+=== ALIVE [2026-04-28T12:01:03.1993529Z] cold-start heartbeat update thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:01:03.2037822Z] cold-start heartbeat draw thread tick=9/30 ===
+=== ALIVE [2026-04-28T12:01:04.1981900Z] cold-start heartbeat update thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:01:04.2015408Z] cold-start heartbeat draw thread tick=10/30 ===
+=== ALIVE [2026-04-28T12:01:05.2034664Z] cold-start heartbeat update thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:01:05.2079324Z] cold-start heartbeat draw thread tick=11/30 ===
+=== ALIVE [2026-04-28T12:01:06.1989519Z] cold-start heartbeat update thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:01:06.2051488Z] cold-start heartbeat draw thread tick=12/30 ===
+=== ALIVE [2026-04-28T12:01:07.1989207Z] cold-start heartbeat update thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:01:07.2052076Z] cold-start heartbeat draw thread tick=13/30 ===
+=== ALIVE [2026-04-28T12:01:08.3688936Z] cold-start heartbeat update thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:01:08.3746138Z] cold-start heartbeat draw thread tick=14/30 ===
+=== ALIVE [2026-04-28T12:01:09.2031768Z] cold-start heartbeat update thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:01:09.2038924Z] cold-start heartbeat draw thread tick=15/30 ===
+=== ALIVE [2026-04-28T12:01:10.1999167Z] cold-start heartbeat update thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:01:10.2029850Z] cold-start heartbeat draw thread tick=16/30 ===
+=== ALIVE [2026-04-28T12:01:11.1995426Z] cold-start heartbeat update thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:01:11.2054642Z] cold-start heartbeat draw thread tick=17/30 ===
+=== ALIVE [2026-04-28T12:01:12.1984034Z] cold-start heartbeat update thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:01:12.2011480Z] cold-start heartbeat draw thread tick=18/30 ===
+=== ALIVE [2026-04-28T12:01:13.1988275Z] cold-start heartbeat update thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:01:13.2011176Z] cold-start heartbeat draw thread tick=19/30 ===
+=== ALIVE [2026-04-28T12:01:14.1998116Z] cold-start heartbeat update thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:01:14.2027081Z] cold-start heartbeat draw thread tick=20/30 ===
+=== ALIVE [2026-04-28T12:01:15.1996470Z] cold-start heartbeat update thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:01:15.2012395Z] cold-start heartbeat draw thread tick=21/30 ===
+=== ALIVE [2026-04-28T12:01:16.1991844Z] cold-start heartbeat update thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:01:16.2092848Z] cold-start heartbeat draw thread tick=22/30 ===
+=== ALIVE [2026-04-28T12:01:16.8275250Z] AndroidStartupThreadTamer.Stop (totalDemoted=1569) ===
+=== ALIVE [2026-04-28T12:01:17.1996928Z] cold-start heartbeat update thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:01:17.2040997Z] cold-start heartbeat draw thread tick=23/30 ===
+=== ALIVE [2026-04-28T12:01:18.1986900Z] cold-start heartbeat update thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:01:18.2013052Z] cold-start heartbeat draw thread tick=24/30 ===
+=== ALIVE [2026-04-28T12:01:19.1991356Z] cold-start heartbeat update thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:01:19.2001729Z] cold-start heartbeat draw thread tick=25/30 ===
+=== ALIVE [2026-04-28T12:01:20.2050355Z] cold-start heartbeat update thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:01:20.2093945Z] cold-start heartbeat draw thread tick=26/30 ===
+=== ALIVE [2026-04-28T12:01:21.1987931Z] cold-start heartbeat update thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:01:21.2072595Z] cold-start heartbeat draw thread tick=27/30 ===
+=== ALIVE [2026-04-28T12:01:22.2017263Z] cold-start heartbeat update thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:01:22.2088614Z] cold-start heartbeat draw thread tick=28/30 ===
+=== ALIVE [2026-04-28T12:01:23.1986708Z] cold-start heartbeat update thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:01:23.2058804Z] cold-start heartbeat draw thread tick=29/30 ===
+=== ALIVE [2026-04-28T12:01:24.1984929Z] cold-start heartbeat update thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:01:24.2033456Z] cold-start heartbeat draw thread tick=30/30 ===
+=== ALIVE [2026-04-28T12:01:29.7478769Z] Activity.OnCreate entry ===
+=== INSTALL_STATE sentinel=present log_path=/data/user/0/sh.ppy.osulazer/files/logs/native_crash.log internal_dir=/data/user/0/sh.ppy.osulazer/files/logs external_dir=/storage/emulated/0/Android/data/sh.ppy.osulazer/files/logs ===
+=== ALIVE [2026-04-28T12:01:29.7500467Z] CrashDiagnostics.StartNativeWatchdog (threshold=10s) ===
+=== ALIVE [2026-04-28T12:01:29.7553557Z] AndroidStartupThreadTamer.Start (period=250ms, max=25000ms, littleMask=0x0 — Vulkan: affinity skipped) ===
+=== ALIVE [2026-04-28T12:01:29.7690098Z] RealmFifoCleanup ran (deleted=3) ===
+=== ALIVE [2026-04-28T12:01:29.7692504Z] LogManagement.Apply (about to start) ===
+=== ALIVE [2026-04-28T12:01:29.7736123Z] LogManagement.Apply (returned) ===
+=== ALIVE [2026-04-28T12:01:29.7739277Z] LogManagement.NormaliseFrameworkIniExecutionMode (about to start) ===
+=== ALIVE [2026-04-28T12:01:29.7745558Z] LogManagement.NormaliseFrameworkIniExecutionMode (returned) ===
+=== ALIVE [2026-04-28T12:01:29.7748168Z] LogManagement.NormaliseFrameworkIniRendererDefault (about to start) ===
+=== ALIVE [2026-04-28T12:01:29.7754283Z] LogManagement.NormaliseFrameworkIniRendererDefault (returned) ===
+=== ALIVE [2026-04-28T12:01:29.7756963Z] LogManagement.ForceOpenGLRendererIfSafeMode (about to start) ===
+=== ALIVE [2026-04-28T12:01:29.7759141Z] LogManagement.ForceOpenGLRendererIfSafeMode (returned) ===
+=== ALIVE [2026-04-28T12:01:29.7761001Z] LogManagement.WipeShaderCacheOnceForVersion (about to start) ===
+=== ALIVE [2026-04-28T12:01:29.7801349Z] LogManagement.WipeShaderCacheOnceForVersion (returned) ===
+=== ALIVE [2026-04-28T12:01:29.8252865Z] Activity.OnCreate exit ===
+=== ALIVE [2026-04-28T12:01:30.5547637Z] OsuGameAndroid.SetHost (GameHost.Run entry) ===
+=== ALIVE [2026-04-28T12:01:30.5554693Z] OsuGameAndroid.SetHost (about to ReinstallNativeHandler) ===
+=== ALIVE [2026-04-28T12:01:30.5561720Z] CrashDiagnostics.ReinstallNativeHandler (chained on top of Mono) ===
+=== ALIVE [2026-04-28T12:01:30.5567291Z] OsuGameAndroid.SetHost (ReinstallNativeHandler returned) ===
+=== ALIVE [2026-04-28T12:01:30.5571040Z] OsuGameAndroid.SetHost (about to call base.SetHost) ===
+=== ALIVE [2026-04-28T12:01:30.6798429Z] OsuGameAndroid.SetHost (base.SetHost returned) ===
+=== ALIVE [2026-04-28T12:01:30.7035623Z] OsuGameAndroid.SetHost (about to start HangWatchdog) ===
+=== ALIVE [2026-04-28T12:01:30.7052283Z] HangWatchdog.Start (threshold=5000ms, cooldown=30000ms) ===
+=== ALIVE [2026-04-28T12:01:30.7055271Z] OsuGameAndroid.SetHost (HangWatchdog started) ===
+=== ALIVE [2026-04-28T12:01:30.7057646Z] OsuGameAndroid.SetHost (returning) ===
+=== ALIVE [2026-04-28T12:01:34.1481027Z] AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed) ===
+=== ALIVE [2026-04-28T12:01:34.4034355Z] cold-start heartbeat update thread tick=1/30 ===
+=== ALIVE [2026-04-28T12:01:34.4575133Z] cold-start heartbeat draw thread tick=1/30 ===
