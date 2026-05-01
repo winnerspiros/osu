@@ -2105,10 +2105,13 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// As a final defensive guard the resolved bounds are normalised to landscape
-        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked on phones —
+        /// As a final defensive guard on phones, the resolved bounds are normalised to landscape
+        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked there —
         /// this neutralises the residual case where an OEM still hands back portrait
-        /// bounds for the current metrics on certain Android skins.
+        /// bounds for the current metrics on certain Android skins. Tablets and DeX are
+        /// excluded because they run in <see cref="ScreenOrientation.FullUser"/> / external
+        /// display orientation, where forcing landscape makes portrait tablet S Pen
+        /// coordinates divide by the wrong axis and pins the pointer near the origin.
         /// </para>
         /// </summary>
         private void applyStylusDisplaySize(AndroidStylusHandler handler)
@@ -2178,13 +2181,18 @@ namespace osu.Android
                 if (width <= 0 || height <= 0)
                     return;
 
-                // Canonicalise to landscape since the phone activity is landscape-locked
+                // Canonicalise to landscape only when the activity is actually landscape-locked
                 // (see [Activity(ScreenOrientation = ScreenOrientation.Landscape)] on
-                // OsuGameActivity). Tablets / DeX run in FullUser orientation so the
-                // canonicalisation is harmless — we still get a (W, H) pair whose major
-                // axis matches MotionEvent.GetX's range.
-                int w = Math.Max(width, height);
-                int h = Math.Min(width, height);
+                // OsuGameActivity). Tablets / DeX run in FullUser / external-display
+                // orientation, so preserve the current window metrics exactly there.
+                int w = width;
+                int h = height;
+
+                if (!gameActivity.IsTablet && !gameActivity.IsDeX)
+                {
+                    w = Math.Max(width, height);
+                    h = Math.Min(width, height);
+                }
 
                 handler.SetDisplaySize(w, h);
             }
