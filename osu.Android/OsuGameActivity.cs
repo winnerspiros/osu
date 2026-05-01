@@ -269,9 +269,9 @@ namespace osu.Android
                         {
                             holder.SetFormat(Android.Graphics.Format.Rgba8888);
                         }
-                        catch (Exception fe)
+                        catch (Exception e)
                         {
-                            Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {fe.Message}");
+                            Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {e.Message}");
                         }
 
                         holder.AddCallback(this);
