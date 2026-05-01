@@ -75,6 +75,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         [Resolved]
         private MusicController music { get; set; } = null!;
 
+        [Resolved]
+        private DashboardOverlay? dashboardOverlay { get; set; }
+
         private readonly IBindable<MatchmakingScreenState> currentState = new Bindable<MatchmakingScreenState>();
 
         private readonly Bindable<MatchmakingPool[]> availablePools = new Bindable<MatchmakingPool[]>([]);
@@ -333,6 +336,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             currentState.BindTo(queue.CurrentState);
             currentState.BindValueChanged(s => SetState(s.NewValue));
             client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
+
+            selectedPool.BindTo(queue.SelectedPool);
             selectedPool.BindValueChanged(onSelectedPoolChanged, true);
             populateAvailablePools().FireAndForget();
         }
@@ -346,8 +351,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 availablePools.Value = pools;
 
                 // Default to the currently queueing pool, or fallback to the user's ruleset for the initial pool selection.
-                MatchmakingPool? lastQueuedPool = pools.FirstOrDefault(p => p.Id == queue.LastJoinedPool?.Id);
-                selectedPool.Value = lastQueuedPool ?? pools.FirstOrDefault(p => p.RulesetId == ruleset.Value.OnlineID) ?? pools.FirstOrDefault();
+                selectedPool.Value ??= pools.FirstOrDefault(p => p.RulesetId == ruleset.Value.OnlineID) ?? pools.FirstOrDefault();
             });
         }
 
@@ -487,11 +491,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             switch (newState)
             {
                 case MatchmakingScreenState.Idle:
+                    LinkFlowContainer duelHint;
+
                     mainContent.Child = new FillFlowContainer
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        AutoSizeAxes = Axes.Both,
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
                         Direction = FillDirection.Vertical,
                         Spacing = new Vector2(10),
                         Children = new Drawable[]
@@ -517,9 +524,20 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     queue.JoinQueue(selectedPool.Value);
                                 },
                                 Text = "Begin queueing",
+                            },
+                            duelHint = new LinkFlowContainer
+                            {
+                                TextAnchor = Anchor.TopCentre,
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
                             }
                         }
                     };
+
+                    duelHint.AddText("Open the ");
+                    duelHint.AddLink("dashboard", () => dashboardOverlay?.Show());
+                    duelHint.AddText(" to duel another player!");
+
                     break;
 
                 case MatchmakingScreenState.Queueing:

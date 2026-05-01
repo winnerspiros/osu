@@ -926,6 +926,16 @@ namespace osu.Game.Tests.Visual.Multiplayer
             return Task.CompletedTask;
         }
 
+        public override Task<MatchmakingIssueDuelResponse> MatchmakingIssueDuel(MatchmakingIssueDuelRequest request)
+        {
+            return Task.FromResult(new MatchmakingIssueDuelResponse());
+        }
+
+        public override Task<MatchmakingAcceptDuelResponse> MatchmakingAcceptDuel(MatchmakingAcceptDuelRequest request)
+        {
+            return Task.FromResult(new MatchmakingAcceptDuelResponse());
+        }
+
         public override Task MatchmakingDeclineInvitation()
         {
             return Task.CompletedTask;

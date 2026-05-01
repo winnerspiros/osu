@@ -2000,13 +2000,19 @@ namespace osu.Android
                 gameActivity.MouseHandler = mouseHandler;
                 gameActivity.KeyboardHandler = keyboardHandler;
 
-                // Match the screen / digitiser dimensions for tablet area mapping.
-                applyStylusDisplaySize(stylusHandler);
-
                 // Initialize each handler the same way the framework would in
                 // CreateAvailableInputHandlers — sets the protected Host field on the base
                 // class and runs handler-specific bindable wiring. Skip-on-failure: a single
                 // misbehaving handler must not knock out the other two.
+                //
+                // NOTE: applyStylusDisplaySize is called AFTER Initialize so that:
+                // 1. base.Initialize(host) has finished setting up the Host field and any
+                //    framework config bindings, avoiding a race where config-loaded values
+                //    overwrite the display size we push in SetDisplaySize.
+                // 2. The OutputAreaSize BindValueChanged guard installed in Initialize is
+                //    already in place before SetDisplaySize fires the first write, ensuring
+                //    the normalised-sentinel detector can intercept subsequent ScalingContainer
+                //    writes on the very first updateSize() call.
                 var newHandlers = new osu.Framework.Input.Handlers.InputHandler[] { stylusHandler, mouseHandler, keyboardHandler };
 
                 foreach (var h in newHandlers)
@@ -2021,6 +2027,11 @@ namespace osu.Android
                         Debug.WriteLine($"[osu!] Input handler {h.GetType().Name} threw during Initialize: {e.Message}");
                     }
                 }
+
+                // Match the screen / digitiser dimensions for tablet area mapping.
+                // Called after Initialize so the display-size write lands on top of any
+                // framework config-restore and the OutputAreaSize guard is already armed.
+                applyStylusDisplaySize(stylusHandler);
 
                 // Reflectively replace AvailableInputHandlers with the union of the host's
                 // existing immutable array and our three handlers. The property has a private
