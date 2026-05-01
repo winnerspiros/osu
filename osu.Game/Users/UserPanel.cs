@@ -189,8 +189,9 @@ namespace osu.Game.Users
                     {
                         items.Add(new OsuMenuItem("Duel", MenuItemType.Standard, () =>
                         {
-                            if (canDuelUser())
-                                queueController?.IssueDuel(queueController.SelectedPool.Value!, User.Id);
+                            var pool = queueController?.SelectedPool.Value;
+                            if (pool != null)
+                                queueController?.IssueDuel(pool, User.Id);
                         }));
                     }
                 }
