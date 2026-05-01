@@ -137,8 +137,37 @@ namespace osu.Android.Input
 
             AreaSize.BindValueChanged(_ => updateCachedTransform());
             AreaOffset.BindValueChanged(_ => updateCachedTransform());
-            OutputAreaSize.BindValueChanged(_ => updateCachedTransform());
-            OutputAreaOffset.BindValueChanged(_ => updateCachedTransform());
+
+            // OutputAreaSize and OutputAreaOffset need a guard against ScalingContainer's
+            // normalised-coordinate writes. ScalingContainer assumes desktop tablet handlers
+            // use a [0..1] normalised output space and writes Vector2.One / (0.5, 0.5) when
+            // game scaling mode is not "Everything". AndroidStylusHandler works in *pixel*
+            // space, so (1, 1) means a 1×1 pixel output area — which collapses every mapped
+            // cursor position to ≈(0, 0) and keeps the pointer stuck at the top-left corner
+            // regardless of where the S Pen physically is. When we detect a sub-pixel write
+            // (both components ≤ 2) and we already know the real screen size (> 10 px), we
+            // restore the pixel-space output area immediately.
+            OutputAreaSize.BindValueChanged(e =>
+            {
+                if (e.NewValue.X <= 2f && e.NewValue.Y <= 2f && cachedTabletSizeX > 10f)
+                {
+                    restorePixelOutputArea();
+                    return;
+                }
+
+                updateCachedTransform();
+            });
+            OutputAreaOffset.BindValueChanged(e =>
+            {
+                if (e.NewValue.X <= 1f && e.NewValue.Y <= 1f && cachedTabletSizeX > 10f)
+                {
+                    restorePixelOutputArea();
+                    return;
+                }
+
+                updateCachedTransform();
+            });
+
             Rotation.BindValueChanged(_ => updateCachedTransform());
             PressureThreshold.BindValueChanged(v => cachedPressureThreshold = v.NewValue, true);
 
@@ -148,6 +177,23 @@ namespace osu.Android.Input
             updateCachedTransform();
 
             return base.Initialize(host);
+        }
+
+        /// <summary>
+        /// Restores <see cref="OutputAreaSize"/> and <see cref="OutputAreaOffset"/> to the
+        /// actual pixel dimensions of the screen. Called when we detect that
+        /// <see cref="osu.Game.Graphics.Containers.ScalingContainer"/> has overwritten the
+        /// pixel-space output area with its normalised-coordinate sentinel values.
+        /// </summary>
+        private void restorePixelOutputArea()
+        {
+            float w = cachedTabletSizeX;
+            float h = cachedTabletSizeY;
+
+            if (w <= 10f || h <= 10f) return;
+
+            OutputAreaSize.Value = new Vector2(w, h);
+            OutputAreaOffset.Value = new Vector2(w / 2f, h / 2f);
         }
 
         /// <summary>
@@ -185,14 +231,18 @@ namespace osu.Android.Input
             // legacy 1920x1080 ctor default seeded in Initialize, or still at the
             // auto-default we installed on a previous SetDisplaySize call (so a phone
             // rotation re-syncs the area mapping rather than leaving the user pinned to
-            // the previous orientation's bounds).
+            // the previous orientation's bounds). Also reset if ScalingContainer has
+            // previously written its normalised-space sentinel (≤ 2 px) — those are
+            // not user-configured values and must not be preserved.
             if (AreaSize.Value == default || AreaSize.Value == legacy_default_size || AreaSize.Value == previousAuto)
             {
                 AreaSize.Value = size;
                 AreaOffset.Value = size / 2;
             }
 
-            if (OutputAreaSize.Value == default || OutputAreaSize.Value == legacy_default_size || OutputAreaSize.Value == previousAuto)
+            bool outputIsNormalisedSentinel = OutputAreaSize.Value.X <= 2f && OutputAreaSize.Value.Y <= 2f;
+
+            if (OutputAreaSize.Value == default || OutputAreaSize.Value == legacy_default_size || OutputAreaSize.Value == previousAuto || outputIsNormalisedSentinel)
             {
                 OutputAreaSize.Value = size;
                 OutputAreaOffset.Value = size / 2;

@@ -2000,13 +2000,19 @@ namespace osu.Android
                 gameActivity.MouseHandler = mouseHandler;
                 gameActivity.KeyboardHandler = keyboardHandler;
 
-                // Match the screen / digitiser dimensions for tablet area mapping.
-                applyStylusDisplaySize(stylusHandler);
-
                 // Initialize each handler the same way the framework would in
                 // CreateAvailableInputHandlers — sets the protected Host field on the base
                 // class and runs handler-specific bindable wiring. Skip-on-failure: a single
                 // misbehaving handler must not knock out the other two.
+                //
+                // NOTE: applyStylusDisplaySize is called AFTER Initialize so that:
+                // 1. base.Initialize(host) has finished setting up the Host field and any
+                //    framework config bindings, avoiding a race where config-loaded values
+                //    overwrite the display size we push in SetDisplaySize.
+                // 2. The OutputAreaSize BindValueChanged guard installed in Initialize is
+                //    already in place before SetDisplaySize fires the first write, ensuring
+                //    the normalised-sentinel detector can intercept subsequent ScalingContainer
+                //    writes on the very first updateSize() call.
                 var newHandlers = new osu.Framework.Input.Handlers.InputHandler[] { stylusHandler, mouseHandler, keyboardHandler };
 
                 foreach (var h in newHandlers)
@@ -2021,6 +2027,11 @@ namespace osu.Android
                         Debug.WriteLine($"[osu!] Input handler {h.GetType().Name} threw during Initialize: {e.Message}");
                     }
                 }
+
+                // Match the screen / digitiser dimensions for tablet area mapping.
+                // Called after Initialize so the display-size write lands on top of any
+                // framework config-restore and the OutputAreaSize guard is already armed.
+                applyStylusDisplaySize(stylusHandler);
 
                 // Reflectively replace AvailableInputHandlers with the union of the host's
                 // existing immutable array and our three handlers. The property has a private
@@ -2105,10 +2116,13 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// As a final defensive guard the resolved bounds are normalised to landscape
-        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked on phones —
+        /// As a final defensive guard on phones, the resolved bounds are normalised to landscape
+        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked there —
         /// this neutralises the residual case where an OEM still hands back portrait
-        /// bounds for the current metrics on certain Android skins.
+        /// bounds for the current metrics on certain Android skins. Tablets and DeX are
+        /// excluded because they run in <see cref="ScreenOrientation.FullUser"/> / external
+        /// display orientation, where forcing landscape makes portrait tablet S Pen
+        /// coordinates divide by the wrong axis and pins the pointer near the origin.
         /// </para>
         /// </summary>
         private void applyStylusDisplaySize(AndroidStylusHandler handler)
@@ -2178,13 +2192,18 @@ namespace osu.Android
                 if (width <= 0 || height <= 0)
                     return;
 
-                // Canonicalise to landscape since the phone activity is landscape-locked
+                // Canonicalise to landscape only when the activity is actually landscape-locked
                 // (see [Activity(ScreenOrientation = ScreenOrientation.Landscape)] on
-                // OsuGameActivity). Tablets / DeX run in FullUser orientation so the
-                // canonicalisation is harmless — we still get a (W, H) pair whose major
-                // axis matches MotionEvent.GetX's range.
-                int w = Math.Max(width, height);
-                int h = Math.Min(width, height);
+                // OsuGameActivity). Tablets / DeX run in FullUser / external-display
+                // orientation, so preserve the current window metrics exactly there.
+                int w = width;
+                int h = height;
+
+                if (!gameActivity.IsTablet && !gameActivity.IsDeX)
+                {
+                    w = Math.Max(width, height);
+                    h = Math.Min(width, height);
+                }
 
                 handler.SetDisplaySize(w, h);
             }
