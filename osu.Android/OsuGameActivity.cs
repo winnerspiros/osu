@@ -249,7 +249,33 @@ namespace osu.Android
             {
                 try
                 {
-                    GetSurface()?.Holder?.AddCallback(this);
+                    var holder = GetSurface()?.Holder;
+
+                    if (holder != null)
+                    {
+                        // Request RGBA8888 on the Android SurfaceHolder unconditionally BEFORE
+                        // registering our callback. Without this, Android defaults to RGB565
+                        // for the SurfaceView when no renderer explicitly requests a different
+                        // format — SDL3 only calls setFormat(RGBA8888) for OpenGL, not Vulkan,
+                        // so Vulkan sessions receive an RGB565 ANativeWindow. An RGB565 swapchain
+                        // is incompatible with our 8-bit-per-channel rendering pipeline and
+                        // causes a black screen followed by a native Draw-thread crash on Adreno
+                        // GPUs (evidenced by SDL_PIXELFORMAT_RGB565 + "drawable size 3088×1440"
+                        // in the runtime log for every Vulkan crash session). RGBA8888 is what
+                        // OpenGL already uses and is the correct baseline for all renderers.
+                        // Calling SetFormat before AddCallback ensures the format is stamped
+                        // on the SurfaceHolder before SDL creates the VkAndroidSurfaceKHR.
+                        try
+                        {
+                            holder.SetFormat(Android.Graphics.Format.Rgba8888);
+                        }
+                        catch (Exception fe)
+                        {
+                            Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {fe.Message}");
+                        }
+
+                        holder.AddCallback(this);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -586,6 +612,43 @@ namespace osu.Android
 
         public void SurfaceChanged(ISurfaceHolder holder, global::Android.Graphics.Format format, int width, int height)
         {
+            // Guard: if the Android surface materialised with a 16-bit pixel format (RGB565)
+            // while Vulkan is configured, request a format change to RGBA8888 immediately.
+            //
+            // Root cause: SDL3 only calls setFormat(RGBA8888) for OpenGL, not Vulkan.
+            // Android's default SurfaceView pixel format on many displays (especially high-
+            // density landscape panels) is RGB565. An RGB565 ANativeWindow means the Vulkan
+            // WSI can only negotiate R5G6B5_UNORM as the swapchain format, which is
+            // incompatible with our 8-bit-per-channel pipeline and produces a black screen
+            // followed by a native Draw-thread crash on Adreno GPUs.
+            //
+            // The proactive SetFormat(RGBA8888) call in the DecorView.Post lambda above is
+            // the primary fix (runs before the Surface is typically created). This reactive
+            // guard is the belt-and-braces fallback for timing windows where the Surface is
+            // already created when the Post fires (e.g. rapid cold-starts, system-restored
+            // windows). Calling SetFormat here triggers SurfaceDestroyed + SurfaceCreated +
+            // SurfaceChanged with the corrected format; Veldrid's VkSurfaceKHR-loss recovery
+            // picks up the new ANativeWindow and negotiates a proper BGRA/RGBA 8-bit swapchain.
+            if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured())
+            {
+                Logger.Log(
+                    "[osu!] Android surface pixel format RGB565 is incompatible with the Vulkan rendering pipeline " +
+                    "— requesting RGBA8888 and triggering a surface recreate. " +
+                    "This is the root cause of the Vulkan black-screen crash on Adreno (SDL_PIXELFORMAT_RGB565 in runtime log). " +
+                    "The next SurfaceChanged will carry the corrected format.",
+                    LoggingTarget.Performance,
+                    LogLevel.Important);
+
+                try
+                {
+                    holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
+                }
+            }
+
             if (width > 0 && height > 0)
             {
                 surfaceEvent.Set();
