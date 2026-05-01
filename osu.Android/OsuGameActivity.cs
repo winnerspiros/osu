@@ -267,7 +267,7 @@ namespace osu.Android
                         // on the SurfaceHolder before SDL creates the VkAndroidSurfaceKHR.
                         try
                         {
-                            holder.SetFormat(Android.Graphics.Format.Rgba8888);
+                            holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
                         }
                         catch (Exception e)
                         {
