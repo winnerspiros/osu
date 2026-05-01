@@ -253,25 +253,38 @@ namespace osu.Android
 
                     if (holder != null)
                     {
-                        // Request RGBA8888 on the Android SurfaceHolder unconditionally BEFORE
-                        // registering our callback. Without this, Android defaults to RGB565
-                        // for the SurfaceView when no renderer explicitly requests a different
-                        // format — SDL3 only calls setFormat(RGBA8888) for OpenGL, not Vulkan,
-                        // so Vulkan sessions receive an RGB565 ANativeWindow. An RGB565 swapchain
-                        // is incompatible with our 8-bit-per-channel rendering pipeline and
-                        // causes a black screen followed by a native Draw-thread crash on Adreno
-                        // GPUs (evidenced by SDL_PIXELFORMAT_RGB565 + "drawable size 3088×1440"
-                        // in the runtime log for every Vulkan crash session). RGBA8888 is what
-                        // OpenGL already uses and is the correct baseline for all renderers.
-                        // Calling SetFormat before AddCallback ensures the format is stamped
-                        // on the SurfaceHolder before SDL creates the VkAndroidSurfaceKHR.
-                        try
+                        // Only request RGBA8888 on the SurfaceHolder when the configured
+                        // renderer is Vulkan. SDL3 already calls setFormat(RGBA8888) for
+                        // OpenGL/GLES from its own EGL surface initialization, and calling
+                        // setFormat() a second time AFTER SDL has bound its EGL surface
+                        // forces Android to recreate the surface (surfaceDestroyed →
+                        // surfaceCreated → surfaceChanged) mid-frame. That:
+                        //   1. Trips the 250ms drawThreadAcknowledgedTeardown wait in
+                        //      AndroidGameSurface.SurfaceDestroyed (visible warning in HUD).
+                        //   2. Leaves SDL's EGL surface bound to a destroyed ANativeWindow,
+                        //      causing eglSwapBuffers to silently no-op → permanent black
+                        //      screen while Update/Audio/Input keep running.
+                        // SDL3 does NOT call setFormat on the Vulkan path, so Vulkan still
+                        // needs this stamping to avoid the RGB565 default that crashes Adreno.
+                        bool isVulkan = false;
+                        try { isVulkan = LogManagement.IsVulkanConfigured(); }
+                        catch (Exception e) { Debug.WriteLine($"[osu!] SurfaceHolder format gate: IsVulkanConfigured failed, defaulting to skip SetFormat: {e.Message}"); }
+
+                        if (isVulkan)
                         {
-                            holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
+                            try
+                            {
+                                holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
+                                Logger.Log("[osu!] SurfaceHolder.SetFormat(Rgba8888) applied (Vulkan renderer).", LoggingTarget.Runtime, LogLevel.Important);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {e.Message}");
+                            }
                         }
-                        catch (Exception e)
+                        else
                         {
-                            Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {e.Message}");
+                            Logger.Log("[osu!] SurfaceHolder.SetFormat skipped (OpenGL/Auto renderer — SDL3 handles format).", LoggingTarget.Runtime, LogLevel.Important);
                         }
 
                         holder.AddCallback(this);
