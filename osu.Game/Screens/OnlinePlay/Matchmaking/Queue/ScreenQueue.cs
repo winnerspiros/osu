@@ -333,12 +333,15 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 }
             }
 
+            client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
+
             currentState.BindTo(queue.CurrentState);
             currentState.BindValueChanged(s => SetState(s.NewValue));
             client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
 
             selectedPool.BindTo(queue.SelectedPool);
             selectedPool.BindValueChanged(onSelectedPoolChanged, true);
+
             populateAvailablePools().FireAndForget();
         }
 
@@ -450,14 +453,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             if (base.OnExiting(e))
                 return true;
 
-            client.MatchmakingLeaveLobby().FireAndForget();
-
             switch (currentState.Value)
             {
                 default:
-                    return false;
-
-                case MatchmakingScreenState.Queueing:
+                    client.MatchmakingLeaveLobby().FireAndForget();
                     queue.SearchInBackground();
                     return false;
 
