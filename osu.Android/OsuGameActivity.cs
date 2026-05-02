@@ -289,6 +289,22 @@ namespace osu.Android
 
                         holder.AddCallback(this);
                     }
+
+                    // Also hide the pointer icon on the SurfaceView itself.
+                    // Setting it only on DecorView is not enough in DeX mode: Android
+                    // uses the innermost view's pointer icon when the cursor is over
+                    // that view, so the SurfaceView's default arrow would still show.
+                    try
+                    {
+                        var surface = GetSurface();
+
+                        if (surface != null)
+                            surface.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log($"[osu!] Failed to hide SurfaceView pointer icon: {e.Message}", LoggingTarget.Input);
+                    }
                 }
                 catch (Exception e)
                 {

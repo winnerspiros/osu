@@ -76,6 +76,15 @@ namespace osu.Android.Input
         /// </summary>
         public volatile bool TreatAsTouch;
 
+        /// <summary>
+        /// Mirrored from <see cref="osu.Game.Configuration.OsuSetting.AndroidStylusDisableClick"/>.
+        /// When true, no left-button click is ever synthesised from pen tip pressure, so the
+        /// S Pen can be used purely for cursor positioning without accidentally registering taps.
+        /// Held as a volatile field so the OS dispatch thread can read it without
+        /// crossing the managed-config bindable lock on every motion event.
+        /// </summary>
+        public volatile bool DisableClick;
+
         // Cached area values for hot path (avoids bindable access per event).
         private float areaLeft, areaTop, areaWidth, areaHeight;
         private float outLeft, outTop, outWidth, outHeight;
@@ -532,10 +541,10 @@ namespace osu.Android.Input
             // are intentionally NOT mapped to right/middle (see comment block below), so a single
             // read is unavoidable but bounded.
             var buttonState = e.ButtonState;
-            bool isLeftDown = pressure >= cachedPressureThreshold;
-            if (actionMasked == MotionEventActions.Down || actionMasked == MotionEventActions.ButtonPress) isLeftDown = true;
+            bool isLeftDown = !DisableClick && pressure >= cachedPressureThreshold;
+            if (!DisableClick && (actionMasked == MotionEventActions.Down || actionMasked == MotionEventActions.ButtonPress)) isLeftDown = true;
             else if (actionMasked == MotionEventActions.Up || actionMasked == MotionEventActions.ButtonRelease || actionMasked == MotionEventActions.Cancel) isLeftDown = false;
-            else if (actionMasked == MotionEventActions.Move && (buttonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
+            else if (!DisableClick && actionMasked == MotionEventActions.Move && (buttonState & MotionEventButtonState.Primary) != 0) isLeftDown = true;
 
             if (TreatAsTouch)
             {

@@ -29,8 +29,14 @@ namespace osu.Android.Input
         private void load(OsuConfigManager osuConfig)
         {
             // Appended after the base TabletSettings.AddRange (the area-selection UI),
-            // so the toggle appears at the bottom of the section. Settings search
-            // (FilterTerms below) still surfaces it under "s pen" / "stylus" / "touch".
+            // so the toggles appear at the bottom of the section. Settings search
+            // (FilterTerms below) still surfaces them under "s pen" / "stylus" / "touch".
+            Add(new SettingsItemV2(new FormCheckBox
+            {
+                Caption = "Disable pen click",
+                HintText = "When enabled, pressing the S Pen tip does not register as a left click. Useful if you want to use the pen purely for cursor positioning (e.g. when using a keyboard or gamepad for input).",
+                Current = osuConfig.GetBindable<bool>(OsuSetting.AndroidStylusDisableClick),
+            }));
             Add(new SettingsItemV2(new FormCheckBox
             {
                 Caption = "Treat S Pen as touch",
@@ -41,7 +47,7 @@ namespace osu.Android.Input
 
         public override IEnumerable<LocalisableString> FilterTerms => base.FilterTerms.Concat(new LocalisableString[]
         {
-            @"s pen", @"spen", @"stylus", @"pen", @"touch", @"samsung",
+            @"s pen", @"spen", @"stylus", @"pen", @"touch", @"samsung", @"click", @"disable",
         });
     }
 }
