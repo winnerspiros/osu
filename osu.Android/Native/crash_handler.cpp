@@ -104,6 +104,14 @@ volatile sig_atomic_t g_installed = 0;
 // the previous handler instead of recursing.
 volatile sig_atomic_t g_inHandler = 0;
 
+// Permanent "dump written" latch.  Set to 1 the first time we successfully
+// begin writing a dump; never reset.  Prevents a second full dump being
+// written if the crash handler is somehow re-invoked in the same process
+// lifetime (e.g. Mono re-raises SIGSEGV via tgkill after our handler chains
+// to it, and our handler gets re-installed between the two deliveries).
+// Unlike g_inHandler this is intentionally NOT cleared before the re-raise.
+volatile sig_atomic_t g_dumpWritten = 0;
+
 // ----------------------------------------------------------------------------
 // Async-signal-safe formatters (no malloc, no stdio, no locale).
 // ----------------------------------------------------------------------------
@@ -982,6 +990,28 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
         return;
     }
     g_inHandler = 1;
+
+    // Duplicate-dump guard.  If we already wrote a dump for this process
+    // lifetime (e.g. the handler was re-invoked after Mono re-raised the
+    // signal), skip the dump but still chain to the previous handler so the
+    // system tombstone is produced.  Unlike g_inHandler this latch is never
+    // cleared — one dump per crash, not one dump per signal delivery.
+    if (g_dumpWritten) {
+        bool restored = false;
+        for (size_t i = 0; i < kNumSignals; ++i) {
+            if (kSignals[i] == sig) {
+                restored = (sigaction(sig, &g_prevHandlers[i], nullptr) == 0);
+                break;
+            }
+        }
+        // If sigaction failed we cannot chain cleanly — fall back to default
+        // disposition so the process at least terminates and debuggerd runs.
+        if (!restored) signal(sig, SIG_DFL);
+        g_inHandler = 0;
+        raise(sig);
+        return;
+    }
+    g_dumpWritten = 1;
 
     // Open the dump file (append).  If g_logPath is empty we still log to logcat.
     //
