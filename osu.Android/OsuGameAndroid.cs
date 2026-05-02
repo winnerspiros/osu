@@ -399,35 +399,32 @@ namespace osu.Android
             // out CPU pinning and the next iteration can target the next suspect with
             // the heartbeat data captured below.
             //
-            // Vulkan-renderer override: when the user has selected Vulkan, ALSO skip
-            // big-core affinity pinning of the Draw + Input threads, and ALSO skip
-            // the LITTLE-core affinity pin of background workers further below
-            // (only the renice-to-zero pass runs). Rationale: the Adreno / Mali /
-            // Xclipse Vulkan driver spawns its own internal worker pool during
-            // vkCreateInstance / vkCreateSwapchainKHR, and those workers are NOT
-            // in our keep-alone list (we only know a subset of vendor-specific
-            // comm names). Pinning the Draw thread to a fixed 5-core subset while
-            // the driver workers are simultaneously demoted to the inverse 3-core
-            // LITTLE subset reliably stalls vkQueuePresentKHR — the field-observed
-            // failure mode is exactly "Update tick 1, Draw tick 0" with the Draw
-            // thread blocked inside Veldrid's swapchain present queue and never
-            // reaching the post-LoadComplete heartbeat lambda. On OpenGL/ANGLE the
-            // same pinning is harmless (ANGLE is single-threaded on the GL driver
-            // side) — hence the renderer-conditional override here rather than a
-            // blanket policy change.
+            // Vulkan background-worker affinity note: the LITTLE-core affinity pin
+            // of background workers is still skipped for Vulkan (littleMask = 0
+            // below). The Adreno / Mali / Xclipse driver spawns internal worker
+            // threads whose comm names are not in our keep-alone list; if we push
+            // all unknown workers to the LITTLE subset those driver threads end up
+            // on slow cores and stall vkQueuePresentKHR. Renice-to-zero only is the
+            // correct policy for background workers on Vulkan.
             //
-            // The framework-side root cause (vkAcquireNextImageKHR with no timeout
-            // → indefinite block when the swapchain is in a transient lost state)
-            // lives in winnerspiros/veldrid `copilot/fix-vkacquirenextimage-deadlock`
-            // and needs to be published as a new ppy.Veldrid NuGet for upstream
-            // consumption. These overrides are the largest application-layer
-            // mitigation we can apply until that lands.
+            // Draw + Input threads CAN now be pinned to big cores, for two reasons:
+            //   1. The workers are NOT pushed to little cores (littleMask = 0), so
+            //      Adreno driver threads remain free to run on any core. The original
+            //      stall was specifically the combination of Draw-on-big + workers-
+            //      on-little; with only the Draw pin active the driver workers are
+            //      unaffected.
+            //   2. Veldrid now has a 100 ms bounded vkAcquireNextImageKHR timeout
+            //      (since ppy.osu.Framework 2026.503.1). Any residual contention
+            //      is capped to one 100 ms stall rather than an indefinite hang.
+            // Pinning Draw to big cores significantly improves GPU command-recording
+            // throughput and texture-upload burst performance — the primary cause of
+            // the 35-40 fps observed in steady-state Vulkan gameplay.
             bool vulkanConfigured = false;
             try { vulkanConfigured = LogManagement.IsVulkanConfigured(); }
             catch (Exception e) { Debug.WriteLine($"[osu!] IsVulkanConfigured probe failed: {e.Message}"); }
 
             if (vulkanConfigured)
-                Logger.Log("[osu!] Vulkan renderer detected from framework.ini — backing off Draw/Input big-core pinning and background-worker LITTLE-core pinning to keep Adreno/Mali driver workers schedulable.", LoggingTarget.Performance);
+                Logger.Log("[osu!] Vulkan renderer detected from framework.ini — pinning Draw/Input to big cores (worker LITTLE-core pin still skipped to keep Adreno/Mali driver workers schedulable).", LoggingTarget.Performance);
 
             int affinityMask;
 
@@ -477,11 +474,10 @@ namespace osu.Android
                 // elevation is what causes the inversion. Default SDL-set priorities are
                 // sufficient and match upstream osu! / osu-framework behaviour.
 
-                // On Vulkan, do NOT pin the Draw or Input threads to big cores — see the
-                // top-of-LoadComplete comment. The Update thread alone keeps its pin (it
-                // doesn't directly contend with the GPU driver workers) so we still benefit
-                // from kernel-clock stability on the game-loop tick.
-                int mask = vulkanConfigured ? 0 : affinityMask;
+                // Pin Draw + Input to big cores on all renderers.
+                // For Vulkan, see the comment above: workers are NOT pushed to little
+                // cores, so Adreno driver threads remain schedulable on any core.
+                int mask = affinityMask;
 
                 if (mask != 0)
                 {
@@ -594,21 +590,15 @@ namespace osu.Android
             // Always select the highest refresh rate on startup, regardless of performance mode.
             // This ensures 120Hz+ displays are used at their native rate.
             //
-            // Deferred by 5 s after LoadComplete so the initial display-mode change runs
-            // AFTER the Vulkan swapchain has stabilised, the loader screen is up, and the
-            // first burst of texture uploads (Toolbar et al.) has drained off the Draw
-            // thread. On Samsung One UI / Adreno panels, writing PreferredDisplayModeId
-            // and Surface.SetFrameRate during the cold-start swapchain bring-up can force
-            // a non-seamless mode change that destroys the SurfaceView and stalls
-            // vkAcquireNextImageKHR on the Draw thread; Update keeps ticking (so neither
-            // the managed nor the native watchdog ever dumps), the screen never updates,
-            // and ~10 s later Android raises a MotionEvent input-dispatch ANR — the
-            // exact "cold-start black screen, no sound, no touch, ANR" pattern observed
-            // in field reports. Deferring the initial call moves the mode change
-            // out of the cold-start critical window; user-driven changes via the
-            // SelectedDisplayRefreshRate dropdown and OnConfigurationChanged (DeX
-            // connect/disconnect, rotation) remain immediate because they happen long
-            // after the swapchain has settled.
+            // Deferred by 5 s after LoadComplete so the initial Surface.setFrameRate call
+            // runs AFTER the Vulkan swapchain has stabilised and the first burst of texture
+            // uploads (Toolbar et al.) has drained off the Draw thread.
+            //
+            // Note: applyDisplayMode no longer writes window.Attributes.PreferredDisplayModeId
+            // (see that method's comment). Previously that write was the main reason for the
+            // cold-start ANR (non-seamless SurfaceView destruction mid-swapchain); the delay
+            // is retained as a safety margin for Surface.setFrameRate even though its
+            // ONLY_IF_SEAMLESS flag makes surface destruction unlikely.
             //
             // Under crash-loop safe-mode (previous launch died during startup) the delay
             // is extended to 15 s so a slow-loading device that needed >5 s to drain
@@ -1357,55 +1347,43 @@ namespace osu.Android
 
         private void applyDisplayMode(global::Android.Views.Display display, global::Android.Views.Display.Mode mode)
         {
-            var window = gameActivity.Window;
-
-            if (window == null)
-                return;
-
             gameActivity.RunOnUiThread(() =>
             {
                 try
                 {
-                    if (window.Attributes is WindowManagerLayoutParams layoutParams)
+                    currentRefreshRate = (int)mode.RefreshRate;
+
+                    // Request the refresh rate via Surface.setFrameRate() ONLY.
+                    //
+                    // We deliberately do NOT touch window.Attributes.PreferredDisplayModeId.
+                    // Setting PreferredDisplayModeId asks the compositor to switch the display
+                    // to a specific hardware mode. On Samsung One UI / Adreno devices this
+                    // triggers a non-seamless transition even when CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
+                    // is passed to SetFrameRate — it momentarily destroys the SurfaceView and
+                    // invalidates the active VkSurfaceKHR. When that surface loss lands while
+                    // the Draw thread is mid-render it causes the Veldrid swapchain to enter
+                    // its surface-lost recovery path, producing visual corruption (multiple
+                    // overlaid layers, missing textures, tiled frames) and a sustained FPS
+                    // drop until the swapchain is fully rebuilt.
+                    //
+                    // Surface.setFrameRate(FIXED_SOURCE, ONLY_IF_SEAMLESS) is the correct
+                    // API on Android 11+ (minSdkVersion=33) for requesting a refresh-rate
+                    // change: the platform honours it without a surface tear when possible
+                    // and silently no-ops when a seamless switch isn't available — the
+                    // swapchain is never touched either way.
+                    try
                     {
-                        layoutParams.PreferredDisplayModeId = mode.ModeId;
-                        window.Attributes = layoutParams;
-                        currentRefreshRate = (int)mode.RefreshRate;
+                        var surface = gameActivity.GetSurface()?.Holder?.Surface;
 
-                        // Set frame rate at the surface level for better compositor scheduling.
-                        // FRAME_RATE_COMPATIBILITY_FIXED_SOURCE tells Android we render at a
-                        // fixed rate; CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS restricts the request
-                        // to mode changes the platform can perform without blanking the display
-                        // and recreating the SurfaceView's backing buffers.
-                        //
-                        // We previously passed CHANGE_FRAME_RATE_ALWAYS, which permits the
-                        // compositor to perform a non-seamless transition. On Samsung One UI /
-                        // Adreno panels that path momentarily destroys the SurfaceView and
-                        // invalidates the active VkSurfaceKHR; if it lands while the Draw
-                        // thread is mid-swapchain (e.g. during the cold-start texture-upload
-                        // burst), vkAcquireNextImageKHR can stall the present queue
-                        // indefinitely. Update keeps ticking (heartbeats fire, neither the
-                        // managed nor the native watchdog ever dumps), the screen never
-                        // updates, and ~10 s later Android raises a MotionEvent input-dispatch
-                        // ANR — the "cold-start black screen, no sound, no touch, ANR" pattern
-                        // observed in field reports. The seamless-only restriction keeps the
-                        // 120 Hz request honoured when the panel can do it without a surface
-                        // tear, and silently no-ops otherwise; either outcome is visually
-                        // unchanged but the swapchain stays alive.
-                        try
-                        {
-                            var surface = gameActivity.GetSurface()?.Holder?.Surface;
-
-                            if (surface != null && surface.IsValid)
-                                surface.SetFrameRate(mode.RefreshRate, FRAME_RATE_COMPATIBILITY_FIXED_SOURCE, CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS);
-                        }
-                        catch
-                        {
-                            // Surface.SetFrameRate may not be available on all binding versions.
-                        }
-
-                        Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
+                        if (surface != null && surface.IsValid)
+                            surface.SetFrameRate(mode.RefreshRate, FRAME_RATE_COMPATIBILITY_FIXED_SOURCE, CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS);
                     }
+                    catch
+                    {
+                        // Surface.SetFrameRate may not be available on all binding versions.
+                    }
+
+                    Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
                 }
                 catch (Exception e)
                 {
