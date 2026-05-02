@@ -94,6 +94,7 @@ namespace osu.Android
         private readonly Bindable<bool> startupFrameSyncMigrationEnabled = new Bindable<bool>();
         private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
+        private readonly Bindable<bool> stylusDisableClick = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -281,6 +282,7 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidStartupFrameSyncMigrationEnabled, startupFrameSyncMigrationEnabled);
                 LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
+                LocalConfig.BindWith(OsuSetting.AndroidStylusDisableClick, stylusDisableClick);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -292,6 +294,12 @@ namespace osu.Android
                 {
                     if (stylusHandler != null)
                         stylusHandler.TreatAsTouch = e.NewValue;
+                }, true);
+
+                stylusDisableClick.BindValueChanged(e =>
+                {
+                    if (stylusHandler != null)
+                        stylusHandler.DisableClick = e.NewValue;
                 }, true);
 
                 // sentinelOnDisable=true → presence ⇒ "feature disabled". The
@@ -1995,6 +2003,7 @@ namespace osu.Android
                 // in load() may have fired before this point (when stylusHandler was
                 // still null) — re-applying the current value here closes that race.
                 stylusHandler.TreatAsTouch = stylusAsTouch.Value;
+                stylusHandler.DisableClick = stylusDisableClick.Value;
 
                 gameActivity.StylusHandler = stylusHandler;
                 gameActivity.MouseHandler = mouseHandler;
