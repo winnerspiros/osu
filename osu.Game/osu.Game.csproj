@@ -38,7 +38,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="ppy.osu.Framework" Version="2026.503.1" />
+    <PackageReference Include="ppy.osu.Framework" Version="2026.503.2" />
     <!--
       Explicitly pin `ppy.Veldrid.SPIRV` to the winnerspiros fork build that
       `ppy.osu.Framework 2026.503.1` was compiled against.This version is the only
