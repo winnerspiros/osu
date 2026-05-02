@@ -485,11 +485,21 @@ namespace osu.Android
             }
         }
 
-        // Bound the read used by DetectPreviousDrawThreadNativeCrash. The native crash
-        // block + register dump + backtrace is ~2 KB; 256 KiB easily covers the most
-        // recent block even when the file also contains many ALIVE markers and a
-        // HangWatchdog dump from the previous process.
-        private const long crash_log_scan_byte_cap = 256L * 1024;
+        // Bound the read used by DetectPreviousDrawThreadNativeCrash.
+        //
+        // Footer path (new, fast): crash_handler.cpp appends a compact
+        // "=== CRASH FOOTER ===" line AFTER the /proc/self/maps dump, so it
+        // always lands in the last ~1 KiB of the log. We scan only the last
+        // crash_log_footer_scan_byte_cap bytes to find it quickly.
+        //
+        // Header-block fallback (legacy): older builds without the footer
+        // require scanning far enough back to reach the "[osu!] NATIVE CRASH"
+        // marker, which can be hundreds of KiB from the end because the
+        // /proc/self/maps section is typically 400–500 KiB on Android. The
+        // log is bounded at ~3 MiB by the rotation logic, so 4 MiB covers
+        // the entire file in the worst case.
+        private const long crash_log_footer_scan_byte_cap = 32L * 1024;
+        private const long crash_log_scan_byte_cap = 4L * 1024 * 1024;
 
         /// <summary>
         /// Inspect the on-disk <c>native_crash.log</c> for the most recent
@@ -534,6 +544,25 @@ namespace osu.Android
                 string path = Path.Combine(dir, CRASH_LOG_NAME);
                 if (!File.Exists(path)) return null;
 
+                // --- Fast path: look for the compact footer line appended by
+                // crash_handler.cpp after the /proc/self/maps dump.  It is
+                // always in the last few KiB of the log, so a small read is
+                // enough.  Falls through to the legacy full-header scan if the
+                // footer is absent (older native builds).
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    long footerStart = Math.Max(0, fs.Length - crash_log_footer_scan_byte_cap);
+                    fs.Seek(footerStart, SeekOrigin.Begin);
+                    using var sr = new StreamReader(fs);
+                    string footerTail = sr.ReadToEnd();
+
+                    var fromFooter = tryParseFooter(footerTail);
+                    if (fromFooter != null) return fromFooter;
+                }
+
+                // --- Legacy path: the full-header "[osu!] NATIVE CRASH" block.
+                // The /proc/self/maps section can be 400–500 KiB, so we scan
+                // the last 4 MiB (the log rotation cap) to guarantee we reach it.
                 string tail;
 
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -596,6 +625,68 @@ namespace osu.Android
                 Debug.WriteLine($"[osu!] scanForDrawThreadCrash({dir}) failed: {e.Message}");
                 return null;
             }
+        }
+
+        // Parse the compact "=== CRASH FOOTER ===" line appended by crash_handler.cpp
+        // after the /proc/self/maps section.  Format:
+        //   === CRASH FOOTER sig=<SIGNAL> pid=<PID> uptime_ns=<NS> thread=<NAME> ===
+        // Returns null if no valid footer line is found or the crash is not a
+        // fatal Draw-thread event.
+        private static DrawThreadNativeCrashInfo? tryParseFooter(string tail)
+        {
+            const string footer_marker = "=== CRASH FOOTER ";
+            int last = tail.LastIndexOf(footer_marker, StringComparison.Ordinal);
+            if (last < 0) return null;
+
+            int lineEnd = tail.IndexOf('\n', last);
+            if (lineEnd < 0) lineEnd = tail.Length;
+            string line = tail.Substring(last, lineEnd - last);
+
+            string? signal = extractFooterField(line, " sig=", " ");
+            string? pid = extractFooterField(line, " pid=", " ");
+            string? uptime = extractFooterField(line, " uptime_ns=", " ");
+            string? thread = extractFooterField(line, " thread=", " ===");
+
+            if (signal == null || thread == null) return null;
+
+            bool isFatalSignal = signal.StartsWith("SIGSEGV", StringComparison.Ordinal)
+                                 || signal.StartsWith("SIGBUS", StringComparison.Ordinal)
+                                 || signal.StartsWith("SIGABRT", StringComparison.Ordinal);
+            if (!isFatalSignal) return null;
+
+            if (!thread.StartsWith("Draw", StringComparison.Ordinal)) return null;
+
+            string fingerprint = (uptime != null && pid != null)
+                ? $"u{uptime}-p{pid}"
+                : "footer:" + ((uint)line.GetHashCode()).ToString("x");
+
+            // The footer does not carry a top-frame symbol — report it as such.
+            return new DrawThreadNativeCrashInfo(fingerprint, signal, thread, "(footer — no top frame)");
+        }
+
+        // Extract a field value from a single footer line.
+        // Reads from after `key` to either the first occurrence of `stopBefore`
+        // or the end of the line (whichever comes first).
+        private static string? extractFooterField(string line, string key, string? stopBefore)
+        {
+            int idx = line.IndexOf(key, StringComparison.Ordinal);
+            if (idx < 0) return null;
+
+            int start = idx + key.Length;
+            int end;
+
+            if (stopBefore != null)
+            {
+                end = line.IndexOf(stopBefore, start, StringComparison.Ordinal);
+                if (end < 0) end = line.Length;
+            }
+            else
+            {
+                end = line.IndexOf(' ', start);
+                if (end < 0) end = line.Length;
+            }
+
+            return line.Substring(start, end - start);
         }
 
         private static string? extractField(string block, string keyWithEquals)

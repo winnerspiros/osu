@@ -284,7 +284,7 @@ namespace osu.Android
                         }
                         else
                         {
-                            Logger.Log("[osu!] SurfaceHolder.SetFormat skipped (OpenGL/Auto renderer — SDL3 handles format).", LoggingTarget.Runtime, LogLevel.Important);
+                            Logger.Log("[osu!] SurfaceHolder.SetFormat skipped (OpenGL/Auto renderer — SDL3 handles format).", LoggingTarget.Runtime, LogLevel.Debug);
                         }
 
                         holder.AddCallback(this);

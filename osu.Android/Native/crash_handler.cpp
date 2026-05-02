@@ -1013,6 +1013,21 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     }
     g_dumpWritten = 1;
 
+    // Capture crash metadata once so both the header block and the compact
+    // footer written after /proc/self/maps use identical values.  The footer
+    // is what CrashDiagnostics.scanForDrawThreadCrash now looks for first —
+    // it always lands in the last few KB of the log even when the memory-map
+    // section is several hundred KB long.
+    long long crash_uptime_ns;
+    {
+        struct timespec ts{};
+        clock_gettime(CLOCK_BOOTTIME, &ts);
+        crash_uptime_ns = (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec;
+    }
+    const long long crash_pid = (long long)getpid();
+    char crash_thread_name[32] = {};
+    (void)pthread_getname_np(pthread_self(), crash_thread_name, sizeof(crash_thread_name));
+
     // Open the dump file (append).  If g_logPath is empty we still log to logcat.
     //
     // Pre-rotate runaway: if the existing log is more than 4× the soft cap
@@ -1051,21 +1066,9 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
     writeStr(fd, "\n  pid         = ");
     writeDec(fd, (long long)getpid());
     writeStr(fd, "\n  uptime_ns   = ");
-    {
-        struct timespec ts;
-        clock_gettime(CLOCK_BOOTTIME, &ts);
-        writeDec(fd, (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec);
-    }
+    writeDec(fd, crash_uptime_ns);
     writeStr(fd, "\n  thread_name = ");
-    {
-        char name[32] = {};
-        // pthread_getname_np is signal-safe in bionic (it's a thin wrapper
-        // over a /proc/self/task/<tid>/comm read).
-        if (pthread_getname_np(pthread_self(), name, sizeof(name)) == 0)
-            writeStr(fd, name);
-        else
-            writeStr(fd, "?");
-    }
+    writeStr(fd, crash_thread_name[0] ? crash_thread_name : "?");
     writeStr(fd, "\n");
 
     // Logcat header (so users with logcat access also see something useful).
@@ -1136,6 +1139,25 @@ static void crashHandler(int sig, siginfo_t* info, void* ucontext) {
 
     writeStr(fd, "=========================================================\n");
     writeStr(fd, "=== END OF CRASH DUMP ===\n");
+
+    // Compact one-line footer, written AFTER the /proc/self/maps section.
+    // The C# scanner (CrashDiagnostics.scanForDrawThreadCrash) looks for this
+    // footer FIRST in the last 32 KiB of the log.  Without it the scanner
+    // would need to scan hundreds of KiB backwards past the memory map just to
+    // reach the "[osu!] NATIVE CRASH" header — causing safe-mode detection to
+    // silently fail and the app to keep relaunching into the same Vulkan crash.
+    // The uptime_ns and pid values here MATCH the header block exactly (both
+    // were captured at handler entry above) so the fingerprint computed by the
+    // C# scanner is identical regardless of which block it reads.
+    writeStr(fd, "=== CRASH FOOTER sig=");
+    writeStr(fd, signalName(sig));
+    writeStr(fd, " pid=");
+    writeDec(fd, crash_pid);
+    writeStr(fd, " uptime_ns=");
+    writeDec(fd, crash_uptime_ns);
+    writeStr(fd, " thread=");
+    writeStr(fd, crash_thread_name[0] ? crash_thread_name : "?");
+    writeStr(fd, " ===\n");
 
     if (fd >= 0) {
         fsync(fd);
