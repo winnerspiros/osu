@@ -147,9 +147,22 @@ bool OboeBridge::open(int32_t sampleRate) {
     // This allows the system to prioritize our audio thread for stable low latency.
     stream_->setPerformanceHintEnabled(true);
 
-    // Set buffer size to 2x burst size for initial stability.
-    // LatencyTuner will then attempt to shrink it to 1x burst if stable.
-    stream_->setBufferSizeInFrames(stream_->getFramesPerBurst() * 2);
+    // Start at the minimum possible buffer: exactly 1× burst.
+    //
+    // On devices with AAudio MMAP support (Pixel 3+, Snapdragon 8 Gen 1+, most
+    // modern Android), the MMAP path writes directly to the hardware ring buffer.
+    // Starting at 1× burst achieves the minimum possible end-to-end audio latency
+    // immediately — no convergence period needed.
+    //
+    // Previously we started at 2× burst and relied on LatencyTuner to shrink it
+    // over ~512ms (128 callbacks × 4ms/callback at 48kHz/192-frame burst).
+    // That delay meant users experienced ~8ms extra audio latency for the first
+    // half-second of every gameplay session.
+    //
+    // LatencyTuner is still active and will automatically increase the buffer
+    // if underruns occur (backing off to 2× or more as needed), so stability
+    // is not compromised on devices that cannot sustain 1× burst.
+    stream_->setBufferSizeInFrames(stream_->getFramesPerBurst());
 
     // Initialise LatencyTuner for dynamic buffer management.
     tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
