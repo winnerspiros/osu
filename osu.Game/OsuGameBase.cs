@@ -382,6 +382,19 @@ namespace osu.Game
             // unconditionally so a stale `framework.ini` cannot pin a user into the broken mode.
             frameworkConfig.SetValue(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
 
+            // Apply ActualUnlimitedFrames on startup so GameHost.AllowBenchmarkUnlimitedFrames
+            // is set before the first updateFrameSyncMode() call. This removes the internal
+            // 1000fps cap (maximum_sane_fps = DEFAULT_ACTIVE_HZ = 1000) from both the Draw
+            // and Update threads when the user has enabled the setting with FrameSync.Unlimited.
+            // We also re-trigger the FrameSync bindable so updateFrameSyncMode() re-evaluates
+            // with the correct AllowBenchmarkUnlimitedFrames value whenever the setting changes.
+            var actualUnlimited = LocalConfig.GetBindable<bool>(OsuSetting.ActualUnlimitedFrames);
+            actualUnlimited.BindValueChanged(u =>
+            {
+                Host.AllowBenchmarkUnlimitedFrames = u.NewValue;
+                frameworkConfig.TriggerChange(FrameworkSetting.FrameSync);
+            }, true);
+
             // Initialise localisation
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
             frameworkLocale.BindValueChanged(_ => updateLanguage());

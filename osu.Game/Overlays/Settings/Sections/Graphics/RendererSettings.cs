@@ -149,18 +149,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             // (other modes set explicit Hz targets, so AllowBenchmarkUnlimitedFrames has no effect).
             frameSync.BindValueChanged(f => actualUnlimitedItem.CanBeShown.Value = f.NewValue == FrameSync.Unlimited, true);
 
-            // Apply AllowBenchmarkUnlimitedFrames to the GameHost whenever the setting changes.
-            // We also need to trigger a FrameSync re-evaluation so GameHost.updateFrameSyncMode()
-            // picks up the new AllowBenchmarkUnlimitedFrames value and updates MaximumDrawHz /
-            // MaximumUpdateHz accordingly.
-            actualUnlimited.BindValueChanged(u =>
-            {
-                host.AllowBenchmarkUnlimitedFrames = u.NewValue;
-                // Re-trigger the FrameSync change so the GameHost recalculates the Hz limits
-                // with the updated AllowBenchmarkUnlimitedFrames flag.
-                frameSync.TriggerChange();
-            }, true);
-
             renderer.BindValueChanged(r =>
             {
                 if (r.NewValue == host.ResolvedRenderer)

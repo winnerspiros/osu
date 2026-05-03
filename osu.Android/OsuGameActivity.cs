@@ -109,6 +109,13 @@ namespace osu.Android
             CrashDiagnostics.InstallNativeHandler(this);
             CrashDiagnostics.InstallManagedExceptionHooks();
 
+            // Apply the verbose-logging gate before any WriteAliveMarker calls so that
+            // alive-marker writes are suppressed on normal (non-verbose) launches.
+            // FLAG_VERBOSE_LOGGING_ENABLED is a file-sentinel written by OsuGameAndroid
+            // when AndroidVerboseLogging is toggled in settings; it persists across
+            // launches so it is readable here before OsuConfigManager exists.
+            CrashDiagnostics.VerboseEnabled = AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED);
+
             // Mirror the PREVIOUS session's internal native_crash.log into the external
             // copy, then truncate the internal file BEFORE we write any markers for the
             // current session. Doing this earlier (it used to run after the first three

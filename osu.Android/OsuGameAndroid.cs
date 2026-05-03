@@ -1087,6 +1087,13 @@ namespace osu.Android
         /// </summary>
         private void scheduleColdStartHeartbeats()
         {
+            // Heartbeats are verbose-only diagnostics: they write per-second breadcrumbs
+            // to native_crash.log during the cold-start window to pinpoint which phase a
+            // freeze occurred in. Suppress entirely when verbose logging is off — the
+            // markers are pure overhead (file I/O + scheduler work on every game thread)
+            // that adds no value during normal gameplay.
+            if (!CrashDiagnostics.VerboseEnabled) return;
+
             const int total_ticks = 30;
 
             try
@@ -1919,11 +1926,12 @@ namespace osu.Android
             // still make the enqueue side spin on its lock.
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (about to start HangWatchdog)");
 
-            // Start the hang watchdog now that GameHost has populated all four
-            // GameThread instances. Running on a dedicated background thread, it
-            // ticks each thread's Scheduler every ~1s and dumps a /proc/self/task
-            // snapshot if any thread fails to drain its queue for >5s.
-            HangWatchdog.Start(host);
+            // Start the hang watchdog only when verbose diagnostics are enabled.
+            // It writes /proc/self/task snapshots to native_crash.log on stalls — valuable
+            // during debugging but adds a dedicated background thread and periodic file I/O
+            // that are pure overhead during normal gameplay.
+            if (CrashDiagnostics.VerboseEnabled)
+                HangWatchdog.Start(host);
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (HangWatchdog started)");
 
             if (host.Window != null)
