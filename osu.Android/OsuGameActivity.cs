@@ -225,6 +225,29 @@ namespace osu.Android
             LogManagement.WipeShaderCacheOnceForVersion();
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (returned)");
 
+            // Stamp RGBA8888 at the Window level BEFORE SDL creates its SurfaceView inside
+            // base.OnCreate(). Android's default SurfaceView pixel format on many high-density
+            // Samsung / Qualcomm panels is RGB565. SDL3 only calls SurfaceHolder.setFormat(
+            // RGBA8888) for the OpenGL path — the Vulkan path inherits the window default.
+            // Setting the format here, before SDL attaches its SurfaceView, ensures the
+            // SurfaceView is born with RGBA8888 and eliminates the format-change teardown
+            // (SurfaceHolder.SetFormat in DecorView.Post) that otherwise fires mid-Vulkan-init
+            // and can produce the "Draw thread did not acknowledge teardown within 250ms" warning.
+            // The DecorView.Post call and the SurfaceChanged reactive guard are retained as
+            // belt-and-braces fallbacks for timing windows or OEM variants where this hint is
+            // not honoured by the SurfaceView allocation path.
+            if (LogManagement.IsVulkanConfigured())
+            {
+                try
+                {
+                    Window?.SetFormat(global::Android.Graphics.Format.Rgba8888);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
+                }
+            }
+
             base.OnCreate(savedInstanceState);
 
             // Wrap Platform.Init defensively: MAUI Essentials pulls in workload-version-sensitive
@@ -660,6 +683,13 @@ namespace osu.Android
             // picks up the new ANativeWindow and negotiates a proper BGRA/RGBA 8-bit swapchain.
             if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured())
             {
+                Logger.Log(
+                    "[osu!] Android surface pixel format RGB565 detected mid-session (Vulkan path). " +
+                    "Requesting RGBA8888 and triggering a surface recreate. " +
+                    "If this fires after startup it indicates an OEM display-mode change " +
+                    "(e.g. SetSustainedPerformanceMode) reset the surface format.",
+                    LoggingTarget.Runtime,
+                    LogLevel.Important);
                 Logger.Log(
                     "[osu!] Android surface pixel format RGB565 is incompatible with the Vulkan rendering pipeline " +
                     "— requesting RGBA8888 and triggering a surface recreate. " +
