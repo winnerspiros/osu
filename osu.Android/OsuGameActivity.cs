@@ -276,27 +276,51 @@ namespace osu.Android
 
                     if (holder != null)
                     {
-                        // Only request RGBA8888 on the SurfaceHolder when the configured
-                        // renderer is Vulkan. SDL3 already calls setFormat(RGBA8888) for
-                        // OpenGL/GLES from its own EGL surface initialization, and calling
-                        // setFormat() a second time AFTER SDL has bound its EGL surface
-                        // forces Android to recreate the surface (surfaceDestroyed →
-                        // surfaceCreated → surfaceChanged) mid-frame. That:
-                        //   1. Trips the 250ms drawThreadAcknowledgedTeardown wait in
-                        //      AndroidGameSurface.SurfaceDestroyed (visible warning in HUD).
-                        //   2. Leaves SDL's EGL surface bound to a destroyed ANativeWindow,
-                        //      causing eglSwapBuffers to silently no-op → permanent black
-                        //      screen while Update/Audio/Input keep running.
-                        // SDL3 does NOT call setFormat on the Vulkan path, so Vulkan still
-                        // needs this stamping to avoid the RGB565 default that crashes Adreno.
+                        // Register our lifecycle callback FIRST so that if the surface is
+                        // already alive, SurfaceChanged fires synchronously here and populates
+                        // lastSurfaceFormat before we decide whether a proactive SetFormat is
+                        // needed. This is critical: calling SetFormat(Rgba8888) when the surface
+                        // already has the correct format triggers SurfaceDestroyed+SurfaceCreated
+                        // on Samsung/Qualcomm devices even for a no-op change. During the
+                        // resulting draw-thread stall, Veldrid calls
+                        // vkGetPhysicalDeviceSurfaceCapabilitiesKHR on a mid-transition
+                        // ANativeWindow that reports dp-scaled dimensions (e.g. 1029×480 on a
+                        // 3088×1440 3×-density panel) instead of physical pixels. That
+                        // permanently bakes a 1/9-scale swapchain — producing 9-screen tiling,
+                        // blurry text (layout calculated at dp-scale), animated flashes, and
+                        // bad FPS throughout the session.
+                        holder.AddCallback(this);
+
+                        // After AddCallback, lastSurfaceFormat reflects what SurfaceChanged
+                        // reported synchronously (if the surface was already alive), or 0 if
+                        // the surface has not been created yet.
+                        //
+                        // Only stamp RGBA8888 on the SurfaceHolder when Vulkan is configured
+                        // AND the surface exists with a wrong format AND the reactive guard
+                        // in SurfaceChanged has not already queued a SetFormat for this cycle.
+                        //
+                        // - lastSurfaceFormat == Rgba8888 : surface was born correct (typical
+                        //   when Window.SetFormat ran before base.OnCreate); no action needed.
+                        // - lastSurfaceFormat == 0        : surface not yet alive; the reactive
+                        //   guard will stamp it via SurfaceChanged when it arrives.
+                        // - setFormatPending == true      : SurfaceChanged reactive guard already
+                        //   called SetFormat; issuing a second call would chain teardowns.
+                        // - any other format              : surface exists but is wrong; stamp it.
                         bool isVulkan = false;
                         try { isVulkan = LogManagement.IsVulkanConfigured(); }
                         catch (Exception e) { Debug.WriteLine($"[osu!] SurfaceHolder format gate: IsVulkanConfigured failed, defaulting to skip SetFormat: {e.Message}"); }
 
-                        if (isVulkan)
+                        // lastSurfaceFormat and setFormatPending are only written by
+                        // SurfaceCreated/SurfaceChanged, which (like this Post lambda) run
+                        // on the main UI thread — no concurrent access is possible here.
+                        if (isVulkan
+                            && lastSurfaceFormat != 0
+                            && lastSurfaceFormat != (int)global::Android.Graphics.Format.Rgba8888
+                            && !setFormatPending)
                         {
                             try
                             {
+                                setFormatPending = true;
                                 holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
                                 Logger.Log("[osu!] SurfaceHolder.SetFormat(Rgba8888) applied (Vulkan renderer).", LoggingTarget.Runtime, LogLevel.Important);
                             }
@@ -305,12 +329,10 @@ namespace osu.Android
                                 Debug.WriteLine($"[osu!] Failed to request RGBA8888 surface format: {e.Message}");
                             }
                         }
-                        else
+                        else if (!isVulkan)
                         {
                             Logger.Log("[osu!] SurfaceHolder.SetFormat skipped (OpenGL/Auto renderer — SDL3 handles format).", LoggingTarget.Runtime, LogLevel.Debug);
                         }
-
-                        holder.AddCallback(this);
                     }
 
                     // Also hide the pointer icon on the SurfaceView itself.
@@ -605,6 +627,28 @@ namespace osu.Android
         private global::Android.Views.Surface? heldSurface;
         private IntPtr surfaceGlobalRef;
 
+        // Pixel format (as an int cast of Android.Graphics.Format) from the most recent
+        // SurfaceChanged callback for this surface lifetime, or 0 if SurfaceChanged has not
+        // yet fired.
+        //
+        // Threading: ISurfaceHolderCallback methods (SurfaceCreated / SurfaceChanged /
+        // SurfaceDestroyed) are guaranteed by Android to be called on the main UI thread.
+        // The DecorView.Post lambda that reads this field also runs on the main UI thread.
+        // Accesses are therefore single-threaded with no cross-thread races; volatile is
+        // retained only as a compiler-reordering barrier.
+        private volatile int lastSurfaceFormat;
+
+        // True between a SetFormat(Rgba8888) call (from the DecorView.Post lambda or the
+        // SurfaceChanged reactive guard) and the SurfaceCreated that follows the resulting
+        // surface recreate. Guards against issuing a second SetFormat before the first
+        // teardown+recreate cycle has completed, which would chain two back-to-back teardowns
+        // and leave the draw thread unable to acknowledge either within 250 ms.
+        //
+        // Threading: same UI-thread-only guarantee as lastSurfaceFormat above. The
+        // check-then-set in SurfaceChanged (lines ~732-734) is not a concurrency concern
+        // because no two SurfaceChanged calls can overlap on the single UI thread.
+        private volatile bool setFormatPending;
+
         public IntPtr GetSurfaceGlobalRef()
         {
             if (!surfaceEvent.Wait(5000))
@@ -638,6 +682,12 @@ namespace osu.Android
             if (handle == IntPtr.Zero)
                 return;
 
+            // Reset per-lifecycle flags. The new surface has not yet reported its format
+            // (SurfaceChanged fires after SurfaceCreated), and any previous pending-format
+            // stamp no longer applies to this new surface instance.
+            lastSurfaceFormat = 0;
+            setFormatPending = false;
+
             IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
 
             lock (surfaceLock)
@@ -664,6 +714,11 @@ namespace osu.Android
 
         public void SurfaceChanged(ISurfaceHolder holder, global::Android.Graphics.Format format, int width, int height)
         {
+            // Record the current surface format so the DecorView.Post lambda can decide
+            // whether a proactive SetFormat(Rgba8888) is needed without calling SetFormat
+            // unconditionally (which always triggers a teardown on Samsung/Adreno devices).
+            lastSurfaceFormat = (int)format;
+
             // Guard: if the Android surface materialised with a 16-bit pixel format (RGB565)
             // while Vulkan is configured, request a format change to RGBA8888 immediately.
             //
@@ -681,8 +736,15 @@ namespace osu.Android
             // windows). Calling SetFormat here triggers SurfaceDestroyed + SurfaceCreated +
             // SurfaceChanged with the corrected format; Veldrid's VkSurfaceKHR-loss recovery
             // picks up the new ANativeWindow and negotiates a proper BGRA/RGBA 8-bit swapchain.
-            if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured())
+            //
+            // setFormatPending prevents this guard from issuing a second SetFormat call when
+            // the surface that arrives after the first teardown also briefly reports RGB565
+            // (e.g. during a compositor mode transition), which would chain teardowns and
+            // prevent the draw thread from ever acknowledging either one within 250 ms.
+            if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured() && !setFormatPending)
             {
+                setFormatPending = true;
+
                 // Log to Runtime so the mid-session RGB565 reset is visible in the main log
                 // (and therefore in the notification overlay). Performance log gets the same
                 // entry for correlation with display-mode and frame-timing data.
