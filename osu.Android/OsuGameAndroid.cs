@@ -255,7 +255,7 @@ namespace osu.Android
             audioOffset.BindValueChanged(e =>
             {
                 double delta = Math.Abs(e.NewValue - e.OldValue);
-                long nowMs = Environment.TickCount64;
+                long nowMs = System.Environment.TickCount64;
                 bool firstFire = lastLoggedAudioOffsetMs == 0;
                 bool deltaSignificant = delta >= 0.5;
                 bool elapsedSignificant = (nowMs - lastLoggedAudioOffsetMs) >= 2_000;
