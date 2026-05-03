@@ -132,6 +132,7 @@ namespace osu.Game.Configuration
 
             // Graphics
             SetDefault(OsuSetting.ShowFpsDisplay, false);
+            SetDefault(OsuSetting.ActualUnlimitedFrames, false);
             SetDefault(OsuSetting.RefreshRateFullscreen, 0.0);
 
             SetDefault(OsuSetting.ShowStoryboard, true);
@@ -304,7 +305,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidVerboseLogging, false);
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
-            SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f);
+            SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f, 0.01f, 0.9f, 0.005f);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
 
@@ -585,5 +586,6 @@ namespace osu.Game.Configuration
         AndroidStylusPressureThreshold,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
+        ActualUnlimitedFrames,
     }
 }

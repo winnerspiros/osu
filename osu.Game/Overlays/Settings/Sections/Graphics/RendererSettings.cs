@@ -83,6 +83,24 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Android)
                 lowLatencyItem.CanBeShown.Value = false;
 
+            var actualUnlimitedBindable = osuConfig.GetBindable<bool>(OsuSetting.ActualUnlimitedFrames);
+
+            var actualUnlimitedItem = new SettingsItemV2(new FormCheckBox
+            {
+                Caption = "Actual Unlimited",
+                HintText = "Removes all frame-rate caps, including the display sync ceiling. The draw thread runs as fast as the GPU allows. Use for benchmarking or maximum-throughput scenarios only.",
+                Current = actualUnlimitedBindable,
+            })
+            {
+                Keywords = new[] { @"fps", @"framerate", @"benchmark", @"uncapped", @"unlimited" },
+            };
+
+            // "Actual Unlimited" is only meaningful when the frame limiter is Unlimited.
+            frameSync.BindValueChanged(f => actualUnlimitedItem.CanBeShown.Value = f.NewValue == FrameSync.Unlimited, true);
+
+            // Wire the setting to the host's AllowBenchmarkUnlimitedFrames flag.
+            actualUnlimitedBindable.BindValueChanged(v => host.AllowBenchmarkUnlimitedFrames = v.NewValue, true);
+
             Children = new Drawable[]
             {
                 new SettingsItemV2(new RendererDropdown
@@ -107,6 +125,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Keywords = new[] { @"fps", @"framerate" },
                 },
                 customDrawLimitItem,
+                actualUnlimitedItem,
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = GraphicsSettingsStrings.ShowFPS,
