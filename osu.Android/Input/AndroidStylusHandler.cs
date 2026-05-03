@@ -32,7 +32,7 @@ namespace osu.Android.Input
         public Bindable<Vector2> OutputAreaOffset { get; } = new Bindable<Vector2>();
         public IBindable<TabletInfo?> Tablet => tablet;
         public Bindable<float> Rotation { get; } = new Bindable<float>();
-        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.1f)
+        public BindableFloat PressureThreshold { get; } = new BindableFloat(0.01f)
         {
             MinValue = 0.01f,
             MaxValue = 0.9f,

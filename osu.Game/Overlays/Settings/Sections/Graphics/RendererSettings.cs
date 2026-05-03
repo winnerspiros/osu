@@ -53,7 +53,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 renderer.SetDefault();
 
             var frameSync = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-            var actualUnlimited = osuConfig.GetBindable<bool>(OsuSetting.ActualUnlimitedFrames);
 
             var customDrawLimitItem = new SettingsItemV2(new FormSliderBar<int>
             {
@@ -63,18 +62,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             })
             {
                 Keywords = new[] { @"fps", @"framerate", @"custom", @"hz" },
-            };
-
-            var actualUnlimitedItem = new SettingsItemV2(new FormCheckBox
-            {
-                Caption = GraphicsSettingsStrings.ActualUnlimitedFrames,
-                HintText = "Removes the internal 1000fps cap from all game threads (Draw + Update). "
-                           + "Only effective when Frame Limiter is set to Unlimited. "
-                           + "May significantly increase thermal load on mobile devices.",
-                Current = actualUnlimited,
-            })
-            {
-                Keywords = new[] { @"fps", @"uncap", @"unlimited", @"framerate", @"benchmark" },
             };
 
             var lowLatencyItem = new SettingsItemV2(new FormEnumDropdown<LatencyMode>
@@ -120,7 +107,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                     Keywords = new[] { @"fps", @"framerate" },
                 },
                 customDrawLimitItem,
-                actualUnlimitedItem,
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = GraphicsSettingsStrings.ShowFPS,
@@ -144,10 +130,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             // "Custom draw rate limit" is only meaningful when the frame limiter is set to Custom
             // (upstream winnerspiros/osu-framework PR porting ppy/osu-framework#6725).
             frameSync.BindValueChanged(f => customDrawLimitItem.CanBeShown.Value = f.NewValue == FrameSync.Custom, true);
-
-            // "Actual Unlimited" only makes sense when the frame limiter is already set to Unlimited
-            // (other modes set explicit Hz targets, so AllowBenchmarkUnlimitedFrames has no effect).
-            frameSync.BindValueChanged(f => actualUnlimitedItem.CanBeShown.Value = f.NewValue == FrameSync.Unlimited, true);
 
             renderer.BindValueChanged(r =>
             {

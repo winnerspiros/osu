@@ -96,6 +96,7 @@ namespace osu.Android
         private readonly Bindable<bool> verboseLogging = new Bindable<bool>();
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
         private readonly Bindable<bool> stylusDisableClick = new Bindable<bool>();
+        private readonly BindableFloat stylusPressureThreshold = new BindableFloat();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -284,6 +285,7 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidVerboseLogging, verboseLogging);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusDisableClick, stylusDisableClick);
+                LocalConfig.BindWith(OsuSetting.AndroidStylusPressureThreshold, stylusPressureThreshold);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -1977,6 +1979,10 @@ namespace osu.Android
                 // still null) — re-applying the current value here closes that race.
                 stylusHandler.TreatAsTouch = stylusAsTouch.Value;
                 stylusHandler.DisableClick = stylusDisableClick.Value;
+
+                // Bind the persisted pressure threshold so (a) the saved value is
+                // applied on startup and (b) changes in settings flow back to the config.
+                stylusHandler.PressureThreshold.BindTo(stylusPressureThreshold);
 
                 gameActivity.StylusHandler = stylusHandler;
                 gameActivity.MouseHandler = mouseHandler;

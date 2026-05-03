@@ -175,10 +175,6 @@ namespace osu.Game.Localisation
         public static LocalisableString CustomDrawLimit => new TranslatableString(getKey(@"custom_draw_limit"), @"Custom draw rate limit");
 
         /// <summary>
-        /// "Actual Unlimited (remove 1000fps cap)"
-        /// </summary>
-        public static LocalisableString ActualUnlimitedFrames => new TranslatableString(getKey(@"actual_unlimited_frames"), @"Actual Unlimited (remove 1000fps cap)");
-
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }
