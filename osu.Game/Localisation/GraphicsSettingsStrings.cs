@@ -174,7 +174,6 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString CustomDrawLimit => new TranslatableString(getKey(@"custom_draw_limit"), @"Custom draw rate limit");
 
-        /// <summary>
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }
