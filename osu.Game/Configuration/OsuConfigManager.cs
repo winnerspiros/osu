@@ -305,6 +305,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
+            SetDefault(OsuSetting.ActualUnlimitedFrames, false);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -583,5 +584,6 @@ namespace osu.Game.Configuration
         AndroidStylusDisableClick,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
+        ActualUnlimitedFrames,
     }
 }
