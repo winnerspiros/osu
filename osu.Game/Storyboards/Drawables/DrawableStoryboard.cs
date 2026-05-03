@@ -85,10 +85,17 @@ namespace osu.Game.Storyboards.Drawables
             if (clock != null)
                 Clock = clock;
 
+            // Storyboard assets are per-beatmap images (backgrounds, sprites, animations) that are
+            // typically large (e.g. 1920×1080, 2732×1572) and are loaded once per play session.
+            // Using a regular atlased TextureStore causes a storm of atlas overflow events during
+            // beatmap load (one new 2048×2048 GPU texture + vkQueueSubmit per overflow, 8+ times in
+            // ~5 seconds), each stalling the render thread and dropping FPS.
+            // LargeTextureStore skips atlasing entirely so every storyboard asset gets its own GPU
+            // texture with no atlas packing, eliminating all overflow stalls on Android Vulkan.
             dependencies.CacheAs(typeof(TextureStore),
-                new TextureStore(host.Renderer, host.CreateTextureLoaderStore(
+                new LargeTextureStore(host.Renderer, host.CreateTextureLoaderStore(
                     CreateResourceLookupStore()
-                ), false, scaleAdjust: 1));
+                )));
 
             foreach (var layer in Storyboard.Layers)
             {
