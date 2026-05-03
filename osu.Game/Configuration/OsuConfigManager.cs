@@ -132,7 +132,6 @@ namespace osu.Game.Configuration
 
             // Graphics
             SetDefault(OsuSetting.ShowFpsDisplay, false);
-            SetDefault(OsuSetting.ActualUnlimitedFrames, false);
             SetDefault(OsuSetting.RefreshRateFullscreen, 0.0);
 
             SetDefault(OsuSetting.ShowStoryboard, true);
@@ -586,6 +585,5 @@ namespace osu.Game.Configuration
         AndroidStylusPressureThreshold,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
-        ActualUnlimitedFrames,
     }
 }
