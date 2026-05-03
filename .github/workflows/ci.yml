@@ -87,7 +87,21 @@ jobs:
             # - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
           threadingMode: ['MultiThreaded']
-    timeout-minutes: 120
+          # Split tests into two parallel groups so Windows runners (which are ~2-3× slower than
+          # Linux) finish each group in ~60 min rather than timing out on the full suite at 120 min.
+          testSuite:
+            - name: game
+              dlls: >-
+                osu.Game.Tests/bin/Debug/**/osu.Game.Tests.dll
+                osu.Game.Tournament.Tests/bin/Debug/**/osu.Game.Tournament.Tests.dll
+                Templates/**/*.Tests/bin/Debug/**/*.Tests.dll
+            - name: rulesets
+              dlls: >-
+                osu.Game.Rulesets.Osu.Tests/bin/Debug/**/osu.Game.Rulesets.Osu.Tests.dll
+                osu.Game.Rulesets.Taiko.Tests/bin/Debug/**/osu.Game.Rulesets.Taiko.Tests.dll
+                osu.Game.Rulesets.Catch.Tests/bin/Debug/**/osu.Game.Rulesets.Catch.Tests.dll
+                osu.Game.Rulesets.Mania.Tests/bin/Debug/**/osu.Game.Rulesets.Mania.Tests.dll
+    timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -116,14 +130,8 @@ jobs:
         continue-on-error: true
         run: >
           dotnet test
-          osu.Game.Tests/bin/Debug/**/osu.Game.Tests.dll
-          osu.Game.Rulesets.Osu.Tests/bin/Debug/**/osu.Game.Rulesets.Osu.Tests.dll
-          osu.Game.Rulesets.Taiko.Tests/bin/Debug/**/osu.Game.Rulesets.Taiko.Tests.dll
-          osu.Game.Rulesets.Catch.Tests/bin/Debug/**/osu.Game.Rulesets.Catch.Tests.dll
-          osu.Game.Rulesets.Mania.Tests/bin/Debug/**/osu.Game.Rulesets.Mania.Tests.dll
-          osu.Game.Tournament.Tests/bin/Debug/**/osu.Game.Tournament.Tests.dll
-          Templates/**/*.Tests/bin/Debug/**/*.Tests.dll
-          --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+          ${{matrix.testSuite.dlls}}
+          --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.testSuite.name}}.trx"
           --
           NUnit.ConsoleOut=0
 
@@ -133,8 +141,8 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
-          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
+          name: osu-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.testSuite.name}}
+          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}-${{matrix.testSuite.name}}.trx
 
   test-results:
     name: Test results

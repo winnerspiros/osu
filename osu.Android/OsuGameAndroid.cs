@@ -379,8 +379,8 @@ namespace osu.Android
             //
             // Pinning Update + Draw + Input to a 5-core subset (mask 0xF8 on SD8G2) is the
             // ONLY unconditional Android-specific synchronous mutation we still perform
-            // during the cold-start window — every other customisation (SustainedPerformanceMode,
-            // RequestUnbufferedDispatch, refresh-rate selection, Oboe / Vulkan-probe init,
+            // during the cold-start window — every other customisation (RequestUnbufferedDispatch,
+            // refresh-rate selection, Oboe / Vulkan-probe init,
             // performance-mode GC-latency flip) is already deferred behind the
             // refreshRateDelayMs scheduler below. Field logs.zip on v2026.423.176 show both
             // a normal launch and a safe-mode launch dying silently mid-Toolbar load
@@ -569,21 +569,28 @@ namespace osu.Android
                 Debug.WriteLine($"[osu!] TameBackgroundThreads (initial) failed: {e.Message}");
             }
 
-            // Sustained performance mode is applied LATER, together with the deferred
-            // display-mode / GC-latency work below. See the Scheduler.AddDelayed block
-            // further down (after base.LoadComplete()) that schedules the first apply
-            // on a refreshRateDelayMs timer. Running
-            // Window.SetSustainedPerformanceMode(true) synchronously here — during the
-            // Toolbar cold-start texture-upload burst and the Vulkan swapchain bring-up —
-            // has been observed to race the Draw thread on Samsung One UI / Adreno panels:
-            // the window-flag mutation round-trips through ViewRootImpl.setPrivateFlags
-            // and can partially reconfigure the Surface while vkAcquireNextImageKHR is in
-            // flight, stalling the present queue. Update keeps ticking (so neither the
-            // managed nor the native watchdog ever dumps), the screen never updates, and
-            // ~10 s later Android raises a MotionEvent input-dispatch ANR — the exact
-            // cold-start "black screen → no touch → ANR" fingerprint reported across
-            // multiple v174 launches in logs.zip. Deferring to the same window used by
-            // SelectHighestRefreshRate moves the mutation behind the texture-upload burst.
+            // Window.SetSustainedPerformanceMode is intentionally NOT called anywhere.
+            //
+            // On Samsung One UI / Adreno devices, calling SetSustainedPerformanceMode(true)
+            // triggers a non-seamless display-mode transition (even when deferred behind the
+            // texture-upload burst). The transition momentarily destroys the SurfaceView,
+            // which resets the surface pixel format back to the Android default (RGB565 on
+            // high-density Samsung panels). Our SurfaceChanged reactive guard then calls
+            // SurfaceHolder.SetFormat(RGBA8888), causing a second surface-destroy/recreate
+            // cycle. During this second cycle the ANativeWindow transiently reports the
+            // display's scaled (dp) dimensions — 1029×480 on a 3088×1440 3×-density panel —
+            // instead of the physical pixel dimensions. Veldrid reads those dimensions from
+            // vkGetPhysicalDeviceSurfaceCapabilitiesKHR during its VkSurfaceKHR-loss
+            // recovery, creates a permanent swapchain at 1029×480, and SurfaceFlinger tiles
+            // that sub-screen image 3×3 to fill the display. The result is the "9 screens"
+            // artifact, blurry/flashing textures, and a sustained FPS drop observed on
+            // Galaxy S24 Ultra (Adreno 740, One UI 7, Android 15) with Vulkan enabled.
+            //
+            // Removing the call eliminates the mid-session surface teardown. ADPF performance
+            // hinting is already provided by Oboe's setPerformanceHintEnabled(true) (set
+            // during stream open in oboe_bridge.cpp), and GC low-latency is handled by
+            // AndroidHighPerformanceSessionManager (SustainedLowLatency GCSettings) which
+            // covers the same thermal/responsiveness goals without touching the Surface.
 
             base.LoadComplete();
 
@@ -686,27 +693,6 @@ namespace osu.Android
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[osu!] Deferred SelectHighestRefreshRate failed: {ex.Message}");
-                }
-
-                // Deferred sustained-performance-mode apply. See the comment block
-                // before base.LoadComplete() above for the rationale (Samsung One UI /
-                // Adreno Surface reconfigure race with vkAcquireNextImageKHR during the
-                // cold-start texture-upload burst). By the time this fires the
-                // swapchain has long since stabilised.
-                try
-                {
-                    gameActivity.RunOnUiThread(() =>
-                    {
-                        try { gameActivity.Window?.SetSustainedPerformanceMode(true); }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"[osu!] Failed to enable sustained performance mode: {e.Message}");
-                        }
-                    });
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Failed to dispatch sustained performance mode toggle to UI thread: {e.Message}");
                 }
 
                 // Deferred initial application of the user's performance-mode setting.
@@ -1033,8 +1019,7 @@ namespace osu.Android
             // the BDL load thread, in the silent cold-start window — exactly
             // when we are debugging a startup hang. Deferring the initial
             // fire via Scheduler.AddDelayed onto the same refreshRateDelayMs
-            // timer that gates SustainedPerformanceMode / the initial refresh-
-            // rate apply / the initial performance-mode apply keeps the cold-
+            // timer that gates the initial refresh-rate apply / performance-mode apply keeps the cold-
             // start path free of synchronous native init even when a saved-
             // true setting would otherwise force it, AND ensures the native
             // init actually lands AFTER the cold-start Toolbar texture-upload
@@ -1149,8 +1134,9 @@ namespace osu.Android
             {
                 try
                 {
-                    // Sustained performance mode is always on (set in LoadComplete).
                     // The performance toggle controls the high-perf GC session only.
+                    // (Window.SetSustainedPerformanceMode is intentionally not called —
+                    // see the comment before base.LoadComplete() for the full rationale.)
                     if (enabled)
                     {
                         highPerformanceSession ??= highPerformanceSessionManager.BeginSession();
