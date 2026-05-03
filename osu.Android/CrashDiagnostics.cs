@@ -60,6 +60,20 @@ namespace osu.Android
         private const long native_crash_log_max_bytes = 3L * 1024 * 1024;
         private const string crash_log_backup_suffix = ".1";
 
+        /// <summary>
+        /// When <see langword="false"/> (the default), verbose diagnostic writes
+        /// (<see cref="WriteAliveMarker"/>, <see cref="WriteInstallState"/>,
+        /// <see cref="AppendDiagnosticBlock"/>) are silently suppressed so that
+        /// <c>native_crash.log</c> only receives content from the native crash
+        /// handler itself and from managed-exception hooks.
+        ///
+        /// Set to <see langword="true"/> as early as possible in
+        /// <c>OsuGameActivity.OnCreate</c> when
+        /// <see cref="AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED"/> is set,
+        /// so verbose writes are enabled BEFORE the first alive marker.
+        /// </summary>
+        public static bool VerboseEnabled { get; set; }
+
         private static int initialised;
         private static int managedHooksInstalled;
 
@@ -203,6 +217,8 @@ namespace osu.Android
         /// </summary>
         public static void WriteAliveMarker(string phase)
         {
+            if (!VerboseEnabled) return;
+
             string line = $"=== ALIVE [{DateTime.UtcNow:O}] {phase} ===\n";
             appendToBoth(line);
         }
@@ -375,6 +391,8 @@ namespace osu.Android
         /// </summary>
         public static void WriteInstallState()
         {
+            if (!VerboseEnabled) return;
+
             try
             {
                 string sentinelState;
@@ -459,7 +477,12 @@ namespace osu.Android
         /// targets that the native handler and managed exception hooks write to.
         /// Never throws.
         /// </summary>
-        public static void AppendDiagnosticBlock(string payload) => appendToBoth(payload);
+        public static void AppendDiagnosticBlock(string payload)
+        {
+            if (!VerboseEnabled) return;
+
+            appendToBoth(payload);
+        }
 
         /// <summary>
         /// Result of <see cref="DetectPreviousDrawThreadNativeCrash"/>: a synopsis of the

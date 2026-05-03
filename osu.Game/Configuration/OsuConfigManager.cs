@@ -304,6 +304,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidVerboseLogging, false);
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
+            SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
 
@@ -581,6 +582,7 @@ namespace osu.Game.Configuration
         AndroidVerboseLogging,
         AndroidStylusAsTouch,
         AndroidStylusDisableClick,
+        AndroidStylusPressureThreshold,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
     }

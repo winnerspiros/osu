@@ -194,6 +194,12 @@ namespace osu.Android
             {
                 AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_STARTUP_IN_PROGRESS, false);
                 CrashDiagnostics.WriteAliveMarker("AndroidStartupSafeMode.ClearStartupInProgress (sentinel removed)");
+
+                // Restore the renderer that was overwritten by ForceOpenGLRendererIfSafeMode
+                // during the previous (safe-mode) launch, if any. This makes the safe-mode
+                // OpenGL rewrite a single-launch rescue: a user running Vulkan successfully
+                // is automatically returned to Vulkan without needing to go into Settings.
+                LogManagement.RestoreRendererAfterSafeMode();
             }
             catch (Exception e)
             {

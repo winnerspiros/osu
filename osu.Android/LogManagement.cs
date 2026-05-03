@@ -435,7 +435,8 @@ namespace osu.Android
         /// <summary>
         /// Safe-mode renderer fallback: when the previous launch died before reaching the
         /// post-LoadComplete clear point (i.e. <see cref="AndroidStartupSafeMode.IsActive"/>
-        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c>.
+        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c>
+        /// for this launch only.
         ///
         /// <para>
         /// Why: the recurring black-screen ANR fingerprint is a Vulkan-path Toolbar-time
@@ -448,14 +449,14 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// Persistence: the rewrite is to disk, so the OpenGL choice STICKS until the
-        /// user explicitly re-selects Vulkan from Settings → Graphics → Renderer. This
-        /// is a deliberate change from the earlier "rescue for one launch" design —
-        /// because Vulkan-on-Android is unreliable across the entire fork's GPU range,
-        /// silently flipping back to Vulkan on the next normal launch would just walk
-        /// the user into the same black screen again. The user's intent is captured
-        /// only when they make a fresh active choice in settings (which writes through
-        /// the framework's normal config pipeline and overrides the value we wrote here).
+        /// Persistence: the original renderer value is saved to
+        /// <see cref="AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE"/> before
+        /// being overwritten. <see cref="RestoreRendererAfterSafeMode"/> reads this on
+        /// the next successful launch and restores the renderer automatically — making
+        /// this a single-launch rescue rather than a permanent override. Users who
+        /// deliberately want to stay on OpenGL after a crash can change the setting
+        /// themselves; users who have Vulkan working correctly are automatically returned
+        /// to it on the next clean start.
         /// </para>
         ///
         /// <para>
@@ -550,13 +551,27 @@ namespace osu.Android
 
                 if (!changed) return;
 
+                // Save the original renderer value so RestoreRendererAfterSafeMode()
+                // can put it back after the next successful launch. Only save once —
+                // if a restore flag is already present from a previous safe-mode that
+                // has not yet been cleared (e.g. two consecutive crash launches), keep
+                // the first saved value so we restore what the user actually chose, not
+                // "OpenGL" from the previous safe-mode write.
+                string? existingRestore = AndroidStartupFlags.ReadValue(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE);
+
+                if (existingRestore == null && previousValue != null
+                    && !string.Equals(previousValue, "OpenGL", StringComparison.Ordinal))
+                {
+                    AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE, previousValue);
+                }
+
                 try
                 {
                     File.WriteAllLines(iniPath, lines);
                     string reason = AndroidStartupSafeMode.DrawThreadNativeCrashTriggered
                         ? "Draw-thread native crash detected"
                         : "previous launch died before LoadComplete clear point";
-                    Logger.Log($"[osu!] Android safe-mode renderer fallback ({reason}): Renderer {previousValue ?? "(unset)"} → OpenGL (persisted; user can re-select Vulkan from Settings → Graphics → Renderer)", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Android safe-mode renderer fallback ({reason}): Renderer {previousValue ?? "(unset)"} → OpenGL (temporary; will restore to {previousValue} after next successful launch)", LoggingTarget.Performance);
                 }
                 catch (Exception e)
                 {
@@ -566,6 +581,109 @@ namespace osu.Android
             catch (Exception e)
             {
                 Debug.WriteLine($"[osu!] LogManagement: ForceOpenGLRendererIfSafeMode failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Called from <see cref="AndroidStartupSafeMode.ClearStartupInProgress"/> once the
+        /// current launch is healthy. If <see cref="AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE"/>
+        /// contains a saved renderer value, restores it in <c>framework.ini</c> and deletes the flag
+        /// so the restore only fires once. This makes the safe-mode OpenGL rewrite a single-launch
+        /// rescue: a user who has Vulkan working correctly is automatically returned to Vulkan after
+        /// the safe-mode launch succeeds.
+        /// Best-effort and never throws.
+        /// </summary>
+        public static void RestoreRendererAfterSafeMode()
+        {
+            try
+            {
+                string? savedRenderer = AndroidStartupFlags.ReadValue(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE);
+
+                if (string.IsNullOrEmpty(savedRenderer))
+                    return;
+
+                // Delete the restore flag first so a crash during the restore attempt
+                // does not loop indefinitely.
+                AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE, false);
+
+                string? root = resolveStorageRoot();
+                if (root == null) return;
+
+                string iniPath = Path.Combine(root, "framework.ini");
+
+                if (!File.Exists(iniPath))
+                    return;
+
+                string[] lines;
+
+                try
+                {
+                    lines = File.ReadAllLines(iniPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for safe-mode renderer restore: {e.Message}");
+                    return;
+                }
+
+                bool changed = false;
+                bool seenRendererLine = false;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    string currentValue = line.Substring(eq + 1).Trim();
+
+                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
+                        continue;
+
+                    seenRendererLine = true;
+
+                    // Only restore if the framework.ini currently says OpenGL (i.e. the
+                    // safe-mode write is still in place). If the user has already changed
+                    // the renderer from Settings after the safe-mode launch, respect that.
+                    if (string.Equals(currentValue, "OpenGL", StringComparison.Ordinal))
+                    {
+                        lines[i] = $"Renderer = {savedRenderer}";
+                        changed = true;
+                    }
+
+                    break;
+                }
+
+                if (!changed && !seenRendererLine)
+                {
+                    // Renderer line missing entirely — append.
+                    var newLines = new string[lines.Length + 1];
+                    Array.Copy(lines, newLines, lines.Length);
+                    newLines[lines.Length] = $"Renderer = {savedRenderer}";
+                    lines = newLines;
+                    changed = true;
+                }
+
+                if (!changed)
+                {
+                    Logger.Log($"[osu!] Android safe-mode renderer restore: skipped — renderer has already been changed from OpenGL (user likely changed it manually after safe-mode launch)", LoggingTarget.Performance);
+                    return;
+                }
+
+                try
+                {
+                    File.WriteAllLines(iniPath, lines);
+                    Logger.Log($"[osu!] Android safe-mode renderer restore: OpenGL → {savedRenderer} (safe-mode launch succeeded; restoring original renderer choice)", LoggingTarget.Performance);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for safe-mode renderer restore: {e.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: RestoreRendererAfterSafeMode failed: {e.Message}");
             }
         }
 

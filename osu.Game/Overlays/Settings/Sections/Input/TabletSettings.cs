@@ -141,19 +141,16 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                         },
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = TabletSettingsStrings.XOffset,
                             Current = offsetX,
                         }),
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = TabletSettingsStrings.YOffset,
                             Current = offsetY,
                         }),
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = TabletSettingsStrings.Rotation,
                             Current = rotation,
                         }),
@@ -163,7 +160,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                         },
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = TabletSettingsStrings.AspectRatio,
                             Current = aspectRatio,
                         }),
@@ -174,19 +170,16 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                         }),
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = CommonStrings.Width,
                             Current = sizeX,
                         }),
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = CommonStrings.Height,
                             Current = sizeY,
                         }),
                         new SettingsItemV2(new FormSliderBar<float>
                         {
-                            TransferValueOnCommit = true,
                             Caption = TabletSettingsStrings.TipPressureForClick,
                             Current = pressureThreshold,
                             DisplayAsPercentage = true,
