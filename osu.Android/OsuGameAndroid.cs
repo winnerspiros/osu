@@ -1464,7 +1464,8 @@ namespace osu.Android
             catch { }
         }
 
-        private global::Android.Views.Display? getActiveDisplay()        {
+        private global::Android.Views.Display? getActiveDisplay()
+        {
             if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                 return null;
 
