@@ -265,6 +265,41 @@ namespace osu.Android
 
             updateDeXStatus(null);
 
+            // Secondary RGBA8888 stamp: after SDL creates its SurfaceView inside base.OnCreate,
+            // apply RGBA8888 directly to the SurfaceView's Holder — one level more specific than
+            // the Window.SetFormat hint above, which some OEMs (Samsung + Adreno 7xx) ignore.
+            //
+            // Key timing: this runs before the first layout pass, so the native
+            // android.view.Surface has NOT been created yet (SurfaceCreated has not fired).
+            // Calling SetFormat on a Holder with no live Surface queues the format preference
+            // for the Surface that is about to be born — no SurfaceDestroyed teardown occurs.
+            //
+            // Without this, on devices that ignore Window.SetFormat the Surface is born RGB565;
+            // the framework's AndroidGameSurface.SurfaceChanged fires first and sets
+            // IsSurfaceReady=true before OsuGameActivity.SurfaceChanged can call SetFormat.
+            // That opens a race window where Veldrid proceeds to vkCreateSwapchainKHR while
+            // the ANativeWindow is mid-teardown, reading dp-scaled dimensions from
+            // vkGetPhysicalDeviceSurfaceCapabilitiesKHR (e.g. 1029×480 on a 3088×1440 device)
+            // and baking a 1/9-scale swapchain → 9-screen tiling + ~18fps from per-frame
+            // vkDeviceWaitIdle stalls in the Resize() retry loop.
+            if (LogManagement.IsVulkanConfigured())
+            {
+                try
+                {
+                    var sdlSurface = GetSurface();
+
+                    if (sdlSurface?.Holder != null)
+                    {
+                        sdlSurface.Holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
+                        Debug.WriteLine("[osu!] Post-SDL Holder.SetFormat(RGBA8888) applied before first layout pass.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Post-SDL Holder.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
+                }
+            }
+
             // Posting the surface-callback registration onto the UI thread loop is intentional
             // (the SurfaceView may not be attached yet at OnCreate time). Guard the body of the
             // lambda — a later race with activity teardown can make AddCallback throw.
@@ -764,6 +799,14 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
+
+                // The SetFormat call above queues a SurfaceDestroyed→SurfaceCreated cycle.
+                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock yet —
+                // the current Surface handle is about to be invalidated. The event will be
+                // re-set when SurfaceChanged fires again with the new RGBA8888 Surface.
+                surfaceEvent.Reset();
+                Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
+                return;
             }
 
             if (width > 0 && height > 0)
