@@ -48,6 +48,31 @@ namespace osu.Android.Performance
             if (!gcLatencyModeSupported)
                 return;
 
+            // Pre-drain accumulated garbage before entering the low-latency window.
+            // SustainedLowLatency suppresses Gen2 (major) GC, so any garbage already
+            // on the heap will persist for the entire session. A non-blocking hint here
+            // asks the runtime to schedule a collection immediately — the call returns
+            // in microseconds and the GC runs in background. On .NET runtimes that
+            // support it, this eliminates the most common source of a multi-frame GC
+            // stall right at the start of gameplay (the "first-note hitbox miss"
+            // symptom observed across multiple field sessions).
+            //
+            // GCCollectionMode.Optimized + blocking:false requires .NET Core 3.0+ / .NET 5+.
+            // On Mono (older .NET for Android runtimes) it throws NotSupportedException,
+            // and on some niche OEM runtimes it may throw PlatformNotSupportedException.
+            // The catch-all deliberately swallows these: the call is a best-effort hint
+            // and the cost of it failing is exactly zero (the code path below proceeds
+            // identically).
+            try
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
+            }
+            catch
+            {
+                // Non-critical hint; intentionally swallows NotSupportedException /
+                // PlatformNotSupportedException on older or non-.NET-Core runtimes.
+            }
+
             try
             {
                 originalGCMode = GCSettings.LatencyMode;
