@@ -689,7 +689,7 @@ namespace osu.Android
                 string rgb565Message =
                     "[osu!] Android surface pixel format RGB565 detected (Vulkan path) — " +
                     "requesting RGBA8888 and triggering a surface recreate. " +
-                    "If this fires after startup an OEM display-mode change reset the surface format, " +
+                    "If this fires after startup an OEM display-mode change has reset the surface format, " +
                     "which would cause a mid-session swapchain rebuild at wrong dimensions.";
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
