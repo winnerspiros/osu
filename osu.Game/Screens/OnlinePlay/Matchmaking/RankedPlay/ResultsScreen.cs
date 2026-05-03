@@ -125,7 +125,19 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 };
 
                 // Should complete instantaneously due to prior lookups.
-                APIBeatmap beatmap = (await beatmapLookupCache.GetBeatmapAsync(globalBeatmap.Value.BeatmapInfo.OnlineID).ConfigureAwait(false))!;
+                // GetBeatmapAsync can return null if the online ID is unknown (e.g. in tests or
+                // when the API is unavailable); fall back to a placeholder rather than crashing.
+                APIBeatmap? beatmap = await beatmapLookupCache.GetBeatmapAsync(globalBeatmap.Value.BeatmapInfo.OnlineID).ConfigureAwait(false);
+                beatmap ??= new APIBeatmap
+                {
+                    BeatmapSet = new APIBeatmapSet
+                    {
+                        Title = "unknown beatmap",
+                        TitleUnicode = "unknown beatmap",
+                        Artist = "unknown artist",
+                        ArtistUnicode = "unknown artist",
+                    }
+                };
 
                 Schedule(() =>
                 {
