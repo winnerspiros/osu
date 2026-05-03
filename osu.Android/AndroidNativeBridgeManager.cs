@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using osu.Android.Native;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
@@ -20,7 +21,7 @@ namespace osu.Android
         private volatile bool disposed;
         private volatile string? cachedOboeStatus;
         private volatile string? cachedVulkanStatus;
-        private readonly object oboeLock = new object();
+        private readonly Lock oboeLock = new Lock();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StartOboeBridge(IntPtr provider, int sampleRate = 0, Action<int>? onStarted = null)

@@ -52,7 +52,7 @@ namespace osu.Android
 
             try
             {
-                startedUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                startedUtcMs = Environment.TickCount64;
 
                 // When the user has selected Vulkan, the Adreno / Mali / Xclipse driver
                 // spawns its own internal worker pool during vkCreateInstance /
@@ -87,7 +87,7 @@ namespace osu.Android
 
             try
             {
-                long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long now = Environment.TickCount64;
                 if (now - startedUtcMs > max_runtime_ms)
                 {
                     stop();

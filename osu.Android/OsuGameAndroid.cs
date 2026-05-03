@@ -9,6 +9,7 @@ using Debug = System.Diagnostics.Debug;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
@@ -44,7 +45,7 @@ namespace osu.Android
     {
         private readonly OsuGameActivity gameActivity;
 
-        private readonly object packageInfoLock = new object();
+        private readonly Lock packageInfoLock = new Lock();
         private PackageInfo? packageInfo;
         private bool packageInfoChecked;
 
@@ -254,7 +255,7 @@ namespace osu.Android
             audioOffset.BindValueChanged(e =>
             {
                 double delta = Math.Abs(e.NewValue - e.OldValue);
-                long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long nowMs = Environment.TickCount64;
                 bool firstFire = lastLoggedAudioOffsetMs == 0;
                 bool deltaSignificant = delta >= 0.5;
                 bool elapsedSignificant = (nowMs - lastLoggedAudioOffsetMs) >= 2_000;

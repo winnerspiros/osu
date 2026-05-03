@@ -382,7 +382,7 @@ namespace osu.Android
             return stat.Substring(rp + 2, 1);
         }
 
-        private static long nowUtcMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        private static long nowUtcMs() => Environment.TickCount64;
 
         // Captures all heartbeat state for one game thread. Fields are mutated
         // from both the monitor (read) and the game thread (write), all via

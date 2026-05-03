@@ -99,7 +99,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.503.5" />
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.503.6" />
     <!-- `ppy.osu.Framework.NativeLibs` is a transitive dependency of `ppy.osu.Framework`
          that ships desktop-only natives (Linux/macOS/Windows) under `runtimes/<rid>/native/`
          — including a bare Linux `libbass.so`/`libbass_fx.so`/`libbassmix.so` for linux-arm64.

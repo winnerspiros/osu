@@ -12,6 +12,7 @@ using Debug = System.Diagnostics.Debug;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
@@ -659,7 +660,7 @@ namespace osu.Android
         // versa). The handle reader uses Volatile.Read for an unlocked fast path on hot
         // call sites and a locked slow path is unnecessary because all writes happen
         // under the lock and Interlocked.Exchange / Volatile.Write are release barriers.
-        private readonly object surfaceLock = new object();
+        private readonly Lock surfaceLock = new Lock();
         private global::Android.Views.Surface? heldSurface;
         private IntPtr surfaceGlobalRef;
 
