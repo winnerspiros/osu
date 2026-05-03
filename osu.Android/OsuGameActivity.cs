@@ -275,13 +275,14 @@ namespace osu.Android
             // for the Surface that is about to be born — no SurfaceDestroyed teardown occurs.
             //
             // Without this, on devices that ignore Window.SetFormat the Surface is born RGB565;
-            // the framework's AndroidGameSurface.SurfaceChanged fires first and sets
-            // IsSurfaceReady=true before OsuGameActivity.SurfaceChanged can call SetFormat.
-            // That opens a race window where Veldrid proceeds to vkCreateSwapchainKHR while
-            // the ANativeWindow is mid-teardown, reading dp-scaled dimensions from
-            // vkGetPhysicalDeviceSurfaceCapabilitiesKHR (e.g. 1029×480 on a 3088×1440 device)
-            // and baking a 1/9-scale swapchain → 9-screen tiling + ~18fps from per-frame
-            // vkDeviceWaitIdle stalls in the Resize() retry loop.
+            // the framework's osu.Framework.Android.AndroidGameSurface.SurfaceChanged fires
+            // first (as the built-in SurfaceView callback) and sets IsSurfaceReady=true before
+            // OsuGameActivity.SurfaceChanged (registered via holder.AddCallback) can call
+            // SetFormat.  That opens a race window where Veldrid proceeds to
+            // vkCreateSwapchainKHR while the ANativeWindow is mid-teardown, reading dp-scaled
+            // dimensions from vkGetPhysicalDeviceSurfaceCapabilitiesKHR (e.g. 1029×480 on a
+            // 3088×1440 device) and baking a 1/9-scale swapchain → 9-screen tiling + ~18fps
+            // from per-frame vkDeviceWaitIdle stalls in the Resize() retry loop.
             if (LogManagement.IsVulkanConfigured())
             {
                 try
@@ -802,8 +803,12 @@ namespace osu.Android
 
                 // The SetFormat call above queues a SurfaceDestroyed→SurfaceCreated cycle.
                 // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock yet —
-                // the current Surface handle is about to be invalidated. The event will be
-                // re-set when SurfaceChanged fires again with the new RGBA8888 Surface.
+                // the current Surface handle is about to be invalidated, and any caller that
+                // receives it would forward a dangling pointer into the Vulkan driver.
+                // The event will be re-set when SurfaceChanged fires again for the new
+                // RGBA8888 Surface (the non-RGB565 path below calls surfaceEvent.Set()).
+                // We must NOT fall through to the width/height check below, because that
+                // would signal the event with the old (about-to-die) surface dimensions.
                 surfaceEvent.Reset();
                 Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
                 return;
