@@ -806,9 +806,10 @@ namespace osu.Android
                 // the current Surface handle is about to be invalidated, and any caller that
                 // receives it would forward a dangling pointer into the Vulkan driver.
                 // The event will be re-set when SurfaceChanged fires again for the new
-                // RGBA8888 Surface (the non-RGB565 path below calls surfaceEvent.Set()).
-                // We must NOT fall through to the width/height check below, because that
-                // would signal the event with the old (about-to-die) surface dimensions.
+                // RGBA8888 Surface; the normal-path surfaceEvent.Set() at the end of this
+                // method (lines below the if/else-if guard) handles that on the next call.
+                // We must NOT fall through to the width/height check, because that would
+                // signal the event with the old (about-to-die) surface dimensions.
                 surfaceEvent.Reset();
                 Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
                 return;
