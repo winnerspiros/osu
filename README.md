@@ -201,7 +201,7 @@ A few hardening fixes on top of upstream that are not directly performance-relat
 | | |
 |---|---|
 | **.NET 10** | Upgraded from .NET 8 (upstream) to .NET 10 for the latest runtime and language improvements |
-| **Framework as NuGet (fork)** | Consumes the [`winnerspiros/osu-framework`](https://github.com/winnerspiros/osu-framework) fork as `ppy.osu.Framework` / `ppy.osu.Framework.Android` / `ppy.osu.Framework.iOS` **v2026.421.1** from the winnerspiros GitHub Packages feed — enables deep platform changes without carrying a submodule |
+| **Framework as NuGet (fork)** | Consumes the [`winnerspiros/osu-framework`](https://github.com/winnerspiros/osu-framework) fork as `ppy.osu.Framework` / `ppy.osu.Framework.Android` / `ppy.osu.Framework.iOS` from the winnerspiros GitHub Packages feed — enables deep platform changes without carrying a submodule |
 | **Profiled AOT** | Startup-critical methods are ahead-of-time compiled for faster app launch |
 | **IL trimming** | Unused code is stripped from the APK for smaller size |
 | **LZ4 compression** | Assembly compression saves ~20 MB in the final APK |
@@ -212,9 +212,9 @@ A few hardening fixes on top of upstream that are not directly performance-relat
 </details>
 
 <details>
-<summary><strong>osu-framework fork changes (v2026.421.1)</strong></summary>
+<summary><strong>osu-framework fork changes</strong></summary>
 
-The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) fork (published as NuGet v2026.421.1) layers the following on top of upstream `ppy/osu-framework`:
+The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) fork layers the following on top of upstream `ppy/osu-framework`:
 
 **Rendering backends:**
 - Full **Direct3D 12** backend powered by the [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork — exposed as `RendererType.Direct3D12` / `Deferred_Direct3D12` in the renderer dropdown (Windows only; auto-hidden on other platforms).
@@ -240,24 +240,31 @@ The [winnerspiros/osu-framework](https://github.com/winnerspiros/osu-framework) 
 - AAudio backend enabled for BASS, native 48 kHz sample rate (matches Android/iOS hardware)
 - Mixer handle made public for Oboe bridge access
 
+**Android Vulkan stability:**
+- `VeldridDevice` polls `SurfaceHandle` for up to 5 s when the Android surface is not yet ready, then waits 150 ms for format-change cycles to settle before calling `vkCreateSwapchainKHR`.
+- dp-scale guard in swapchain creation: aborts before `vkDeviceWaitIdle` if `vkGetPhysicalDeviceSurfaceCapabilitiesKHR` returns dimensions ≤ ¼ of the requested size (dp-scale race during `SurfaceHolder.SetFormat`).
+- Missing pipeline-barrier calls added before render passes when images transition between `ShaderReadOnlyOptimal` and attachment layouts (fixes pink masking rectangles in dynamic-rendering mode).
+- Transient depth `storeOp = DontCare` — keeps depth entirely in tile RAM on Adreno/Mali; zero DRAM writeback per frame.
+- Null `ANativeWindow` guard in `VkSurfaceUtil`; `DrawThread.OnInitialize()` wraps the initial `BeginFrame` in try-catch.
+
+**Android GPU & draw thread:**
+- Draw thread boosted to `THREAD_PRIORITY_DISPLAY` for better OS scheduling.
+- `TextureAtlas` size on Android increased from 1024×1024 → 2048×2048, reducing atlas overflow and the resulting `vkQueueSubmit` storm on texture-heavy screens.
+
 **Performance (all transparent to consumers):**
-- Hot-path LINQ allocations eliminated across the framework (for-loops, spans, cached collections).
-- `object`-based locks migrated to `System.Threading.Lock` for lower overhead on .NET 10.
-- GridContainer cell sizing uses `RequiredParentSizeToFit` instead of `BoundingBox` — avoids redundant matrix-to-parent-space transforms each layout pass.
-- `VeldridExtensions.LogOpenGL` hoists cached Version / ShadingLanguageVersion out of the GL-thread execution scope (fewer unsafe `glGetString` + `Marshal.PtrToStringUTF8` calls per init).
-- GL state-change, shader warm-up, texture upload, and mobile vertex-batching improvements.
+- `object`-based locks migrated to `System.Threading.Lock` across 15+ hot-path call sites (bindable system, texture tracking, audio thread, thread runner, input queue, draw renderer).
+- `Thread.Sleep(1)` replaced with `SpinWait.SpinOnce()` in async buffer stream and `GameThreadSynchronizationContext.Send`.
+- `AsyncBufferStream` block-load tracking replaced LINQ `All()` iterator with an `int loadedBlockCount` counter — no allocation per block poll.
+- Input `ButtonEventManager`: `Where().ToList()` → `RemoveAll` in-place on button release (no allocation per event).
+- `GridContainer` cell sizing uses `RequiredParentSizeToFit` instead of `BoundingBox` — avoids redundant matrix transforms each layout pass.
+- `TimedExpiryCache`: `DateTimeOffset.Now` → `Environment.TickCount64` for expiry checks (no DateTimeOffset allocation per lookup).
+- Switch statements across format, audio, and platform code converted to C# switch expressions.
 
 **Platform targeting:**
 - Full `osu.Framework.Android` / `osu.Framework.iOS` implementations.
 - Android minimum bumped to **API 33** (matches app manifest), target API 36.
 - Android release config: profiled AOT (`AndroidEnableProfiledAot`), partial trimming, `AndroidStripILAfterAOT=false`, no LLVM (incompatible with profiled AOT).
-- iOS: `SupportedOSPlatformVersion` 13.4, trim-analysis warnings suppressed with `[DynamicallyAccessedMembers]` and `[UnconditionalSuppressMessage]`.
-
-**Android-specific framework polish:**
-- Null `ANativeWindow` guard in `VkSurfaceUtil`.
-- `VeldridDevice` polls `SurfaceHandle` for up to 5 s when the Android surface is not yet ready.
-- `DrawThread.OnInitialize()` wraps the initial `BeginFrame` in try-catch for graceful handling before surface readiness.
-- NRE fix in `GraphicsPipeline.cs` (null-conditional `ResourceLayouts?.Length`).
+- iOS: `SupportedOSPlatformVersion` 13.4, trim-analysis warnings suppressed.
 
 </details>
 
@@ -269,29 +276,38 @@ The [winnerspiros/veldrid](https://github.com/winnerspiros/veldrid) fork (net10.
 **Direct3D 12 backend:**
 - Full D3D12 renderer with swapchain creation (`VeldridDevice.CreateD3D12`) and `PersistentStagingBuffer`.
 - `BackendInfoD3D12`: `SupportsEnhancedBarriers`, `SupportsMeshShaders`, `SupportsVariableRateShading`, `SupportsRaytracing`, device handle for low-latency providers.
-- D3D12 redundant-state caching, staging-pool swap-remove.
+- D3D12 redundant-state caching, staging-pool O(1) swap-remove.
 
 **Android Vulkan rendering:**
 - Vulkan surface creation from `ANativeWindow` via `VK_KHR_android_surface`.
 - Android-specific extension detection and enablement.
 - `VK_EXT_host_image_copy`, push descriptors, dynamic rendering, pipeline-cache optimisations.
+- **`vkQueueSubmit2`** (Vulkan 1.3 / `VK_KHR_synchronization2`) — replaces `vkQueueSubmit` for improved timeline-semaphore handling.
+- **`VK_GOOGLE_display_timing`** — queries per-frame presentation timestamps for jank detection.
+- **`VK_EXT_pipeline_creation_cache_control`** — skips pipeline compilation on cache hit, reducing first-frame stall.
+- **IMMEDIATE present mode** on Android — enables uncapped frame rates when VSync is off.
+- **dp-scale guard** in `createSwapchain` — returns false before `vkDeviceWaitIdle` if surface reports dp-scaled (sub-physical) dimensions, preventing a permanent 1/9-scale swapchain.
+- **Vertex/index buffer binding cache** — skips redundant `vkCmdBindVertexBuffers` / `vkCmdBindIndexBuffer` calls when the same buffer+offset is re-submitted in consecutive draw calls.
+- **`VkTexture.clearIfRenderTarget` transient guard** — skips `vkCmdClear*` for `TRANSIENT_ATTACHMENT_BIT` images (those lack `TRANSFER_DST_BIT`; the render-pass `loadOp=Clear` handles initialisation correctly per Vulkan spec §19.1).
 
 **OpenGL ES fallback:**
 - Complete EGL 1.4 bindings for GLES 2.0/3.0 context creation.
 - Proper stencil buffer initialisation (critical for osu!'s UI).
+- **`glInvalidateFramebuffer`** on offscreen FBOs — signals the driver that colour/depth/stencil data can be discarded after the render pass, skipping tile→DRAM writeback on Adreno/Mali for non-sampled attachments.
 - OpenGL pipeline state caching; `BackendInfoOpenGL` caches `Version` / `ShadingLanguageVersion` off-thread.
+- EGL presentation timing + transient depth `DontCare` on GLES path.
 
 **Metal / D3D11 / general:**
 - `BackendInfoMetal` with `MaxFeatureSet` / `FeatureSet`, merged layout-offset loops.
 - `BackendInfoD3D11` exposing `FeatureLevel`, `DeviceId`, native `Device` handle (no redundant COM RCW).
-- D3D11/D3D12 staging-pool swap-remove for faster buffer recycling.
+- D3D11/D3D12/Vulkan staging-pool **O(1) swap-remove** — `List.Remove` (O(n) search) replaced with index-based swap-remove for pool reclaim.
+- Modernization sweep: `System.HashCode` for hash combinations, `Array.Empty<T>()` instead of allocating empty arrays, `switch` expressions throughout format conversion files.
 
 **Performance, all backends:**
 - `System.Threading.Lock` migration across every GPU backend.
 - UTF-8 string literals for zero-allocation Vulkan lookups.
 - Vulkan fence early-out to avoid blocking waits.
 - Screen-tearing support for lowest-latency present modes.
-- `Vortice.Windows` bumped to 3.8.3.
 
 **Android packaging:**
 - `veldrid-spirv` built with 16 KB ELF page alignment (Android 15+ / API 36 compliance).
