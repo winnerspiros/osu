@@ -165,6 +165,14 @@ namespace osu.Android
         private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
+        // ADPF (Android Dynamic Performance Framework) hint sessions for the Draw and Update threads.
+        // These tell the CPU scheduler to boost the clock frequency so game-loop threads can complete
+        // their work within the display frame deadline (e.g. 8.33 ms at 120 Hz).
+        // The sessions are created once after LoadComplete (when thread IDs are stable) and closed on
+        // Dispose. Target duration is updated whenever the active display refresh rate changes.
+        private IntPtr adpfDrawSession;
+        private IntPtr adpfUpdateSession;
+
         // Surface.setFrameRate() compatibility constants from android.view.Surface.
         // Hard-coded because the Xamarin/.NET-for-Android bindings do not always expose
         // these as named fields across binding versions.
@@ -517,6 +525,50 @@ namespace osu.Android
                         }
                     });
                 }
+
+                // ADPF (Android Dynamic Performance Framework) hint sessions for Draw + Update threads.
+                // These hint sessions tell the CPU governor "these threads need to finish their work
+                // within one display-frame interval". The kernel then pre-boosts the CPU frequency
+                // so the threads don't stall mid-frame waiting for a slow core to spin up.
+                //
+                // Target duration = 1 / displayRefreshRate. We default to 120 Hz (8.33 ms) and
+                // update the target when the display refresh rate is confirmed by applyDisplayMode.
+                //
+                // nADPFCreateSession() captures gettid() of the *calling* thread, so each Add
+                // lambda must run on its respective game thread to register the correct TID.
+                Scheduler.Add(() =>
+                {
+                    try
+                    {
+                        Host?.DrawThread?.Scheduler.Add(() =>
+                        {
+                            try
+                            {
+                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
+                                adpfDrawSession = OboeAudioBridge.nADPFCreateSession(targetNs);
+                                if (adpfDrawSession != IntPtr.Zero)
+                                    Logger.Log($"[osu!] ADPF session created for Draw thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                            }
+                            catch { }
+                        });
+
+                        Host?.UpdateThread?.Scheduler.Add(() =>
+                        {
+                            try
+                            {
+                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
+                                adpfUpdateSession = OboeAudioBridge.nADPFCreateSession(targetNs);
+                                if (adpfUpdateSession != IntPtr.Zero)
+                                    Logger.Log($"[osu!] ADPF session created for Update thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                            }
+                            catch { }
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Failed to enqueue ADPF session creation: {e.Message}");
+                    }
+                });
             }
             catch (Exception e)
             {
@@ -1380,6 +1432,14 @@ namespace osu.Android
                     }
 
                     Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
+
+                    // Update ADPF target duration to match the new display refresh rate.
+                    // This keeps the CPU governor hint aligned with the actual frame deadline.
+                    if (mode.RefreshRate > 0)
+                    {
+                        long targetNs = (long)(1_000_000_000.0 / mode.RefreshRate);
+                        updateAdpfTargetDuration(targetNs);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -1388,8 +1448,23 @@ namespace osu.Android
             });
         }
 
-        private global::Android.Views.Display? getActiveDisplay()
+        /// <summary>
+        /// Updates the target work duration on both ADPF hint sessions (Draw + Update thread)
+        /// so the CPU governor can pre-boost each thread to meet the new frame deadline.
+        /// </summary>
+        private void updateAdpfTargetDuration(long targetNs)
         {
+            try
+            {
+                if (adpfDrawSession != IntPtr.Zero)
+                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfDrawSession, targetNs);
+                if (adpfUpdateSession != IntPtr.Zero)
+                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfUpdateSession, targetNs);
+            }
+            catch { }
+        }
+
+        private global::Android.Views.Display? getActiveDisplay()        {
             if (gameActivity.IsFinishing || gameActivity.IsDestroyed)
                 return null;
 
@@ -1846,7 +1921,7 @@ namespace osu.Android
 
         /// <summary>
         /// One-shot migration that switches Android-side <see cref="FrameSync"/> from the
-        /// framework default of <see cref="FrameSync.Limit2x"/> to <see cref="FrameSync.VSync"/>.
+        /// framework default of <see cref="FrameSync.Limit2x"/> to <see cref="FrameSync.ActualUnlimited"/>.
         ///
         /// <para>
         /// On a 120Hz Adreno-class display (Snapdragon 8 Gen 2 / S23 Ultra),
@@ -1860,11 +1935,14 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// <see cref="FrameSync.VSync"/> caps the draw thread to the display refresh and
-        /// bounds in-flight frames to one, eliminating the pile-up. The migration runs
-        /// exactly once per install (gated by <see cref="OsuSetting.AndroidStartupFrameSyncMigrationApplied"/>)
-        /// so a user who later prefers <c>Limit2x</c>/<c>Unlimited</c> from
-        /// Settings &gt; Graphics &gt; Renderer is not fought on every launch.
+        /// <see cref="FrameSync.ActualUnlimited"/> uses Vulkan IMMEDIATE present mode (VK_PRESENT_MODE_IMMEDIATE_KHR)
+        /// which presents each frame as soon as it is ready without waiting for vblank.
+        /// Combined with VK_GOOGLE_display_timing (skipping desiredPresentTime in IMMEDIATE mode),
+        /// this delivers the lowest possible input-to-display latency while avoiding the
+        /// vkAcquireNextImageKHR queue pile-up of Limit2x. The migration runs exactly once per
+        /// install (gated by <see cref="OsuSetting.AndroidStartupFrameSyncMigrationApplied"/>)
+        /// so a user who later prefers a different mode from Settings → Graphics → Renderer
+        /// is not fought on every launch.
         /// </para>
         /// </summary>
         private void applyAndroidFrameSyncMigrationOnce(FrameworkConfigManager frameworkConfig)
@@ -1875,21 +1953,40 @@ namespace osu.Android
                 if (LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncMigrationApplied))
                 {
                     CrashDiagnostics.WriteAliveMarker("applyAndroidFrameSyncMigrationOnce (already applied)");
+
+                    // v2 migration: upgrade users who were previously migrated to VSync (by an older
+                    // build) to ActualUnlimited. Only applies if:
+                    //   1. The v2 migration hasn't run yet.
+                    //   2. The user is currently on VSync (hasn't manually changed it since v1).
+                    // This gives existing users the lower-latency uncapped mode without overriding
+                    // deliberate user choices.
+                    if (!LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied))
+                    {
+                        var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+                        if (frameSync.Value == FrameSync.VSync)
+                        {
+                            frameSync.Value = FrameSync.ActualUnlimited;
+                            Logger.Log("[osu!] Android FrameSync v2 migration: VSync → ActualUnlimited (IMMEDIATE present mode, lower latency)", LoggingTarget.Performance);
+                        }
+                        LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
+                    }
+
                     return;
                 }
 
-                var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+                var frameSyncV1 = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
 
                 // Only override the framework default. If the user has already explicitly
                 // chosen a different mode (Unlimited / VSync / Custom), respect that —
                 // the migration's job is to nudge the *default*, not to overwrite intent.
-                if (frameSync.Value == FrameSync.Limit2x)
+                if (frameSyncV1.Value == FrameSync.Limit2x)
                 {
-                    frameSync.Value = FrameSync.VSync;
-                    Logger.Log("[osu!] Android first-launch FrameSync migration: Limit2x → VSync (bounds Vulkan present-queue depth on Adreno)", LoggingTarget.Performance);
+                    frameSyncV1.Value = FrameSync.ActualUnlimited;
+                    Logger.Log("[osu!] Android first-launch FrameSync migration: Limit2x → ActualUnlimited (IMMEDIATE present, no vblank stall)", LoggingTarget.Performance);
                 }
 
                 LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncMigrationApplied, true);
+                LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
             }
             catch (Exception e)
             {
@@ -2341,6 +2438,22 @@ namespace osu.Android
                 highPerformanceSession = null;
                 dexPerformanceSession?.Dispose();
                 dexPerformanceSession = null;
+
+                // Close ADPF hint sessions for game threads.
+                try
+                {
+                    if (adpfDrawSession != IntPtr.Zero)
+                    {
+                        OboeAudioBridge.nADPFCloseSession(adpfDrawSession);
+                        adpfDrawSession = IntPtr.Zero;
+                    }
+                    if (adpfUpdateSession != IntPtr.Zero)
+                    {
+                        OboeAudioBridge.nADPFCloseSession(adpfUpdateSession);
+                        adpfUpdateSession = IntPtr.Zero;
+                    }
+                }
+                catch { }
 
                 var cst = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
                 try { cst?.Dispose(); }

@@ -274,6 +274,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
+            SetDefault(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, false);
 
             // --- Android startup-safety toggles ---
             //
@@ -576,6 +577,7 @@ namespace osu.Game.Configuration
         AndroidLowLatencyAudio,
         AndroidVulkanProbe,
         AndroidStartupFrameSyncMigrationApplied,
+        AndroidStartupFrameSyncV2MigrationApplied,
         AndroidCleanupStaleRealmFifos,
         AndroidDeferStartupNativeInit,
         AndroidStartupFrameSyncMigrationEnabled,
