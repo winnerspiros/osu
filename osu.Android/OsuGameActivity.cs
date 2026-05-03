@@ -683,20 +683,16 @@ namespace osu.Android
             // picks up the new ANativeWindow and negotiates a proper BGRA/RGBA 8-bit swapchain.
             if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured())
             {
-                Logger.Log(
-                    "[osu!] Android surface pixel format RGB565 detected mid-session (Vulkan path). " +
-                    "Requesting RGBA8888 and triggering a surface recreate. " +
-                    "If this fires after startup it indicates an OEM display-mode change " +
-                    "(e.g. SetSustainedPerformanceMode) reset the surface format.",
-                    LoggingTarget.Runtime,
-                    LogLevel.Important);
-                Logger.Log(
-                    "[osu!] Android surface pixel format RGB565 is incompatible with the Vulkan rendering pipeline " +
-                    "— requesting RGBA8888 and triggering a surface recreate. " +
-                    "This is the root cause of the Vulkan black-screen crash on Adreno (SDL_PIXELFORMAT_RGB565 in runtime log). " +
-                    "The next SurfaceChanged will carry the corrected format.",
-                    LoggingTarget.Performance,
-                    LogLevel.Important);
+                // Log to Runtime so the mid-session RGB565 reset is visible in the main log
+                // (and therefore in the notification overlay). Performance log gets the same
+                // entry for correlation with display-mode and frame-timing data.
+                string rgb565Message =
+                    "[osu!] Android surface pixel format RGB565 detected (Vulkan path) — " +
+                    "requesting RGBA8888 and triggering a surface recreate. " +
+                    "If this fires after startup an OEM display-mode change reset the surface format, " +
+                    "which would cause a mid-session swapchain rebuild at wrong dimensions.";
+                Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
+                Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
 
                 try
                 {

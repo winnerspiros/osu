@@ -379,8 +379,8 @@ namespace osu.Android
             //
             // Pinning Update + Draw + Input to a 5-core subset (mask 0xF8 on SD8G2) is the
             // ONLY unconditional Android-specific synchronous mutation we still perform
-            // during the cold-start window — every other customisation (
-            // RequestUnbufferedDispatch, refresh-rate selection, Oboe / Vulkan-probe init,
+            // during the cold-start window — every other customisation (RequestUnbufferedDispatch,
+            // refresh-rate selection, Oboe / Vulkan-probe init,
             // performance-mode GC-latency flip) is already deferred behind the
             // refreshRateDelayMs scheduler below. Field logs.zip on v2026.423.176 show both
             // a normal launch and a safe-mode launch dying silently mid-Toolbar load
@@ -1019,8 +1019,7 @@ namespace osu.Android
             // the BDL load thread, in the silent cold-start window — exactly
             // when we are debugging a startup hang. Deferring the initial
             // fire via Scheduler.AddDelayed onto the same refreshRateDelayMs
-            // timer that gates the initial refresh-
-            // rate apply / the initial performance-mode apply keeps the cold-
+            // timer that gates the initial refresh-rate apply / performance-mode apply keeps the cold-
             // start path free of synchronous native init even when a saved-
             // true setting would otherwise force it, AND ensures the native
             // init actually lands AFTER the cold-start Toolbar texture-upload
