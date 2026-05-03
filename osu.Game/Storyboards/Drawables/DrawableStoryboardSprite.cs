@@ -118,8 +118,13 @@ namespace osu.Game.Storyboards.Drawables
 
         private void skinSourceChanged()
         {
-            Texture = skin.GetTexture(Sprite.Path, WrapMode.ClampToEdge, WrapMode.ClampToEdge) ??
-                      textureStore.Get(Sprite.Path, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
+            // Prefer the storyboard's LargeTextureStore (backed by the beatmap folder) so that large
+            // storyboard backgrounds (e.g. 2732×1572) are never routed through the skin's regular
+            // atlased TextureStore, which would exceed the 2048×2048 atlas limit and cause atlas
+            // overflow stalls on Android Vulkan. Only fall back to the skin when the beatmap folder
+            // doesn't contain the asset (e.g. a standard skin element like "hit300").
+            Texture = textureStore.Get(Sprite.Path, WrapMode.ClampToEdge, WrapMode.ClampToEdge) ??
+                      skin.GetTexture(Sprite.Path, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
 
             // Setting texture will only update the size if it's zero.
             // So let's force an explicit update.

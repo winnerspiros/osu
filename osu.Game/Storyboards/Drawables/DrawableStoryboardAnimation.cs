@@ -139,8 +139,24 @@ namespace osu.Game.Storyboards.Drawables
         {
             ClearFrames();
 
-            // When reading from a skin, we match stables weird behaviour where `FrameCount` is ignored
-            // and resources are retrieved until the end of the animation.
+            // Prefer the storyboard's LargeTextureStore (backed by the beatmap folder) so that large
+            // storyboard animation frames are never routed through the skin's regular atlased TextureStore.
+            // Only fall back to skin lookup when the first animation frame is absent from the beatmap
+            // folder (i.e. it is a standard skin element like "hit300"), matching stable's "UseSkinSprites"
+            // semantics.
+            string firstFramePath = Animation.FrameCount > 0
+                ? Animation.Path.Replace(".", "0.")
+                : Animation.Path;
+
+            if (textureStore.Get(firstFramePath) != null)
+            {
+                addFramesFromStoryboardSource();
+                return;
+            }
+
+            // Fall back to skin (original UseSkinSprites behaviour): when reading from a skin, we match
+            // stable's weird behaviour where `FrameCount` is ignored and resources are retrieved until
+            // the end of the animation.
             var skinTextures = skin.GetTextures(Path.ChangeExtension(Animation.Path, null), default, default, true, string.Empty, null, out _);
 
             if (skinTextures.Length > 0)
