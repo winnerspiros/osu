@@ -324,7 +324,7 @@ namespace osu.Game
         private Bindable<string> frameworkLocale = null!;
 
         /// <summary>
-        /// Kept alive to maintain the FrameSync subscription that caps <see cref="osu.Framework.Threading.InputThread.ActiveHz"/>.
+        /// Kept alive to maintain the FrameSync subscription that caps <c>InputThread.ActiveHz</c>.
         /// </summary>
         private Bindable<FrameSync> frameSyncForInputCap = null!;
 
