@@ -111,12 +111,12 @@ namespace osu.Game
         /// beyond what this cap provides.
         ///
         /// Value chosen so that:
-        ///   • The FPS-counter still shows "0.00 ms" (period = 4 µs &lt; 0.005 ms rounding threshold).
-        ///   • There is headroom for future 32 kHz high-polling-rate peripherals (8×).
-        ///   • Android S Pen (≤ 360 Hz hardware polling) is handled with &gt; 690× oversampling.
+        ///   • The FPS-counter shows "0.01 ms" (period = 10 µs).
+        ///   • There is headroom for future 32 kHz high-polling-rate peripherals (3×).
+        ///   • Android S Pen (≤ 360 Hz hardware polling) is handled with &gt; 277× oversampling.
         ///   • Thermal pressure is meaningfully reduced vs fully unlimited on mobile SoCs.
         /// </summary>
-        private const double max_unlimited_input_hz = 250_000;
+        private const double max_unlimited_input_hz = 100_000;
 
         public virtual bool UseDevelopmentServer => DebugUtils.IsDebugBuild;
 
@@ -421,7 +421,7 @@ namespace osu.Game
                 if (e.NewValue == FrameSync.ActualUnlimited)
                 {
                     Host.InputThread.ActiveHz = max_unlimited_input_hz;
-                    Logger.Log($"[osu!] Input thread capped at {max_unlimited_input_hz:N0} Hz (ActualUnlimited: 0.00 ms display, 32 kHz device headroom)", LoggingTarget.Performance);
+                    Logger.Log($"[osu!] Input thread capped at {max_unlimited_input_hz:N0} Hz (ActualUnlimited: 0.01 ms period, 32 kHz device headroom)", LoggingTarget.Performance);
                 }
             }, true);
 
