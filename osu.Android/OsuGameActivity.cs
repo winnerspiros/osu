@@ -441,10 +441,13 @@ namespace osu.Android
             // Phones: manifest already requests Landscape; do not re-assign at runtime —
             // a no-op assignment is harmless on most devices but a redundant RequestedOrientation
             // write can still nudge the SurfaceView into a recreate cycle on some OEMs while the
-            // SDL draw thread is mid-Vulkan-init. Tablets get a more permissive policy applied
-            // here; the SurfaceView is already up by this point and the framework handles
-            // post-init surface resize cleanly.
-            if (IsTablet)
+            // SDL draw thread is mid-Vulkan-init. Tablets and DeX get a more permissive policy:
+            // tablets need FullUser for portrait/landscape flexibility; DeX runs in a freeform
+            // window on the external monitor and needs FullUser so the window manager is not
+            // constrained by the Landscape hint (DeX ignores RequestedOrientation for freeform
+            // windows anyway, but setting FullUser avoids spurious surface-recreate events on
+            // some Samsung firmware builds that check the attribute during window creation).
+            if (IsTablet || IsDeX)
                 RequestedOrientation = DefaultOrientation = ScreenOrientation.FullUser;
             else
                 DefaultOrientation = ScreenOrientation.Landscape;

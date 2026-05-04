@@ -26,6 +26,11 @@ public:
     void stop();
 
     double getOutputLatencyMs() const;
+    /// Calls calculateLatencyMillis() directly on the stream (thread-safe per
+    /// Oboe docs) and returns the result. Unlike getOutputLatencyMs() this is
+    /// NOT a cached value, so callers always receive a fresh measurement.
+    /// Returns -1.0 if the stream is not open or the query fails.
+    double getInstantLatencyMs() const;
     bool isActive() const;
     int32_t getSampleRate() const;
     int32_t getFramesPerBurst() const;

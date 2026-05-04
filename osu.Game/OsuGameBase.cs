@@ -104,6 +104,20 @@ namespace osu.Game
         /// </summary>
         private const double global_track_volume_adjust = 0.8;
 
+        /// <summary>
+        /// Maximum input thread rate in <see cref="FrameSync.ActualUnlimited"/> mode.
+        /// The framework default for <see cref="FrameSync.ActualUnlimited"/> is 0 (fully unlimited spin),
+        /// which on modern hardware reaches 300 k+ Hz and burns an entire CPU core with no added benefit
+        /// beyond what this cap provides.
+        ///
+        /// Value chosen so that:
+        ///   • The FPS-counter shows "0.01 ms" (period = 10 µs).
+        ///   • There is headroom for future 32 kHz high-polling-rate peripherals (3×).
+        ///   • Android S Pen (&lt;= 360 Hz hardware polling) is handled with &gt; 277× oversampling.
+        ///   • Thermal pressure is meaningfully reduced vs fully unlimited on mobile SoCs.
+        /// </summary>
+        private const double max_unlimited_input_hz = 100_000;
+
         public virtual bool UseDevelopmentServer => DebugUtils.IsDebugBuild;
 
         public virtual EndpointConfiguration CreateEndpoints() =>
@@ -135,6 +149,13 @@ namespace osu.Game
         /// any time; the measurement is bounded (~2 seconds) and stops on its own.
         /// </summary>
         public virtual void ResyncHardwareAudioOffset() { }
+
+        /// <summary>
+        /// Restores the <see cref="OsuSetting.AudioOffset"/> value that was in effect immediately
+        /// before the last <see cref="ResyncHardwareAudioOffset"/> call. No-op if no resync has
+        /// occurred yet in this session. No-op outside of Android.
+        /// </summary>
+        public virtual void RestorePreviousHardwareAudioOffset() { }
 
         public virtual string VulkanStatus => string.Empty;
 
@@ -302,6 +323,11 @@ namespace osu.Game
 
         private Bindable<string> frameworkLocale = null!;
 
+        /// <summary>
+        /// Kept alive to maintain the FrameSync subscription that caps <c>InputThread.ActiveHz</c>.
+        /// </summary>
+        private Bindable<FrameSync> frameSyncForInputCap = null!;
+
         private IBindable<LocalisationParameters> localisationParameters = null!;
 
         /// <summary>
@@ -385,6 +411,26 @@ namespace osu.Game
             // Initialise localisation
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
             frameworkLocale.BindValueChanged(_ => updateLanguage());
+
+            // Cap the input thread at max_unlimited_input_hz when the user selects ActualUnlimited
+            // FrameSync. The framework's default for that mode is 0 (unlimited spin), which on
+            // modern multi-core hardware reaches 300k+ Hz and occupies an entire physical core with
+            // no measurable gameplay benefit over 250 kHz. This subscription fires *after* the
+            // framework's own FrameSync handler (because the framework's copy is bound first),
+            // so our write to InputThread.ActiveHz is the last one queued on the Input thread's
+            // scheduler and wins. For all other FrameSync modes the framework already caps input
+            // at GameThread.DEFAULT_ACTIVE_HZ (1000), so this callback is a no-op there.
+            frameSyncForInputCap = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+            frameSyncForInputCap.BindValueChanged(e =>
+            {
+                if (Host?.InputThread == null) return;
+
+                if (e.NewValue == FrameSync.ActualUnlimited)
+                {
+                    Host.InputThread.ActiveHz = max_unlimited_input_hz;
+                    Logger.Log($"[osu!] Input thread capped at {max_unlimited_input_hz:N0} Hz (ActualUnlimited: 0.01 ms period, 32 kHz device headroom)", LoggingTarget.Performance);
+                }
+            }, true);
 
             localisationParameters = Localisation.CurrentParameters.GetBoundCopy();
             localisationParameters.BindValueChanged(_ => updateLanguage(), true);

@@ -69,6 +69,15 @@ namespace osu.Game.Online
                 options.SerializerOptions = SignalRUnionWorkaroundResolver.OPTIONS;
             });
 
+            // Allow the client to reconnect and resume from the same logical connection when the
+            // underlying transport (WebSocket) drops and reconnects.  On mobile networks a brief
+            // connectivity blip would previously cause a full hub tear-down + rebuild, requiring
+            // the server to re-join rooms, re-subscribe spectator feeds, etc.  With stateful
+            // reconnect the SignalR buffer replays any missed messages and the logical connection
+            // ID is preserved — no extra server-side changes required; gracefully falls back on
+            // servers that don't opt-in.
+            builder.WithStatefulReconnect();
+
             var newConnection = builder.Build();
 
             ConfigureConnection?.Invoke(newConnection);

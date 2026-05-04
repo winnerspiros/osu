@@ -239,6 +239,17 @@ double OboeBridge::getOutputLatencyMs() const {
     return latencyMs_.load();
 }
 
+double OboeBridge::getInstantLatencyMs() const {
+    std::lock_guard<std::mutex> lock(streamLock_);
+    if (!stream_) return -1.0;
+    // calculateLatencyMillis() is documented as thread-safe in Oboe and is
+    // backed by AAudioStream_getTimestamp(). Calling it here (scheduler thread,
+    // outside of onAudioReady) is safe: we hold streamLock_ so stream_ cannot
+    // be reset underneath us, and the AAudio syscall itself is re-entrant.
+    auto result = stream_->calculateLatencyMillis();
+    return result ? result.value() : -1.0;
+}
+
 bool OboeBridge::isActive() const {
     return active_.load();
 }
@@ -485,6 +496,11 @@ OSU_EXPORT void nOboeStop(intptr_t ptr) {
 OSU_EXPORT double nOboeGetLatencyMs(intptr_t ptr) {
     auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
     return bridge ? bridge->getOutputLatencyMs() : -1.0;
+}
+
+OSU_EXPORT double nOboeGetInstantLatencyMs(intptr_t ptr) {
+    auto* bridge = reinterpret_cast<OboeBridge*>(ptr);
+    return bridge ? bridge->getInstantLatencyMs() : -1.0;
 }
 
 OSU_EXPORT byte nOboeIsActive(intptr_t ptr) {

@@ -136,6 +136,12 @@ namespace osu.Game.Screens
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"HueSelectorBackground"));
                 loadTargets.Add(manager.Load(@"LogoAnimation", @"LogoAnimation"));
 
+                // Path/PathPrepass are used for slider bodies in osu!standard. They are compiled here
+                // to prevent a ~2 second stall at gameplay start on Vulkan (observed on Adreno 740
+                // Android where the compiled SPIR-V is not cached across sessions early enough).
+                loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"Path"));
+                loadTargets.Add(manager.Load(@"PathPrepass", @"PathPrepass"));
+
                 // Ruleset local shader usage (should probably move somewhere else).
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"SpinnerGlow"));
                 loadTargets.Add(manager.Load(@"CursorTrail", FragmentShaderDescriptor.TEXTURE));

@@ -100,6 +100,19 @@ namespace osu.Android.Native
             catch { return -1; }
         }
 
+        /// <summary>
+        /// Returns a fresh hardware-latency reading by calling calculateLatencyMillis()
+        /// directly on the stream, bypassing the cached value that onAudioReady only
+        /// refreshes every ~1 second. Use this for measurement loops that need
+        /// accurate per-poll readings.
+        /// </summary>
+        public double GetInstantLatencyMs()
+        {
+            if (disposed || nativePtr == IntPtr.Zero) return -1;
+            try { return nOboeGetInstantLatencyMs(nativePtr); }
+            catch { return -1; }
+        }
+
         public string GetLastErrorMessage()
         {
             if (disposed || nativePtr == IntPtr.Zero) return "Not initialized";
@@ -201,6 +214,7 @@ namespace osu.Android.Native
         [DllImport(lib_name)] private static extern byte nOboeStart(IntPtr ptr);
         [DllImport(lib_name)] private static extern void nOboeStop(IntPtr ptr);
         [DllImport(lib_name)] private static extern double nOboeGetLatencyMs(IntPtr ptr);
+        [DllImport(lib_name)] private static extern double nOboeGetInstantLatencyMs(IntPtr ptr);
         [DllImport(lib_name)] private static extern byte nOboeIsActive(IntPtr ptr);
         [DllImport(lib_name)] private static extern int nOboeGetSampleRate(IntPtr ptr);
         [DllImport(lib_name)] private static extern int nOboeGetFramesPerBurst(IntPtr ptr);

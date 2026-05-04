@@ -272,6 +272,9 @@ namespace osu.Game.Configuration
             //     affecting steady-state performance. Power users opt in.
             SetDefault(OsuSetting.AndroidPerformanceMode, true);
             SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
+            // Sentinel value meaning "no previous offset has been saved yet".
+            // AudioOffset is bounded [-500, 500], so double.MinValue is safely out of range.
+            SetDefault(OsuSetting.AndroidPreviousHardwareAudioOffset, double.MinValue);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, false);
@@ -575,6 +578,7 @@ namespace osu.Game.Configuration
         DashboardDisplayStyle,
         AndroidPerformanceMode,
         AndroidLowLatencyAudio,
+        AndroidPreviousHardwareAudioOffset,
         AndroidVulkanProbe,
         AndroidStartupFrameSyncMigrationApplied,
         AndroidStartupFrameSyncV2MigrationApplied,

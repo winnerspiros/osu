@@ -122,8 +122,8 @@ namespace osu.Android
         /// <summary>
         /// Public hook for the user-facing "Resync hardware audio offset" button. Polls the
         /// AAudio-reported output latency every <c>sample_interval_ms</c> for a fixed
-        /// <c>window_ms</c> measurement window, drops the very first reading (warm-up
-        /// transient), and applies the MEDIAN of the remaining positive readings via
+        /// <c>window_ms</c> measurement window, skips the first two ticks (300 ms warm-up —
+        /// no samples are collected during this period), and applies the MEDIAN of the remainingpositive readings via
         /// <paramref name="onLatencyMeasured"/>. Median is robust against the occasional
         /// outlier AAudio reports right after a presentation glitch — strictly better than
         /// the previous "first positive reading wins" policy.
@@ -154,6 +154,14 @@ namespace osu.Android
             const int window_ms = 2000;
             const int max_samples = window_ms / sample_interval_ms; // ~13
 
+            // Warm-up ticks to drop before collecting samples.
+            // AAudio's getTimestamp() requires the hardware pipeline to be full before
+            // the presentation latency stabilises — typically 200–400 ms of real audio
+            // output. Two ticks (= 300 ms) is a conservative but safe boundary.
+            // Previously only 1 tick (150 ms) was dropped, which could admit a biased
+            // warm-up reading on devices with longer pipeline fill times.
+            const int warmup_ticks = 2;
+
             // Fixed-size buffer rather than List<double>: max_samples is known at
             // compile time, so the List's heap-allocated backing T[] + per-Add
             // bounds-check / count-bump is wasted work for a 13-element buffer
@@ -173,13 +181,17 @@ namespace osu.Android
                     return;
                 }
 
-                double latency = b.GetOutputLatencyMs();
+                // GetInstantLatencyMs() calls calculateLatencyMillis() directly on the
+                // stream rather than reading the cached latencyMs_ value. The cache is
+                // only refreshed every ~1 s from onAudioReady, so in a 2 s window most
+                // of the 13 GetOutputLatencyMs() calls were reading the same stale value.
+                // GetInstantLatencyMs() gives a fresh reading at every 150 ms poll.
+                double latency = b.GetInstantLatencyMs();
                 ticks++;
 
-                // Drop the very first reading: AAudio's getTimestamp() needs a few hundred
-                // milliseconds of pulled frames before its reported presentation latency
-                // stabilises, and the warm-up sample tends to be biased high.
-                if (ticks > 1 && latency > 0 && samplesCount < samples.Length)
+                // Drop the first warmup_ticks readings — AAudio needs time to fill its
+                // hardware pipeline before getTimestamp() reports stable values.
+                if (ticks > warmup_ticks && latency > 0 && samplesCount < samples.Length)
                     samples[samplesCount++] = latency;
 
                 if (ticks * sample_interval_ms >= window_ms)
@@ -198,7 +210,16 @@ namespace osu.Android
                         ? samples[samplesCount / 2]
                         : 0.5 * (samples[samplesCount / 2 - 1] + samples[samplesCount / 2]);
 
-                    Logger.Log($"[osu!] Hardware audio latency measured: median={median:F1} ms (n={samplesCount}, range=[{samples[0]:F1}, {samples[samplesCount - 1]:F1}] ms)");
+                    // Compute standard deviation for diagnostic logging (no heap alloc —
+                    // plain loops over the stack-allocated samples span).
+                    double sum = 0;
+                    for (int i = 0; i < samplesCount; i++) sum += samples[i];
+                    double mean = sum / samplesCount;
+                    double variance = 0;
+                    for (int i = 0; i < samplesCount; i++) variance += (samples[i] - mean) * (samples[i] - mean);
+                    double stdDev = Math.Sqrt(variance / samplesCount);
+
+                    Logger.Log($"[osu!] Hardware audio latency measured: median={median:F1} ms (n={samplesCount}, σ={stdDev:F1} ms, range=[{samples[0]:F1}, {samples[samplesCount - 1]:F1}] ms)");
 
                     try { onLatencyMeasured(median); }
                     catch (Exception ex) { Logger.Log($"[osu!] Hardware-latency callback failed: {ex.Message}", level: LogLevel.Error); }
