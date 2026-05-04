@@ -2171,7 +2171,7 @@ namespace osu.Android
 
         /// <summary>
         /// One-shot migration that switches Android-side <see cref="FrameSync"/> from the
-        /// framework default of <see cref="FrameSync.Limit2x"/> to <see cref="FrameSync.Limit1x"/>.
+        /// framework default of <see cref="FrameSync.Limit2x"/> to <see cref="FrameSync.ActualUnlimited"/>.
         ///
         /// <para>
         /// On a 120Hz Adreno-class display (Snapdragon 8 Gen 2 / S23 Ultra),
@@ -2185,23 +2185,24 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// <see cref="FrameSync.ActualUnlimited"/> (IMMEDIATE present mode) previously addressed
-        /// the Limit2x stall but presents frames at an unlimited rate — the GPU submits work
-        /// continuously with no idle window between frames. On Snapdragon 8 Gen 2 / Adreno 740
-        /// this drives the SoC to its thermal ceiling within ~30 s of gameplay, tripping the
-        /// kernel's thermal mitigation and hard-capping the GPU at ~30fps — exactly the
-        /// "bad FPS" and overheating the user experiences.
-        /// </para>
-        ///
-        /// <para>
-        /// <see cref="FrameSync.Limit1x"/> targets exactly 1× the display refresh rate (e.g.
-        /// 120fps on a 120Hz panel). Because presents arrive at the same cadence as vblank
-        /// recycles, <c>vkAcquireNextImageKHR</c> always finds an idle swapchain image
-        /// (no queue pile-up), AND the GPU gets a natural idle window every frame — keeping
-        /// thermals stable and preventing the 30fps throttle. The migration runs once per
+        /// <see cref="FrameSync.ActualUnlimited"/> uses Vulkan IMMEDIATE present mode (VK_PRESENT_MODE_IMMEDIATE_KHR)
+        /// which presents each frame as soon as it is ready without waiting for vblank.
+        /// Combined with VK_GOOGLE_display_timing (skipping desiredPresentTime in IMMEDIATE mode),
+        /// this delivers the lowest possible input-to-display latency while avoiding the
+        /// vkAcquireNextImageKHR queue pile-up of Limit2x. The migration runs exactly once per
         /// install (gated by <see cref="OsuSetting.AndroidStartupFrameSyncMigrationApplied"/>)
         /// so a user who later prefers a different mode from Settings → Graphics → Renderer
         /// is not fought on every launch.
+        /// </para>
+        ///
+        /// <para>
+        /// Field observations: 27fps at 9ms CPU frame time and 30fps at 1.7ms CPU frame time are
+        /// both present-queue stall patterns — the CPU is finishing frames quickly but the Vulkan
+        /// FIFO present queue cannot drain fast enough. IMMEDIATE mode resolves this by bypassing
+        /// the vblank synchronisation barrier entirely, so every finished frame goes straight to
+        /// the display engine. VSync or Limit1x (FIFO) amplify the stall during texture-upload
+        /// storms (100-300 queued uploads logged during song select), making them the wrong choice
+        /// for this rendering workload.
         /// </para>
         /// </summary>
         private void applyAndroidFrameSyncMigrationOnce(FrameworkConfigManager frameworkConfig)
@@ -2214,35 +2215,35 @@ namespace osu.Android
                     CrashDiagnostics.WriteAliveMarker("applyAndroidFrameSyncMigrationOnce (already applied)");
 
                     // v2 migration: upgrade users who were previously migrated to VSync (by an older
-                    // build) to Limit1x. Only applies if:
+                    // build) to ActualUnlimited. Only applies if:
                     //   1. The v2 migration hasn't run yet.
                     //   2. The user is currently on VSync (hasn't manually changed it since v1).
+                    // This gives existing users the lower-latency uncapped mode without overriding
+                    // deliberate user choices.
                     if (!LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied))
                     {
                         var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
                         if (frameSync.Value == FrameSync.VSync)
                         {
-                            frameSync.Value = FrameSync.Limit1x;
-                            Logger.Log("[osu!] Android FrameSync v2 migration: VSync → Limit1x (display-rate cap, no thermal stall)", LoggingTarget.Performance);
+                            frameSync.Value = FrameSync.ActualUnlimited;
+                            Logger.Log("[osu!] Android FrameSync v2 migration: VSync → ActualUnlimited (IMMEDIATE present mode, lower latency)", LoggingTarget.Performance);
                         }
                         LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
                     }
 
-                    // v3 migration: downgrade users who were previously auto-migrated to
-                    // ActualUnlimited (IMMEDIATE present mode) back to Limit1x. ActualUnlimited
-                    // drives the GPU at 100% continuously with no idle window, which overheats
-                    // Adreno 740 / Samsung devices and triggers kernel thermal throttling to ~30fps
-                    // — the exact symptom users experience as "weird Vulkan FPS". Limit1x caps at
-                    // exactly the display refresh rate so the GPU idles between frames, keeping
-                    // thermals stable. We only apply if the user is currently on ActualUnlimited
-                    // (if they manually picked a different mode after v2, leave them alone).
+                    // v3 migration: restore users who were incorrectly moved to Limit1x (FIFO) by a
+                    // previous build back to ActualUnlimited (IMMEDIATE present mode). Limit1x
+                    // amplifies vkQueuePresentKHR stalls during texture-upload storms (100-300 items
+                    // queued during song-select), producing the 27fps-at-9ms-frame-time pattern
+                    // observed in field logs. We only apply if the user is currently on Limit1x
+                    // (if they manually changed to any other mode, leave them alone).
                     if (!LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied))
                     {
                         var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-                        if (frameSync.Value == FrameSync.ActualUnlimited)
+                        if (frameSync.Value == FrameSync.Limit1x)
                         {
-                            frameSync.Value = FrameSync.Limit1x;
-                            Logger.Log("[osu!] Android FrameSync v3 migration: ActualUnlimited → Limit1x (prevents GPU thermal throttle to 30fps)", LoggingTarget.Performance);
+                            frameSync.Value = FrameSync.ActualUnlimited;
+                            Logger.Log("[osu!] Android FrameSync v3 migration: Limit1x → ActualUnlimited (IMMEDIATE present, fixes vkQueuePresentKHR stall during texture-upload storms)", LoggingTarget.Performance);
                         }
                         LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied, true);
                     }
@@ -2257,8 +2258,8 @@ namespace osu.Android
                 // the migration's job is to nudge the *default*, not to overwrite intent.
                 if (frameSyncV1.Value == FrameSync.Limit2x)
                 {
-                    frameSyncV1.Value = FrameSync.Limit1x;
-                    Logger.Log("[osu!] Android first-launch FrameSync migration: Limit2x → Limit1x (display-rate cap, prevents vkAcquireNextImageKHR stall and GPU thermal throttle)", LoggingTarget.Performance);
+                    frameSyncV1.Value = FrameSync.ActualUnlimited;
+                    Logger.Log("[osu!] Android first-launch FrameSync migration: Limit2x → ActualUnlimited (IMMEDIATE present, no vblank stall)", LoggingTarget.Performance);
                 }
 
                 LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncMigrationApplied, true);
