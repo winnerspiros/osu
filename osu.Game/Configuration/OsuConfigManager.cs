@@ -274,6 +274,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
+            SetDefault(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, false);
 
             // --- Android startup-safety toggles ---
             //
@@ -304,7 +305,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidVerboseLogging, false);
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
-            SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f);
+            SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f, 0.01f, 0.9f, 0.005f);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
 
@@ -576,6 +577,7 @@ namespace osu.Game.Configuration
         AndroidLowLatencyAudio,
         AndroidVulkanProbe,
         AndroidStartupFrameSyncMigrationApplied,
+        AndroidStartupFrameSyncV2MigrationApplied,
         AndroidCleanupStaleRealmFifos,
         AndroidDeferStartupNativeInit,
         AndroidStartupFrameSyncMigrationEnabled,
