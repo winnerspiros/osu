@@ -59,10 +59,26 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                 //
                 // After a resync the restore button below becomes active so users can undo
                 // if the hardware measurement doesn't match their perception.
+                //
+                // IMPORTANT — Bluetooth speakers/headphones:
+                // The AAudio measurement captures the device's internal audio pipeline
+                // latency (DAC + driver buffer). It does NOT include Bluetooth A2DP
+                // transmission time, which adds a further ~100–300 ms of device-to-device
+                // wireless delay that AAudio cannot observe. For BT output, resync will
+                // give a partially-correct value; you must further adjust the audio offset
+                // manually (positive = audio arrives later than visuals; negative = earlier)
+                // until hit sounds and music land where they feel right in your ears.
+                //
+                // Note: AudioOffset shifts the ENTIRE gameplay clock — audio track, hit
+                // object visual timing, and hit sound effects all move together. This keeps
+                // everything internally consistent regardless of the offset value you choose.
                 new SettingsButtonV2
                 {
                     Text = "Resync hardware audio offset",
-                    TooltipText = "Measures the device's reported hardware output latency over a 2 s window and applies the median to the audio offset above. Previous offset is saved and can be restored.",
+                    TooltipText = "Measures the device's AAudio pipeline latency over 2 s and applies the median to the audio offset. "
+                                  + "NOTE: does NOT include Bluetooth transmission delay (~100–300 ms extra). "
+                                  + "For Bluetooth speakers/headphones, resync first, then fine-tune the offset manually until music and hit sounds feel right. "
+                                  + "The offset shifts the entire game clock — audio, hit objects, and effects all move together.",
                     Action = () => game?.ResyncHardwareAudioOffset(),
                     Keywords = new[] { @"resync", @"recalibrate", @"offset", @"hardware", @"latency", @"calibration" },
                 },

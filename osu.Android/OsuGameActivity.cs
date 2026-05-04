@@ -49,6 +49,14 @@ namespace osu.Android
         "application/x-osu-replay",
     })]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryBrowsable, Intent.CategoryDefault }, DataSchemes = new[] { "osu", "osump" })]
+    // Samsung Game Launcher / Game Booster discovery for sideloaded APKs.
+    // Apps installed via Play Store/Galaxy Store are auto-discovered as games via the
+    // PACKAGE_ADDED broadcast + server-side category database. Sideloaded APKs bypass
+    // this path entirely. Adding the Samsung game category to an intent-filter on the
+    // main activity is the supported way to signal to Samsung's Game Launcher package
+    // scanner that this activity is a game entry point — it scans for activities with
+    // this category during app install and on periodic rescans.
+    [IntentFilter(new[] { Intent.ActionMain }, Categories = new[] { "com.samsung.intent.category.GAME" })]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
@@ -456,6 +464,32 @@ namespace osu.Android
             {
                 try { Assembly.Load(asm); }
                 catch (Exception e) { Debug.WriteLine($"[osu!] Failed to load ruleset assembly {asm}: {e.Message}"); }
+            }
+
+            // Samsung Game Launcher self-registration for sideloaded APKs.
+            //
+            // Play Store / Galaxy Store installs are auto-discovered by Samsung Game Launcher
+            // through the PACKAGE_ADDED broadcast it receives at install time, plus its server-side
+            // game database. Sideloaded APKs bypass both paths entirely — Game Launcher may never
+            // add the app unless the user manually taps "+" in the Game Launcher UI.
+            //
+            // Sending a targeted broadcast to com.samsung.android.game.gameLauncher on every
+            // launch requests an immediate rescan of our package. Since Android 8.0 implicit
+            // broadcasts are blocked, we target the package explicitly via setPackage() — the
+            // broadcast is silently dropped on non-Samsung devices where Game Launcher is absent.
+            //
+            // This is a best-effort signal; Game Launcher may still require one manual "Add"
+            // on very old One UI builds that pre-date the REQUEST_ADD_PACKAGE handler.
+            try
+            {
+                var gameLauncherIntent = new Intent("com.samsung.android.game.gameLauncher.REQUEST_ADD_PACKAGE");
+                gameLauncherIntent.SetPackage("com.samsung.android.game.gameLauncher");
+                gameLauncherIntent.PutExtra("packageName", PackageName);
+                SendBroadcast(gameLauncherIntent);
+            }
+            catch
+            {
+                // Samsung Game Launcher not present (non-Samsung device) or broadcast failed — not an error.
             }
 
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate exit");

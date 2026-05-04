@@ -278,6 +278,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidVulkanProbe, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncMigrationApplied, false);
             SetDefault(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, false);
+            SetDefault(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied, false);
 
             // --- Android startup-safety toggles ---
             //
@@ -582,6 +583,7 @@ namespace osu.Game.Configuration
         AndroidVulkanProbe,
         AndroidStartupFrameSyncMigrationApplied,
         AndroidStartupFrameSyncV2MigrationApplied,
+        AndroidStartupFrameSyncV3MigrationApplied,
         AndroidCleanupStaleRealmFifos,
         AndroidDeferStartupNativeInit,
         AndroidStartupFrameSyncMigrationEnabled,
