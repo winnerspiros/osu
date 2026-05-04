@@ -2231,22 +2231,12 @@ namespace osu.Android
                         LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
                     }
 
-                    // v3 migration: restore users who were incorrectly moved to Limit1x (FIFO) by a
-                    // previous build back to ActualUnlimited (IMMEDIATE present mode). Limit1x
-                    // amplifies vkQueuePresentKHR stalls during texture-upload storms (100-300 items
-                    // queued during song-select), producing the 27fps-at-9ms-frame-time pattern
-                    // observed in field logs. We only apply if the user is currently on Limit1x
-                    // (if they manually changed to any other mode, leave them alone).
+                    // v3 migration: FrameSync.Limit1x was removed from the framework enum in
+                    // osu-framework 2026.504.3 — any stored Limit1x config value is now treated
+                    // as unknown and will fall back to the framework default on next load.
+                    // Nothing to do here; just stamp the flag so the guard is not re-evaluated.
                     if (!LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied))
-                    {
-                        var frameSync = frameworkConfig.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-                        if (frameSync.Value == FrameSync.Limit1x)
-                        {
-                            frameSync.Value = FrameSync.ActualUnlimited;
-                            Logger.Log("[osu!] Android FrameSync v3 migration: Limit1x → ActualUnlimited (IMMEDIATE present, fixes vkQueuePresentKHR stall during texture-upload storms)", LoggingTarget.Performance);
-                        }
                         LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied, true);
-                    }
 
                     return;
                 }
