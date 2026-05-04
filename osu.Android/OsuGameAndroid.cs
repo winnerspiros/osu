@@ -1289,7 +1289,8 @@ namespace osu.Android
 
         /// <summary>
         /// Called when DeX mode is connected at runtime (e.g. phone plugged into external monitor).
-        /// Re-queries display modes, enables performance mode, and applies immersive fullscreen.
+        /// Re-queries display modes, enables performance mode, applies immersive fullscreen, and
+        /// tames background workers so the big cores are free for Draw/Update on the new display.
         /// </summary>
         public void OnDeXConnected()
         {
@@ -1302,6 +1303,11 @@ namespace osu.Android
                 }
 
                 applyDeXImmersiveMode();
+
+                // Demote any background workers (skin preload, storyboard, difficulty analysis)
+                // that were spawned before DeX connected, so the new external-monitor Draw path
+                // gets full big-core time from the first frame.
+                scheduleGameplayThreadTaming();
             });
         }
 

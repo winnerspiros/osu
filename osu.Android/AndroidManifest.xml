@@ -14,20 +14,86 @@
         <provider android:name="androidx.core.content.FileProvider" android:authorities="sh.ppy.osulazer.fileprovider" android:grantUriPermissions="true" android:exported="false">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/filepaths" />
         </provider>
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Samsung (One UI / Galaxy / DeX)
+             ─────────────────────────────────────────────────────────────────────────────────
+             keepalive.density     — keep app alive across density changes (DeX connect/disconnect).
+             multidisplay.*        — keep process alive when switching between phone and DeX display.
+             game.biz              — register with Game Launcher / Game Booster for CPU+GPU boost,
+                                     thermal management, and display-refresh priority on phones/tablets.
+             dex.game              — register with the DeX Game Engine (One UI 5+): applies the same
+                                     CPU/GPU boost pipeline as Game Booster but on the DeX/external-
+                                     monitor path, where the Game Launcher overlay does not appear. -->
         <meta-data android:name="com.samsung.android.keepalive.density" android:value="true" />
         <meta-data android:name="com.samsung.android.multidisplay.keep_process_alive" android:value="true" />
-        <!-- Register as a game for Samsung Game Launcher / Game Booster.
-             This enables vendor-specific optimizations (performance boost, thermal management,
-             display refresh rate priority) on Samsung devices automatically. -->
         <meta-data android:name="com.samsung.android.game.biz" android:value="true" />
-        <!-- Android 13+ Game Mode opt-out (https://developer.android.com/games/gamemode/gamemode-api).
-             We explicitly disable Battery- and Performance-mode interventions, FPS override, and
-             downscaling. A rhythm game's input-to-audio latency budget is hard-bound by the
-             active refresh rate and the audio burst cadence — letting the OS Game Manager cap
-             our framerate (typical "battery saver" downscale: 60Hz → 30Hz) or downscale our
-             render resolution (typical "battery saver" downscale: 100% → 75%) breaks both
-             timing accuracy AND visual hit-circle alignment. We already manage thermals, refresh
-             rate, and sustained performance ourselves (see OsuGameAndroid.LoadComplete). -->
+        <meta-data android:name="com.samsung.android.dex.game" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Xiaomi / Redmi / POCO (MIUI / HyperOS Game Turbo)
+             ─────────────────────────────────────────────────────────────────────────────────
+             xiaomi.game.engine    — Game Turbo main registration; activates CPU/GPU boost,
+                                     network QoS priority, and touch-sampling boost.
+             miui.intent.category.GAME — legacy MIUI category used by older Game Turbo builds
+                                         (MIUI 12 and below) to identify the package as a game. -->
+        <meta-data android:name="xiaomi.game.engine" android:value="true" />
+        <meta-data android:name="miui.intent.category.GAME" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Vivo / iQOO (FunTouch OS / OriginOS Game Space)
+             ─────────────────────────────────────────────────────────────────────────────────
+             vivo.game.mode        — registers with Game Space for performance mode, touch boost,
+                                     and background-process suspension during gameplay. -->
+        <meta-data android:name="vivo.game.mode" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Oppo / OnePlus / Realme (ColorOS / OxygenOS / realme UI — all OPPO-derived)
+             ─────────────────────────────────────────────────────────────────────────────────
+             oppo.intent.category.GAME — ColorOS / OxygenOS 14+ Game Space registration;
+                                          enables CPU boost, network priority, and Do-Not-Disturb.
+             com.oplus.games           — supplementary key read by newer ColorOS Game Driver. -->
+        <meta-data android:name="oppo.intent.category.GAME" android:value="true" />
+        <meta-data android:name="com.oplus.games" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Honor (MagicOS — independent of Huawei since 2020)
+             ─────────────────────────────────────────────────────────────────────────────────
+             com.hihonor.intent.category.GAME — MagicOS Game Space registration;
+                                                 activates GPU Turbo and performance scheduling. -->
+        <meta-data android:name="com.hihonor.intent.category.GAME" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Huawei (EMUI / HarmonyOS — devices with Google Play)
+             ─────────────────────────────────────────────────────────────────────────────────
+             com.huawei.gamebox     — Game Assistant registration; activates GPU Turbo,
+                                      touch-sampling boost, and background-process suspension. -->
+        <meta-data android:name="com.huawei.gamebox" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Asus (ROG Phone / Zenfone — ROG UI / ZenUI)
+             ─────────────────────────────────────────────────────────────────────────────────
+             asus.intent.category.GAME — Armoury Crate / Game Genie registration;
+                                          activates X-Mode CPU/GPU boost and network priority. -->
+        <meta-data android:name="asus.intent.category.GAME" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Lenovo / Legion (Legion OS / ZUI)
+             ─────────────────────────────────────────────────────────────────────────────────
+             com.lenovo.gameassistant — Legion Game Assistant registration;
+                                         activates CPU/GPU performance mode and shoulder-trigger
+                                         mappings on Legion Phone hardware. -->
+        <meta-data android:name="com.lenovo.gameassistant" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Android 13+ AOSP Game Mode API (opt-out of OS interventions)
+             ─────────────────────────────────────────────────────────────────────────────────
+             We explicitly disable Battery- and Performance-mode interventions, FPS override,
+             and downscaling. A rhythm game's input-to-audio latency budget is hard-bound by
+             the active refresh rate and the audio burst cadence — letting the OS Game Manager
+             cap our framerate (typical "battery saver" downscale: 60 Hz → 30 Hz) or downscale
+             our render resolution breaks both timing accuracy AND visual hit-circle alignment.
+             We already manage thermals, refresh rate, and sustained performance ourselves
+             (see OsuGameAndroid.LoadComplete). -->
         <meta-data android:name="android.game_mode_config" android:resource="@xml/gamemode_config" />
     </application>
 </manifest>
