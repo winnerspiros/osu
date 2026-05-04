@@ -1647,7 +1647,11 @@ namespace osu.Android
             var old = System.Threading.Interlocked.Exchange(ref gameplayThreadTamingTimer, null);
             try { old?.Dispose(); } catch { /* ignore */ }
 
-            const int passes = 5;
+            // 20 passes × 250 ms = 5 s coverage. PlayerLoader typically runs for 5–10 s
+            // (difficulty calculation + skin preload + storyboard parse). Starting the burst
+            // at PlayerLoader entry (see ScreenChanged) and again at Playing entry gives
+            // overlapping 5 s windows that together span the entire pre-gameplay window.
+            const int passes = 20;
             const int interval_ms = 250;
             int capturedMask = tameMask;
             int tickCount = 0;
@@ -2074,6 +2078,15 @@ namespace osu.Android
 
             if (newScreen != null)
                 updateOrientation();
+
+            // Tame background workers when PlayerLoader appears, not just when LocalUserPlayingState.Playing
+            // is set. Beatmap-analysis, skin-preload and storyboard workers are spawned during PlayerLoader
+            // (5–10 s before the Playing state is set). Without this trigger those workers run at their
+            // default priority on big cores for the entire loading phase, competing with Draw/Update and
+            // producing the "rly low FPS in game" regression on Vulkan (where affinity-demoting to
+            // LITTLE cores is skipped to avoid stalling Adreno driver threads).
+            if (newScreen is PlayerLoader)
+                scheduleGameplayThreadTaming();
         }
 
         private void updateOrientation()
