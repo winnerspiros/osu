@@ -150,6 +150,13 @@ namespace osu.Game
         /// </summary>
         public virtual void ResyncHardwareAudioOffset() { }
 
+        /// <summary>
+        /// Restores the <see cref="OsuSetting.AudioOffset"/> value that was in effect immediately
+        /// before the last <see cref="ResyncHardwareAudioOffset"/> call. No-op if no resync has
+        /// occurred yet in this session. No-op outside of Android.
+        /// </summary>
+        public virtual void RestorePreviousHardwareAudioOffset() { }
+
         public virtual string VulkanStatus => string.Empty;
 
         public virtual int DisplayRefreshRate => 0;

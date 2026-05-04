@@ -1924,11 +1924,32 @@ namespace osu.Android
             {
                 // Hardware-latency measurement is exclusively user-triggered now (no auto-apply
                 // on Oboe start), so this callback only ever runs in response to an explicit
-                // button click. Apply the median directly.
+                // button click. Save the current offset first so the user can undo, then apply.
+                LocalConfig.Set(OsuSetting.AndroidPreviousHardwareAudioOffset, audioOffset.Value);
+
                 double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
-                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms)");
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms, previous offset saved for restore)");
             });
+        }
+
+        public override void RestorePreviousHardwareAudioOffset()
+        {
+            double previous = LocalConfig.Get<double>(OsuSetting.AndroidPreviousHardwareAudioOffset);
+
+            if (previous <= double.MinValue)
+            {
+                Logger.Log("[osu!] Restore previous hardware offset: no saved value — resync first.", level: LogLevel.Important);
+                return;
+            }
+
+            double restored = Math.Clamp(previous, audioOffset.MinValue, audioOffset.MaxValue);
+            audioOffset.Value = restored;
+
+            // Clear the saved value so the restore button disables again.
+            LocalConfig.Set(OsuSetting.AndroidPreviousHardwareAudioOffset, double.MinValue);
+
+            Logger.Log($"[osu!] Audio offset restored to previous value: {restored:F1}ms");
         }
 
         private void handleVulkanProbeChanged(ValueChangedEvent<bool> e)
