@@ -122,8 +122,8 @@ namespace osu.Android
         /// <summary>
         /// Public hook for the user-facing "Resync hardware audio offset" button. Polls the
         /// AAudio-reported output latency every <c>sample_interval_ms</c> for a fixed
-        /// <c>window_ms</c> measurement window, drops the first two readings (warm-up
-        /// transient), and applies the MEDIAN of the remaining positive readings via
+        /// <c>window_ms</c> measurement window, skips the first two ticks (300 ms warm-up —
+        /// no samples are collected during this period), and applies the MEDIAN of the remainingpositive readings via
         /// <paramref name="onLatencyMeasured"/>. Median is robust against the occasional
         /// outlier AAudio reports right after a presentation glitch — strictly better than
         /// the previous "first positive reading wins" policy.
