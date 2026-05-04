@@ -2194,6 +2194,16 @@ namespace osu.Android
         /// so a user who later prefers a different mode from Settings → Graphics → Renderer
         /// is not fought on every launch.
         /// </para>
+        ///
+        /// <para>
+        /// Field observations: 27fps at 9ms CPU frame time and 30fps at 1.7ms CPU frame time are
+        /// both present-queue stall patterns — the CPU is finishing frames quickly but the Vulkan
+        /// FIFO present queue cannot drain fast enough. IMMEDIATE mode resolves this by bypassing
+        /// the vblank synchronisation barrier entirely, so every finished frame goes straight to
+        /// the display engine. VSync or Limit1x (FIFO) amplify the stall during texture-upload
+        /// storms (100-300 queued uploads logged during song select), making them the wrong choice
+        /// for this rendering workload.
+        /// </para>
         /// </summary>
         private void applyAndroidFrameSyncMigrationOnce(FrameworkConfigManager frameworkConfig)
         {
@@ -2221,6 +2231,13 @@ namespace osu.Android
                         LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
                     }
 
+                    // v3 migration: FrameSync.Limit1x was removed from the framework enum in
+                    // osu-framework 2026.504.3 — any stored Limit1x config value is now treated
+                    // as unknown and will fall back to the framework default on next load.
+                    // Nothing to do here; just stamp the flag so the guard is not re-evaluated.
+                    if (!LocalConfig.Get<bool>(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied))
+                        LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied, true);
+
                     return;
                 }
 
@@ -2237,6 +2254,7 @@ namespace osu.Android
 
                 LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncMigrationApplied, true);
                 LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV2MigrationApplied, true);
+                LocalConfig.SetValue(OsuSetting.AndroidStartupFrameSyncV3MigrationApplied, true);
             }
             catch (Exception e)
             {
