@@ -39,6 +39,11 @@ namespace osu.Game.Online.Notifications.WebSocket
             socket.Options.SetRequestHeader(@"Authorization", @$"Bearer {api.AccessToken}");
             socket.Options.Proxy = WebRequest.DefaultWebProxy;
             socket.Options.Proxy?.Credentials = CredentialCache.DefaultCredentials;
+            // Halve the default 30-second keep-alive interval so stale WebSocket connections are
+            // detected faster on mobile networks (where TCP connections can silently die after an
+            // IP change or a brief connectivity blip).  15 s is the same value used by SignalR's
+            // own HubConnection KeepAliveInterval; aligning them avoids back-to-back pings.
+            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(15);
 
             var client = new WebSocketNotificationsClient(socket, endpoint);
             client.MessageReceived += msg => MessageReceived?.Invoke(msg);
