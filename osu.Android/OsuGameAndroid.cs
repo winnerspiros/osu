@@ -1603,7 +1603,7 @@ namespace osu.Android
                 // from the UI thread — a torn or stale read is harmless (worst-case we use a
                 // slightly wrong interval for one report cycle).
                 long intervalMs = currentRefreshRate > 0 ? (long)Math.Round(1000.0 / currentRefreshRate) : 8L;
-                long nowMs = Environment.TickCount64;
+                long nowMs = System.Environment.TickCount64;
 
                 if (nowMs - inputAdpfLastReportMs >= intervalMs)
                 {
@@ -1931,7 +1931,7 @@ namespace osu.Android
                 // Hardware-latency measurement is exclusively user-triggered now (no auto-apply
                 // on Oboe start), so this callback only ever runs in response to an explicit
                 // button click. Save the current offset first so the user can undo, then apply.
-                LocalConfig.Set(OsuSetting.AndroidPreviousHardwareAudioOffset, audioOffset.Value);
+                LocalConfig.SetValue(OsuSetting.AndroidPreviousHardwareAudioOffset, audioOffset.Value);
 
                 double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
@@ -1953,7 +1953,7 @@ namespace osu.Android
             audioOffset.Value = restored;
 
             // Clear the saved value so the restore button disables again.
-            LocalConfig.Set(OsuSetting.AndroidPreviousHardwareAudioOffset, double.MinValue);
+            LocalConfig.SetValue(OsuSetting.AndroidPreviousHardwareAudioOffset, double.MinValue);
 
             Logger.Log($"[osu!] Audio offset restored to previous value: {restored:F1}ms");
         }
