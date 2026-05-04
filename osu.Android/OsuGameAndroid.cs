@@ -165,7 +165,7 @@ namespace osu.Android
         private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
-        // ADPF (Android Dynamic Performance Framework) hint sessions for the Draw and Update threads.
+        // ADPF (Android Dynamic Performance Framework) hint sessions for the Draw, Update, and Input threads.
         // These tell the CPU scheduler to boost the clock frequency so game-loop threads can complete
         // their work within the display frame deadline (e.g. 8.33 ms at 120 Hz).
         // The sessions are created once after LoadComplete (when thread IDs are stable) and closed on
@@ -175,6 +175,21 @@ namespace osu.Android
         // CPU governor a signal to pre-boost the clock for the next frame.
         private IntPtr adpfDrawSession;
         private IntPtr adpfUpdateSession;
+
+        // Input thread ADPF session.  The input thread may poll at ~100 kHz (one cycle ≈ 10 µs),
+        // which is far finer than the ADPF reporting granularity.  Instead of calling
+        // reportActualWorkDuration once per poll (which would flood the ADPF API), we accumulate
+        // total input-processing time and report once per display frame (~8 ms at 120 Hz).
+        // The session target is set to the display frame period, which is the correct deadline:
+        // "input for the next rendered frame must be ready within one frame interval".
+        private IntPtr adpfInputSession;
+        private double inputAdpfAccumulatedMs;
+        private long inputAdpfLastReportMs; // Environment.TickCount64 ms timestamp of last ADPF report
+
+        // One-shot System.Threading.Timer that runs a burst of background-thread taming passes
+        // when the user transitions into active gameplay.  Cancelled and replaced on each new
+        // gameplay entry so repeated pause/resume cycles don't stack timers.
+        private System.Threading.Timer? gameplayThreadTamingTimer;
 
         // Surface.setFrameRate() compatibility constants from android.view.Surface.
         // Hard-coded because the Xamarin/.NET-for-Android bindings do not always expose
@@ -571,6 +586,26 @@ namespace osu.Android
                                 {
                                     Logger.Log($"[osu!] ADPF session created for Update thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
                                     Host!.UpdateThread!.FrameCompleted += onUpdateFrameCompleted;
+                                }
+                            }
+                            catch { }
+                        });
+
+                        // Input thread ADPF session.  The input thread runs at up to ~100 kHz
+                        // on high-end devices (one poll ≈ 10 µs) — far too fast to call
+                        // reportActualWorkDuration on every cycle.  We register the session
+                        // here (capturing the Input thread's TID via gettid()) and let
+                        // onInputFrameCompleted accumulate and report once per display frame.
+                        Host?.InputThread?.Scheduler.Add(() =>
+                        {
+                            try
+                            {
+                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
+                                adpfInputSession = OboeAudioBridge.nADPFCreateSession(targetNs);
+                                if (adpfInputSession != IntPtr.Zero)
+                                {
+                                    Logger.Log($"[osu!] ADPF session created for Input thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                                    Host!.InputThread!.FrameCompleted += onInputFrameCompleted;
                                 }
                             }
                             catch { }
@@ -1060,6 +1095,30 @@ namespace osu.Android
 
             UserPlayingState.BindValueChanged(_ => updateOrientation());
 
+            // Re-tame background workers every time the user enters active gameplay.
+            //
+            // The cold-start taming timer (above) covers the first ~8 s of the process
+            // lifetime.  Gameplay typically starts 10-20 s after LoadComplete (after the user
+            // navigates from the main menu through song select and PlayerLoader).  During
+            // PlayerLoader several new worker threads are spawned at high priority:
+            //   – beatmap-difficulty analysis workers (OsuDifficultyCalculator / DifficultyBindable)
+            //   – skin texture preload workers
+            //   – storyboard parse / resource workers
+            // These inherit Mono's default nice level (often 0 or even −10 for
+            // ThreadPriority.Highest pools) and compete with the Draw/Update threads for
+            // big-core time, producing the "rly low when in game" FPS regression observed
+            // on Vulkan (where worker affinity pinning to LITTLE cores is intentionally
+            // skipped to avoid stalling Adreno driver threads).
+            //
+            // Running five 250 ms taming passes on gameplay entry catches any of these
+            // late-spawning workers within one tick of entering the Player screen and
+            // demotes them to nice=0, freeing the big cores for Draw + Update.
+            UserPlayingState.BindValueChanged(e =>
+            {
+                if (e.NewValue == LocalUserPlayingState.Playing)
+                    scheduleGameplayThreadTaming();
+            });
+
             // NOTE: no `true` (immediate-fire) flag — the initial apply is done inside
             // the refreshRateDelayMs scheduler above, so the cold-start texture-upload
             // burst completes under default GC latency. User-driven changes from the
@@ -1461,7 +1520,7 @@ namespace osu.Android
         }
 
         /// <summary>
-        /// Updates the target work duration on both ADPF hint sessions (Draw + Update thread)
+        /// Updates the target work duration on all three ADPF hint sessions (Draw, Update, and Input thread)
         /// so the CPU governor can pre-boost each thread to meet the new frame deadline.
         /// </summary>
         private void updateAdpfTargetDuration(long targetNs)
@@ -1472,6 +1531,8 @@ namespace osu.Android
                     OboeAudioBridge.nADPFUpdateTargetDuration(adpfDrawSession, targetNs);
                 if (adpfUpdateSession != IntPtr.Zero)
                     OboeAudioBridge.nADPFUpdateTargetDuration(adpfUpdateSession, targetNs);
+                if (adpfInputSession != IntPtr.Zero)
+                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfInputSession, targetNs);
             }
             catch { }
         }
@@ -1512,6 +1573,104 @@ namespace osu.Android
                     OboeAudioBridge.nADPFReportActualDuration(adpfUpdateSession, (long)(elapsedMs * 1_000_000.0));
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Called by <see cref="osu.Framework.Threading.GameThread.FrameCompleted"/> on the Input thread.
+        /// The input thread may poll at ~100 kHz so we accumulate total CPU time across many polls
+        /// and report to ADPF at most once per display-frame interval (~8 ms at 120 Hz).
+        /// This avoids flooding the ADPF API while still giving the CPU governor a meaningful
+        /// signal about how heavily the input core is loaded.
+        /// </summary>
+        private void onInputFrameCompleted()
+        {
+            if (adpfInputSession == IntPtr.Zero) return;
+
+            try
+            {
+                double elapsedMs = Host?.InputThread?.Clock.ElapsedFrameTime ?? 0;
+                if (elapsedMs <= 0) return;
+
+                inputAdpfAccumulatedMs += elapsedMs;
+
+                // Report once per display frame period.  `currentRefreshRate` is an int written
+                // from the UI thread — a torn or stale read is harmless (worst-case we use a
+                // slightly wrong interval for one report cycle).
+                long intervalMs = currentRefreshRate > 0 ? (long)Math.Round(1000.0 / currentRefreshRate) : 8L;
+                long nowMs = Environment.TickCount64;
+
+                if (nowMs - inputAdpfLastReportMs >= intervalMs)
+                {
+                    OboeAudioBridge.nADPFReportActualDuration(adpfInputSession, (long)(inputAdpfAccumulatedMs * 1_000_000.0));
+                    inputAdpfAccumulatedMs = 0;
+                    inputAdpfLastReportMs = nowMs;
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Schedules a burst of five background-thread taming passes at 250 ms intervals when
+        /// the user transitions into active gameplay.  Each pass walks <c>/proc/self/task</c>,
+        /// renices any Mono threadpool or OkHttp worker to nice=0 (renice-only on Vulkan to
+        /// avoid stalling Adreno driver threads), and demotes them off the big cores on OpenGL.
+        /// </summary>
+        /// <remarks>
+        /// The cold-start taming timer only covers the first ~8 s after <see cref="LoadComplete"/>.
+        /// Gameplay typically starts 10-20 s later; any beatmap-analysis, skin-preload, or storyboard
+        /// worker threads spawned during <c>PlayerLoader</c> would otherwise run unchecked at
+        /// their default (often high) priority and compete with Draw/Update for big-core time.
+        /// </remarks>
+        private void scheduleGameplayThreadTaming()
+        {
+            bool vulkanActive = false;
+            try { vulkanActive = LogManagement.IsVulkanConfigured(); }
+            catch { }
+
+            int coreCount = System.Environment.ProcessorCount;
+            int totalMask = coreCount >= 32 ? -1 : (1 << Math.Min(coreCount, 31)) - 1;
+            int tameMask;
+
+            if (vulkanActive)
+            {
+                tameMask = 0; // Vulkan: renice-to-0 only; skip affinity to keep Adreno driver threads schedulable.
+            }
+            else
+            {
+                int bigMask = AndroidNativeBridgeManager.GetBigCoreMask();
+                tameMask = (~bigMask) & totalMask;
+                if (tameMask == 0) tameMask = totalMask;
+            }
+
+            // Cancel any in-progress burst before scheduling a new one (e.g. the user
+            // paused/resumed mid-map and re-entered Playing).
+            var old = System.Threading.Interlocked.Exchange(ref gameplayThreadTamingTimer, null);
+            try { old?.Dispose(); } catch { /* ignore */ }
+
+            const int passes = 5;
+            const int interval_ms = 250;
+            int capturedMask = tameMask;
+            int tickCount = 0;
+
+            gameplayThreadTamingTimer = new System.Threading.Timer(_ =>
+            {
+                try
+                {
+                    int demoted = AndroidNativeBridgeManager.TameBackgroundThreads(capturedMask);
+                    if (demoted > 0)
+                        Logger.Log($"[osu!] Gameplay entry: tamed {demoted} background thread(s) (pass {tickCount + 1}/{passes}, mask=0x{capturedMask:X}{(capturedMask == 0 ? " — Vulkan renice-only" : "")})", LoggingTarget.Performance);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Gameplay thread taming (pass {tickCount + 1}) failed: {e.Message}");
+                }
+
+                if (System.Threading.Interlocked.Increment(ref tickCount) >= passes)
+                {
+                    var t = System.Threading.Interlocked.Exchange(ref gameplayThreadTamingTimer, null);
+                    try { t?.Dispose(); } catch { /* ignore */ }
+                }
+            }, state: null, dueTime: 0, period: interval_ms);
         }
 
         private global::Android.Views.Display? getActiveDisplay()
@@ -2499,6 +2658,8 @@ namespace osu.Android
                         Host.DrawThread.FrameCompleted -= onDrawFrameCompleted;
                     if (Host?.UpdateThread != null)
                         Host.UpdateThread.FrameCompleted -= onUpdateFrameCompleted;
+                    if (Host?.InputThread != null)
+                        Host.InputThread.FrameCompleted -= onInputFrameCompleted;
 
                     if (adpfDrawSession != IntPtr.Zero)
                     {
@@ -2510,11 +2671,20 @@ namespace osu.Android
                         OboeAudioBridge.nADPFCloseSession(adpfUpdateSession);
                         adpfUpdateSession = IntPtr.Zero;
                     }
+                    if (adpfInputSession != IntPtr.Zero)
+                    {
+                        OboeAudioBridge.nADPFCloseSession(adpfInputSession);
+                        adpfInputSession = IntPtr.Zero;
+                    }
                 }
                 catch { }
 
                 var cst = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
                 try { cst?.Dispose(); }
+                catch { /* ignore */ }
+
+                var gtt = System.Threading.Interlocked.Exchange(ref gameplayThreadTamingTimer, null);
+                try { gtt?.Dispose(); }
                 catch { /* ignore */ }
 
                 var sst = System.Threading.Interlocked.Exchange(ref clearStartupSentinelTimer, null);
