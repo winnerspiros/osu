@@ -834,6 +834,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             return result;
         }
+
         protected override Task DisconnectInternal()
         {
             return Task.CompletedTask;
