@@ -628,9 +628,10 @@ namespace osu.Android
                 // writes a TRUNCATED thread name (Linux pthread_setname is
                 // capped at 16 chars including NUL) so "Draw (GameThread)"
                 // appears as "Draw (GameThrea" — substring match is correct.
-                // SDLThread is the thread on which SDL3 initialises Veldrid+Vulkan;
-                // a null-function-pointer Vulkan crash (SIGSEGV pc=0x0) on this
-                // thread during startup should also activate safe-mode.
+                // SDL names its main render/init thread "SDLThread" (9 chars, well
+                // under the 16-char limit — never truncated); a null-function-pointer
+                // Vulkan crash (SIGSEGV pc=0x0) on this thread during startup should
+                // also activate safe-mode.
                 bool isKnownCrashThread = threadName.StartsWith("Draw", StringComparison.Ordinal)
                                           || threadName.StartsWith("SDL", StringComparison.Ordinal);
                 if (!isKnownCrashThread) return null;
@@ -683,6 +684,8 @@ namespace osu.Android
             if (!isFatalSignal) return null;
 
             // Match the same thread set as the full-header path above.
+            // "SDLThread" (9 chars) is below the 16-char truncation limit and
+            // matches the "SDL" prefix check without ambiguity.
             bool isKnownCrashThread = thread.StartsWith("Draw", StringComparison.Ordinal)
                                       || thread.StartsWith("SDL", StringComparison.Ordinal);
             if (!isKnownCrashThread) return null;

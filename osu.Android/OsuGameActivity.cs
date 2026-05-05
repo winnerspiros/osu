@@ -772,10 +772,14 @@ namespace osu.Android
             // new surface ALSO arrives as RGB565 (i.e. the SetFormat had no effect on this
             // device) we do not fire the reactive guard a second time — that would chain
             // another teardown and produce a duplicate "[osu!] Android surface pixel format
-            // RGB565 detected (Vulkan path)" log message in the overlay. The flag is
-            // released in SurfaceChanged when the surface is confirmed as RGBA8888,
-            // or reset to false if a RGBA8888 surface is later replaced by RGB565 after
-            // an OEM display-mode change (the guard fires exactly once per new RGB565 event).
+            // RGB565 detected (Vulkan path)" log message in the overlay.
+            //
+            // The flag lifecycle is:
+            //   false  → set to true when RGB565 guard fires and SetFormat is called
+            //   true   → released back to false in SurfaceChanged when RGBA8888 is confirmed
+            //              (the SetFormat worked; future RGB565 events can fire the guard again)
+            //   true   → stays true if the next SurfaceChanged also reports RGB565
+            //              (SetFormat had no effect; guard is suppressed to avoid chaining)
             lastSurfaceFormat = 0;
 
             IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
