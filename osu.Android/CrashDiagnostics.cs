@@ -624,11 +624,16 @@ namespace osu.Android
                                      || signal.StartsWith("SIGABRT", StringComparison.Ordinal);
                 if (!isFatalSignal) return null;
 
-                // Match the framework's draw thread name. The native handler
+                // Match threads that host Veldrid/Vulkan work. The native handler
                 // writes a TRUNCATED thread name (Linux pthread_setname is
                 // capped at 16 chars including NUL) so "Draw (GameThread)"
                 // appears as "Draw (GameThrea" — substring match is correct.
-                if (!threadName.StartsWith("Draw", StringComparison.Ordinal)) return null;
+                // SDLThread is the thread on which SDL3 initialises Veldrid+Vulkan;
+                // a null-function-pointer Vulkan crash (SIGSEGV pc=0x0) on this
+                // thread during startup should also activate safe-mode.
+                bool isKnownCrashThread = threadName.StartsWith("Draw", StringComparison.Ordinal)
+                                          || threadName.StartsWith("SDL", StringComparison.Ordinal);
+                if (!isKnownCrashThread) return null;
 
                 string topFrame = extractTopFrame(block);
 
@@ -677,7 +682,10 @@ namespace osu.Android
                                  || signal.StartsWith("SIGABRT", StringComparison.Ordinal);
             if (!isFatalSignal) return null;
 
-            if (!thread.StartsWith("Draw", StringComparison.Ordinal)) return null;
+            // Match the same thread set as the full-header path above.
+            bool isKnownCrashThread = thread.StartsWith("Draw", StringComparison.Ordinal)
+                                      || thread.StartsWith("SDL", StringComparison.Ordinal);
+            if (!isKnownCrashThread) return null;
 
             string fingerprint = (uptime != null && pid != null)
                 ? $"u{uptime}-p{pid}"

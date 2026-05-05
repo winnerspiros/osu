@@ -61,10 +61,11 @@ namespace osu.Android
         public static bool IsActive => isActive;
 
         /// <summary>
-        /// True iff <see cref="IsActive"/> was set by the Draw-thread native-crash trigger
+        /// True iff <see cref="IsActive"/> was set by the native-crash trigger
         /// (rather than by the <see cref="AndroidStartupFlags.FLAG_STARTUP_IN_PROGRESS"/>
         /// "previous launch died before LoadComplete" sentinel). Lets log lines explain
         /// WHICH safety net forced the conservative defaults.
+        /// The crash may have been on the Draw thread or the SDL/Vulkan-init thread.
         /// </summary>
         public static bool DrawThreadNativeCrashTriggered => drawThreadNativeCrashTriggered;
 
@@ -151,9 +152,9 @@ namespace osu.Android
                 {
                     CrashDiagnostics.AppendDiagnosticBlock(
                         "\n=========================================================\n"
-                        + "=== ANDROID STARTUP SAFE-MODE ACTIVATED (Draw-thread crash trigger) ===\n"
+                        + "=== ANDROID STARTUP SAFE-MODE ACTIVATED (native crash trigger) ===\n"
                         + $"  utc_time     = {DateTime.UtcNow:O}\n"
-                        + "  reason       = previous launch crashed natively on the Draw thread\n"
+                        + "  reason       = previous launch crashed natively on the Draw/SDL thread\n"
                         + $"  signal       = {crash.Value.Signal}\n"
                         + $"  thread_name  = {crash.Value.ThreadName}\n"
                         + $"  top_frame    = {crash.Value.TopFrame}\n"

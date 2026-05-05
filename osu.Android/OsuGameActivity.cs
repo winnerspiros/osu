@@ -763,11 +763,20 @@ namespace osu.Android
             if (handle == IntPtr.Zero)
                 return;
 
-            // Reset per-lifecycle flags. The new surface has not yet reported its format
-            // (SurfaceChanged fires after SurfaceCreated), and any previous pending-format
-            // stamp no longer applies to this new surface instance.
+            // Reset the format-tracking field: the new surface has not yet reported its
+            // format (SurfaceChanged fires after SurfaceCreated).
+            //
+            // Intentionally do NOT reset setFormatPending here. If we previously called
+            // SetFormat(Rgba8888) to fix an RGB565 surface, setFormatPending stays true
+            // across the resulting SurfaceDestroyed → SurfaceCreated cycle so that if the
+            // new surface ALSO arrives as RGB565 (i.e. the SetFormat had no effect on this
+            // device) we do not fire the reactive guard a second time — that would chain
+            // another teardown and produce a duplicate "[osu!] Android surface pixel format
+            // RGB565 detected (Vulkan path)" log message in the overlay. The flag is
+            // released in SurfaceChanged when the surface is confirmed as RGBA8888,
+            // or reset to false if a RGBA8888 surface is later replaced by RGB565 after
+            // an OEM display-mode change (the guard fires exactly once per new RGB565 event).
             lastSurfaceFormat = 0;
-            setFormatPending = false;
 
             IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
 
@@ -822,7 +831,24 @@ namespace osu.Android
             // the surface that arrives after the first teardown also briefly reports RGB565
             // (e.g. during a compositor mode transition), which would chain teardowns and
             // prevent the draw thread from ever acknowledging either one within 250 ms.
-            if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured() && !setFormatPending)
+            // Unlike the old design (where setFormatPending was reset in SurfaceCreated),
+            // the flag now persists across the SurfaceDestroyed→SurfaceCreated cycle and is
+            // only released here when the surface is confirmed as RGBA8888. That prevents
+            // the duplicate "[osu!] Android surface pixel format RGB565 detected" log message
+            // that appeared when SetFormat did not change the format on certain Samsung/Adreno
+            // devices (surface born as RGB565 again after the teardown).
+            //
+            // !AndroidStartupSafeMode.IsActive: safe-mode sessions always run OpenGL (via
+            // ForceOpenGLRendererIfSafeMode). After LoadComplete, RestoreRendererAfterSafeMode
+            // writes "Vulkan" back to framework.ini so IsVulkanConfigured() returns true for
+            // the rest of that session — but the runtime renderer is still OpenGL. Firing the
+            // RGB565 guard in that window would call SetFormat unnecessarily (RGB565 is fine
+            // for OpenGL) and produce a mid-session surface teardown with a confusing
+            // "(Vulkan path)" log message in the overlay.
+            if (format == global::Android.Graphics.Format.Rgb565
+                && LogManagement.IsVulkanConfigured()
+                && !setFormatPending
+                && !AndroidStartupSafeMode.IsActive)
             {
                 setFormatPending = true;
 
@@ -858,6 +884,16 @@ namespace osu.Android
                 surfaceEvent.Reset();
                 Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
                 return;
+            }
+
+            // Release the pending-format guard once the surface is confirmed RGBA8888.
+            // This allows future RGB565 detection (e.g. after a display-mode change that
+            // would legitimately reset the format) while still blocking a second spurious
+            // fire during the immediate teardown+recreate that follows our own SetFormat call.
+            if (format == global::Android.Graphics.Format.Rgba8888 && setFormatPending)
+            {
+                setFormatPending = false;
+                Debug.WriteLine("[osu!] Surface format confirmed RGBA8888 — pending-format guard released.");
             }
 
             if (width > 0 && height > 0)
