@@ -1963,9 +1963,13 @@ namespace osu.Android
                 // ALL devices.  Users who want to tune the visual-audio gap beyond this cap can
                 // do so manually via the offset slider during gameplay (BeatmapOffsetControl),
                 // where the real-time hit-error display gives direct feedback.
+                // 15 ms = typical MMAP output-latency ceiling on modern Android (Snapdragon 8 Gen 2,
+                // Exynos 2400, etc.). Anything higher is Samsung/DSP overhead that doesn't affect
+                // relative music-hitsound timing — applying it would push hitsound-music desync
+                // above the ~20 ms human JND.
                 const double max_hw_compensation_ms = 15.0;
-                double capped = Math.Min(latency, max_hw_compensation_ms);
-                double suggested = Math.Clamp(-capped, audioOffset.MinValue, audioOffset.MaxValue);
+                double cappedLatency = Math.Min(latency, max_hw_compensation_ms); // capped compensation value (≤15 ms)
+                double suggested = Math.Clamp(-cappedLatency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
 
                 if (latency > max_hw_compensation_ms)
