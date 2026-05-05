@@ -63,7 +63,7 @@ namespace osu.iOS
                 var defaultOrientations = (NSArray)NSBundle.MainBundle.ObjectForInfoDictionary("UISupportedInterfaceOrientations")!;
 
                 foreach (var value in defaultOrientations.ToArray<NSString>())
-                    defaultOrientationsMask |= Enum.Parse<UIInterfaceOrientationMask>(value.ToString()!.Replace("UIInterfaceOrientation", string.Empty));
+                    defaultOrientationsMask |= Enum.Parse<UIInterfaceOrientationMask>(value!.ToString()!.Replace("UIInterfaceOrientation", string.Empty));
             }
 
             return defaultOrientationsMask.Value;
