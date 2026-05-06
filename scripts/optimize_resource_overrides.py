@@ -129,14 +129,15 @@ def convert_image_to_webp(source: Path, output: Path, config: dict, relative_pat
             str(lossy_path),
         ]
     )
-    temp_candidates.append((lossy_path, f"{ext.lstrip('.')}-lossy-webp-q{lossy_quality}"))
+    lossy_strategy = f"{ext.lstrip('.')}-lossy-webp-q{lossy_quality}"
+    temp_candidates.append((lossy_path, lossy_strategy))
 
     minimum_ssim = float(config.get("image_lossy_min_ssim", 0.995))
     compare_ssim = bool(config.get("measure_image_ssim", True))
     best_candidate: Optional[Tuple[Path, str]] = None
 
     for candidate_path, strategy in temp_candidates:
-        if strategy.endswith("lossy-webp-q" + str(lossy_quality)) and compare_ssim:
+        if strategy == lossy_strategy and compare_ssim:
             ssim = measure_image_ssim(source, candidate_path)
             if ssim is not None and ssim < minimum_ssim:
                 candidate_path.unlink(missing_ok=True)
@@ -169,7 +170,7 @@ def convert_audio_to_ogg(source: Path, output: Path, config: dict, relative_path
 
     base_args = ["-i", str(source), "-ar", str(target_sample_rate), "-ac", str(channel_count)]
     if audio_codec == "libopus":
-        bitrate = str(config.get("audio_ogg_bitrate", "96k"))
+        bitrate = str(config.get("audio_opus_bitrate", config.get("audio_ogg_bitrate", "96k")))
         opus_application = str(config.get("audio_opus_application", "audio"))
         frame_duration = str(config.get("audio_opus_frame_duration_ms", 20))
         run_ffmpeg(
