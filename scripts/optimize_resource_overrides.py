@@ -22,7 +22,7 @@ class ConversionResult:
 
 
 def run_ffmpeg(args: list[str]) -> None:
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args], check=True, capture_output=True, text=True)
 
 
 def should_include(path: Path, include_globs: list[str], exclude_globs: list[str], root: Path) -> bool:
@@ -99,10 +99,14 @@ def optimize(root: Path, config: dict, dry_run: bool) -> dict:
 
         try:
             convert_file(source, temp_output, config=config)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as exc:
             if temp_output.exists():
                 temp_output.unlink()
-            skipped.append(f"{source.relative_to(root).as_posix()} (ffmpeg conversion failed)")
+            details = (exc.stderr or "").strip().replace("\n", " ")
+            if len(details) > 200:
+                details = f"{details[:200]}..."
+            suffix = f": {details}" if details else ""
+            skipped.append(f"{source.relative_to(root).as_posix()} (ffmpeg conversion failed{suffix})")
             continue
 
         source_size = source.stat().st_size

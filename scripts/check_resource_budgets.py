@@ -6,6 +6,7 @@ import sys
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".ktx2", ".astc"}
 AUDIO_EXTS = {".wav", ".mp3", ".ogg", ".m4a", ".flac", ".aac"}
@@ -85,7 +86,7 @@ def build_report(entries: list[MediaEntry], top_n: int) -> dict:
     }
 
 
-def check_limits(report: dict, budget: dict, apk_size: int | None) -> list[str]:
+def check_limits(report: dict, budget: dict, apk_size: Optional[int]) -> list[str]:
     failures: list[str] = []
     sizes = report["sizes"]
 
@@ -109,7 +110,7 @@ def check_limits(report: dict, budget: dict, apk_size: int | None) -> list[str]:
     return failures
 
 
-def write_summary(report: dict, budget_path: str, failures: list[str], summary_path: Path, apk_size: int | None) -> None:
+def write_summary(report: dict, budget_path: str, failures: list[str], summary_path: Path, apk_size: Optional[int]) -> None:
     lines: list[str] = []
     lines.append("## Resource budget report")
     lines.append("")
@@ -161,7 +162,7 @@ def main() -> int:
     except (TypeError, ValueError) as exc:
         raise ValueError(f"Budget file '{str(budget_path)}' contains invalid 'top_n': {budget.get('top_n')} (must be an integer).") from exc
 
-    apk_size: int | None = None
+    apk_size: Optional[int] = None
     if args.mode == "source":
         if not args.source_root:
             raise ValueError("--source-root is required for source mode")
