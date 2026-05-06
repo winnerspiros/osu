@@ -31,8 +31,9 @@ namespace osu.Game.IO.Stores
         protected override IEnumerable<string> GetFilenames(string name)
         {
             string extension = Path.GetExtension(name);
+            string normalisedExtension = extension.ToLowerInvariant();
 
-            if (!string.IsNullOrEmpty(extension) && extensionPreferences.TryGetValue(extension.ToLowerInvariant(), out string[]? alternatives))
+            if (!string.IsNullOrEmpty(extension) && extensionPreferences.TryGetValue(normalisedExtension, out string[]? alternatives))
             {
                 foreach (string alternative in alternatives)
                     yield return Path.ChangeExtension(name, alternative);

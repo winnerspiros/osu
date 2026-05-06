@@ -22,6 +22,8 @@ This repository keeps `ppy.osu.Game.Resources` as the canonical upstream source 
 - Source override limits: `.github/resource-budgets/source-overrides.json`
 - Android APK media limits: `.github/resource-budgets/android-apk-media.json`
 
+Current `max_apk_bytes` is set to 320,000,000 bytes as a hard guardrail for this project’s direct-distribution APK flow while still forcing visible regressions to fail CI.
+
 Workflow checks now fail when budgets regress for:
 
 - Total media bytes

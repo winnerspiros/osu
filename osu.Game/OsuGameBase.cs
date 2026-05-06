@@ -370,8 +370,8 @@ namespace osu.Game
                 VersionHash = $"{Version}-{RuntimeInfo.OS}".ComputeMD5Hash();
             }
 
-            // Keep upstream resources as the canonical source, but allow this repository to override selected assets
-            // without forking ppy/osu-resources. Local overrides can also ship better encodings (webp/ogg/webm).
+            // Local overrides are checked first, while upstream ppy.osu.Game.Resources remains the fallback source.
+            // This allows targeted optimisation without forking ppy/osu-resources, including webp/ogg/webm overrides.
             var localAssemblyResources = new DllResourceStore(typeof(OsuGameBase).Assembly);
             var localOverrideResources = new NamespacedResourceStore<byte[]>(localAssemblyResources, @"Resources");
             Resources.AddStore(new OptimisedMediaResourceStore(localOverrideResources));

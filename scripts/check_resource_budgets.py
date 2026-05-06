@@ -153,6 +153,9 @@ def main() -> int:
     except json.JSONDecodeError as exc:
         raise ValueError(f"Invalid JSON in budget file '{budget_path}': {exc}") from exc
 
+    if not isinstance(budget, dict):
+        raise ValueError(f"Budget file '{budget_path}' must contain a JSON object at the root.")
+
     try:
         top_n = int(budget.get("top_n", 15))
     except (TypeError, ValueError) as exc:
