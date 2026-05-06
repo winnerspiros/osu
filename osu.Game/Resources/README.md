@@ -17,7 +17,7 @@ Use it to override upstream resources without forking `ppy/osu-resources`.
 The game now checks these alternatives first for local overrides:
 
 - `*.png`, `*.jpg`, `*.jpeg` → `*.webp`
-- `*.wav`, `*.mp3` → `*.ogg`
+- `*.wav`, `*.mp3` → `*.ogg` (workflow optimizer defaults to Opus in Ogg)
 - `*.mp4` → `*.webm`
 
 That means you can keep call sites unchanged and still serve a compressed local file.

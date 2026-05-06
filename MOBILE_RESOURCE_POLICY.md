@@ -14,7 +14,7 @@ This repository keeps `ppy.osu.Game.Resources` as the canonical upstream source 
 - Match upstream virtual paths (`Textures/...`, `Samples/...`, `Videos/...`).
 - Prefer compressed formats:
   - Textures: `webp` where quality remains acceptable.
-  - Audio: `ogg` for non-critical assets.
+  - Audio: `ogg` (Opus, 48kHz target) for compact size while retaining responsiveness.
   - Video: `webm` where supported and visually acceptable.
 
 ## Resource budgets (enforced in workflow)
@@ -37,6 +37,7 @@ Workflow checks now fail when budgets regress for:
 - CI and release workflows run `scripts/optimize_resource_overrides.py` on `osu.Game/Resources` before budget checks.
 - Optimizer settings are in `.github/resource-optimizer/config.json`.
 - By default, optimized files are added as side-by-side overrides and originals are kept for safety (`keep_original_files=true`).
+- Image optimization is quality-gated (SSIM threshold) so aggressive size wins do not silently degrade visuals.
 
 ## Naming and quality rules
 
