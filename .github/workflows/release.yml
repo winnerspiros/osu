@@ -259,6 +259,31 @@ jobs:
           echo "Found APK: $FINAL_APK ($APK_SIZE_MB MB)"
           echo "apk_path=$FINAL_APK" >> "$GITHUB_OUTPUT"
 
+      - name: Check source override resource budgets
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode source \
+            --source-root osu.Game/Resources \
+            --budget-file .github/resource-budgets/source-overrides.json \
+            --report-file resource-budget/source-report.json \
+            --summary-file resource-budget/source-summary.md
+
+      - name: Check APK media budgets
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode apk \
+            --apk-path "${{ steps.find_apk.outputs.apk_path }}" \
+            --budget-file .github/resource-budgets/android-apk-media.json \
+            --report-file resource-budget/apk-report.json \
+            --summary-file resource-budget/apk-summary.md
+
+      - name: Publish resource budget summary
+        if: ${{ !cancelled() }}
+        run: |
+          cat resource-budget/source-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat resource-budget/apk-summary.md >> "$GITHUB_STEP_SUMMARY"
+
       - name: Verify APK signature
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
@@ -345,6 +370,13 @@ jobs:
           name: osu-android-${{ steps.version.outputs.version }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
+
+      - name: Upload resource budget reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: resource-budget-android-${{ steps.version.outputs.version }}
+          path: resource-budget/*
 
       # When the keystore was auto-generated, upload it so the user can save it
       # as a repository secret for consistent signing across builds.

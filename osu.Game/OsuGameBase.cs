@@ -47,6 +47,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
 using osu.Game.IO;
+using osu.Game.IO.Stores;
 using osu.Game.Localisation;
 using osu.Game.Online;
 using osu.Game.Online.API;
@@ -369,6 +370,10 @@ namespace osu.Game
                 VersionHash = $"{Version}-{RuntimeInfo.OS}".ComputeMD5Hash();
             }
 
+            // Keep upstream resources as the canonical source, but allow this repository to override selected assets
+            // without forking ppy/osu-resources. Local overrides can also ship better encodings (webp/ogg/webm).
+            Resources.AddStore(new OptimisedMediaResourceStore(
+                new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(OsuGameBase).Assembly), @"Resources")));
             Resources.AddStore(new DllResourceStore(OsuResources.ResourceAssembly));
 
             dependencies.Cache(realm = new RealmAccess(Storage, CLIENT_DATABASE_FILENAME, Host.UpdateThread));

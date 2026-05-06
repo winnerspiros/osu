@@ -10,6 +10,29 @@ permissions:
   security-events: write # for reporting InspectCode issues
 
 jobs:
+  resource-budget-source:
+    name: Resource Budget (Source Overrides)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run source override resource budget checks
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode source \
+            --source-root osu.Game/Resources \
+            --budget-file .github/resource-budgets/source-overrides.json \
+            --report-file resource-budget/source-report.json \
+            --summary-file resource-budget/source-summary.md
+
+      - name: Upload source resource budget reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: resource-budget-source
+          path: resource-budget/*
+
   inspect-code:
     name: Code Quality
     runs-on: ubuntu-latest

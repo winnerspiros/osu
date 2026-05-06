@@ -1,0 +1,45 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System.Collections.Generic;
+using System.IO;
+using osu.Framework.IO.Stores;
+
+namespace osu.Game.IO.Stores
+{
+    /// <summary>
+    /// Allows local resource overrides to provide alternative media encodings without changing call sites.
+    /// For example, requests for <c>.png</c> can be served by a local <c>.webp</c> file if present.
+    /// </summary>
+    public class OptimisedMediaResourceStore : ResourceStore<byte[]>
+    {
+        private static readonly Dictionary<string, string[]> extensionPreferences = new Dictionary<string, string[]>
+        {
+            { ".png", [".webp"] },
+            { ".jpg", [".webp"] },
+            { ".jpeg", [".webp"] },
+            { ".wav", [".ogg"] },
+            { ".mp3", [".ogg"] },
+            { ".mp4", [".webm"] },
+        };
+
+        public OptimisedMediaResourceStore(IResourceStore<byte[]> underlyingStore)
+            : base(underlyingStore)
+        {
+        }
+
+        protected override IEnumerable<string> GetFilenames(string name)
+        {
+            string extension = Path.GetExtension(name);
+
+            if (!string.IsNullOrEmpty(extension) && extensionPreferences.TryGetValue(extension.ToLowerInvariant(), out string[]? alternatives))
+            {
+                foreach (string alternative in alternatives)
+                    yield return Path.ChangeExtension(name, alternative);
+            }
+
+            foreach (string baseFilename in base.GetFilenames(name))
+                yield return baseFilename;
+        }
+    }
+}
