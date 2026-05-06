@@ -277,7 +277,8 @@ namespace osu.Game.Configuration
             // superseded by this enum; their enum values are kept in OsuSetting only for
             // config-DB forward-compatibility (existing installs may have rows for them).
             SetDefault(OsuSetting.AndroidAudioOutput, AndroidAudioOutput.Oboe);
-            // Kept for DB compat — no longer used by game logic.
+            // Kept for DB compat only — no longer used by game logic (superseded by AndroidAudioOutput).
+            // Default left true to avoid overwriting existing installs that have it set.
             SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
             // Sentinel value meaning "no previous offset has been saved yet".
             // AudioOffset is bounded [-500, 500], so double.MinValue is safely out of range.

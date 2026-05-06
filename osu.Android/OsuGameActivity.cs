@@ -16,7 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
-using ManagedBass;
+using ManagedBass; // Required for Bass.AndroidAAudio + Bass.DevicePeriod startup init (FLAG_BASS_AAUDIO_ENABLED path in OnCreate)
 using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
