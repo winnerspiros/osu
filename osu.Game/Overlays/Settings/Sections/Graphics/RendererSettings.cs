@@ -118,11 +118,11 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption = "Additional info",
-                    HintText = "Adds a small line above the FPS counter showing the active renderer (OpenGL / Vulkan), Oboe audio status, and the current display refresh rate. Only visible when Show FPS counter is on.",
+                    HintText = "Adds a small line above the FPS counter showing the active renderer (OpenGL / Vulkan), audio backend (Oboe / AAudio / AudioTrack), and the current display refresh rate. Only visible when Show FPS counter is on.",
                     Current = osuConfig.GetBindable<bool>(OsuSetting.ShowFpsAdditionalInfo),
                 })
                 {
-                    Keywords = new[] { @"info", @"renderer", @"oboe", @"refresh" },
+                    Keywords = new[] { @"info", @"renderer", @"oboe", @"aaudio", @"audio", @"refresh" },
                 },
                 lowLatencyItem,
             };

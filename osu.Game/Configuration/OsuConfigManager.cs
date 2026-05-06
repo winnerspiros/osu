@@ -271,6 +271,13 @@ namespace osu.Game.Configuration
             //     constructs a transient VkInstance and adds startup time without
             //     affecting steady-state performance. Power users opt in.
             SetDefault(OsuSetting.AndroidPerformanceMode, true);
+            // AndroidAudioOutput selects the active audio backend on Android.
+            // Default = Oboe (lowest latency, MMAP-eligible, ADPF-aware).
+            // The two legacy booleans AndroidLowLatencyAudio and AndroidBassAAudio are
+            // superseded by this enum; their enum values are kept in OsuSetting only for
+            // config-DB forward-compatibility (existing installs may have rows for them).
+            SetDefault(OsuSetting.AndroidAudioOutput, AndroidAudioOutput.Oboe);
+            // Kept for DB compat — no longer used by game logic.
             SetDefault(OsuSetting.AndroidLowLatencyAudio, true);
             // Sentinel value meaning "no previous offset has been saved yet".
             // AudioOffset is bounded [-500, 500], so double.MinValue is safely out of range.
@@ -310,13 +317,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
             SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f, 0.01f, 0.9f, 0.005f);
-            // AndroidBassAAudio = false: when enabled, BASS uses AAudio directly as its
-            // output backend instead of AudioTrack. Must be applied before Bass.Init()
-            // via a sentinel (see AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED and
-            // OsuGameActivity.OnCreate). On devices that do not support AAudio (< Android 8.0)
-            // BASS falls back to AudioTrack automatically. Orthogonal to the Oboe bridge:
-            // when AndroidLowLatencyAudio is also enabled the Oboe bridge overrides BASS's
-            // device output entirely, so this flag only has a visible effect when Oboe is off.
+            // AndroidBassAAudio is superseded by AndroidAudioOutput. Kept for DB compat.
             SetDefault(OsuSetting.AndroidBassAAudio, false);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
@@ -600,6 +601,7 @@ namespace osu.Game.Configuration
         AndroidStylusDisableClick,
         AndroidStylusPressureThreshold,
         AndroidBassAAudio,
+        AndroidAudioOutput,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
     }

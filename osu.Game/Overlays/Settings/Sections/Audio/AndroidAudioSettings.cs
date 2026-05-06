@@ -11,7 +11,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 namespace osu.Game.Overlays.Settings.Sections.Audio
 {
     /// <summary>
-    /// Android-specific audio settings — low-latency Oboe output and an explicit,
+    /// Android-specific audio settings — audio output backend selection and an explicit,
     /// user-triggered hardware-latency audio-offset re-measurement button.
     /// </summary>
     public partial class AndroidAudioSettings : SettingsSubsection
@@ -38,26 +38,17 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
 
             Children = new Drawable[]
             {
-                new SettingsItemV2(new FormCheckBox
+                new SettingsItemV2(new FormEnumDropdown<AndroidAudioOutput>
                 {
-                    Caption = "Low-latency audio (Oboe)",
-                    HintText = "Routes audio through Google's Oboe library for lower output latency on supported devices. Disable if you hear crackles.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidLowLatencyAudio),
+                    Caption = "Audio output backend",
+                    HintText = "Selects how BASS audio is delivered to the hardware.\n"
+                               + "• AudioTrack — default BASS backend, maximum compatibility (~80–120 ms latency).\n"
+                               + "• AAudio — BASS uses Android's AAudio API directly; lower latency on Android 8.0+. Takes effect after restart.\n"
+                               + "• Oboe — routes BASS through Google's Oboe library with AAudio Exclusive + MMAP; lowest latency (~5–15 ms) on supported devices. Recommended.",
+                    Current = config.GetBindable<AndroidAudioOutput>(OsuSetting.AndroidAudioOutput),
                 })
                 {
-                    Keywords = new[] { @"oboe", @"aaudio", @"latency" },
-                },
-                new SettingsItemV2(new FormCheckBox
-                {
-                    Caption = "BASS AAudio output",
-                    HintText = "Makes BASS use Android's AAudio API directly instead of AudioTrack. "
-                               + "Reduces intrinsic BASS output latency on Android 8.0+ devices. "
-                               + "Has no effect when Oboe is enabled (Oboe overrides BASS output). "
-                               + "Takes effect after restart.",
-                    Current = config.GetBindable<bool>(OsuSetting.AndroidBassAAudio),
-                })
-                {
-                    Keywords = new[] { @"bass", @"aaudio", @"latency", @"audiotrack" },
+                    Keywords = new[] { @"oboe", @"aaudio", @"audiotrack", @"latency", @"bass", @"backend" },
                 },
                 // Explicit Resync only — the previous "auto-apply on Oboe start" toggle and
                 // its 2 s startup pop-up have been removed because they silently overwrote

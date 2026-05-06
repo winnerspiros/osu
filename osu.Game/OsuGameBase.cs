@@ -144,6 +144,13 @@ namespace osu.Game
         public virtual double OboeLatency => -1;
 
         /// <summary>
+        /// A compact human-readable string describing the currently active Android audio
+        /// output backend (e.g. "Oboe [AAudio MMAP]", "BASS/AAudio", "AudioTrack").
+        /// Empty on non-Android platforms.
+        /// </summary>
+        public virtual string AudioOutputStatus => string.Empty;
+
+        /// <summary>
         /// Re-runs the hardware audio latency measurement and applies the result to
         /// <see cref="OsuSetting.AudioOffset"/>. No-op outside of Android. Safe to call at
         /// any time; the measurement is bounded (~2 seconds) and stops on its own.

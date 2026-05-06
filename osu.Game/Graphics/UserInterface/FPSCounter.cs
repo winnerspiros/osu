@@ -293,7 +293,7 @@ namespace osu.Game.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Renders a compact one-line summary of the active renderer, Oboe audio status, and
+        /// Renders a compact one-line summary of the active renderer, audio backend, and
         /// the current display refresh rate above the FPS digits. Refreshed at most once per
         /// second to keep cost negligible. Only mutates the sprite when the rendered text
         /// actually changes, so we avoid invalidating the FPS-counter layout on every tick.
@@ -311,14 +311,28 @@ namespace osu.Game.Graphics.UserInterface
                 renderer = "?";
             }
 
-            string oboe;
+            // Prefer the unified AudioOutputStatus from OsuGameBase (populated by
+            // OsuGameAndroid with backend-specific detail). Fall back to the legacy
+            // IsOboeEnabled/IsOboeActive/OboeStatus path so the display still works on
+            // non-Android platforms or builds that haven't overridden AudioOutputStatus.
+            string audio;
 
-            if (game == null || !game.IsOboeEnabled)
-                oboe = "off";
+            if (game != null && !string.IsNullOrEmpty(game.AudioOutputStatus))
+            {
+                audio = game.AudioOutputStatus;
+            }
+            else if (game == null || !game.IsOboeEnabled)
+            {
+                audio = "off";
+            }
             else if (game.IsOboeActive)
-                oboe = !string.IsNullOrEmpty(game.OboeStatus) ? game.OboeStatus : "on";
+            {
+                audio = !string.IsNullOrEmpty(game.OboeStatus) ? game.OboeStatus : "on";
+            }
             else
-                oboe = "init";
+            {
+                audio = "init";
+            }
 
             string refreshRate = string.Empty;
 
@@ -331,7 +345,7 @@ namespace osu.Game.Graphics.UserInterface
                     refreshRate = $" • {hz}Hz";
             }
 
-            string text = $"{renderer} • Oboe: {oboe}{refreshRate}";
+            string text = $"{renderer} • Audio: {audio}{refreshRate}";
 
             if (text == lastAdditionalInfoText)
                 return;

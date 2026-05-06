@@ -18,6 +18,7 @@ using osu.Android.Native;
 using osu.Framework.Logging;
 using osu.Framework;
 using osu.Android.Input;
+using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -77,7 +78,7 @@ namespace osu.Android
             : new Vector2(1024, 768);
 
         private readonly Bindable<bool> performanceMode = new Bindable<bool>();
-        private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
+        private readonly Bindable<AndroidAudioOutput> audioOutput = new Bindable<AndroidAudioOutput>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
 
@@ -97,7 +98,6 @@ namespace osu.Android
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
         private readonly Bindable<bool> stylusDisableClick = new Bindable<bool>();
         private readonly BindableFloat stylusPressureThreshold = new BindableFloat();
-        private readonly Bindable<bool> bassAAudio = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -261,7 +261,7 @@ namespace osu.Android
         private void load(FrameworkConfigManager frameworkConfig)
         {
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
-            LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
+            LocalConfig.BindWith(OsuSetting.AndroidAudioOutput, audioOutput);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
@@ -313,7 +313,6 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusDisableClick, stylusDisableClick);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusPressureThreshold, stylusPressureThreshold);
-                LocalConfig.BindWith(OsuSetting.AndroidBassAAudio, bassAAudio);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -344,10 +343,16 @@ namespace osu.Android
                 // explicitly opts in.
                 mirrorStartupFlag(startupFrameSyncMigrationEnabled,  AndroidStartupFlags.FLAG_FRAME_SYNC_MIGRATION_ENABLED,  sentinelOnDisable: false);
                 mirrorStartupFlag(verboseLogging,                    AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED,       sentinelOnDisable: false);
-                // sentinelOnDisable=false → presence ⇒ "BASS AAudio enabled". Default is OFF
-                // (opt-in). When enabled, OsuGameActivity.OnCreate reads the flag and calls
-                // Bass.AndroidAAudio = true before Bass.Init() so BASS opens an AAudio device.
-                mirrorStartupFlag(bassAAudio,                        AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED,           sentinelOnDisable: false);
+                // Mirror AndroidAudioOutput into the FLAG_BASS_AAUDIO_ENABLED sentinel.
+                // OsuGameActivity.OnCreate reads this before Bass.Init() and calls
+                // Bass.AndroidAAudio = true only when the flag is present (= AAudio selected).
+                // Oboe and AudioTrack do not need a startup-time sentinel (Oboe init is deferred
+                // post-game-load; AudioTrack is the BASS default when no flag is set).
+                void applyAudioOutputFlag(AndroidAudioOutput v)
+                    => AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED, v == AndroidAudioOutput.AAudio);
+
+                applyAudioOutputFlag(audioOutput.Value);
+                audioOutput.BindValueChanged(e => applyAudioOutputFlag(e.NewValue));
             }
             catch (Exception e)
             {
@@ -1172,7 +1177,7 @@ namespace osu.Android
 
             // Always bind the change-listener, never with the immediate fire — we
             // do the initial fire ourselves, optionally deferred.
-            lowLatencyAudio.BindValueChanged(handleLowLatencyAudioChanged);
+            audioOutput.BindValueChanged(handleAudioOutputChanged);
             vulkanProbeEnabled.BindValueChanged(handleVulkanProbeChanged);
 
             if (deferInit)
@@ -1181,7 +1186,7 @@ namespace osu.Android
                 {
                     try
                     {
-                        handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                        handleAudioOutputChanged(new ValueChangedEvent<AndroidAudioOutput>(audioOutput.Value, audioOutput.Value));
                         handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                     }
                     catch (Exception ex)
@@ -1194,7 +1199,7 @@ namespace osu.Android
             {
                 try
                 {
-                    handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                    handleAudioOutputChanged(new ValueChangedEvent<AndroidAudioOutput>(audioOutput.Value, audioOutput.Value));
                     handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                 }
                 catch (Exception ex)
@@ -1738,7 +1743,7 @@ namespace osu.Android
 
         public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
 
-        public override bool IsOboeEnabled => lowLatencyAudio.Value;
+        public override bool IsOboeEnabled => audioOutput.Value == AndroidAudioOutput.Oboe;
 
         public override string OboeStatus
         {
@@ -1748,6 +1753,31 @@ namespace osu.Android
                 if (IsOboeEnabled && audioRedirector != null && !audioRedirector.IsRedirecting && IsOboeActive)
                     status += " [No Redirect]";
                 return status;
+            }
+        }
+
+        public override string AudioOutputStatus
+        {
+            get
+            {
+                switch (audioOutput.Value)
+                {
+                    case AndroidAudioOutput.Oboe:
+                        if (!IsOboeActive)
+                            return IsOboeEnabled ? "Oboe (init)" : "Oboe (off)";
+
+                        string status = (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? "Oboe";
+                        if (audioRedirector != null && !audioRedirector.IsRedirecting)
+                            status += " [No Redirect]";
+                        return status;
+
+                    case AndroidAudioOutput.AAudio:
+                        int sessionId = ManagedBass.Bass.AndroidSessionId;
+                        return sessionId > 0 ? "BASS/AAudio" : "BASS/AAudio (init)";
+
+                    default:
+                        return "AudioTrack";
+                }
             }
         }
 
@@ -1890,9 +1920,9 @@ namespace osu.Android
         // (when the toggle is ON, which is the default).
         // ------------------------------------------------------------------
 
-        private void handleLowLatencyAudioChanged(ValueChangedEvent<bool> e)
+        private void handleAudioOutputChanged(ValueChangedEvent<AndroidAudioOutput> e)
         {
-            if (e.NewValue)
+            if (e.NewValue == AndroidAudioOutput.Oboe)
             {
                 try
                 {
@@ -1912,8 +1942,8 @@ namespace osu.Android
                 catch (Exception ex)
                 {
                     // Surface to runtime.log so a user-shared log makes Oboe failures
-                    // diagnosable. Do NOT silently flip lowLatencyAudio.Value back to
-                    // false here — persisting that flip turns a single transient init
+                    // diagnosable. Do NOT silently flip audioOutput.Value back to
+                    // AudioTrack here — persisting that flip turns a single transient init
                     // failure into a permanent "Oboe doesn't work" for the user, with
                     // no indication that the toggle was overridden behind their back.
                     Logger.Log($"[osu!] Failed to start Oboe bridge: {ex.Message}", level: LogLevel.Error);
