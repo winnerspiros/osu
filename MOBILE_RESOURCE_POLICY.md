@@ -32,6 +32,12 @@ Workflow checks now fail when budgets regress for:
 - Top-N largest media aggregate
 - Total APK size (release workflow)
 
+## Workflow optimization pass
+
+- CI and release workflows run `scripts/optimize_resource_overrides.py` on `osu.Game/Resources` before budget checks.
+- Optimizer settings are in `.github/resource-optimizer/config.json`.
+- By default, optimized files are added as side-by-side overrides and originals are kept for safety (`keep_original_files=true`).
+
 ## Naming and quality rules
 
 - Keep override names stable (do not invent alternate keys).

@@ -221,6 +221,28 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION"    >> "$GITHUB_OUTPUT"
 
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Optimize local override media
+        run: |
+          python3 scripts/optimize_resource_overrides.py \
+            --root osu.Game/Resources \
+            --config .github/resource-optimizer/config.json \
+            --report-file resource-budget/optimizer-report.json \
+            --summary-file resource-budget/optimizer-summary.md
+
+      - name: Check source override resource budgets
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode source \
+            --source-root osu.Game/Resources \
+            --budget-file .github/resource-budgets/source-overrides.json \
+            --report-file resource-budget/source-report.json \
+            --summary-file resource-budget/source-summary.md
+
       - name: Build Android APK
         run: >
           dotnet publish -c Release
@@ -259,15 +281,6 @@ jobs:
           echo "Found APK: $FINAL_APK ($APK_SIZE_MB MB)"
           echo "apk_path=$FINAL_APK" >> "$GITHUB_OUTPUT"
 
-      - name: Check source override resource budgets
-        run: |
-          python3 scripts/check_resource_budgets.py \
-            --mode source \
-            --source-root osu.Game/Resources \
-            --budget-file .github/resource-budgets/source-overrides.json \
-            --report-file resource-budget/source-report.json \
-            --summary-file resource-budget/source-summary.md
-
       - name: Check APK media budgets
         run: |
           python3 scripts/check_resource_budgets.py \
@@ -280,6 +293,8 @@ jobs:
       - name: Publish resource budget summary
         if: ${{ !cancelled() }}
         run: |
+          cat resource-budget/optimizer-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           cat resource-budget/source-summary.md >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           cat resource-budget/apk-summary.md >> "$GITHUB_STEP_SUMMARY"

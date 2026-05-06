@@ -31,3 +31,5 @@ Example:
 
 - This mechanism is for selective high-impact assets only.
 - `ppy.osu.Game.Resources` remains the default fallback source for all non-overridden assets.
+- CI/release workflows run `scripts/optimize_resource_overrides.py` before budget checks/build, using `.github/resource-optimizer/config.json`.
+- Optimizer-generated compressed files can coexist with originals (`keep_original_files=true`) to keep compatibility safety.
