@@ -18,6 +18,7 @@ using osu.Android.Native;
 using osu.Framework.Logging;
 using osu.Framework;
 using osu.Android.Input;
+using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -77,7 +78,7 @@ namespace osu.Android
             : new Vector2(1024, 768);
 
         private readonly Bindable<bool> performanceMode = new Bindable<bool>();
-        private readonly Bindable<bool> lowLatencyAudio = new Bindable<bool>();
+        private readonly Bindable<AndroidAudioOutput> audioOutput = new Bindable<AndroidAudioOutput>();
         private readonly Bindable<bool> vulkanProbeEnabled = new Bindable<bool>();
         private readonly BindableDouble audioOffset = new BindableDouble();
 
@@ -260,7 +261,7 @@ namespace osu.Android
         private void load(FrameworkConfigManager frameworkConfig)
         {
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
-            LocalConfig.BindWith(OsuSetting.AndroidLowLatencyAudio, lowLatencyAudio);
+            LocalConfig.BindWith(OsuSetting.AndroidAudioOutput, audioOutput);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
             LocalConfig.BindWith(OsuSetting.AudioOffset, audioOffset);
 
@@ -342,6 +343,16 @@ namespace osu.Android
                 // explicitly opts in.
                 mirrorStartupFlag(startupFrameSyncMigrationEnabled,  AndroidStartupFlags.FLAG_FRAME_SYNC_MIGRATION_ENABLED,  sentinelOnDisable: false);
                 mirrorStartupFlag(verboseLogging,                    AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED,       sentinelOnDisable: false);
+                // Mirror AndroidAudioOutput into the FLAG_BASS_AAUDIO_ENABLED sentinel.
+                // OsuGameActivity.OnCreate reads this before Bass.Init() and calls
+                // Bass.AndroidAAudio = true only when the flag is present (= AAudio selected).
+                // Oboe and AudioTrack do not need a startup-time sentinel (Oboe init is deferred
+                // post-game-load; AudioTrack is the BASS default when no flag is set).
+                void applyAudioOutputFlag(AndroidAudioOutput v)
+                    => AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED, v == AndroidAudioOutput.AAudio);
+
+                applyAudioOutputFlag(audioOutput.Value);
+                audioOutput.BindValueChanged(e => applyAudioOutputFlag(e.NewValue));
             }
             catch (Exception e)
             {
@@ -1166,7 +1177,7 @@ namespace osu.Android
 
             // Always bind the change-listener, never with the immediate fire — we
             // do the initial fire ourselves, optionally deferred.
-            lowLatencyAudio.BindValueChanged(handleLowLatencyAudioChanged);
+            audioOutput.BindValueChanged(handleAudioOutputChanged);
             vulkanProbeEnabled.BindValueChanged(handleVulkanProbeChanged);
 
             if (deferInit)
@@ -1175,7 +1186,7 @@ namespace osu.Android
                 {
                     try
                     {
-                        handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                        handleAudioOutputChanged(new ValueChangedEvent<AndroidAudioOutput>(audioOutput.Value, audioOutput.Value));
                         handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                     }
                     catch (Exception ex)
@@ -1188,7 +1199,7 @@ namespace osu.Android
             {
                 try
                 {
-                    handleLowLatencyAudioChanged(new ValueChangedEvent<bool>(lowLatencyAudio.Value, lowLatencyAudio.Value));
+                    handleAudioOutputChanged(new ValueChangedEvent<AndroidAudioOutput>(audioOutput.Value, audioOutput.Value));
                     handleVulkanProbeChanged(new ValueChangedEvent<bool>(vulkanProbeEnabled.Value, vulkanProbeEnabled.Value));
                 }
                 catch (Exception ex)
@@ -1732,7 +1743,7 @@ namespace osu.Android
 
         public override bool IsOboeActive => (nativeBridges as AndroidNativeBridgeManager)?.IsOboeActive() ?? false;
 
-        public override bool IsOboeEnabled => lowLatencyAudio.Value;
+        public override bool IsOboeEnabled => audioOutput.Value == AndroidAudioOutput.Oboe;
 
         public override string OboeStatus
         {
@@ -1742,6 +1753,31 @@ namespace osu.Android
                 if (IsOboeEnabled && audioRedirector != null && !audioRedirector.IsRedirecting && IsOboeActive)
                     status += " [No Redirect]";
                 return status;
+            }
+        }
+
+        public override string AudioOutputStatus
+        {
+            get
+            {
+                switch (audioOutput.Value)
+                {
+                    case AndroidAudioOutput.Oboe:
+                        if (!IsOboeActive)
+                            return IsOboeEnabled ? "Oboe (init)" : "Oboe (off)";
+
+                        string status = (nativeBridges as AndroidNativeBridgeManager)?.GetOboeStatus() ?? "Oboe";
+                        if (audioRedirector != null && !audioRedirector.IsRedirecting)
+                            status += " [No Redirect]";
+                        return status;
+
+                    case AndroidAudioOutput.AAudio:
+                        int sessionId = ManagedBass.Bass.AndroidSessionId;
+                        return sessionId > 0 ? "BASS/AAudio" : "BASS/AAudio (init)";
+
+                    default:
+                        return "AudioTrack";
+                }
             }
         }
 
@@ -1884,9 +1920,9 @@ namespace osu.Android
         // (when the toggle is ON, which is the default).
         // ------------------------------------------------------------------
 
-        private void handleLowLatencyAudioChanged(ValueChangedEvent<bool> e)
+        private void handleAudioOutputChanged(ValueChangedEvent<AndroidAudioOutput> e)
         {
-            if (e.NewValue)
+            if (e.NewValue == AndroidAudioOutput.Oboe)
             {
                 try
                 {
@@ -1906,8 +1942,8 @@ namespace osu.Android
                 catch (Exception ex)
                 {
                     // Surface to runtime.log so a user-shared log makes Oboe failures
-                    // diagnosable. Do NOT silently flip lowLatencyAudio.Value back to
-                    // false here — persisting that flip turns a single transient init
+                    // diagnosable. Do NOT silently flip audioOutput.Value back to
+                    // AudioTrack here — persisting that flip turns a single transient init
                     // failure into a permanent "Oboe doesn't work" for the user, with
                     // no indication that the toggle was overridden behind their back.
                     Logger.Log($"[osu!] Failed to start Oboe bridge: {ex.Message}", level: LogLevel.Error);
@@ -1933,9 +1969,49 @@ namespace osu.Android
                 // button click. Save the current offset first so the user can undo, then apply.
                 LocalConfig.SetValue(OsuSetting.AndroidPreviousHardwareAudioOffset, audioOffset.Value);
 
-                double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
+                // Cap the applied compensation to the typical MMAP output-latency ceiling.
+                //
+                // DESIGN CONSTRAINT — why we cap here:
+                //
+                // AudioOffset shifts the gameplay clock (visual timing) but NOT the BASS
+                // track's playback position.  Both the music track and hitsound samples go
+                // through BASS → OboeAudioRedirector → Oboe → speaker, so they share the
+                // same pipeline latency (hw_latency).  A non-zero AudioOffset shifts WHEN
+                // the user's input arrives in the BASS timeline relative to the music beat:
+                //
+                //   Beat at BASS position H, hw_latency = L:
+                //     AudioOffset = 0   → input at BASS H   → hitsound heard at H+L = music ✓
+                //     AudioOffset = -L  → input at BASS H+L → hitsound heard at H+2L, music at H+L → lag = L ✗
+                //
+                // In other words, every ms of negative AudioOffset creates exactly 1 ms of
+                // hitsound-after-music lag.  AudioOffset = 0 gives perfect hitsound-music sync.
+                //
+                // On MMAP-capable devices (which includes the Galaxy S23/S24 series and most
+                // modern Snapdragon/Exynos handsets), Oboe achieves 4–8 ms output latency, so
+                // applying the full measured value creates ≤8 ms of desync — below the human
+                // JND of ~20 ms, and imperceptible in practice.
+                //
+                // On Legacy AAudio / OpenSL ES devices, or devices whose Samsung audio DSP
+                // reports high pipeline depth, the measured latency can be 30–80 ms.  Applying
+                // -30 ms as AudioOffset causes hitsounds to arrive 30 ms after each music beat,
+                // which is very audible.  We therefore cap the compensation at
+                // max_hw_compensation_ms so the hitsound-music gap is bounded to that value on
+                // ALL devices.  Users who want to tune the visual-audio gap beyond this cap can
+                // do so manually via the offset slider during gameplay (BeatmapOffsetControl),
+                // where the real-time hit-error display gives direct feedback.
+                // 15 ms = typical MMAP output-latency ceiling on modern Android (Snapdragon 8 Gen 2,
+                // Exynos 2400, etc.). Anything higher is Samsung/DSP overhead that doesn't affect
+                // relative music-hitsound timing — applying it would push hitsound-music desync
+                // above the ~20 ms human JND.
+                const double max_hw_compensation_ms = 15.0;
+                double cappedLatency = Math.Min(latency, max_hw_compensation_ms); // capped compensation value (≤15 ms)
+                double suggested = Math.Clamp(-cappedLatency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
-                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms, previous offset saved for restore)");
+
+                if (latency > max_hw_compensation_ms)
+                    Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (measured={latency:F1}ms, capped at {max_hw_compensation_ms}ms to preserve hitsound-music sync — fine-tune manually in gameplay)");
+                else
+                    Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms, previous offset saved for restore)");
             });
         }
 

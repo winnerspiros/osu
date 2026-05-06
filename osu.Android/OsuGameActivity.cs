@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
+using ManagedBass; // Required for Bass.AndroidAAudio + Bass.DevicePeriod startup init (FLAG_BASS_AAUDIO_ENABLED path in OnCreate)
 using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
@@ -261,6 +262,31 @@ namespace osu.Android
                 catch (Exception e)
                 {
                     Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
+                }
+            }
+
+            // BASS AAudio: if the user opted in, tell BASS to open an AAudio device instead
+            // of AudioTrack before the host creates its AudioThread and calls Bass.Init().
+            // Bass.AndroidAAudio must be set before Bass.Init() — reading the sentinel here
+            // (before base.OnCreate, which starts the SDL+game machinery) is the earliest
+            // safe point. On Android < 8.0 BASS falls back to AudioTrack automatically.
+            // When the Oboe bridge (AndroidLowLatencyAudio) is also active it overrides
+            // BASS's own output via the GlobalMixerHandle decode path anyway, so this flag
+            // only materially changes behaviour when Oboe is disabled.
+            if (AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED))
+            {
+                try
+                {
+                    Bass.AndroidAAudio = true;
+                    // -512 requests a 512-sample AAudio buffer (≈ 11.6 ms at 44 100 Hz),
+                    // giving a good latency/stability trade-off. The negative sign means
+                    // "specify in samples rather than milliseconds" (BASS 4Android convention).
+                    Bass.DevicePeriod = -512;
+                    CrashDiagnostics.WriteAliveMarker("Bass.AndroidAAudio = true (DevicePeriod = -512)");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Bass.AndroidAAudio init failed (non-fatal): {e.Message}");
                 }
             }
 
@@ -763,11 +789,24 @@ namespace osu.Android
             if (handle == IntPtr.Zero)
                 return;
 
-            // Reset per-lifecycle flags. The new surface has not yet reported its format
-            // (SurfaceChanged fires after SurfaceCreated), and any previous pending-format
-            // stamp no longer applies to this new surface instance.
+            // Reset the format-tracking field: the new surface has not yet reported its
+            // format (SurfaceChanged fires after SurfaceCreated).
+            //
+            // Intentionally do NOT reset setFormatPending here. If we previously called
+            // SetFormat(Rgba8888) to fix an RGB565 surface, setFormatPending stays true
+            // across the resulting SurfaceDestroyed → SurfaceCreated cycle so that if the
+            // new surface ALSO arrives as RGB565 (i.e. the SetFormat had no effect on this
+            // device) we do not fire the reactive guard a second time — that would chain
+            // another teardown and produce a duplicate "[osu!] Android surface pixel format
+            // RGB565 detected (Vulkan path)" log message in the overlay.
+            //
+            // The flag lifecycle is:
+            //   false  → set to true when RGB565 guard fires and SetFormat is called
+            //   true   → released back to false in SurfaceChanged when RGBA8888 is confirmed
+            //              (the SetFormat worked; future RGB565 events can fire the guard again)
+            //   true   → stays true if the next SurfaceChanged also reports RGB565
+            //              (SetFormat had no effect; guard is suppressed to avoid chaining)
             lastSurfaceFormat = 0;
-            setFormatPending = false;
 
             IntPtr newRef = global::Android.Runtime.JNIEnv.NewGlobalRef(handle);
 
@@ -822,7 +861,24 @@ namespace osu.Android
             // the surface that arrives after the first teardown also briefly reports RGB565
             // (e.g. during a compositor mode transition), which would chain teardowns and
             // prevent the draw thread from ever acknowledging either one within 250 ms.
-            if (format == global::Android.Graphics.Format.Rgb565 && LogManagement.IsVulkanConfigured() && !setFormatPending)
+            // Unlike the old design (where setFormatPending was reset in SurfaceCreated),
+            // the flag now persists across the SurfaceDestroyed→SurfaceCreated cycle and is
+            // only released here when the surface is confirmed as RGBA8888. That prevents
+            // the duplicate "[osu!] Android surface pixel format RGB565 detected" log message
+            // that appeared when SetFormat did not change the format on certain Samsung/Adreno
+            // devices (surface born as RGB565 again after the teardown).
+            //
+            // !AndroidStartupSafeMode.IsActive: safe-mode sessions always run OpenGL (via
+            // ForceOpenGLRendererIfSafeMode). After LoadComplete, RestoreRendererAfterSafeMode
+            // writes "Vulkan" back to framework.ini so IsVulkanConfigured() returns true for
+            // the rest of that session — but the runtime renderer is still OpenGL. Firing the
+            // RGB565 guard in that window would call SetFormat unnecessarily (RGB565 is fine
+            // for OpenGL) and produce a mid-session surface teardown with a confusing
+            // "(Vulkan path)" log message in the overlay.
+            if (format == global::Android.Graphics.Format.Rgb565
+                && LogManagement.IsVulkanConfigured()
+                && !setFormatPending
+                && !AndroidStartupSafeMode.IsActive)
             {
                 setFormatPending = true;
 
@@ -858,6 +914,16 @@ namespace osu.Android
                 surfaceEvent.Reset();
                 Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
                 return;
+            }
+
+            // Release the pending-format guard once the surface is confirmed RGBA8888.
+            // This allows future RGB565 detection (e.g. after a display-mode change that
+            // would legitimately reset the format) while still blocking a second spurious
+            // fire during the immediate teardown+recreate that follows our own SetFormat call.
+            if (format == global::Android.Graphics.Format.Rgba8888 && setFormatPending)
+            {
+                setFormatPending = false;
+                Debug.WriteLine("[osu!] Surface format confirmed RGBA8888 — pending-format guard released.");
             }
 
             if (width > 0 && height > 0)
@@ -898,7 +964,7 @@ namespace osu.Android
             }
         }
 
-        public override void OnConfigurationChanged(Configuration newConfig)
+        public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
             bool wasDeX = IsDeX;
@@ -921,7 +987,7 @@ namespace osu.Android
             }
         }
 
-        private void updateDeXStatus(Configuration? config)
+        private void updateDeXStatus(global::Android.Content.Res.Configuration? config)
         {
             bool wasDeX = IsDeX;
             IsDeX = (config ?? Resources?.Configuration)?.UiMode.HasFlag(UiMode.TypeDesk) ?? false;
