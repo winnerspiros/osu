@@ -151,15 +151,15 @@ def main() -> int:
     try:
         budget = json.loads(budget_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON in budget file '{budget_path}': {exc}") from exc
+        raise ValueError(f"Invalid JSON in budget file '{str(budget_path)}': {exc}") from exc
 
     if not isinstance(budget, dict):
-        raise ValueError(f"Budget file '{budget_path}' must contain a JSON object at the root.")
+        raise ValueError(f"Budget file '{str(budget_path)}' must contain a JSON object at the root.")
 
     try:
         top_n = int(budget.get("top_n", 15))
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"Budget file '{budget_path}' contains invalid 'top_n': {budget.get('top_n')}") from exc
+        raise ValueError(f"Budget file '{str(budget_path)}' contains invalid 'top_n': {budget.get('top_n')}") from exc
 
     apk_size: int | None = None
     if args.mode == "source":
