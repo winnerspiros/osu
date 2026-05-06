@@ -43,7 +43,7 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                     Caption = "Audio output backend",
                     HintText = "Selects how BASS audio is delivered to the hardware.\n"
                                + "• AudioTrack — default BASS backend, maximum compatibility (~80–120 ms latency).\n"
-                               + "• AAudio — BASS uses Android's AAudio API; no practical latency benefit over AudioTrack in most cases. Takes effect after restart.\n"
+                               + "• AAudio — BASS uses Android's AAudio API; provides similar latency to AudioTrack with no measurable improvement. Takes effect after restart.\n"
                                + "• Oboe — routes BASS through Google's Oboe library with AAudio Exclusive + MMAP; lowest latency (~4–8 ms) on supported devices. Recommended.",
                     Current = config.GetBindable<AndroidAudioOutput>(OsuSetting.AndroidAudioOutput),
                 })

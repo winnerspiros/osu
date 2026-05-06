@@ -1985,7 +1985,7 @@ namespace osu.Android
                 double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
 
-                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (measured latency={latency:F1}ms)");
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (measured Oboe latency={latency:F1}ms)");
             });
         }
 
