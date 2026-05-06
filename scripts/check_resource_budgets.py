@@ -41,7 +41,9 @@ def collect_from_dir(root: Path) -> list[MediaEntry]:
         ext = path.suffix.lower()
         if ext not in MEDIA_EXTS:
             continue
-        entries.append(MediaEntry(path=str(path.relative_to(root)).replace("\\", "/"), size=path.stat().st_size, ext=ext))
+        relative_path = str(path.relative_to(root)).replace("\\", "/")
+        file_size = path.stat().st_size
+        entries.append(MediaEntry(path=relative_path, size=file_size, ext=ext))
     return entries
 
 
@@ -145,8 +147,16 @@ def main() -> int:
     args = parser.parse_args()
 
     budget_path = Path(args.budget_file)
-    budget = json.loads(budget_path.read_text(encoding="utf-8"))
-    top_n = int(budget.get("top_n", 15))
+
+    try:
+        budget = json.loads(budget_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON in budget file '{budget_path}': {exc}") from exc
+
+    try:
+        top_n = int(budget.get("top_n", 15))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Budget file '{budget_path}' contains invalid 'top_n': {budget.get('top_n')}") from exc
 
     apk_size: int | None = None
     if args.mode == "source":

@@ -15,12 +15,12 @@ namespace osu.Game.IO.Stores
     {
         private static readonly Dictionary<string, string[]> extensionPreferences = new Dictionary<string, string[]>
         {
-            { ".png", [".webp"] },
-            { ".jpg", [".webp"] },
-            { ".jpeg", [".webp"] },
-            { ".wav", [".ogg"] },
-            { ".mp3", [".ogg"] },
-            { ".mp4", [".webm"] },
+            { ".png", new[] { ".webp" } },
+            { ".jpg", new[] { ".webp" } },
+            { ".jpeg", new[] { ".webp" } },
+            { ".wav", new[] { ".ogg" } },
+            { ".mp3", new[] { ".ogg" } },
+            { ".mp4", new[] { ".webm" } },
         };
 
         public OptimisedMediaResourceStore(IResourceStore<byte[]> underlyingStore)

@@ -372,8 +372,9 @@ namespace osu.Game
 
             // Keep upstream resources as the canonical source, but allow this repository to override selected assets
             // without forking ppy/osu-resources. Local overrides can also ship better encodings (webp/ogg/webm).
-            Resources.AddStore(new OptimisedMediaResourceStore(
-                new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(OsuGameBase).Assembly), @"Resources")));
+            var localAssemblyResources = new DllResourceStore(typeof(OsuGameBase).Assembly);
+            var localOverrideResources = new NamespacedResourceStore<byte[]>(localAssemblyResources, @"Resources");
+            Resources.AddStore(new OptimisedMediaResourceStore(localOverrideResources));
             Resources.AddStore(new DllResourceStore(OsuResources.ResourceAssembly));
 
             dependencies.Cache(realm = new RealmAccess(Storage, CLIENT_DATABASE_FILENAME, Host.UpdateThread));
