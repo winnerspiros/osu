@@ -43,8 +43,8 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                     Caption = "Audio output backend",
                     HintText = "Selects how BASS audio is delivered to the hardware.\n"
                                + "• AudioTrack — default BASS backend, maximum compatibility (~80–120 ms latency).\n"
-                               + "• AAudio — BASS uses Android's AAudio API directly; lower latency on Android 8.0+. Takes effect after restart.\n"
-                               + "• Oboe — routes BASS through Google's Oboe library with AAudio Exclusive + MMAP; lowest latency (~5–15 ms) on supported devices. Recommended.",
+                               + "• AAudio — BASS uses Android's AAudio API; provides similar latency to AudioTrack with no measurable improvement. Takes effect after restart.\n"
+                               + "• Oboe — routes BASS through Google's Oboe library with AAudio Exclusive + MMAP; lowest latency (~4–8 ms) on supported devices. Recommended.",
                     Current = config.GetBindable<AndroidAudioOutput>(OsuSetting.AndroidAudioOutput),
                 })
                 {
@@ -56,43 +56,30 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                 // audio device changed), making the offset feel "jittery". Hardware-latency
                 // measurement is now exclusively triggered by clicking the button below: it
                 // runs a 2 s sampling window, drops the warm-up samples, and applies the
-                // median of the remaining AAudio readings to AudioOffset. The button no-ops
+                // full median of the Oboe readings as a negative AudioOffset. The button no-ops
                 // (logging "already measuring") if clicked again within the active window,
                 // so users can mash it without producing partial measurements.
                 //
                 // After a resync the restore button below becomes active so users can undo
                 // if the hardware measurement doesn't match their perception.
                 //
-                // HITSOUND-MUSIC ALIGNMENT NOTE:
-                // AudioOffset shifts the VISUAL timing of hit objects relative to the audio
-                // track.  Because hitsound samples fire at the moment of player input (not
-                // at a pre-scheduled beatmap time), a non-zero offset shifts WHEN inputs
-                // arrive in the audio timeline: every 1 ms of negative AudioOffset creates
-                // 1 ms of hitsound-after-music lag.  AudioOffset = 0 gives perfect
-                // hitsound-music synchronisation.
-                //
-                // Resync caps the applied value at 15 ms (the typical MMAP output-latency
-                // ceiling) to keep any hitsound-music desync below the human audibility
-                // threshold (~20 ms), even on devices whose DSP reports higher latency.
-                // If you find hitsounds still feel late relative to the music after Resync,
-                // lower the offset toward 0 using the slider in Settings → Audio.  For the
-                // most accurate per-song tuning, use the in-game "Audio offset (this
-                // beatmap)" control during gameplay — the real-time hit-error bar gives
-                // direct feedback.
+                // Both music and hitsounds travel through the same BASS → Oboe pipeline, so
+                // they both experience the same hardware latency offset.  AudioOffset corrects
+                // the visual timing so notes appear when they should be hit; the audio output
+                // for both music and hitsounds shifts together.
                 //
                 // IMPORTANT — Bluetooth speakers/headphones:
-                // The AAudio measurement captures the WIRED audio pipeline only.  Bluetooth
-                // A2DP adds a further ~100–300 ms of wireless transmission delay that AAudio
+                // The Oboe measurement captures the WIRED audio pipeline only.  Bluetooth
+                // A2DP adds a further ~100–300 ms of wireless transmission delay that Oboe
                 // cannot see.  For BT output, Resync will set a small wired-path value;
                 // you must further adjust AudioOffset manually (positive = sounds arrive
                 // late; negative = sounds arrive early) until music and hitsounds feel right.
                 new SettingsButtonV2
                 {
                     Text = "Resync hardware audio offset",
-                    TooltipText = "Measures the device's AAudio pipeline latency over 2 s and applies the result (capped at 15 ms) to the audio offset. "
-                                  + "Shifts VISUAL hit-object timing to match when you hear the music. "
-                                  + "HITSOUND NOTE: any non-zero offset creates an equal hitsound-after-music lag; AudioOffset = 0 keeps hitsounds perfectly in sync with the music. "
-                                  + "If hitsounds feel off after Resync, lower the offset toward 0 manually. "
+                    TooltipText = "Measures the device's Oboe pipeline latency over 2 s and applies the full result as a negative AudioOffset. "
+                                  + "Shifts VISUAL hit-object timing so notes appear on screen when they should be hit. "
+                                  + "Both music and hitsounds travel through the same BASS → Oboe pipeline, so audio timing shifts together. "
                                   + "For per-song tuning, use the in-game beatmap offset control during gameplay. "
                                   + "Does NOT include Bluetooth A2DP delay (~100–300 ms extra) — fine-tune manually for BT output.",
                     Action = () => game?.ResyncHardwareAudioOffset(),

@@ -1969,49 +1969,23 @@ namespace osu.Android
                 // button click. Save the current offset first so the user can undo, then apply.
                 LocalConfig.SetValue(OsuSetting.AndroidPreviousHardwareAudioOffset, audioOffset.Value);
 
-                // Cap the applied compensation to the typical MMAP output-latency ceiling.
+                // Apply the full measured hardware pipeline latency as a negative AudioOffset.
                 //
-                // DESIGN CONSTRAINT — why we cap here:
+                // AudioOffset shifts the gameplay clock (visual timing) relative to the audio
+                // track.  Both music and hitsound samples travel through the same
+                // BASS → OboeAudioRedirector → Oboe → speaker pipeline, so they both experience
+                // the same hardware latency (hw_latency).
                 //
-                // AudioOffset shifts the gameplay clock (visual timing) but NOT the BASS
-                // track's playback position.  Both the music track and hitsound samples go
-                // through BASS → OboeAudioRedirector → Oboe → speaker, so they share the
-                // same pipeline latency (hw_latency).  A non-zero AudioOffset shifts WHEN
-                // the user's input arrives in the BASS timeline relative to the music beat:
-                //
-                //   Beat at BASS position H, hw_latency = L:
-                //     AudioOffset = 0   → input at BASS H   → hitsound heard at H+L = music ✓
-                //     AudioOffset = -L  → input at BASS H+L → hitsound heard at H+2L, music at H+L → lag = L ✗
-                //
-                // In other words, every ms of negative AudioOffset creates exactly 1 ms of
-                // hitsound-after-music lag.  AudioOffset = 0 gives perfect hitsound-music sync.
-                //
-                // On MMAP-capable devices (which includes the Galaxy S23/S24 series and most
-                // modern Snapdragon/Exynos handsets), Oboe achieves 4–8 ms output latency, so
-                // applying the full measured value creates ≤8 ms of desync — below the human
-                // JND of ~20 ms, and imperceptible in practice.
-                //
-                // On Legacy AAudio / OpenSL ES devices, or devices whose Samsung audio DSP
-                // reports high pipeline depth, the measured latency can be 30–80 ms.  Applying
-                // -30 ms as AudioOffset causes hitsounds to arrive 30 ms after each music beat,
-                // which is very audible.  We therefore cap the compensation at
-                // max_hw_compensation_ms so the hitsound-music gap is bounded to that value on
-                // ALL devices.  Users who want to tune the visual-audio gap beyond this cap can
-                // do so manually via the offset slider during gameplay (BeatmapOffsetControl),
-                // where the real-time hit-error display gives direct feedback.
-                // 15 ms = typical MMAP output-latency ceiling on modern Android (Snapdragon 8 Gen 2,
-                // Exynos 2400, etc.). Anything higher is Samsung/DSP overhead that doesn't affect
-                // relative music-hitsound timing — applying it would push hitsound-music desync
-                // above the ~20 ms human JND.
-                const double max_hw_compensation_ms = 15.0;
-                double cappedLatency = Math.Min(latency, max_hw_compensation_ms); // capped compensation value (≤15 ms)
-                double suggested = Math.Clamp(-cappedLatency, audioOffset.MinValue, audioOffset.MaxValue);
+                // With AudioOffset = -hw_latency, the player taps hw_latency ms later in the
+                // BASS timeline than they would with AudioOffset = 0.  Both the hitsound (fired
+                // at that later BASS position) and the music beat (fired at the nominal BASS
+                // position) are delivered through the same Oboe output path and thus reach the
+                // speaker at consistent times relative to each other.  The visual timing is
+                // corrected so notes appear on screen when they should be hit.
+                double suggested = Math.Clamp(-latency, audioOffset.MinValue, audioOffset.MaxValue);
                 audioOffset.Value = suggested;
 
-                if (latency > max_hw_compensation_ms)
-                    Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (measured={latency:F1}ms, capped at {max_hw_compensation_ms}ms to preserve hitsound-music sync — fine-tune manually in gameplay)");
-                else
-                    Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (median hardware latency={latency:F1}ms, previous offset saved for restore)");
+                Logger.Log($"[osu!] Audio offset re-synced from hardware: {suggested:F1}ms (measured Oboe latency={latency:F1}ms)");
             });
         }
 
