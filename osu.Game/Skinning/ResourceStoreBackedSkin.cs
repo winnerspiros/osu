@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Game.Audio;
+using osu.Game.IO.Stores;
 
 namespace osu.Game.Skinning
 {
@@ -23,7 +24,8 @@ namespace osu.Game.Skinning
 
         public ResourceStoreBackedSkin(IResourceStore<byte[]> resources, GameHost host, AudioManager audio)
         {
-            textures = new TextureStore(host.Renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(resources, @"Textures")));
+            textures = new TextureStore(host.Renderer, host.CreateTextureLoaderStore(
+                OptimisedMediaResourceStore.Wrap(new NamespacedResourceStore<byte[]>(resources, @"Textures"))));
             samples = audio.GetSampleStore(new NamespacedResourceStore<byte[]>(resources, @"Samples"));
         }
 

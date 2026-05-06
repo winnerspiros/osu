@@ -375,7 +375,7 @@ namespace osu.Game
             // allowing targeted media optimisation without forking ppy/osu-resources.
             var localAssemblyResources = new DllResourceStore(typeof(OsuGameBase).Assembly);
             var localOverrideResources = new NamespacedResourceStore<byte[]>(localAssemblyResources, @"Resources");
-            Resources.AddStore(new OptimisedMediaResourceStore(localOverrideResources));
+            Resources.AddStore(OptimisedMediaResourceStore.Wrap(localOverrideResources));
             Resources.AddStore(new DllResourceStore(OsuResources.ResourceAssembly));
 
             dependencies.Cache(realm = new RealmAccess(Storage, CLIENT_DATABASE_FILENAME, Host.UpdateThread));

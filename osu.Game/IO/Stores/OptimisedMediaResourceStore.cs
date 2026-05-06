@@ -23,6 +23,9 @@ namespace osu.Game.IO.Stores
             { ".mp4", new[] { ".webm" } },
         };
 
+        public static IResourceStore<byte[]> Wrap(IResourceStore<byte[]> underlyingStore)
+            => underlyingStore is OptimisedMediaResourceStore ? underlyingStore : new OptimisedMediaResourceStore(underlyingStore);
+
         public OptimisedMediaResourceStore(IResourceStore<byte[]> underlyingStore)
             : base(underlyingStore)
         {

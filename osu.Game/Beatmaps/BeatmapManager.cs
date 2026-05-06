@@ -20,6 +20,7 @@ using osu.Game.Beatmaps.Formats;
 using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.IO.Archives;
+using osu.Game.IO.Stores;
 using osu.Game.Localisation;
 using osu.Game.Models;
 using osu.Game.Online.API;
@@ -72,7 +73,7 @@ namespace osu.Game.Beatmaps
                     throw new ArgumentNullException(nameof(difficultyCache), "Difficulty cache must be provided if online lookups are required.");
             }
 
-            var userResources = new RealmFileStore(realm, storage).Store;
+            var userResources = OptimisedMediaResourceStore.Wrap(new RealmFileStore(realm, storage).Store);
 
             BeatmapTrackStore = audioManager.GetTrackStore(userResources);
 

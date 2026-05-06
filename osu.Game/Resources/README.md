@@ -31,5 +31,6 @@ Example:
 
 - This mechanism is for selective high-impact assets only.
 - `ppy.osu.Game.Resources` remains the default fallback source for all non-overridden assets.
+- The same fallback wrapper is also applied to current osu-side texture/audio file lookups for beatmaps, storyboards, skins, and ruleset resources where requests still use the original extension.
 - CI/release workflows run `scripts/optimize_resource_overrides.py` before budget checks/build, using `.github/resource-optimizer/config.json`.
 - Optimizer-generated compressed files can coexist with originals (`keep_original_files=true`) to keep compatibility safety.

@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osu.Game.IO.Stores;
 using osu.Game.Rulesets.Configuration;
 
 namespace osu.Game.Rulesets.UI
@@ -61,7 +62,8 @@ namespace osu.Game.Rulesets.UI
 
             var host = parent.Get<GameHost>();
 
-            TextureStore = new TextureStore(host.Renderer, parent.Get<GameHost>().CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(resources, @"Textures")));
+            TextureStore = new TextureStore(host.Renderer, parent.Get<GameHost>().CreateTextureLoaderStore(
+                OptimisedMediaResourceStore.Wrap(new NamespacedResourceStore<byte[]>(resources, @"Textures"))));
             CacheAs(TextureStore = new FallbackTextureStore(host.Renderer, TextureStore, parent.Get<TextureStore>()));
 
             SampleStore = parent.Get<AudioManager>().GetSampleStore(new NamespacedResourceStore<byte[]>(resources, @"Samples"));

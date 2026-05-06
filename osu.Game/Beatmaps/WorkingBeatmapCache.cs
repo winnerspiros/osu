@@ -23,6 +23,7 @@ using osu.Game.Beatmaps.Formats;
 using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.IO;
+using osu.Game.IO.Stores;
 using osu.Game.Skinning;
 using osu.Game.Storyboards;
 
@@ -61,9 +62,9 @@ namespace osu.Game.Beatmaps
             this.audioManager = audioManager;
             this.resources = resources;
             this.host = host;
-            this.files = files;
-            largeTextureStore = new LargeTextureStore(host?.Renderer ?? new DummyRenderer(), host?.CreateTextureLoaderStore(files));
-            beatmapPanelTextureStore = new LargeTextureStore(host?.Renderer ?? new DummyRenderer(), new BeatmapPanelBackgroundTextureLoaderStore(host?.CreateTextureLoaderStore(files)));
+            this.files = OptimisedMediaResourceStore.Wrap(files);
+            largeTextureStore = new LargeTextureStore(host?.Renderer ?? new DummyRenderer(), host?.CreateTextureLoaderStore(this.files));
+            beatmapPanelTextureStore = new LargeTextureStore(host?.Renderer ?? new DummyRenderer(), new BeatmapPanelBackgroundTextureLoaderStore(host?.CreateTextureLoaderStore(this.files)));
             this.trackStore = trackStore;
             this.realm = realm;
         }
