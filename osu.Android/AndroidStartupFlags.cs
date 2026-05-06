@@ -54,6 +54,20 @@ namespace osu.Android
         public const string FLAG_VERBOSE_LOGGING_ENABLED = "android_startup_enable_verbose_logging.flag";
 
         /// <summary>
+        /// BASS AAudio opt-in sentinel. Presence ⇒ "user has enabled BASS AAudio output".
+        /// Absence ⇒ "default — BASS uses AudioTrack".
+        /// When set, <see cref="OsuGameActivity.OnCreate"/> calls <c>Bass.AndroidAAudio = true</c>
+        /// and <c>Bass.DevicePeriod = -512</c> before any BASS initialisation, so BASS opens
+        /// an AAudio device instead of AudioTrack. On Android ≥ 8.0 this gives lower intrinsic
+        /// BASS output latency; on older devices BASS falls back to AudioTrack automatically.
+        /// Orthogonal to the Oboe bridge (<see cref="osu.Game.Configuration.OsuSetting.AndroidLowLatencyAudio"/>):
+        /// when Oboe is also enabled it overrides BASS's output backend entirely via the
+        /// GlobalMixerHandle decode-only path, so this flag only has a perceptible effect
+        /// when Oboe is disabled.
+        /// </summary>
+        public const string FLAG_BASS_AAUDIO_ENABLED = "android_startup_enable_bass_aaudio.flag";
+
+        /// <summary>
         /// "Startup in progress" sentinel. Dropped near the very top of <see cref="OsuGameActivity.OnCreate"/>
         /// and cleared a few seconds after <c>OsuGame.LoadComplete</c> by <see cref="OsuGameAndroid"/>.
         /// If a fresh <c>OnCreate</c> finds this still present, the previous launch died (ANR / native

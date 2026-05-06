@@ -47,6 +47,18 @@ namespace osu.Game.Overlays.Settings.Sections.Audio
                 {
                     Keywords = new[] { @"oboe", @"aaudio", @"latency" },
                 },
+                new SettingsItemV2(new FormCheckBox
+                {
+                    Caption = "BASS AAudio output",
+                    HintText = "Makes BASS use Android's AAudio API directly instead of AudioTrack. "
+                               + "Reduces intrinsic BASS output latency on Android 8.0+ devices. "
+                               + "Has no effect when Oboe is enabled (Oboe overrides BASS output). "
+                               + "Takes effect after restart.",
+                    Current = config.GetBindable<bool>(OsuSetting.AndroidBassAAudio),
+                })
+                {
+                    Keywords = new[] { @"bass", @"aaudio", @"latency", @"audiotrack" },
+                },
                 // Explicit Resync only — the previous "auto-apply on Oboe start" toggle and
                 // its 2 s startup pop-up have been removed because they silently overwrote
                 // the user's manual AudioOffset every cold launch (and again every time the

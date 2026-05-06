@@ -97,6 +97,7 @@ namespace osu.Android
         private readonly Bindable<bool> stylusAsTouch = new Bindable<bool>();
         private readonly Bindable<bool> stylusDisableClick = new Bindable<bool>();
         private readonly BindableFloat stylusPressureThreshold = new BindableFloat();
+        private readonly Bindable<bool> bassAAudio = new Bindable<bool>();
 
         [Cached(typeof(IHighPerformanceSessionManager))]
         private readonly IHighPerformanceSessionManager highPerformanceSessionManager = new AndroidHighPerformanceSessionManager();
@@ -312,6 +313,7 @@ namespace osu.Android
                 LocalConfig.BindWith(OsuSetting.AndroidStylusAsTouch, stylusAsTouch);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusDisableClick, stylusDisableClick);
                 LocalConfig.BindWith(OsuSetting.AndroidStylusPressureThreshold, stylusPressureThreshold);
+                LocalConfig.BindWith(OsuSetting.AndroidBassAAudio, bassAAudio);
 
                 // Mirror the stylus-as-touch toggle into the volatile flag the OS-thread
                 // dispatch hot path reads on AndroidStylusHandler. Subscribed (not just
@@ -342,6 +344,10 @@ namespace osu.Android
                 // explicitly opts in.
                 mirrorStartupFlag(startupFrameSyncMigrationEnabled,  AndroidStartupFlags.FLAG_FRAME_SYNC_MIGRATION_ENABLED,  sentinelOnDisable: false);
                 mirrorStartupFlag(verboseLogging,                    AndroidStartupFlags.FLAG_VERBOSE_LOGGING_ENABLED,       sentinelOnDisable: false);
+                // sentinelOnDisable=false → presence ⇒ "BASS AAudio enabled". Default is OFF
+                // (opt-in). When enabled, OsuGameActivity.OnCreate reads the flag and calls
+                // Bass.AndroidAAudio = true before Bass.Init() so BASS opens an AAudio device.
+                mirrorStartupFlag(bassAAudio,                        AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED,           sentinelOnDisable: false);
             }
             catch (Exception e)
             {

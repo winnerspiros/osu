@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 using Uri = Android.Net.Uri;
+using ManagedBass;
 using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
@@ -261,6 +262,31 @@ namespace osu.Android
                 catch (Exception e)
                 {
                     Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
+                }
+            }
+
+            // BASS AAudio: if the user opted in, tell BASS to open an AAudio device instead
+            // of AudioTrack before the host creates its AudioThread and calls Bass.Init().
+            // Bass.AndroidAAudio must be set before Bass.Init() — reading the sentinel here
+            // (before base.OnCreate, which starts the SDL+game machinery) is the earliest
+            // safe point. On Android < 8.0 BASS falls back to AudioTrack automatically.
+            // When the Oboe bridge (AndroidLowLatencyAudio) is also active it overrides
+            // BASS's own output via the GlobalMixerHandle decode path anyway, so this flag
+            // only materially changes behaviour when Oboe is disabled.
+            if (AndroidStartupFlags.IsSet(AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED))
+            {
+                try
+                {
+                    Bass.AndroidAAudio = true;
+                    // -512 requests a 512-sample AAudio buffer (≈ 11.6 ms at 44 100 Hz),
+                    // giving a good latency/stability trade-off. The negative sign means
+                    // "specify in samples rather than milliseconds" (BASS 4Android convention).
+                    Bass.DevicePeriod = -512;
+                    CrashDiagnostics.WriteAliveMarker("Bass.AndroidAAudio = true (DevicePeriod = -512)");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] Bass.AndroidAAudio init failed (non-fatal): {e.Message}");
                 }
             }
 

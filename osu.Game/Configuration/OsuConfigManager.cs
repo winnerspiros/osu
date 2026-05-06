@@ -310,6 +310,14 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.AndroidStylusAsTouch, false);
             SetDefault(OsuSetting.AndroidStylusDisableClick, false);
             SetDefault(OsuSetting.AndroidStylusPressureThreshold, 0.01f, 0.01f, 0.9f, 0.005f);
+            // AndroidBassAAudio = false: when enabled, BASS uses AAudio directly as its
+            // output backend instead of AudioTrack. Must be applied before Bass.Init()
+            // via a sentinel (see AndroidStartupFlags.FLAG_BASS_AAUDIO_ENABLED and
+            // OsuGameActivity.OnCreate). On devices that do not support AAudio (< Android 8.0)
+            // BASS falls back to AudioTrack automatically. Orthogonal to the Oboe bridge:
+            // when AndroidLowLatencyAudio is also enabled the Oboe bridge overrides BASS's
+            // device output entirely, so this flag only has a visible effect when Oboe is off.
+            SetDefault(OsuSetting.AndroidBassAAudio, false);
             SetDefault(OsuSetting.ShowFpsAdditionalInfo, false);
         }
 
@@ -591,6 +599,7 @@ namespace osu.Game.Configuration
         AndroidStylusAsTouch,
         AndroidStylusDisableClick,
         AndroidStylusPressureThreshold,
+        AndroidBassAAudio,
         ShowFpsAdditionalInfo,
         RefreshRateFullscreen,
     }
