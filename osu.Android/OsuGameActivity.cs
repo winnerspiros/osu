@@ -964,7 +964,7 @@ namespace osu.Android
             }
         }
 
-        public override void OnConfigurationChanged(Android.Content.Res.Configuration newConfig)
+        public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
             bool wasDeX = IsDeX;
@@ -987,7 +987,7 @@ namespace osu.Android
             }
         }
 
-        private void updateDeXStatus(Android.Content.Res.Configuration? config)
+        private void updateDeXStatus(global::Android.Content.Res.Configuration? config)
         {
             bool wasDeX = IsDeX;
             IsDeX = (config ?? Resources?.Configuration)?.UiMode.HasFlag(UiMode.TypeDesk) ?? false;
