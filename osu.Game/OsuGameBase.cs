@@ -371,7 +371,8 @@ namespace osu.Game
             }
 
             // Local overrides are checked first, while upstream ppy.osu.Game.Resources remains the fallback source.
-            // This allows targeted optimisation without forking ppy/osu-resources, including webp/ogg/webm overrides.
+            // OptimisedMediaResourceStore enables transparent extension substitution (for example png->webp, wav->ogg, mp4->webm),
+            // allowing targeted media optimisation without forking ppy/osu-resources.
             var localAssemblyResources = new DllResourceStore(typeof(OsuGameBase).Assembly);
             var localOverrideResources = new NamespacedResourceStore<byte[]>(localAssemblyResources, @"Resources");
             Resources.AddStore(new OptimisedMediaResourceStore(localOverrideResources));

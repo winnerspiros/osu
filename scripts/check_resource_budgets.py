@@ -159,7 +159,7 @@ def main() -> int:
     try:
         top_n = int(budget.get("top_n", 15))
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"Budget file '{str(budget_path)}' contains invalid 'top_n': {budget.get('top_n')}") from exc
+        raise ValueError(f"Budget file '{str(budget_path)}' contains invalid 'top_n': {budget.get('top_n')} (must be an integer).") from exc
 
     apk_size: int | None = None
     if args.mode == "source":
