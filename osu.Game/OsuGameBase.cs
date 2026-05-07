@@ -371,7 +371,8 @@ namespace osu.Game
             }
 
             // Local overrides are checked first, while upstream ppy.osu.Game.Resources remains the fallback source.
-            // OptimisedMediaResourceStore enables transparent extension substitution (for example avif/webp, ogg, webm),
+            // OptimisedMediaResourceStore enables transparent extension substitution for raw byte[] lookups
+            // (avif→webp→original for images, ogg→original for audio, webm→original for video),
             // allowing targeted media optimisation without forking ppy/osu-resources.
             // Note: audio and texture object stores (TrackStore, SampleStore, TextureLoaderStore) additionally apply
             // the framework's built-in OptimizedResourceStore with the same fallback rules, so all media loading paths
