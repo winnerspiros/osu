@@ -80,8 +80,12 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             double time = playfield.Clock.CurrentTime;
 
-            foreach (var h in playfield.HitObjectContainer.AliveObjects.OfType<DrawableOsuHitObject>())
+            foreach (DrawableHitObject dho in playfield.HitObjectContainer.AliveObjects)
             {
+                // All alive objects in an osu! playfield are DrawableOsuHitObjects.
+                // Casting inline avoids the OfType<> LINQ state-machine allocation per frame.
+                if (dho is not DrawableOsuHitObject h)
+                    continue;
                 // we are not yet close enough to the object.
                 if (time < h.HitObject.StartTime - RELAX_LENIENCY)
                     break;

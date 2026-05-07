@@ -111,7 +111,17 @@ namespace osu.Game.Rulesets.Osu.Mods
             {
                 if (drawable.HitObject is SpinnerTick or Slider) return;
 
-                BubbleDrawable? lastBubble = bubbleContainer.OfType<BubbleDrawable>().LastOrDefault();
+                // Reverse linear scan avoids the OfType<BubbleDrawable>().LastOrDefault() LINQ allocations.
+                BubbleDrawable? lastBubble = null;
+
+                for (int i = bubbleContainer.Children.Count - 1; i >= 0; i--)
+                {
+                    if (bubbleContainer.Children[i] is BubbleDrawable b)
+                    {
+                        lastBubble = b;
+                        break;
+                    }
+                }
 
                 lastBubble?.ClearTransforms();
                 lastBubble?.Expire(true);
