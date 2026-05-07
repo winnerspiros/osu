@@ -27,28 +27,35 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         private readonly Bindable<double?> lastSamplePlayback = new Bindable<double?>();
 
+        private APIUser[] users = [];
+
         public APIUser[] Users
         {
-            get;
+            get => users;
             set
             {
-                field = value;
-
-                foreach (var u in usersContainer)
-                    u.Delay(RNG.Next(0, 1000)).FadeOut(500).Expire();
-
-                LoadComponentsAsync(field.Select(u => new MovingAvatar(u, lastSamplePlayback)), avatars =>
-                {
-                    if (usersContainer.Count == 0)
-                    {
-                        usersContainer.ScaleTo(0)
-                                      .ScaleTo(1, 5000, Easing.OutPow10);
-                    }
-
-                    usersContainer.AddRange(avatars);
-                });
+                users = value;
+                if (IsLoaded)
+                    refresh();
             }
-        } = [];
+        }
+
+        private void refresh()
+        {
+            foreach (var u in usersContainer)
+                u.Delay(RNG.Next(0, 1000)).FadeOut(500).Expire();
+
+            LoadComponentsAsync(users.Select(u => new MovingAvatar(u, lastSamplePlayback)), avatars =>
+            {
+                if (usersContainer.Count == 0)
+                {
+                    usersContainer.ScaleTo(0)
+                                  .ScaleTo(1, 5000, Easing.OutPow10);
+                }
+
+                usersContainer.AddRange(avatars);
+            });
+        }
 
         protected override void LoadComplete()
         {
@@ -63,6 +70,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     RelativeSizeAxes = Axes.X,
                 },
             };
+
+            refresh();
         }
 
         public partial class MovingAvatar : MatchmakingAvatar
