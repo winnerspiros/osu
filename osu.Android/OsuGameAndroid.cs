@@ -27,6 +27,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Game;
 using osu.Game.Configuration;
+using osu.Game.Database;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens;
@@ -2724,6 +2725,8 @@ namespace osu.Android
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();
+
+        protected override BackgroundDataStoreProcessor CreateBackgroundDataStoreProcessor() => new AndroidBackgroundDataStoreProcessor();
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 

@@ -934,6 +934,12 @@ namespace osu.Game
         protected virtual UpdateManager CreateUpdateManager() => new UpdateManager();
 
         /// <summary>
+        /// Creates the <see cref="BackgroundDataStoreProcessor"/> component used by this game instance.
+        /// Platforms may override this to return a subclass (e.g. to adjust sleep intervals during gameplay).
+        /// </summary>
+        protected virtual BackgroundDataStoreProcessor CreateBackgroundDataStoreProcessor() => new BackgroundDataStoreProcessor();
+
+        /// <summary>
         /// Adjust the globally applied <see cref="DrawSizePreservingFillContainer.TargetDrawSize"/> in every <see cref="ScalingContainer"/>.
         /// Useful for changing how the game handles different aspect ratios.
         /// </summary>
@@ -1254,7 +1260,7 @@ namespace osu.Game
             loadComponentSingleFile<IDialogOverlay>(new DialogOverlay(), topMostOverlayContent.Add, true);
             loadComponentSingleFile(new MedalOverlay(), topMostOverlayContent.Add);
 
-            loadComponentSingleFile(new BackgroundDataStoreProcessor(), Add);
+            loadComponentSingleFile(CreateBackgroundDataStoreProcessor(), Add);
             loadComponentSingleFile<BeatmapStore>(detachedBeatmapStore = new RealmDetachedBeatmapStore(), Add, true);
             loadComponentSingleFile(new QueueController(), Add, true);
 
