@@ -1,0 +1,10 @@
+{
+  "top_n": 20,
+  "max_apk_bytes": 320000000,
+  "max_total_bytes": 95000000,
+  "max_image_bytes": 75000000,
+  "max_audio_bytes": 20000000,
+  "max_video_bytes": 8000000,
+  "max_largest_file_bytes": 4500000,
+  "max_top_n_total_bytes": 50000000
+}

@@ -1,0 +1,50 @@
+# Mobile Resource Policy
+
+This repository keeps `ppy.osu.Game.Resources` as the canonical upstream source and applies targeted local overrides for mobile performance.
+
+## Goals
+
+- Reduce APK growth from large media assets.
+- Reduce decode/upload spikes on startup and first gameplay entry.
+- Keep upstream compatibility without forking `ppy/osu-resources`.
+
+## Override strategy
+
+- Add only high-impact overrides in `osu.Game/Resources`.
+- Match upstream virtual paths (`Textures/...`, `Samples/...`, `Videos/...`).
+- Prefer compressed formats:
+  - Textures: `webp` where quality remains acceptable.
+  - Audio: `ogg` (Opus, 48kHz target) for compact size while retaining responsiveness.
+  - Video: `webm` where supported and visually acceptable.
+
+## Resource budgets (enforced in workflow)
+
+- Source override limits: `.github/resource-budgets/source-overrides.json`
+- Android APK media limits: `.github/resource-budgets/android-apk-media.json`
+
+Current `max_apk_bytes` is set to 320,000,000 bytes as a hard guardrail for this project’s direct-distribution APK flow while still forcing visible regressions to fail CI.
+
+Workflow checks now fail when budgets regress for:
+
+- Total media bytes
+- Per-bucket bytes (image/audio/video)
+- Largest single media file
+- Top-N largest media aggregate
+- Total APK size (release workflow)
+
+## Workflow optimization pass
+
+- CI and release workflows run `scripts/optimize_resource_overrides.py` on `osu.Game/Resources` before budget checks.
+- Optimizer settings are in `.github/resource-optimizer/config.json`.
+- By default, optimized files are added as side-by-side overrides and originals are kept for safety (`keep_original_files=true`).
+- Image optimization is quality-gated (SSIM threshold) so aggressive size wins do not silently degrade visuals.
+
+## Naming and quality rules
+
+- Keep override names stable (do not invent alternate keys).
+- Avoid duplicate variants unless there is a demonstrated runtime need.
+- Optimise for perceptual quality at smallest size that preserves gameplay UX.
+
+## Conversion guidance
+
+Use your preferred encoder tooling locally (for example `cwebp`, `ffmpeg`) before committing overrides.

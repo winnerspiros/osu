@@ -221,6 +221,67 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION"    >> "$GITHUB_OUTPUT"
 
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Clone and optimize all osu-resources from GitHub
+        run: |
+          # ── Clone the upstream ppy/osu-resources repository ─────────────────────
+          git clone --depth=1 https://github.com/ppy/osu-resources /tmp/osu-resources
+
+          # ── Optimize ALL media assets with ffmpeg ────────────────────────────────
+          # Uses keep_original_files=false so the packed DLL ships only the
+          # compressed form (webp/ogg/webm) — originals would waste APK space
+          # because the fallback chain always prefers the optimized extension.
+          python3 scripts/optimize_resource_overrides.py \
+            --root /tmp/osu-resources/osu.Game.Resources \
+            --config .github/resource-optimizer/osu-resources-config.json \
+            --report-file resource-budget/osu-resources-optimizer-report.json \
+            --summary-file resource-budget/osu-resources-optimizer-summary.md
+
+          # ── Pack the optimized DLL as a local NuGet package ──────────────────────
+          # Use a run-number-unique version so the NuGet cache never serves a stale
+          # hit. local-packages/ is the first NuGet source in NuGet.Config, so
+          # dotnet restore will prefer this local build over nuget.org automatically.
+          RESOURCES_VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
+
+          if dotnet pack /tmp/osu-resources/osu.Game.Resources/osu.Game.Resources.csproj \
+              -c Release \
+              -o ./local-packages/ \
+              -p:Version="${RESOURCES_VERSION}"; then
+            # Patch the PackageReference in osu.Game.csproj to pick up our local build.
+            sed -i \
+              "s|ppy.osu.Game.Resources\" Version=\"[^\"]*\"|ppy.osu.Game.Resources\" Version=\"${RESOURCES_VERSION}\"|" \
+              osu.Game/osu.Game.csproj
+            echo "✅ Using optimized osu.Game.Resources ${RESOURCES_VERSION} (local pack)"
+          else
+            echo "⚠️ dotnet pack failed; falling back to upstream ppy.osu.Game.Resources from NuGet"
+          fi
+
+          # Append optimizer summary to the workflow summary
+          if [ -f resource-budget/osu-resources-optimizer-summary.md ]; then
+            cat resource-budget/osu-resources-optimizer-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+          fi
+
+      - name: Optimize local override media
+        run: |
+          python3 scripts/optimize_resource_overrides.py \
+            --root osu.Game/Resources \
+            --config .github/resource-optimizer/config.json \
+            --report-file resource-budget/optimizer-report.json \
+            --summary-file resource-budget/optimizer-summary.md
+
+      - name: Check source override resource budgets
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode source \
+            --source-root osu.Game/Resources \
+            --budget-file .github/resource-budgets/source-overrides.json \
+            --report-file resource-budget/source-report.json \
+            --summary-file resource-budget/source-summary.md
+
       - name: Build Android APK
         run: >
           dotnet publish -c Release
@@ -258,6 +319,24 @@ jobs:
           APK_SIZE_MB=$((APK_SIZE / 1048576))
           echo "Found APK: $FINAL_APK ($APK_SIZE_MB MB)"
           echo "apk_path=$FINAL_APK" >> "$GITHUB_OUTPUT"
+
+      - name: Check APK media budgets
+        run: |
+          python3 scripts/check_resource_budgets.py \
+            --mode apk \
+            --apk-path "${{ steps.find_apk.outputs.apk_path }}" \
+            --budget-file .github/resource-budgets/android-apk-media.json \
+            --report-file resource-budget/apk-report.json \
+            --summary-file resource-budget/apk-summary.md
+
+      - name: Publish resource budget summary
+        if: ${{ !cancelled() }}
+        run: |
+          cat resource-budget/optimizer-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat resource-budget/source-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat resource-budget/apk-summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify APK signature
         run: |
@@ -345,6 +424,13 @@ jobs:
           name: osu-android-${{ steps.version.outputs.version }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
+
+      - name: Upload resource budget reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: resource-budget-android-${{ steps.version.outputs.version }}
+          path: resource-budget/*
 
       # When the keystore was auto-generated, upload it so the user can save it
       # as a repository secret for consistent signing across builds.

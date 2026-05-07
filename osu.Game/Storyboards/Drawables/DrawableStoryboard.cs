@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Game.Database;
+using osu.Game.IO.Stores;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Play;
 using osuTK;
@@ -117,7 +118,7 @@ namespace osu.Game.Storyboards.Drawables
             passing.BindValueChanged(_ => updateLayerVisibility(), true);
         }
 
-        protected virtual IResourceStore<byte[]> CreateResourceLookupStore() => new StoryboardResourceLookupStore(Storyboard, realm, host);
+        protected virtual IResourceStore<byte[]> CreateResourceLookupStore() => OptimisedMediaResourceStore.Wrap(new StoryboardResourceLookupStore(Storyboard, realm, host));
 
         protected override void Update()
         {

@@ -89,10 +89,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 {
                     Caption = GraphicsSettingsStrings.Renderer,
                     Current = renderer,
-                    Items = rendererItems.Order()
-#pragma warning disable CS0612, CS0618
-                                .Where(t => t != RendererType.OpenGLLegacy),
-#pragma warning restore CS0612, CS0618
+                    Items = rendererItems.Order(),
                 })
                 {
                     Keywords = new[] { @"compatibility", @"directx" },

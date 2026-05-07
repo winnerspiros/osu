@@ -23,7 +23,8 @@ namespace osu.Game.Skinning
 
         public ResourceStoreBackedSkin(IResourceStore<byte[]> resources, GameHost host, AudioManager audio)
         {
-            textures = new TextureStore(host.Renderer, host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(resources, @"Textures")));
+            textures = new TextureStore(host.Renderer, host.CreateTextureLoaderStore(
+                new NamespacedResourceStore<byte[]>(resources, @"Textures")));
             samples = audio.GetSampleStore(new NamespacedResourceStore<byte[]>(resources, @"Samples"));
         }
 
