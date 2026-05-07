@@ -24,7 +24,6 @@ using osu.Framework.Utils;
 using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.IO;
-using osu.Game.IO.Stores;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Utils;
 
@@ -373,7 +372,7 @@ namespace osu.Game.Skinning
         IResourceStore<byte[]> IStorageResourceProvider.Resources => resources;
         IResourceStore<byte[]> IStorageResourceProvider.Files => userFiles;
         RealmAccess IStorageResourceProvider.RealmAccess => Realm;
-        IResourceStore<TextureUpload> IStorageResourceProvider.CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => host.CreateTextureLoaderStore(OptimisedMediaResourceStore.Wrap(underlyingStore));
+        IResourceStore<TextureUpload> IStorageResourceProvider.CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => host.CreateTextureLoaderStore(underlyingStore);
 
         #endregion
 
