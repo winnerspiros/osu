@@ -108,8 +108,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             // and because of separate pooling of parent and child objects, there is no guarantee that the pieces will be associated with `this` again on re-use.
             // therefore, clean up the subscription here to avoid crosstalk.
             // not doing so can result in the callback attempting to read things from `this` when it is in a completely bogus state (not in use or similar).
-            foreach (var piece in DimmablePieces.OfType<DrawableHitObject>())
-                piece.ApplyCustomUpdateState -= applyDimToDrawableHitObject;
+            foreach (var piece in DimmablePieces)
+            {
+                if (piece is DrawableHitObject dho)
+                    dho.ApplyCustomUpdateState -= applyDimToDrawableHitObject;
+            }
         }
 
         private void applyDim(Drawable piece)
