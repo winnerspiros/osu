@@ -12,7 +12,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
-using osu.Game.Audio;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
@@ -163,9 +162,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         protected override void LoadSamples()
         {
             // Note: base.LoadSamples() isn't called since the slider plays the tail's hitsounds for the time being.
-
-            // HitSampleInfo : ISampleInfo (reference type) — array covariance lets us cast directly,
-            // avoiding a second array allocation from .Cast<ISampleInfo>().ToArray().
             Samples.Samples = HitObject.TailSamples.ToArray();
             slidingSample.Samples = HitObject.CreateSlidingSamples().ToArray();
         }
