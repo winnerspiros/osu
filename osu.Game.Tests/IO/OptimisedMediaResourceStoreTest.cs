@@ -95,19 +95,20 @@ namespace osu.Game.Tests.IO
                 this.resources = resources;
             }
 
-            public byte[]? Get(string name)
+            public byte[] Get(string name)
             {
                 RequestedNames.Add(name);
-                return resources.GetValueOrDefault(name);
+                return resources.GetValueOrDefault(name)!;
             }
 
-            public Task<byte[]?> GetAsync(string name, CancellationToken cancellationToken = default)
+            public Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
                 => Task.FromResult(Get(name));
 
             public Stream? GetStream(string name)
             {
-                byte[]? data = Get(name);
-                return data == null ? null : new MemoryStream(data);
+                RequestedNames.Add(name);
+                byte[]? data = resources.GetValueOrDefault(name);
+                return data != null ? new MemoryStream(data) : null;
             }
 
             public IEnumerable<string> GetAvailableResources() => resources.Keys;
