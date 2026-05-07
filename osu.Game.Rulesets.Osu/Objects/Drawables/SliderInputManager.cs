@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
@@ -95,8 +94,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             foreach (var nestedObj in slider.NestedHitObjects)
             {
-                var nested = nestedObj as DrawableOsuHitObject;
-                if (nested == null) continue;
+                if (nestedObj is not DrawableOsuHitObject nested) continue;
 
                 // Skip nested objects that are already judged.
                 if (nested.Judged)
@@ -122,8 +120,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             foreach (var nestedObj in slider.NestedHitObjects)
             {
-                var nested = nestedObj as DrawableOsuHitObject;
-                if (nested == null) continue;
+                if (nestedObj is not DrawableOsuHitObject nested) continue;
 
                 // Skip nested objects that are already judged.
                 if (nested.Judged)

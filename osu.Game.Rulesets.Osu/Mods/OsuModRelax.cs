@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Localisation;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;

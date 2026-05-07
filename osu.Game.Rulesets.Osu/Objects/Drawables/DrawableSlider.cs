@@ -166,8 +166,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             // HitSampleInfo : ISampleInfo (reference type) — array covariance lets us cast directly,
             // avoiding a second array allocation from .Cast<ISampleInfo>().ToArray().
-            Samples.Samples = (ISampleInfo[])HitObject.TailSamples.ToArray();
-            slidingSample.Samples = (ISampleInfo[])HitObject.CreateSlidingSamples().ToArray();
+            Samples.Samples = HitObject.TailSamples.ToArray();
+            slidingSample.Samples = HitObject.CreateSlidingSamples().ToArray();
         }
 
         public override void StopAllSamples()

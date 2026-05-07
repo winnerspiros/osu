@@ -143,7 +143,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         {
             base.LoadSamples();
 
-            spinningSample.Samples = (ISampleInfo[])HitObject.CreateSpinningSamples().ToArray();
+            spinningSample.Samples = HitObject.CreateSpinningSamples().ToArray();
             spinningSample.Frequency.Value = spinning_sample_initial_frequency;
 
             maxBonusSample.Samples = new ISampleInfo[] { new SpinnerBonusMaxSampleInfo(HitObject.CreateHitSampleInfo()) };
@@ -352,7 +352,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             while (completedFullSpins.Value != spins)
             {
                 // Manual forward scan avoids allocating a LINQ delegate per spin completion.
-                DrawableSpinnerTick? tick = null;
+                DrawableSpinnerTick tick = null;
 
                 foreach (var t in ticks)
                 {

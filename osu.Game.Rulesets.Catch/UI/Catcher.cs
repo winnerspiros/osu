@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
