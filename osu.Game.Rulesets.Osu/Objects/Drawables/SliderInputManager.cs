@@ -93,8 +93,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             bool allTicksInRange = true;
 
-            foreach (var nested in slider.NestedHitObjects.OfType<DrawableOsuHitObject>())
+            foreach (var nestedObj in slider.NestedHitObjects)
             {
+                var nested = nestedObj as DrawableOsuHitObject;
+                if (nested == null) continue;
+
                 // Skip nested objects that are already judged.
                 if (nested.Judged)
                     continue;
@@ -117,8 +120,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 }
             }
 
-            foreach (var nested in slider.NestedHitObjects.OfType<DrawableOsuHitObject>())
+            foreach (var nestedObj in slider.NestedHitObjects)
             {
+                var nested = nestedObj as DrawableOsuHitObject;
+                if (nested == null) continue;
+
                 // Skip nested objects that are already judged.
                 if (nested.Judged)
                     continue;
@@ -158,7 +164,20 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     //
                     // This covers the edge case where the lenience may allow the tail to activate before
                     // the last tick, changing ordering of score/combo awarding.
-                    var lastTick = slider.NestedHitObjects.LastOrDefault(o => o.HitObject is SliderTick || o.HitObject is SliderRepeat);
+                    // Find the last tick/repeat without allocating a LINQ delegate.
+                    DrawableHitObject? lastTick = null;
+
+                    for (int i = slider.NestedHitObjects.Count - 1; i >= 0; i--)
+                    {
+                        var obj = slider.NestedHitObjects[i];
+
+                        if (obj.HitObject is SliderTick || obj.HitObject is SliderRepeat)
+                        {
+                            lastTick = obj;
+                            break;
+                        }
+                    }
+
                     if (lastTick?.Judged == false)
                         return;
 

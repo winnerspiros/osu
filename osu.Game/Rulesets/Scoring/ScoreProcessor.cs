@@ -175,6 +175,10 @@ namespace osu.Game.Rulesets.Scoring
         /// </summary>
         private double scoreMultiplier = 1;
 
+        // Cached on every Mods.ValueChanged to avoid allocating a new OfType<> enumerator
+        // on every hit (updateRank() fires from Accuracy.ValueChanged which is raised per judgement).
+        private IApplicableToScoreProcessor[] applicableScoreMods = [];
+
         public Dictionary<HitResult, int> MaximumStatistics
         {
             get
@@ -210,6 +214,9 @@ namespace osu.Game.Rulesets.Scoring
 
                 foreach (var m in mods.NewValue)
                     scoreMultiplier *= m.ScoreMultiplier;
+
+                // Rebuild the cached array so updateRank() can iterate without any heap allocation.
+                applicableScoreMods = mods.NewValue.OfType<IApplicableToScoreProcessor>().ToArray();
 
                 updateScore();
                 updateRank();
@@ -395,7 +402,7 @@ namespace osu.Game.Rulesets.Scoring
 
             ScoreRank newRank = RankFromScore(Accuracy.Value, ScoreResultCounts);
 
-            foreach (var mod in Mods.Value.OfType<IApplicableToScoreProcessor>())
+            foreach (var mod in applicableScoreMods)
                 newRank = mod.AdjustRank(newRank, Accuracy.Value);
 
             rank.Value = newRank;

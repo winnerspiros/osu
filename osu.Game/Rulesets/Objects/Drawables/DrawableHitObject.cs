@@ -389,12 +389,13 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         protected virtual void LoadSamples()
         {
-            var samples = GetSamples().ToArray();
+            // HitSampleInfo : ISampleInfo, so array covariance lets us avoid a second .Cast<ISampleInfo>().ToArray() allocation.
+            var samples = (ISampleInfo[])GetSamples().ToArray();
 
             if (samples.Length <= 0)
                 return;
 
-            Samples.Samples = samples.Cast<ISampleInfo>().ToArray();
+            Samples.Samples = samples;
         }
 
         private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);

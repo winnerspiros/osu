@@ -354,8 +354,10 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         framesRead = std::clamp(framesRead, 0, numFrames);
 
         if (framesRead < numFrames) {
-            size_t bytesDone = static_cast<size_t>(framesRead) * stream->getChannelCount() * sizeof(float);
-            size_t totalBytes = static_cast<size_t>(numFrames) * stream->getChannelCount() * sizeof(float);
+            // Cache channel count in a local to avoid two virtual dispatches.
+            int32_t ch = stream->getChannelCount();
+            size_t bytesDone = static_cast<size_t>(framesRead) * ch * sizeof(float);
+            size_t totalBytes = static_cast<size_t>(numFrames) * ch * sizeof(float);
             memset(static_cast<char*>(audioData) + bytesDone, 0, totalBytes - bytesDone);
         }
     } else {
