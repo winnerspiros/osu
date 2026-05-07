@@ -226,6 +226,45 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
+      - name: Clone and optimize all osu-resources from GitHub
+        run: |
+          # ── Clone the upstream ppy/osu-resources repository ─────────────────────
+          git clone --depth=1 https://github.com/ppy/osu-resources /tmp/osu-resources
+
+          # ── Optimize ALL media assets with ffmpeg ────────────────────────────────
+          # Uses keep_original_files=false so the packed DLL ships only the
+          # compressed form (webp/ogg/webm) — originals would waste APK space
+          # because the fallback chain always prefers the optimized extension.
+          python3 scripts/optimize_resource_overrides.py \
+            --root /tmp/osu-resources/osu.Game.Resources \
+            --config .github/resource-optimizer/osu-resources-config.json \
+            --report-file resource-budget/osu-resources-optimizer-report.json \
+            --summary-file resource-budget/osu-resources-optimizer-summary.md
+
+          # ── Pack the optimized DLL as a local NuGet package ──────────────────────
+          # Use a run-number-unique version so the NuGet cache never serves a stale
+          # hit. local-packages/ is the first NuGet source in NuGet.Config, so
+          # dotnet restore will prefer this local build over nuget.org automatically.
+          RESOURCES_VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
+
+          if dotnet pack /tmp/osu-resources/osu.Game.Resources/osu.Game.Resources.csproj \
+              -c Release \
+              -o ./local-packages/ \
+              -p:Version="${RESOURCES_VERSION}"; then
+            # Patch the PackageReference in osu.Game.csproj to pick up our local build.
+            sed -i \
+              "s|ppy.osu.Game.Resources\" Version=\"[^\"]*\"|ppy.osu.Game.Resources\" Version=\"${RESOURCES_VERSION}\"|" \
+              osu.Game/osu.Game.csproj
+            echo "✅ Using optimized osu.Game.Resources ${RESOURCES_VERSION} (local pack)"
+          else
+            echo "⚠️ dotnet pack failed; falling back to upstream ppy.osu.Game.Resources from NuGet"
+          fi
+
+          # Append optimizer summary to the workflow summary
+          if [ -f resource-budget/osu-resources-optimizer-summary.md ]; then
+            cat resource-budget/osu-resources-optimizer-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+          fi
+
       - name: Optimize local override media
         run: |
           python3 scripts/optimize_resource_overrides.py \
