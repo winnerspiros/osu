@@ -155,7 +155,7 @@ namespace osu.Game.Screens.Select
         /// <paramref name="beatmaps"/>, or <see cref="double.NegativeInfinity"/> if every beatmap
         /// is hidden. Single-pass, allocation-free (no LINQ enumerator).
         /// </summary>
-        private static double aggregateMax(IReadOnlyList<BeatmapInfo> beatmaps, Func<BeatmapInfo, double> func)
+        private static double aggregateMax(IList<BeatmapInfo> beatmaps, Func<BeatmapInfo, double> func)
         {
             double max = double.NegativeInfinity;
 

@@ -68,9 +68,9 @@ namespace osu.Game.Rulesets.UI
             if (nextObject == null)
                 return;
 
-            // HitSampleInfo implements ISampleInfo, so array covariance lets us cast without
-            // allocating a second array via .Cast<ISampleInfo>().ToArray().
-            PlaySamples((ISampleInfo[])nextObject.Samples.ToArray());
+            // HitSampleInfo : ISampleInfo (reference type) — array covariance makes the assignment
+            // implicit; no explicit cast or second array allocation needed.
+            PlaySamples(nextObject.Samples.ToArray());
         }
 
         protected virtual void PlaySamples(ISampleInfo[] samples) => Schedule(() =>
