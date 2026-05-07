@@ -16,16 +16,19 @@ Use it to override upstream resources without forking `ppy/osu-resources`.
 
 The game now checks these alternatives first for local overrides:
 
-- `*.png`, `*.jpg`, `*.jpeg` → `*.webp`
-- `*.wav`, `*.mp3` → `*.ogg` (workflow optimizer defaults to Opus in Ogg)
+- `*.png`, `*.jpg`, `*.jpeg` → `*.avif` (tried first), then `*.webp`, then original
+- `*.wav`, `*.mp3` → `*.ogg` (Opus in Ogg from the content pipeline)
 - `*.mp4` → `*.webm`
 
 That means you can keep call sites unchanged and still serve a compressed local file.
 
+**AVIF vs WebP**: AVIF is tried first because it offers better compression than WebP at equal quality (attractive for large backgrounds/splash art). WebP is the safe fallback because it is supported everywhere. The framework's `TextureLoaderStore` applies the same AVIF-first order with ImageSharp capability checking, so AVIF will be silently skipped on any platform where ImageSharp cannot decode it.
+
 Example:
 
 - Requested key: `Textures/Menu/background.png`
-- Local override: `osu.Game/Resources/Textures/Menu/background.webp`
+- Best override: `osu.Game/Resources/Textures/Menu/background.avif`
+- Fallback override: `osu.Game/Resources/Textures/Menu/background.webp`
 
 ## Notes
 

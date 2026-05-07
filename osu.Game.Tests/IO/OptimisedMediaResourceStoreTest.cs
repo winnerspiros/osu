@@ -16,7 +16,7 @@ namespace osu.Game.Tests.IO
     public class OptimisedMediaResourceStoreTest
     {
         [Test]
-        public void TestImageLookupPrefersWebp()
+        public void TestImageLookupPrefersAvifThenWebp()
         {
             var underlying = new TrackingStore(new Dictionary<string, byte[]>
             {
@@ -26,8 +26,26 @@ namespace osu.Game.Tests.IO
 
             var store = new OptimisedMediaResourceStore(underlying);
 
+            // avif is probed first, then webp (which exists), then original
             Assert.That(store.Get("Textures/test.png"), Is.EqualTo(new byte[] { 1 }));
-            Assert.That(underlying.RequestedNames.Take(2), Is.EqualTo(new[] { "Textures/test.webp", "Textures/test.png" }));
+            Assert.That(underlying.RequestedNames.Take(3), Is.EqualTo(new[] { "Textures/test.avif", "Textures/test.webp", "Textures/test.png" }));
+        }
+
+        [Test]
+        public void TestImageLookupUsesAvifWhenPresent()
+        {
+            var underlying = new TrackingStore(new Dictionary<string, byte[]>
+            {
+                ["Textures/test.avif"] = [3],
+                ["Textures/test.webp"] = [1],
+                ["Textures/test.png"] = [2],
+            });
+
+            var store = new OptimisedMediaResourceStore(underlying);
+
+            // avif wins outright
+            Assert.That(store.Get("Textures/test.png"), Is.EqualTo(new byte[] { 3 }));
+            Assert.That(underlying.RequestedNames.First(), Is.EqualTo("Textures/test.avif"));
         }
 
         [Test]

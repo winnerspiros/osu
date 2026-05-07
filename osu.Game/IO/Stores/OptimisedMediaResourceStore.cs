@@ -9,15 +9,22 @@ namespace osu.Game.IO.Stores
 {
     /// <summary>
     /// Allows local resource overrides to provide alternative media encodings without changing call sites.
-    /// For example, requests for <c>.png</c> can be served by a local <c>.webp</c> file if present.
+    /// For example, requests for <c>.png</c> can be served by a local <c>.avif</c> or <c>.webp</c> file if present.
     /// </summary>
+    /// <remarks>
+    /// Image probing order matches <c>osu.Framework.IO.Stores.OptimizedResourceStore.ImageFallbackRules</c>:
+    /// <c>.avif</c> is tried before <c>.webp</c> (better compression at equal quality), then the original.
+    /// Audio and video fallback orders are likewise kept in sync with the framework.
+    /// </remarks>
     public class OptimisedMediaResourceStore : ResourceStore<byte[]>
     {
         private static readonly Dictionary<string, string[]> extensionPreferences = new Dictionary<string, string[]>
         {
-            { ".png", new[] { ".webp" } },
-            { ".jpg", new[] { ".webp" } },
-            { ".jpeg", new[] { ".webp" } },
+            // Keep in sync with OptimizedResourceStore.ImageFallbackRules in osu-framework.
+            // avif first (better compression), webp second (broad compat), original last.
+            { ".png", new[] { ".avif", ".webp" } },
+            { ".jpg", new[] { ".avif", ".webp" } },
+            { ".jpeg", new[] { ".avif", ".webp" } },
             { ".wav", new[] { ".ogg" } },
             { ".mp3", new[] { ".ogg" } },
             { ".mp4", new[] { ".webm" } },
