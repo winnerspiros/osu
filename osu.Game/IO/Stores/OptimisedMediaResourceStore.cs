@@ -18,7 +18,7 @@ namespace osu.Game.IO.Stores
     /// </remarks>
     public class OptimisedMediaResourceStore : ResourceStore<byte[]>
     {
-        private static readonly Dictionary<string, string[]> extensionPreferences = new Dictionary<string, string[]>
+        private static readonly Dictionary<string, string[]> extension_preferences = new Dictionary<string, string[]>
         {
             // Keep in sync with OptimizedResourceStore.ImageFallbackRules in osu-framework.
             // avif first (better compression), webp second (broad compat), original last.
@@ -43,7 +43,7 @@ namespace osu.Game.IO.Stores
             string extension = Path.GetExtension(name);
             string normalisedExtension = extension.ToLowerInvariant();
 
-            if (!string.IsNullOrEmpty(extension) && extensionPreferences.TryGetValue(normalisedExtension, out string[]? alternatives))
+            if (!string.IsNullOrEmpty(extension) && extension_preferences.TryGetValue(normalisedExtension, out string[]? alternatives))
             {
                 foreach (string alternative in alternatives)
                     yield return Path.ChangeExtension(name, alternative);
