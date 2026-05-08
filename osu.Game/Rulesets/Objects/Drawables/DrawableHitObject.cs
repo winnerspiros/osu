@@ -389,8 +389,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         protected virtual void LoadSamples()
         {
-            // HitSampleInfo : ISampleInfo, so array covariance lets us avoid a second .Cast<ISampleInfo>().ToArray() allocation.
-            var samples = (ISampleInfo[])GetSamples().ToArray();
+            var samples = GetSamples().Cast<ISampleInfo>().ToArray();
 
             if (samples.Length <= 0)
                 return;

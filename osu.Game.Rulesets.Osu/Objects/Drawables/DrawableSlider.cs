@@ -162,8 +162,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         protected override void LoadSamples()
         {
             // Note: base.LoadSamples() isn't called since the slider plays the tail's hitsounds for the time being.
-            Samples.Samples = HitObject.TailSamples.ToArray();
-            slidingSample.Samples = HitObject.CreateSlidingSamples().ToArray();
+            Samples.Samples = HitObject.TailSamples.Cast<ISampleInfo>().ToArray();
+            slidingSample.Samples = HitObject.CreateSlidingSamples().Cast<ISampleInfo>().ToArray();
         }
 
         public override void StopAllSamples()
