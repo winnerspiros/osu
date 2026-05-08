@@ -106,6 +106,8 @@ def convert_image_to_webp(source: Path, output: Path, config: dict, relative_pat
                 "1",
                 "-compression_level",
                 str(config.get("png_webp_lossless_compression_level", 6)),
+                "-f",
+                "webp",
                 str(lossless_path),
             ]
         )
@@ -126,6 +128,8 @@ def convert_image_to_webp(source: Path, output: Path, config: dict, relative_pat
             str(lossy_quality),
             "-compression_level",
             str(lossy_method),
+            "-f",
+            "webp",
             str(lossy_path),
         ]
     )
@@ -186,6 +190,8 @@ def convert_audio_to_ogg(source: Path, output: Path, config: dict, relative_path
                 opus_application,
                 "-frame_duration",
                 frame_duration,
+                "-f",
+                "ogg",  # explicit muxer — ffmpeg cannot infer Ogg from .tmp extension
                 str(output),
             ]
         )
@@ -193,7 +199,7 @@ def convert_audio_to_ogg(source: Path, output: Path, config: dict, relative_path
 
     if audio_codec == "libvorbis":
         quality = str(config.get("audio_ogg_quality", 4))
-        run_ffmpeg([*base_args, "-c:a", "libvorbis", "-q:a", quality, str(output)])
+        run_ffmpeg([*base_args, "-c:a", "libvorbis", "-q:a", quality, "-f", "ogg", str(output)])
         return f"ogg-vorbis-q{quality}-{target_sample_rate}hz-{channel_count}ch"
 
     raise ValueError(f"Unsupported audio codec: {audio_codec}")
@@ -224,6 +230,8 @@ def convert_video_to_webm(source: Path, output: Path, config: dict) -> str:
             "libopus",
             "-b:a",
             audio_bitrate,
+            "-f",
+            "webm",  # explicit muxer — ffmpeg cannot infer WebM from .tmp extension
             str(output),
         ]
     )

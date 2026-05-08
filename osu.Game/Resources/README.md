@@ -24,16 +24,18 @@ That means you can keep call sites unchanged and still serve a compressed local 
 
 **AVIF vs WebP**: AVIF is tried first because it offers better compression than WebP at equal quality (attractive for large backgrounds/splash art). WebP is the safe fallback because it is supported everywhere. The framework's `TextureLoaderStore` applies the same AVIF-first order with ImageSharp capability checking, so AVIF will be silently skipped on any platform where ImageSharp cannot decode it.
 
+**⚠️ Do NOT generate AVIF for PNG files with alpha channels (e.g. font atlases, UI sprites)**: `libsvtav1` encodes only yuv420p and silently strips the alpha channel, producing a tiny (~350 byte) but completely blank/solid output. `libaom-av1` would preserve alpha via yuva420p but is extremely slow and AVIF alpha support is inconsistent on Android. Use WebP for all PNG assets — WebP lossless perfectly preserves alpha. AVIF is only safe for JPEG-sourced images (no alpha channel) and even then savings over WebP are marginal.
+
 Example:
 
 - Requested key: `Textures/Menu/background.png`
-- Best override: `osu.Game/Resources/Textures/Menu/background.avif`
-- Fallback override: `osu.Game/Resources/Textures/Menu/background.webp`
+- Best override: `osu.Game/Resources/Textures/Menu/background.avif` *(only for JPEG-origin / no-alpha images)*
+- Safe override: `osu.Game/Resources/Textures/Menu/background.webp`
 
 ## Notes
 
 - This mechanism is for selective high-impact assets only.
 - `ppy.osu.Game.Resources` remains the default fallback source for all non-overridden assets.
-- The same fallback wrapper is also applied to current osu-side texture/audio file lookups for beatmaps, storyboards, skins, and ruleset resources where requests still use the original extension.
+- Both the local override store and the upstream osu-resources store are wrapped with `OptimisedMediaResourceStore`, ensuring that raw `byte[]` lookups with the original extension transparently fall through to the compressed format.
 - CI/release workflows run `scripts/optimize_resource_overrides.py` before budget checks/build, using `.github/resource-optimizer/config.json`.
 - Optimizer-generated compressed files can coexist with originals (`keep_original_files=true`) to keep compatibility safety.
