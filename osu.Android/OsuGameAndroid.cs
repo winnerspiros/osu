@@ -581,6 +581,10 @@ namespace osu.Android
                                 adpfDrawSession = OboeAudioBridge.nADPFCreateSession(targetNs);
                                 if (adpfDrawSession != IntPtr.Zero)
                                 {
+                                    // API 35 (Android 15)+: disable power-efficiency bias so the
+                                    // CPU governor targets performance headroom for this thread.
+                                    // Silent no-op on API < 35 (resolved via dlsym).
+                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfDrawSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Draw thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
                                     // Subscribe per-frame reporting now that the session handle is valid.
                                     // FrameCompleted fires on the Draw thread itself, so reading
@@ -599,6 +603,7 @@ namespace osu.Android
                                 adpfUpdateSession = OboeAudioBridge.nADPFCreateSession(targetNs);
                                 if (adpfUpdateSession != IntPtr.Zero)
                                 {
+                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfUpdateSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Update thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
                                     Host!.UpdateThread!.FrameCompleted += onUpdateFrameCompleted;
                                 }
@@ -619,6 +624,7 @@ namespace osu.Android
                                 adpfInputSession = OboeAudioBridge.nADPFCreateSession(targetNs);
                                 if (adpfInputSession != IntPtr.Zero)
                                 {
+                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfInputSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Input thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
                                     Host!.InputThread!.FrameCompleted += onInputFrameCompleted;
                                 }

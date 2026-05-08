@@ -35,7 +35,7 @@
   "audio_opus_frame_duration_ms": 20,
   "video_webm_crf": 36,
   "video_webm_audio_bitrate": "96k",
-  "video_webm_deadline": "good",
-  "video_webm_cpu_used": 4,
+  "video_webm_deadline": "best",
+  "video_webm_cpu_used": 2,
   "video_webm_tile_columns": 2
 }

@@ -85,6 +85,34 @@
         <meta-data android:name="com.lenovo.gameassistant" android:value="true" />
 
         <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Motorola (My UX / moto g / Moto Edge series)
+             ─────────────────────────────────────────────────────────────────────────────────
+             com.motorola.intent.category.GAME — Motorola Game Mode registration;
+                                                  activates CPU boost, touch-sampling increase,
+                                                  and background-process suspension on Moto Edge+,
+                                                  Moto G Power, and ThinkPhone devices. -->
+        <meta-data android:name="com.motorola.intent.category.GAME" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             Nubia / Red Magic (RedMagic OS)
+             ─────────────────────────────────────────────────────────────────────────────────
+             nubia.intent.category.GAME — Red Magic Game Space registration;
+                                           activates shoulder-button API, 165/240 Hz display
+                                           governor, and per-game CPU/GPU performance boost.
+             zte.intent.category.GAME   — ZTE variant of the same Game Space signal
+                                           (Nubia and ZTE share the underlying platform).  -->
+        <meta-data android:name="nubia.intent.category.GAME" android:value="true" />
+        <meta-data android:name="zte.intent.category.GAME" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
+             HMD / Nokia (Nokia Pure UI)
+             ─────────────────────────────────────────────────────────────────────────────────
+             com.hmdglobal.game — HMD Game Mode registration; activates Nokia's
+                                   performance scheduler and suppresses background-app
+                                   interference on Nokia X/G series devices. -->
+        <meta-data android:name="com.hmdglobal.game" android:value="true" />
+
+        <!-- ═══════════════════════════════════════════════════════════════════════════════════
              Android 13+ AOSP Game Mode API (opt-out of OS interventions)
              ─────────────────────────────────────────────────────────────────────────────────
              We explicitly disable Battery- and Performance-mode interventions, FPS override,
