@@ -51,7 +51,7 @@ namespace osu.Game.Users
                         AutoSizeAxes = Axes.Both,
                         Direction = FillDirection.Horizontal,
                         Spacing = new Vector2(10, 0),
-                        Children = new Drawable[]
+                        Children = new[]
                         {
                             CreateAvatar().With(avatar =>
                             {
@@ -64,12 +64,23 @@ namespace osu.Game.Users
                                 flag.Anchor = Anchor.CentreLeft;
                                 flag.Origin = Anchor.CentreLeft;
                             }),
+                            CreateTeamLogo().With(flag =>
+                            {
+                                flag.Anchor = Anchor.CentreLeft;
+                                flag.Origin = Anchor.CentreLeft;
+                            }),
                             CreateUsername().With(username =>
                             {
                                 username.Anchor = Anchor.CentreLeft;
                                 username.Origin = Anchor.CentreLeft;
                                 username.UseFullGlyphHeight = false;
-                            })
+                            }),
+                            CreateRank().With(rank =>
+                            {
+                                rank.Anchor = Anchor.CentreLeft;
+                                rank.Origin = Anchor.CentreLeft;
+                                rank.UseFullGlyphHeight = false;
+                            }),
                         }
                     },
                     new FillFlowContainer
