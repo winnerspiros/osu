@@ -28,6 +28,36 @@ def run_ffmpeg(args: list[str], output_log_level: str = "error") -> None:
     subprocess.run(["ffmpeg", "-y", "-loglevel", output_log_level, *args], check=True, capture_output=True, text=True)
 
 
+_svtav1_available_cache: Optional[bool] = None
+
+
+def is_svtav1_available() -> bool:
+    """Return True iff the running ffmpeg binary has a working libsvtav1 encoder.
+
+    Probes by attempting to encode a single 16×16 black frame to a null sink.
+    Result is cached in a module-level variable so the probe runs at most once.
+    """
+    global _svtav1_available_cache
+    if _svtav1_available_cache is None:
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg", "-y", "-loglevel", "error",
+                    "-f", "lavfi", "-i", "color=black:size=16x16:rate=1:duration=0.1",
+                    "-c:v", "libsvtav1",
+                    "-pix_fmt", "yuv420p",
+                    "-f", "null", "-",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            _svtav1_available_cache = True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            _svtav1_available_cache = False
+    return _svtav1_available_cache
+
+
 def should_include(path: Path, include_globs: list[str], exclude_globs: list[str], root: Path) -> bool:
     relative = path.relative_to(root).as_posix()
     included = any(fnmatch.fnmatch(relative, pattern) for pattern in include_globs)
@@ -147,8 +177,10 @@ def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path,
     # silently strips alpha channels, producing a tiny but completely transparent
     # output.  PNG files without alpha and all JPEG sources are safe to encode as
     # AVIF because yuv420p has no alpha plane.
+    # is_svtav1_available() probes once and caches the result, so no per-file
+    # overhead and no per-file warnings when the encoder is absent.
     can_use_avif = ext in {".jpg", ".jpeg"} or (ext == ".png" and not has_alpha)
-    if can_use_avif and bool(config.get("jpeg_avif_enabled", False)):
+    if can_use_avif and bool(config.get("jpeg_avif_enabled", False)) and is_svtav1_available():
         avif_crf = int(config.get("jpeg_avif_crf", 30))
         avif_preset = int(config.get("jpeg_avif_preset", 4))
         p_avif = source.parent / f".{source.stem}.lossy.avif.tmp"
@@ -167,8 +199,6 @@ def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path,
             )
             temp_candidates.append((p_avif, f"{src_label}-avif-svtav1-crf{avif_crf}-p{avif_preset}", False, ".avif"))
         except subprocess.CalledProcessError:
-            # Log a warning so the operator knows AVIF was requested but unavailable.
-            print(f"::warning::AVIF requested for {relative_path} but libsvtav1 encode failed; falling back to WebP.")
             p_avif.unlink(missing_ok=True)
 
     # ── Pick the smallest candidate that meets the SSIM threshold ────────────
@@ -297,6 +327,11 @@ def optimize(root: Path, config: dict, dry_run: bool) -> dict:
     exclude_globs = config.get("exclude_globs", [])
     allow_video = bool(config.get("enable_video_conversion", True))
     keep_originals = bool(config.get("keep_original_files", True))
+
+    # Probe libsvtav1 once upfront so we emit at most one notice rather than
+    # one warning per AVIF-eligible file when the encoder is absent.
+    if bool(config.get("jpeg_avif_enabled", False)) and not is_svtav1_available():
+        print("::notice::jpeg_avif_enabled is true but libsvtav1 is unavailable; AVIF skipped, falling back to WebP.")
 
     results: list[ConversionResult] = []
     skipped: list[str] = []
