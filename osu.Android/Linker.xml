@@ -67,17 +67,28 @@
          Shader attribute scanning, TextureLoaderStore fallback chain, bindable system,
          resource store extension routing — all reflection-dependent.
        ppy.osu.Framework.Android: Android-specific host, input handling, surface wrappers.
+         AndroidGameActivity carries the (IntPtr, JniHandleOwnership) JNI-activation
+         constructor and RegisterAttribute-driven type-binding needed for all derived
+         Activity/Fragment types.  Without preserve="all", ILLink will trim these
+         constructors (they are only reachable via JNI, not through any managed call
+         graph), causing TypeManager.Activate to throw NotSupportedException:
+         "Could not activate JNI Handle ... as managed type 'osu.Android.OsuGameActivity'"
+         at startup — exactly the crash reported in the 2026.508.222 field log.
        ppy.Veldrid.SPIRV: SPIR-V cross-compiler; dynamically loads shader reflector types.
 
-       NOTE: ppy.osu.Framework and ppy.osu.Framework.Android are intentionally omitted
-       from this descriptor.  ILLink (in .NET Android Full-link mode) cannot resolve these
-       assemblies during the trimmer pass — they originate from a net10.0 NuGet package
-       that is not visible in ILLink's assembly search path for the android TFM.  The
-       linker therefore cannot apply a preserve="all" rule, and having the entries only
-       generates "Could not resolve assembly" warnings with no benefit.  The assemblies
-       are included intact in the APK (ILLink cannot trim what it cannot find), and every
-       reachable type is rooted from osu.Android / osu.Game which ARE in the preserve list. -->
-  <assembly fullname="ppy.Veldrid.SPIRV" preserve="all" />
+       NOTE: ppy.osu.Framework and ppy.osu.Framework.Android originate from net10.0
+       NuGet packages and are not visible in ILLink's assembly search path at descriptor-
+       processing time.  ILLink therefore emits warning IL2007 ("Could not resolve
+       assembly") for each entry.  This warning is BENIGN and EXPECTED: ILLink stores
+       the preserve="all" rule in its internal table even when it cannot resolve the
+       assembly immediately.  When the assembly is later encountered during the trimming
+       pass (where the .NET Android SDK does include it in the link set), ILLink finds
+       the stored rule and preserves the assembly in full.  Removing these entries
+       "to silence the warnings" allows ILLink to freely trim JNI-only constructors
+       from AndroidGameActivity, crashing the app on launch. -->
+  <assembly fullname="ppy.osu.Framework"         preserve="all" />
+  <assembly fullname="ppy.osu.Framework.Android" preserve="all" />
+  <assembly fullname="ppy.Veldrid.SPIRV"         preserve="all" />
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        Audio (ManagedBass)
