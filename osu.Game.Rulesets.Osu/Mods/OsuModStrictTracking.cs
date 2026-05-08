@@ -46,9 +46,19 @@ namespace osu.Game.Rulesets.Osu.Mods
                     if (slider.Clock is IGameplayClock { IsRewinding: true })
                         return;
 
-                    var tail = slider.NestedHitObjects.OfType<StrictTrackingDrawableSliderTail>().First();
+                    // Manual scan avoids allocating a LINQ state-machine on every tracking-change event.
+                    StrictTrackingDrawableSliderTail? tail = null;
 
-                    if (!tail.Judged)
+                    foreach (var nested in slider.NestedHitObjects)
+                    {
+                        if (nested is StrictTrackingDrawableSliderTail t)
+                        {
+                            tail = t;
+                            break;
+                        }
+                    }
+
+                    if (tail != null && !tail.Judged)
                         tail.MissForcefully();
                 };
             }

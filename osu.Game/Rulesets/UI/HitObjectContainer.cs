@@ -32,10 +32,13 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         /// <remarks>
         /// The alive entries dictionary is unordered, so we must sort.
-        /// However, the alive set is typically much smaller than the full set, making this cheaper
-        /// than sorting all children. We use a List + Sort (in-place) to avoid LINQ iterator allocations.
+        /// A persistent sorted list is maintained and rebuilt only when the alive set changes,
+        /// avoiding per-call allocations that would occur when called every frame (e.g. cursor particles).
         /// </remarks>
         public IEnumerable<DrawableHitObject> AliveObjects => getSortedAliveObjects();
+
+        private readonly List<DrawableHitObject> aliveObjectsSortedCache = new List<DrawableHitObject>();
+        private bool aliveObjectsCacheDirty = true;
 
         private IEnumerable<DrawableHitObject> enumerateByStartTimeAscending()
         {
@@ -48,11 +51,20 @@ namespace osu.Game.Rulesets.UI
             }
         }
 
-        private List<DrawableHitObject> getSortedAliveObjects()
+        private IEnumerable<DrawableHitObject> getSortedAliveObjects()
         {
-            var list = new List<DrawableHitObject>(AliveEntries.Values);
-            list.Sort(static (a, b) => a.HitObject.StartTime.CompareTo(b.HitObject.StartTime));
-            return list;
+            if (aliveObjectsCacheDirty)
+            {
+                aliveObjectsSortedCache.Clear();
+
+                foreach (var dho in AliveEntries.Values)
+                    aliveObjectsSortedCache.Add(dho);
+
+                aliveObjectsSortedCache.Sort(static (a, b) => a.HitObject.StartTime.CompareTo(b.HitObject.StartTime));
+                aliveObjectsCacheDirty = false;
+            }
+
+            return aliveObjectsSortedCache;
         }
 
         /// <summary>
@@ -137,6 +149,8 @@ namespace osu.Game.Rulesets.UI
 
         private void addDrawable(DrawableHitObject drawable)
         {
+            aliveObjectsCacheDirty = true;
+
             drawable.OnNewResult += onNewResult;
 
             bindStartTime(drawable);
@@ -145,6 +159,8 @@ namespace osu.Game.Rulesets.UI
 
         private void removeDrawable(DrawableHitObject drawable)
         {
+            aliveObjectsCacheDirty = true;
+
             drawable.OnNewResult -= onNewResult;
 
             unbindStartTime(drawable);

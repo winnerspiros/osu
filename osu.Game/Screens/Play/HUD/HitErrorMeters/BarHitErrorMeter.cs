@@ -410,7 +410,18 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
                 const double quick_fade_time = 100;
 
                 // check with a bit of lenience to avoid precision error in comparison.
-                var old = judgementsContainer.FirstOrDefault(j => j.LifetimeEnd > Clock.CurrentTime + quick_fade_time * 1.1);
+                // Manual loop avoids delegate allocation from LINQ on every judgement callback.
+                double threshold = Clock.CurrentTime + quick_fade_time * 1.1;
+                Drawable? old = null;
+
+                foreach (var j in judgementsContainer)
+                {
+                    if (j.LifetimeEnd > threshold)
+                    {
+                        old = j;
+                        break;
+                    }
+                }
 
                 if (old != null)
                 {

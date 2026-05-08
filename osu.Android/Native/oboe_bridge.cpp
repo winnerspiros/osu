@@ -97,9 +97,28 @@ bool OboeBridge::open(int32_t sampleRate) {
     // MMAP provides direct access to audio hardware buffers, shaving ~1-2ms off latency.
     oboe::OboeExtensions::setMMapEnabled(true);
 
-    // Initialise StabilizedCallback to even out callback execution time.
-    // shared_ptr is used to satisfy the non-deprecated setDataCallback overload.
-    stabilizedCallback_ = std::make_shared<oboe::StabilizedCallback>(this);
+    // Non-owning shared_ptr for error callback — OboeBridge outlives the stream.
+    auto errorCb = std::shared_ptr<oboe::AudioStreamErrorCallback>(
+        std::shared_ptr<void>(), static_cast<oboe::AudioStreamErrorCallback*>(this));
+
+    // -----------------------------------------------------------------------
+    // Pass 1: open with a raw 'this' callback (no StabilizedCallback).
+    //
+    // On AAudio MMAP paths (Pixel 3+, Snapdragon 8 Gen 1+, most modern
+    // Android), the kernel delivers audio callbacks with near-perfect timing
+    // via the hardware FIFO interrupt.  StabilizedCallback works by sleeping
+    // on the callback thread to normalise jitter — on MMAP that sleep is pure
+    // overhead: it delays the write to the hardware ring buffer, adding latency
+    // without removing any real jitter.
+    //
+    // We probe by opening with the raw callback first.  If MMAP is confirmed
+    // we keep this stream.  If not, we close it and reopen with
+    // StabilizedCallback (see Pass 2 below) to cover the non-MMAP / OpenSL ES
+    // fallback path where OS scheduler jitter is real.
+    // -----------------------------------------------------------------------
+    stabilizedCallback_.reset();
+    auto rawCb = std::shared_ptr<oboe::AudioStreamDataCallback>(
+        std::shared_ptr<void>(), static_cast<oboe::AudioStreamDataCallback*>(this));
 
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
@@ -120,18 +139,50 @@ bool OboeBridge::open(int32_t sampleRate) {
            ->setIsContentSpatialized(true)
            // Prevent other apps from capturing our audio stream (competitive integrity).
            ->setAllowedCapturePolicy(oboe::AllowedCapturePolicy::None)
-           // Use shared_ptr overload (non-deprecated) for data callback.
-           ->setDataCallback(stabilizedCallback_)
-           // Non-owning shared_ptr for error callback — OboeBridge outlives the stream.
-           ->setErrorCallback(std::shared_ptr<oboe::AudioStreamErrorCallback>(
-               std::shared_ptr<void>(), static_cast<oboe::AudioStreamErrorCallback*>(this)));
+           ->setDataCallback(rawCb)
+           ->setErrorCallback(errorCb);
 
     oboe::Result result = builder.openStream(stream_);
 
-    if (result != oboe::Result::OK) {
+    if (result == oboe::Result::OK) {
+        bool mmapActive = oboe::OboeExtensions::isMMapUsed(stream_.get());
+        LOGI("Oboe pass-1 open: MMAP=%s", mmapActive ? "yes" : "no");
+
+        if (!mmapActive) {
+            // ---------------------------------------------------------------
+            // Pass 2: MMAP unavailable — close and reopen with StabilizedCallback.
+            // StabilizedCallback adds a compensating sleep to normalise the
+            // variable latency introduced by the OS scheduler on non-MMAP paths,
+            // reducing buffer underruns on devices that rely on AAudio binder IPC
+            // or the OpenSL ES compatibility layer.
+            // ---------------------------------------------------------------
+            stream_->close();
+            stream_.reset();
+
+            stabilizedCallback_ = std::make_shared<oboe::StabilizedCallback>(this);
+
+            builder.setDataCallback(stabilizedCallback_);
+            result = builder.openStream(stream_);
+
+            if (result != oboe::Result::OK) {
+                LOGE("AAudio + StabilizedCallback open failed (%s), falling back to unspecified API",
+                     oboe::convertToText(result));
+                { std::lock_guard<std::mutex> eLock(errorLock_); lastError_ = std::string("AAudio: ") + oboe::convertToText(result); }
+                builder.setAudioApi(oboe::AudioApi::Unspecified);
+                builder.setSharingMode(oboe::SharingMode::Shared);
+                result = builder.openStream(stream_);
+            }
+        }
+    } else {
+        // AAudio exclusive failed outright — try unspecified API + shared mode.
+        // Always wrap with StabilizedCallback on this fallback path since we
+        // almost certainly won't have MMAP on an OpenSL ES device.
         LOGE("AAudio open failed (%s), falling back to unspecified API",
              oboe::convertToText(result));
         { std::lock_guard<std::mutex> eLock(errorLock_); lastError_ = std::string("AAudio: ") + oboe::convertToText(result); }
+
+        stabilizedCallback_ = std::make_shared<oboe::StabilizedCallback>(this);
+        builder.setDataCallback(stabilizedCallback_);
         builder.setAudioApi(oboe::AudioApi::Unspecified);
         builder.setSharingMode(oboe::SharingMode::Shared);
         result = builder.openStream(stream_);
@@ -168,14 +219,15 @@ bool OboeBridge::open(int32_t sampleRate) {
     tuner_ = std::make_unique<oboe::LatencyTuner>(*stream_);
 
     LOGI("Oboe stream opened: api=%s, sampleRate=%d, framesPerBurst=%d, "
-         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s",
+         "bufferSize=%d, bufferCapacity=%d, sharingMode=%s, mmap=%s, stabilized=%s",
          stream_->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES",
          stream_->getSampleRate(),
          stream_->getFramesPerBurst(),
          stream_->getBufferSizeInFrames(),
          stream_->getBufferCapacityInFrames(),
          stream_->getSharingMode() == oboe::SharingMode::Exclusive ? "Exclusive" : "Shared",
-         oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no");
+         oboe::OboeExtensions::isMMapUsed(stream_.get()) ? "yes" : "no",
+         stabilizedCallback_ ? "yes" : "no");
 
     return true;
 }
@@ -302,8 +354,10 @@ oboe::DataCallbackResult OboeBridge::onAudioReady(
         framesRead = std::clamp(framesRead, 0, numFrames);
 
         if (framesRead < numFrames) {
-            size_t bytesDone = static_cast<size_t>(framesRead) * stream->getChannelCount() * sizeof(float);
-            size_t totalBytes = static_cast<size_t>(numFrames) * stream->getChannelCount() * sizeof(float);
+            // Cache channel count in a local to avoid two virtual dispatches.
+            int32_t ch = stream->getChannelCount();
+            size_t bytesDone = static_cast<size_t>(framesRead) * ch * sizeof(float);
+            size_t totalBytes = static_cast<size_t>(numFrames) * ch * sizeof(float);
             memset(static_cast<char*>(audioData) + bytesDone, 0, totalBytes - bytesDone);
         }
     } else {

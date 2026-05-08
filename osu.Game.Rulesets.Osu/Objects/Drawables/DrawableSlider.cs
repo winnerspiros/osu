@@ -163,7 +163,6 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         protected override void LoadSamples()
         {
             // Note: base.LoadSamples() isn't called since the slider plays the tail's hitsounds for the time being.
-
             Samples.Samples = HitObject.TailSamples.Cast<ISampleInfo>().ToArray();
             slidingSample.Samples = HitObject.CreateSlidingSamples().Cast<ISampleInfo>().ToArray();
         }
@@ -301,7 +300,13 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 ApplyResult(static (r, hitObject) =>
                 {
                     int totalTicks = hitObject.NestedHitObjects.Count;
-                    int hitTicks = hitObject.NestedHitObjects.Count(h => h.IsHit);
+                    int hitTicks = 0;
+
+                    foreach (var h in hitObject.NestedHitObjects)
+                    {
+                        if (h.IsHit)
+                            hitTicks++;
+                    }
 
                     if (hitTicks == totalTicks)
                         r.Type = HitResult.Great;
@@ -320,7 +325,18 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 // But the slider needs to still be judged with a reasonable hit/miss result for visual purposes (hit/miss transforms, etc).
                 ApplyResult(static (r, hitObject) =>
                 {
-                    r.Type = hitObject.NestedHitObjects.Any(h => h.Result.IsHit) ? r.Judgement.MaxResult : r.Judgement.MinResult;
+                    bool anyHit = false;
+
+                    foreach (var h in hitObject.NestedHitObjects)
+                    {
+                        if (h.Result.IsHit)
+                        {
+                            anyHit = true;
+                            break;
+                        }
+                    }
+
+                    r.Type = anyHit ? r.Judgement.MaxResult : r.Judgement.MinResult;
                 });
             }
         }

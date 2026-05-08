@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -390,13 +389,24 @@ namespace osu.Game.Rulesets.Catch.UI
             float adjustedRadius = displayRadius * lenience_adjust;
             float checkDistance = MathF.Pow(adjustedRadius, 2);
 
-            while (caughtObjectContainer.Any(f => Vector2Extensions.DistanceSquared(f.Position, position) < checkDistance))
+            while (tooCloseToExistingObject(position, checkDistance))
             {
                 position.X += RNG.NextSingle(-adjustedRadius, adjustedRadius);
                 position.Y -= RNG.NextSingle(0, 5);
             }
 
             return position;
+        }
+
+        private bool tooCloseToExistingObject(Vector2 position, float checkDistance)
+        {
+            foreach (var f in caughtObjectContainer)
+            {
+                if (Vector2Extensions.DistanceSquared(f.Position, position) < checkDistance)
+                    return true;
+            }
+
+            return false;
         }
 
         private void addLighting(JudgementResult judgementResult, Color4 colour, float x) =>

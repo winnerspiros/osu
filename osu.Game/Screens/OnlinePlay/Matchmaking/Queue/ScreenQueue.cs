@@ -339,7 +339,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
             currentState.BindTo(queue.CurrentState);
             currentState.BindValueChanged(s => SetState(s.NewValue));
-            client.MatchmakingLobbyStatusChanged += onMatchmakingLobbyStatusChanged;
 
             selectedPool.BindTo(queue.SelectedPool);
             selectedPool.BindValueChanged(e => refreshLobbyData());

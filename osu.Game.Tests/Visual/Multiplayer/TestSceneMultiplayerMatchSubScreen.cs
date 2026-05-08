@@ -443,7 +443,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 AllowedMods = []
             })));
             // This would normally be done as part of the above operation with an actual server.
-            AddStep("disable user mods", () => MultiplayerClient.ChangeUserMods(API.LocalUser.Value.OnlineID, Array.Empty<Mod>()));
+            AddStep("disable user mods", () => MultiplayerClient.ChangeUserMods(API.LocalUser.Value.OnlineID, Array.Empty<APIMod>()));
             AddUntilStep("flashlight mod disabled", () => !MultiplayerClient.ClientRoom!.Users[0].Mods.Any());
             AddStep("re-enable allowed mods", () => MultiplayerClient.EditPlaylistItem(new MultiplayerPlaylistItem(new PlaylistItem(MultiplayerClient.ServerRoom!.Playlist[0])
             {

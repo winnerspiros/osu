@@ -30,6 +30,10 @@ namespace osu.Game.Rulesets.UI
 
         private readonly Container<SkinnableSound> hitSounds;
 
+        // Reusable scratch list for iterative depth-first traversal of nested hit objects.
+        // Avoids allocating iterator state-machine objects on every Play() call.
+        private readonly List<HitObject> nestedScratch = new List<HitObject>();
+
         private HitObjectLifetimeEntry? mostValidObject;
 
         [Resolved]
@@ -64,10 +68,7 @@ namespace osu.Game.Rulesets.UI
             if (nextObject == null)
                 return;
 
-            // HitSampleInfo implements ISampleInfo, so array covariance lets us skip .Cast<>().
-            var samples = nextObject.Samples.ToArray();
-
-            PlaySamples(samples);
+            PlaySamples(nextObject.Samples.Cast<ISampleInfo>().ToArray());
         }
 
         protected virtual void PlaySamples(ISampleInfo[] samples) => Schedule(() =>
@@ -149,13 +150,17 @@ namespace osu.Game.Rulesets.UI
 
             // Else we want the earliest valid nested.
             // In cases of nested objects, they will always have earlier sample data than their parent object.
-            // Single-pass scan avoids the OrderBy + SkipWhile + FirstOrDefault LINQ chain.
+            // Iterative DFS with a shared scratch list avoids per-call state-machine allocations from recursive yield return.
             double referenceTime = getReferenceTime();
             HitObject? best = null;
             double bestEnd = double.MaxValue;
 
-            foreach (var nested in getAllNested(mostValidObject.HitObject))
+            nestedScratch.Clear();
+            nestedScratch.AddRange(mostValidObject.HitObject.NestedHitObjects);
+
+            for (int i = 0; i < nestedScratch.Count; i++)
             {
+                var nested = nestedScratch[i];
                 double end = nested.GetEndTime();
 
                 if (end > referenceTime && end < bestEnd)
@@ -163,6 +168,10 @@ namespace osu.Game.Rulesets.UI
                     best = nested;
                     bestEnd = end;
                 }
+
+                // Enqueue children for depth-first traversal.
+                if (nested.NestedHitObjects.Count > 0)
+                    nestedScratch.AddRange(nested.NestedHitObjects);
             }
 
             return best ?? mostValidObject.HitObject;
@@ -172,17 +181,6 @@ namespace osu.Game.Rulesets.UI
         private bool isCloseEnoughToCurrentTime(HitObject h) => getReferenceTime() >= h.StartTime - h.HitWindows.WindowFor(HitResult.Miss) * 2;
 
         private double getReferenceTime() => gameplayClock?.CurrentTime ?? Clock.CurrentTime;
-
-        private IEnumerable<HitObject> getAllNested(HitObject hitObject)
-        {
-            foreach (var h in hitObject.NestedHitObjects)
-            {
-                yield return h;
-
-                foreach (var n in getAllNested(h))
-                    yield return n;
-            }
-        }
 
         protected SkinnableSound GetNextSample()
         {

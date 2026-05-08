@@ -41,7 +41,10 @@ namespace osu.Game.Screens.Play
             // score may be null if LoadedBeatmapSuccessfully is false.
             Score == null ? null : new UserActivity.WatchingReplay(Score.ScoreInfo);
 
-        private bool isAutoplayPlayback => GameplayState.Mods.OfType<ModAutoplay>().Any();
+        // Cached in PrepareReplay() — GameplayState.Mods never changes after load, so
+        // re-running OfType<ModAutoplay>().Any() on every CheckModsAllowFailure call
+        // (which fires from the fail-detection path) allocates delegates for no gain.
+        private bool isAutoplayPlayback;
 
         private double? lastFrameTime;
 
@@ -144,6 +147,7 @@ namespace osu.Game.Screens.Play
         {
             DrawableRuleset?.SetReplayScore(Score);
             lastFrameTime = Score.Replay.Frames.LastOrDefault()?.Time;
+            isAutoplayPlayback = GameplayState.Mods.OfType<ModAutoplay>().Any();
         }
 
         protected override Score CreateScore(IBeatmap beatmap) => createScore(beatmap, Mods.Value);

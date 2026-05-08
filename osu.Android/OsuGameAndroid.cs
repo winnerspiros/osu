@@ -27,6 +27,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Game;
 using osu.Game.Configuration;
+using osu.Game.Database;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens;
@@ -186,6 +187,9 @@ namespace osu.Android
         private IntPtr adpfInputSession;
         private double inputAdpfAccumulatedMs;
         private long inputAdpfLastReportMs; // Environment.TickCount64 ms timestamp of last ADPF report
+        // Cached display-frame period in ms. Recomputed in applyDisplayMode so the hot
+        // input callback (which can fire at ~100 kHz) reads a plain field, not Math.Round.
+        private long adpfInputIntervalMs = 8L;
 
         // One-shot System.Threading.Timer that runs a burst of background-thread taming passes
         // when the user transitions into active gameplay.  Cancelled and replaced on each new
@@ -1488,6 +1492,8 @@ namespace osu.Android
                 try
                 {
                     currentRefreshRate = (int)mode.RefreshRate;
+                    // Cache the interval so the input hot-path avoids Math.Round on every poll.
+                    adpfInputIntervalMs = currentRefreshRate > 0 ? (long)Math.Round(1000.0 / currentRefreshRate) : 8L;
 
                     // Request the refresh rate via Surface.setFrameRate() ONLY.
                     //
@@ -1610,13 +1616,11 @@ namespace osu.Android
 
                 inputAdpfAccumulatedMs += elapsedMs;
 
-                // Report once per display frame period.  `currentRefreshRate` is an int written
-                // from the UI thread — a torn or stale read is harmless (worst-case we use a
-                // slightly wrong interval for one report cycle).
-                long intervalMs = currentRefreshRate > 0 ? (long)Math.Round(1000.0 / currentRefreshRate) : 8L;
+                // Report once per display frame period.  `adpfInputIntervalMs` is pre-computed
+                // in applyDisplayMode() so this callback reads a plain field instead of calling Math.Round.
                 long nowMs = System.Environment.TickCount64;
 
-                if (nowMs - inputAdpfLastReportMs >= intervalMs)
+                if (nowMs - inputAdpfLastReportMs >= adpfInputIntervalMs)
                 {
                     OboeAudioBridge.nADPFReportActualDuration(adpfInputSession, (long)(inputAdpfAccumulatedMs * 1_000_000.0));
                     inputAdpfAccumulatedMs = 0;
@@ -2724,6 +2728,8 @@ namespace osu.Android
         }
 
         protected override UpdateManager CreateUpdateManager() => new MobileUpdateNotifier();
+
+        protected override BackgroundDataStoreProcessor CreateBackgroundDataStoreProcessor() => new AndroidBackgroundDataStoreProcessor();
 
         protected override BatteryInfo CreateBatteryInfo() => new AndroidBatteryInfo();
 

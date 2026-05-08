@@ -140,17 +140,34 @@ namespace osu.Game.Screens.Select
 
         private static int compareUsingAggregateMax(BeatmapInfo a, BeatmapInfo b, Func<BeatmapInfo, double> func)
         {
-            var aMatchedBeatmaps = a.BeatmapSet!.Beatmaps.Where(bb => !bb.Hidden);
-            var bMatchedBeatmaps = b.BeatmapSet!.Beatmaps.Where(bb => !bb.Hidden);
+            double aMax = aggregateMax(a.BeatmapSet!.Beatmaps, func);
+            double bMax = aggregateMax(b.BeatmapSet!.Beatmaps, func);
 
-            bool aAny = aMatchedBeatmaps.Any();
-            bool bAny = bMatchedBeatmaps.Any();
+            if (double.IsNegativeInfinity(aMax) && double.IsNegativeInfinity(bMax)) return 0;
+            if (double.IsNegativeInfinity(aMax)) return -1;
+            if (double.IsNegativeInfinity(bMax)) return 1;
 
-            if (!aAny && !bAny) return 0;
-            if (!aAny) return -1;
-            if (!bAny) return 1;
+            return aMax.CompareTo(bMax);
+        }
 
-            return aMatchedBeatmaps.Max(func).CompareTo(bMatchedBeatmaps.Max(func));
+        /// <summary>
+        /// Returns the maximum value of <paramref name="func"/> over all non-hidden beatmaps in
+        /// <paramref name="beatmaps"/>, or <see cref="double.NegativeInfinity"/> if every beatmap
+        /// is hidden. Single-pass, allocation-free (no LINQ enumerator).
+        /// </summary>
+        private static double aggregateMax(IList<BeatmapInfo> beatmaps, Func<BeatmapInfo, double> func)
+        {
+            double max = double.NegativeInfinity;
+
+            foreach (var b in beatmaps)
+            {
+                if (b.Hidden) continue;
+
+                double v = func(b);
+                if (v > max) max = v;
+            }
+
+            return max;
         }
     }
 }

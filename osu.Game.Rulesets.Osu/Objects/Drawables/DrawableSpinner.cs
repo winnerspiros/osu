@@ -144,6 +144,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.LoadSamples();
 
             spinningSample.Samples = HitObject.CreateSpinningSamples().Cast<ISampleInfo>().ToArray();
+
             spinningSample.Frequency.Value = spinning_sample_initial_frequency;
 
             maxBonusSample.Samples = new ISampleInfo[] { new SpinnerBonusMaxSampleInfo(HitObject.CreateHitSampleInfo()) };
@@ -254,9 +255,12 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             if (userTriggered || Time.Current < HitObject.EndTime)
                 return;
 
-            // Trigger a miss result for remaining ticks to avoid infinite gameplay.
-            foreach (var tick in ticks.Where(t => !t.Result.HasResult))
-                tick.TriggerResult(false);
+            // Manual loop avoids allocating a LINQ delegate on spinner end.
+            foreach (var tick in ticks)
+            {
+                if (!tick.Result.HasResult)
+                    tick.TriggerResult(false);
+            }
 
             ApplyResult(static (r, hitObject) =>
             {
@@ -348,7 +352,17 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             while (completedFullSpins.Value != spins)
             {
-                var tick = ticks.FirstOrDefault(t => !t.Result.HasResult);
+                // Manual forward scan avoids allocating a LINQ delegate per spin completion.
+                DrawableSpinnerTick tick = null;
+
+                foreach (var t in ticks)
+                {
+                    if (!t.Result.HasResult)
+                    {
+                        tick = t;
+                        break;
+                    }
+                }
 
                 // tick may be null if we've hit the spin limit.
                 if (tick == null)

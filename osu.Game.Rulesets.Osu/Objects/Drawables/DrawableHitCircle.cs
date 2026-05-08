@@ -33,7 +33,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         public HitReceptor HitArea { get; private set; } = null!;
         public SkinnableDrawable CirclePiece { get; private set; } = null!;
 
-        protected override IEnumerable<Drawable> DimmablePieces => new[] { CirclePiece };
+        protected override IEnumerable<Drawable> DimmablePieces => dimmablePieces;
+        private Drawable[] dimmablePieces = null!;
 
         Drawable IHasApproachCircle.ApproachCircle => ApproachCircle;
 
@@ -95,6 +96,8 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             });
 
             Size = HitArea.DrawSize;
+
+            dimmablePieces = new Drawable[] { CirclePiece };
 
             PositionBindable.BindValueChanged(_ => UpdatePosition());
             StackHeightBindable.BindValueChanged(_ => UpdatePosition());
