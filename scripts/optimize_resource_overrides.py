@@ -89,80 +89,118 @@ def matches_any_glob(relative_path: str, patterns: list[str]) -> bool:
     return any(fnmatch.fnmatch(relative_path, pattern) for pattern in patterns)
 
 
-def convert_image_to_webp(source: Path, output: Path, config: dict, relative_path: str) -> str:
-    ext = source.suffix.lower()
-    temp_candidates: list[tuple[Path, str]] = []
-    has_alpha = ext == ".png" and ffprobe_has_alpha_channel(source)
+def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path, str]:
+    """
+    Convert a source image to the best compressed format available.
 
+    For PNG: tries lossless WebP and lossy WebP; picks the smallest that meets the SSIM
+    threshold.  AVIF is explicitly excluded for PNGs because libsvtav1 only supports
+    yuv420p (no alpha channel), which would silently strip transparency.
+
+    For JPEG/JPG: tries lossy WebP and, when ``jpeg_avif_enabled`` is true in config,
+    lossy AVIF via libsvtav1 (yuv420p — safe for JPEG sources which have no alpha).
+    Picks the smallest candidate that meets the SSIM threshold.
+
+    Returns ``(temp_output_path, strategy)`` where ``temp_output_path.suffix`` is the
+    winning format extension (``.webp`` or ``.avif``).  The caller is responsible for
+    moving the file to its final destination.
+    """
+    ext = source.suffix.lower()
+    # List of (temp_path, strategy_name, is_lossless_flag, format_extension) tuples
+    # representing conversion candidates to compare.
+    temp_candidates: list[tuple[Path, str, bool, str]] = []
+
+    # ── WebP lossless (PNG only) ─────────────────────────────────────────────
     if ext == ".png" and bool(config.get("png_webp_try_lossless", True)):
-        lossless_path = source.parent / f".{output.name}.lossless.tmp"
+        p = source.parent / f".{source.stem}.lossless.webp.tmp"
         run_ffmpeg(
             [
-                "-i",
-                str(source),
-                "-c:v",
-                "libwebp",
-                "-lossless",
-                "1",
-                "-compression_level",
-                str(config.get("png_webp_lossless_compression_level", 6)),
-                "-f",
-                "webp",
-                str(lossless_path),
+                "-i", str(source),
+                "-c:v", "libwebp",
+                "-lossless", "1",
+                "-compression_level", str(config.get("png_webp_lossless_compression_level", 9)),
+                "-f", "webp", str(p),
             ]
         )
-        temp_candidates.append((lossless_path, "png-lossless-webp"))
+        temp_candidates.append((p, "png-lossless-webp", True, ".webp"))
 
+    # ── WebP lossy ───────────────────────────────────────────────────────────
+    has_alpha = ext == ".png" and ffprobe_has_alpha_channel(source)
     lossy_quality = (
-        config.get("png_webp_alpha_lossy_quality", 95) if has_alpha else config.get("png_webp_lossy_quality", 92)
+        config.get("png_webp_alpha_lossy_quality", 95) if has_alpha else config.get("png_webp_lossy_quality", 90)
     ) if ext == ".png" else config.get("jpeg_webp_quality", 88)
     lossy_method = config.get("png_webp_lossy_method", 6) if ext == ".png" else config.get("jpeg_webp_method", 6)
-    lossy_path = source.parent / f".{output.name}.lossy.tmp"
+    p_webp = source.parent / f".{source.stem}.lossy.webp.tmp"
     run_ffmpeg(
         [
-            "-i",
-            str(source),
-            "-c:v",
-            "libwebp",
-            "-q:v",
-            str(lossy_quality),
-            "-compression_level",
-            str(lossy_method),
-            "-f",
-            "webp",
-            str(lossy_path),
+            "-i", str(source),
+            "-c:v", "libwebp",
+            "-q:v", str(lossy_quality),
+            "-compression_level", str(lossy_method),
+            "-f", "webp", str(p_webp),
         ]
     )
-    lossy_strategy = f"{ext.lstrip('.')}-lossy-webp-q{lossy_quality}"
-    temp_candidates.append((lossy_path, lossy_strategy))
+    temp_candidates.append((p_webp, f"{ext.lstrip('.')}-lossy-webp-q{lossy_quality}", False, ".webp"))
 
-    minimum_ssim = float(config.get("image_lossy_min_ssim", 0.995))
+    # ── AVIF via libsvtav1 (JPEG/JPG only, opt-in via jpeg_avif_enabled) ─────
+    # PNG files must NOT use AVIF: libsvtav1 encodes yuv420p only and silently
+    # strips alpha channels, producing a tiny but completely transparent output.
+    # JPEG sources have no alpha, so yuv420p is safe.
+    if ext in {".jpg", ".jpeg"} and bool(config.get("jpeg_avif_enabled", False)):
+        avif_crf = int(config.get("jpeg_avif_crf", 30))
+        avif_preset = int(config.get("jpeg_avif_preset", 4))
+        p_avif = source.parent / f".{source.stem}.lossy.avif.tmp"
+        try:
+            run_ffmpeg(
+                [
+                    "-i", str(source),
+                    "-c:v", "libsvtav1",
+                    "-crf", str(avif_crf),
+                    "-preset", str(avif_preset),
+                    "-pix_fmt", "yuv420p",
+                    "-f", "avif",  # explicit muxer — ffmpeg cannot infer AVIF from .tmp extension
+                    str(p_avif),
+                ]
+            )
+            temp_candidates.append((p_avif, f"jpg-avif-svtav1-crf{avif_crf}-p{avif_preset}", False, ".avif"))
+        except subprocess.CalledProcessError:
+            # Log a warning so the operator knows AVIF was requested but unavailable.
+            print(f"::warning::AVIF requested for {relative_path} but libsvtav1 encode failed; falling back to WebP.")
+            p_avif.unlink(missing_ok=True)
+
+    # ── Pick the smallest candidate that meets the SSIM threshold ────────────
+    minimum_ssim = float(config.get("image_lossy_min_ssim", 0.990))
     compare_ssim = bool(config.get("measure_image_ssim", True))
-    best_candidate: Optional[Tuple[Path, str]] = None
+    best_candidate: Optional[Tuple[Path, str, str]] = None  # (path, strategy, fmt_ext)
 
-    for candidate_path, strategy in temp_candidates:
-        if strategy == lossy_strategy and compare_ssim:
-            ssim = measure_image_ssim(source, candidate_path)
+    for cand_path, strategy, is_lossless, fmt_ext in temp_candidates:
+        if not is_lossless and compare_ssim:
+            ssim = measure_image_ssim(source, cand_path)
             if ssim is not None and ssim < minimum_ssim:
-                candidate_path.unlink(missing_ok=True)
+                cand_path.unlink(missing_ok=True)
                 continue
-        if best_candidate is None or candidate_path.stat().st_size < best_candidate[0].stat().st_size:
-            best_candidate = (candidate_path, strategy)
+        if best_candidate is None or cand_path.stat().st_size < best_candidate[0].stat().st_size:
+            best_candidate = (cand_path, strategy, fmt_ext)
 
     if best_candidate is None:
-        for candidate_path, _ in temp_candidates:
-            candidate_path.unlink(missing_ok=True)
+        for cand_path, _, _, _ in temp_candidates:
+            cand_path.unlink(missing_ok=True)
         raise RuntimeError(
             f"No image candidate met quality threshold for {relative_path}. "
             f"Consider lowering image_lossy_min_ssim in config."
         )
 
-    best_path, best_strategy = best_candidate
-    shutil.move(str(best_path), str(output))
-    for candidate_path, _ in temp_candidates:
-        if candidate_path != best_path:
-            candidate_path.unlink(missing_ok=True)
-    return best_strategy
+    best_path, best_strategy, winning_ext = best_candidate
+    # Clean up all losing candidates (those that passed SSIM but weren't the smallest).
+    for cand_path, _, _, _ in temp_candidates:
+        if cand_path != best_path:
+            cand_path.unlink(missing_ok=True)
+
+    # Rename to a clean temp path whose .suffix is the winning format extension
+    # (.webp or .avif) so the caller can derive the final output path via Path.with_suffix.
+    clean_tmp = source.parent / f".{source.stem}.win{winning_ext}"
+    shutil.move(str(best_path), str(clean_tmp))
+    return clean_tmp, best_strategy
 
 
 def convert_audio_to_ogg(source: Path, output: Path, config: dict, relative_path: str) -> str:
@@ -278,7 +316,10 @@ def optimize(root: Path, config: dict, dry_run: bool) -> dict:
 
         try:
             if ext in {".png", ".jpg", ".jpeg"}:
-                strategy = convert_image_to_webp(source, temp_output, config=config, relative_path=relative_path)
+                # convert_image manages its own temp files and returns a clean temp
+                # whose suffix is the winning format extension (.webp or .avif).
+                temp_output, strategy = convert_image(source, config=config, relative_path=relative_path)
+                output = source.with_suffix(temp_output.suffix)
             elif ext in {".wav", ".mp3"}:
                 strategy = convert_audio_to_ogg(source, temp_output, config=config, relative_path=relative_path)
             elif ext == ".mp4":
