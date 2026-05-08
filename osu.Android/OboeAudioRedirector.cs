@@ -178,12 +178,14 @@ namespace osu.Android
 
                     while (t != null && cachedEnqueueActionMethod == null)
                     {
+#pragma warning disable IL2075 // Type obtained via GetType()/BaseType does not carry DynamicallyAccessedMembers — reflection loop intentional, preserved by Linker.xml
                         cachedEnqueueActionMethod = t.GetMethod(
                             "EnqueueAction",
                             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
                             binder: null,
                             types: new[] { typeof(Action) },
                             modifiers: null);
+#pragma warning restore IL2075
 
                         t = t.BaseType;
                     }
@@ -252,12 +254,14 @@ namespace osu.Android
 
                     while (t != null && cachedUpdateDeviceMethod == null)
                     {
+#pragma warning disable IL2075 // Type obtained via typeof().BaseType does not carry DynamicallyAccessedMembers — reflection loop intentional, preserved by Linker.xml
                         cachedUpdateDeviceMethod = t.GetMethod(
                             "UpdateDevice",
                             BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
                             binder: null,
                             types: new[] { typeof(int) },
                             modifiers: null);
+#pragma warning restore IL2075
 
                         t = t.BaseType;
                     }

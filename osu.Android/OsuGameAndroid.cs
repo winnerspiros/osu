@@ -2754,7 +2754,9 @@ namespace osu.Android
                 {
                     try
                     {
+#pragma warning disable IL2075 // activeMixersList is typed as object — runtime type is known to be an INotifyCollectionChanged-derived BindableList, preserved by Linker.xml
                         MethodInfo? unbindMethod = activeMixersList.GetType().GetMethod("UnbindCollectionChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+#pragma warning restore IL2075
                         unbindMethod?.Invoke(activeMixersList, new object[] { activeMixersHandler });
                     }
                     catch { }

@@ -67,10 +67,17 @@
          Shader attribute scanning, TextureLoaderStore fallback chain, bindable system,
          resource store extension routing — all reflection-dependent.
        ppy.osu.Framework.Android: Android-specific host, input handling, surface wrappers.
-       ppy.Veldrid.SPIRV: SPIR-V cross-compiler; dynamically loads shader reflector types. -->
-  <assembly fullname="ppy.osu.Framework"         preserve="all" />
-  <assembly fullname="ppy.osu.Framework.Android" preserve="all" />
-  <assembly fullname="ppy.Veldrid.SPIRV"         preserve="all" />
+       ppy.Veldrid.SPIRV: SPIR-V cross-compiler; dynamically loads shader reflector types.
+
+       NOTE: ppy.osu.Framework and ppy.osu.Framework.Android are intentionally omitted
+       from this descriptor.  ILLink (in .NET Android Full-link mode) cannot resolve these
+       assemblies during the trimmer pass — they originate from a net10.0 NuGet package
+       that is not visible in ILLink's assembly search path for the android TFM.  The
+       linker therefore cannot apply a preserve="all" rule, and having the entries only
+       generates "Could not resolve assembly" warnings with no benefit.  The assemblies
+       are included intact in the APK (ILLink cannot trim what it cannot find), and every
+       reachable type is rooted from osu.Android / osu.Game which ARE in the preserve list. -->
+  <assembly fullname="ppy.Veldrid.SPIRV" preserve="all" />
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        Audio (ManagedBass)
@@ -89,9 +96,11 @@
        compile time, but at runtime it discovers RealmObject schemas by
        reflecting over IRealmObject-derived types and their [MapTo]/[Indexed]
        attributes.  Stripping any Realm type (or any osu RealmObject property)
-       causes a RealmException at database open time. -->
-  <assembly fullname="Realm"                  preserve="all" />
-  <assembly fullname="Realms.PlatformHelpers" preserve="all" />
+       causes a RealmException at database open time.
+       NOTE: Realms.PlatformHelpers was a separate assembly in older Realm SDK
+       versions (≤ 10.x) and was merged into Realm in v11.  Realm 20.x does not
+       ship it as a standalone assembly, so the entry is omitted here. -->
+  <assembly fullname="Realm" preserve="all" />
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        JSON / binary serialisation
@@ -147,16 +156,19 @@
        The DI container (IServiceProvider / ServiceCollection) scans constructor
        parameters via ConstructorInfo.GetParameters() to wire services at runtime.
        IOptions<T> binders use PropertyInfo reflection to populate typed config
-       objects from key-value pairs.  ILoggerFactory finds providers by type. -->
+       objects from key-value pairs.  ILoggerFactory finds providers by type.
+       NOTE: Microsoft.Extensions.Configuration (non-Abstractions) and
+       Microsoft.Extensions.Http are NOT directly referenced by this project and
+       are not shipped as standalone assemblies in .NET 10 (their APIs are in-box
+       or merged into the Abstractions layer).  Adding them here would generate
+       "Could not resolve assembly" linker warnings with no preservation benefit. -->
   <assembly fullname="Microsoft.Extensions.DependencyInjection"              preserve="all" />
   <assembly fullname="Microsoft.Extensions.DependencyInjection.Abstractions" preserve="all" />
   <assembly fullname="Microsoft.Extensions.Logging"                          preserve="all" />
   <assembly fullname="Microsoft.Extensions.Logging.Abstractions"             preserve="all" />
   <assembly fullname="Microsoft.Extensions.Options"                          preserve="all" />
-  <assembly fullname="Microsoft.Extensions.Configuration"                    preserve="all" />
   <assembly fullname="Microsoft.Extensions.Configuration.Abstractions"       preserve="all" />
   <assembly fullname="Microsoft.Extensions.Primitives"                       preserve="all" />
-  <assembly fullname="Microsoft.Extensions.Http"                             preserve="all" />
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        SQLite stack
