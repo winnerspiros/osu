@@ -12,6 +12,7 @@ using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
+using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 
 namespace osu.Game.Screens.Edit.Setup
