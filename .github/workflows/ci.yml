@@ -20,7 +20,7 @@ jobs:
       - name: Install ffmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg libsvt-av1-1
+          sudo apt-get install -y ffmpeg
 
       - name: Optimize local override media
         run: |
