@@ -40,6 +40,14 @@ namespace osu.Android.Performance
         /// <summary>Whether the current session successfully started a no-GC region.</summary>
         private bool noGCRegionActive;
 
+        /// <summary>
+        /// Heap budget in bytes for <see cref="GC.TryStartNoGCRegion"/>.
+        /// 64 MB covers typical per-map allocation rates (~4–8 MB/s × ~8 s per map load).
+        /// When this budget is exhausted the runtime silently reverts to normal GC, so
+        /// the value acts as an upper-bound guarantee rather than a hard limit.
+        /// </summary>
+        private const long NO_GC_REGION_BUDGET_BYTES = 64 * 1024 * 1024;
+
         public IDisposable BeginSession()
         {
             enterSession();
@@ -114,7 +122,7 @@ namespace osu.Android.Performance
             {
                 try
                 {
-                    noGCRegionActive = GC.TryStartNoGCRegion(64 * 1024 * 1024, disallowFullBlockingGC: false);
+                    noGCRegionActive = GC.TryStartNoGCRegion(NO_GC_REGION_BUDGET_BYTES, disallowFullBlockingGC: false);
                     if (noGCRegionActive)
                         Logger.Log("High performance session: no-GC region started (64 MB budget)");
                 }
