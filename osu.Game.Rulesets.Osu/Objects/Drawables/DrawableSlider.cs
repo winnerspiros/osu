@@ -303,7 +303,10 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                     int hitTicks = 0;
 
                     foreach (var h in hitObject.NestedHitObjects)
-                        if (h.IsHit) hitTicks++;
+                    {
+                        if (h.IsHit)
+                            hitTicks++;
+                    }
 
                     if (hitTicks == totalTicks)
                         r.Type = HitResult.Great;
