@@ -24,7 +24,9 @@ That means you can keep call sites unchanged and still serve a compressed local 
 
 **AVIF vs WebP**: AVIF is tried first because it offers better compression than WebP at equal quality (attractive for large backgrounds/splash art). WebP is the safe fallback because it is supported everywhere. The framework's `TextureLoaderStore` applies the same AVIF-first order with ImageSharp capability checking, so AVIF will be silently skipped on any platform where ImageSharp cannot decode it.
 
-**⚠️ Do NOT generate AVIF for PNG files with alpha channels (e.g. font atlases, UI sprites)**: `libsvtav1` encodes only yuv420p and silently strips the alpha channel, producing a tiny (~350 byte) but completely blank/solid output. `libaom-av1` would preserve alpha via yuva420p but is extremely slow and AVIF alpha support is inconsistent on Android. Use WebP for all PNG assets — WebP lossless perfectly preserves alpha. AVIF is only safe for JPEG-sourced images (no alpha channel) and even then savings over WebP are marginal.
+**⚠️ Do NOT generate AVIF for PNG files with alpha channels (e.g. font atlases, UI sprites)**: `libsvtav1` encodes only yuv420p and silently strips the alpha channel, producing a tiny (~350 byte) but completely blank/solid output. Use WebP for all PNG assets that carry transparency — WebP lossless perfectly preserves alpha.
+
+For PNG files **without** an alpha channel, AVIF is safe and is tried alongside WebP; the smaller of the two (that passes the SSIM threshold) is kept. The optimizer uses `ffprobe` to detect whether a PNG has an alpha channel before attempting AVIF.
 
 Example:
 

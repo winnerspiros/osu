@@ -19,7 +19,7 @@
   "png_webp_lossy_method": 6,
   "jpeg_webp_quality": 88,
   "jpeg_webp_method": 6,
-  "jpeg_avif_enabled": false,
+  "jpeg_avif_enabled": true,
   "jpeg_avif_crf": 30,
   "jpeg_avif_preset": 4,
   "audio_codec": "libopus",

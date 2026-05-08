@@ -93,12 +93,12 @@ def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path,
     """
     Convert a source image to the best compressed format available.
 
-    For PNG: tries lossless WebP and lossy WebP; picks the smallest that meets the SSIM
-    threshold.  AVIF is explicitly excluded for PNGs because libsvtav1 only supports
-    yuv420p (no alpha channel), which would silently strip transparency.
+    For PNG with alpha: tries lossless WebP and lossy WebP only (AVIF is skipped because
+    libsvtav1 encodes yuv420p only and silently strips the alpha channel).
 
-    For JPEG/JPG: tries lossy WebP and, when ``jpeg_avif_enabled`` is true in config,
-    lossy AVIF via libsvtav1 (yuv420p — safe for JPEG sources which have no alpha).
+    For PNG without alpha and for JPEG/JPG: tries lossy WebP and, when
+    ``jpeg_avif_enabled`` is true in config, also lossy AVIF via libsvtav1
+    (yuv420p — safe when there is no alpha channel).
     Picks the smallest candidate that meets the SSIM threshold.
 
     Returns ``(temp_output_path, strategy)`` where ``temp_output_path.suffix`` is the
@@ -142,14 +142,17 @@ def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path,
     )
     temp_candidates.append((p_webp, f"{ext.lstrip('.')}-lossy-webp-q{lossy_quality}", False, ".webp"))
 
-    # ── AVIF via libsvtav1 (JPEG/JPG only, opt-in via jpeg_avif_enabled) ─────
-    # PNG files must NOT use AVIF: libsvtav1 encodes yuv420p only and silently
-    # strips alpha channels, producing a tiny but completely transparent output.
-    # JPEG sources have no alpha, so yuv420p is safe.
-    if ext in {".jpg", ".jpeg"} and bool(config.get("jpeg_avif_enabled", False)):
+    # ── AVIF via libsvtav1 (JPEG/JPG + opaque PNG, opt-in via jpeg_avif_enabled) ──
+    # PNG files with alpha must NOT use AVIF: libsvtav1 encodes yuv420p only and
+    # silently strips alpha channels, producing a tiny but completely transparent
+    # output.  PNG files without alpha and all JPEG sources are safe to encode as
+    # AVIF because yuv420p has no alpha plane.
+    can_use_avif = ext in {".jpg", ".jpeg"} or (ext == ".png" and not has_alpha)
+    if can_use_avif and bool(config.get("jpeg_avif_enabled", False)):
         avif_crf = int(config.get("jpeg_avif_crf", 30))
         avif_preset = int(config.get("jpeg_avif_preset", 4))
         p_avif = source.parent / f".{source.stem}.lossy.avif.tmp"
+        src_label = "jpg" if ext in {".jpg", ".jpeg"} else "png"
         try:
             run_ffmpeg(
                 [
@@ -162,7 +165,7 @@ def convert_image(source: Path, config: dict, relative_path: str) -> tuple[Path,
                     str(p_avif),
                 ]
             )
-            temp_candidates.append((p_avif, f"jpg-avif-svtav1-crf{avif_crf}-p{avif_preset}", False, ".avif"))
+            temp_candidates.append((p_avif, f"{src_label}-avif-svtav1-crf{avif_crf}-p{avif_preset}", False, ".avif"))
         except subprocess.CalledProcessError:
             # Log a warning so the operator knows AVIF was requested but unavailable.
             print(f"::warning::AVIF requested for {relative_path} but libsvtav1 encode failed; falling back to WebP.")
