@@ -30,7 +30,7 @@ namespace osu.Android.Performance
         private static bool gcLatencyModeSupported = true;
 
         /// <summary>
-        /// One-shot disable for <see cref="GC.TryStartNoGCRegion"/>.
+        /// One-shot disable for <see cref="GC.TryStartNoGCRegion(long, bool)"/>.
         /// The API is not implemented on Mono for Android and will throw
         /// <see cref="NotImplementedException"/> or <see cref="PlatformNotSupportedException"/>
         /// on older runtimes.  We disable it permanently on the first failure.
@@ -41,7 +41,7 @@ namespace osu.Android.Performance
         private bool noGCRegionActive;
 
         /// <summary>
-        /// Heap budget in bytes for <see cref="GC.TryStartNoGCRegion"/>.
+        /// Heap budget in bytes for <see cref="GC.TryStartNoGCRegion(long, bool)"/>.
         /// 64 MB covers typical per-map allocation rates (~4–8 MB/s × ~8 s per map load).
         /// When this budget is exhausted the runtime silently reverts to normal GC, so
         /// the value acts as an upper-bound guarantee rather than a hard limit.
