@@ -19,7 +19,7 @@ namespace osu.Android
     /// per typical 5-minute play session; at 120 s they drop to ~2×, cutting the associated
     /// allocation pressure and the risk of a GC stall at the worst possible moment.
     /// </remarks>
-    public class AndroidBackgroundDataStoreProcessor : BackgroundDataStoreProcessor
+    public partial class AndroidBackgroundDataStoreProcessor : BackgroundDataStoreProcessor
     {
         // 2-minute polling interval while gameplay is active (vs. the default 30 s).
         protected override int TimeToSleepDuringGameplay => 120_000;
