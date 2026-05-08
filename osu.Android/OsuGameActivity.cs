@@ -27,8 +27,10 @@ namespace osu.Android
     // Declare ScreenOrientation in the manifest (rather than only assigning RequestedOrientation
     // at runtime in OnCreate) so Android creates the activity in landscape from the very first
     // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
-    // event during startup. This is defensive hardening alongside the main fix in osu.Android.props
-    // (disabling trimming + profiled AOT, which was the actual cause of the startup crash).
+    // event during startup. This is defensive hardening alongside the linker fix in
+    // osu.Android/Linker.xml (using correct CLR assembly names osu.Framework /
+    // osu.Framework.Android instead of the NuGet package IDs ppy.osu.Framework /
+    // ppy.osu.Framework.Android, which was the actual cause of the startup crash).
     [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.Landscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
