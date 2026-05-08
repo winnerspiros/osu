@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manual ILLink / .NET Android linker preservation descriptor for osu! Android.
+
+  Context
+  ───────
+  AndroidLinkMode=Full (set in osu.Android.props) enables .NET's ILLink trimmer
+  across all assemblies, not just the Android SDK wrapper (Mono.Android.dll).
+  Without this file, ILLink would eagerly strip types it cannot prove are
+  reachable through normal call graphs — which breaks any assembly that discovers
+  types or members at runtime via reflection (Realm's ORM schema, Newtonsoft.Json
+  contract builders, AutoMapper profile scanners, SignalR hub proxies, etc.).
+
+  This file replaces the risk of "automatic trim" with a curated per-assembly
+  declaration:
+    • preserve="all"  — keep every type, field and method in this assembly.
+      Used for assemblies that use runtime reflection to discover their own or
+      other types, where a statically-invisible call path can cause a
+      MissingMethodException or TypeLoadException at runtime.
+    • (absent)        — the linker will tree-shake the assembly, keeping only
+      types actually reachable from the preserved set.  Safe for pure-algorithmic
+      libraries that never look up types by name.
+
+  Savings over SdkOnly (the previous setting)
+  ────────────────────────────────────────────
+  SdkOnly only strips unused Java-wrapper types in Mono.Android.dll.
+  Full + this file additionally strips:
+    • Unused types in all .NET BCL assemblies (System.*, Microsoft.*).
+    • ~80 % of NUnit — osu.Game carries test-scene base classes, but the linker
+      keeps only the NUnit.Framework types actually referenced in osu.Game.dll's
+      IL, discarding most of the assertion, runner, and constraint sub-systems.
+    • Unused types in DiffPlex, SharpCompress, and Microsoft.Toolkit.HighPerformance
+      (all zero-reflection, pure-generic/algorithmic libraries).
+    • Any additional Mono.Android.dll types that SdkOnly left behind.
+
+  How to maintain
+  ───────────────
+  If a runtime TypeLoadException or MissingMethodException appears in a new
+  package after this file was last updated, add the offending assembly here with
+  preserve="all".  Always add a comment explaining why reflection makes the full
+  preservation necessary.
+-->
+<linker>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       osu! first-party assemblies
+       ═══════════════════════════════════════════════════════════════════════
+       All use reflection heavily:
+         • osu.Game / rulesets: ruleset discovery via RulesetStore.GetRuleset(),
+           DI container (DependencyContainer uses ConstructorInfo), Bindable<T>
+           value converters, settings / mod attributes, beatmap decoder registry,
+           score serialiser, skin component lookup.
+         • osu.Android: Android Activity / Fragment reflection, P/Invoke
+           attribute scanning in native bridge, ADPF session manager. -->
+  <assembly fullname="osu.Android"             preserve="all" />
+  <assembly fullname="osu.Game"                preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Osu"   preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Taiko" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Catch" preserve="all" />
+  <assembly fullname="osu.Game.Rulesets.Mania" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       ppy framework
+       ═══════════════════════════════════════════════════════════════════════
+       ppy.osu.Framework: DrawableComponentLookup and SourceGeneratedImplementationLookup
+         use Type.GetType()/Activator.CreateInstance() for draw hierarchy resolution.
+         Shader attribute scanning, TextureLoaderStore fallback chain, bindable system,
+         resource store extension routing — all reflection-dependent.
+       ppy.osu.Framework.Android: Android-specific host, input handling, surface wrappers.
+       ppy.Veldrid.SPIRV: SPIR-V cross-compiler; dynamically loads shader reflector types. -->
+  <assembly fullname="ppy.osu.Framework"         preserve="all" />
+  <assembly fullname="ppy.osu.Framework.Android" preserve="all" />
+  <assembly fullname="ppy.Veldrid.SPIRV"         preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Audio (ManagedBass)
+       ═══════════════════════════════════════════════════════════════════════
+       ManagedBass uses [DllImport] / P/Invoke attribute discovery.  The
+       winnerspiros fork adds UnmanagedCallersOnly / NativeCallable methods that
+       must survive trimming so the native bridge can resolve them. -->
+  <assembly fullname="ManagedBass"     preserve="all" />
+  <assembly fullname="ManagedBass.Fx"  preserve="all" />
+  <assembly fullname="ManagedBass.Mix" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Database — Realm
+       ═══════════════════════════════════════════════════════════════════════
+       Realm's source generator emits IRealmObjectHelper implementations at
+       compile time, but at runtime it discovers RealmObject schemas by
+       reflecting over IRealmObject-derived types and their [MapTo]/[Indexed]
+       attributes.  Stripping any Realm type (or any osu RealmObject property)
+       causes a RealmException at database open time. -->
+  <assembly fullname="Realm"                  preserve="all" />
+  <assembly fullname="Realms.PlatformHelpers" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       JSON / binary serialisation
+       ═══════════════════════════════════════════════════════════════════════
+       Newtonsoft.Json: JsonSerializer builds DefaultContractResolver at runtime
+         by reflecting over target types (properties, [JsonProperty] attrs, etc.).
+         Every BeatmapOnlineMetadata, APIUser, Mod subclass etc. must be present.
+       MessagePack: resolver chains are built at startup by scanning assemblies
+         for [MessagePackObject]-annotated types.  MessagePackSerializer.Typeless
+         uses Type.GetType() for polymorphic deserialisation.
+       MessagePack.Annotations: attribute types ([Key], [MessagePackObject], …)
+         must survive so the reflection scanner can read them. -->
+  <assembly fullname="Newtonsoft.Json"         preserve="all" />
+  <assembly fullname="MessagePack"             preserve="all" />
+  <assembly fullname="MessagePack.Annotations" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Object mapping — AutoMapper
+       ═══════════════════════════════════════════════════════════════════════
+       AutoMapper's MappingExpression<TSource, TDest> scans source/dest type
+       hierarchies for matching property names at IMapper.Map<T>() call sites.
+       Profile types are discovered via Assembly.GetTypes() at startup. -->
+  <assembly fullname="AutoMapper" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Error reporting — Sentry
+       ═══════════════════════════════════════════════════════════════════════
+       Sentry enriches events with stack frames using MethodBase.GetCurrentMethod()
+       and Type.FullName.  SentryOptions.AddIntegration() discovers integrations by
+       type name.  SentryEvent breadcrumbs carry dynamic type information. -->
+  <assembly fullname="Sentry" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Real-time networking — SignalR
+       ═══════════════════════════════════════════════════════════════════════
+       The SignalR client generates hub proxies at runtime using
+       DispatchProxy.Create<T>() and discovers hub method overloads by
+       MethodInfo.GetParameters() reflection.  Protocol negotiation selects
+       serializers by type name.  All layers of the SignalR stack must be
+       fully preserved to avoid MissingMethodException on first multiplayer
+       connection. -->
+  <assembly fullname="Microsoft.AspNetCore.SignalR.Client"                   preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.SignalR.Client.Core"              preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.SignalR.Common"                   preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.SignalR.Protocols.MessagePack"    preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.Http.Connections.Client"          preserve="all" />
+  <assembly fullname="Microsoft.AspNetCore.Http.Connections.Common"          preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Dependency injection and configuration — Microsoft.Extensions.*
+       ═══════════════════════════════════════════════════════════════════════
+       The DI container (IServiceProvider / ServiceCollection) scans constructor
+       parameters via ConstructorInfo.GetParameters() to wire services at runtime.
+       IOptions<T> binders use PropertyInfo reflection to populate typed config
+       objects from key-value pairs.  ILoggerFactory finds providers by type. -->
+  <assembly fullname="Microsoft.Extensions.DependencyInjection"              preserve="all" />
+  <assembly fullname="Microsoft.Extensions.DependencyInjection.Abstractions" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Logging"                          preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Logging.Abstractions"             preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Options"                          preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Configuration"                    preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Configuration.Abstractions"       preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Primitives"                       preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Http"                             preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SQLite stack
+       ═══════════════════════════════════════════════════════════════════════
+       SQLitePCLRaw uses a runtime provider discovery pattern: a static factory
+       field is populated via reflection from the bundle assembly at startup.
+       Microsoft.Data.Sqlite uses SqliteConnection which resolves the native
+       sqlite3 library by scanning the loaded SQLitePCLRaw provider. -->
+  <assembly fullname="SQLitePCLRaw.core"               preserve="all" />
+  <assembly fullname="SQLitePCLRaw.provider.e_sqlite3" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.batteries_v2"       preserve="all" />
+  <assembly fullname="Microsoft.Data.Sqlite"           preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Platform integration — MAUI Essentials
+       ═══════════════════════════════════════════════════════════════════════
+       Microsoft.Maui.Essentials discovers platform implementations at runtime
+       through Android Context / Activity reflection (Clipboard, Preferences,
+       Vibration, Permissions, etc.).  Stripping any implementation class breaks
+       the runtime lookup. -->
+  <assembly fullname="Microsoft.Maui.Essentials" preserve="all" />
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Utility libraries — cautiously preserved
+       ═══════════════════════════════════════════════════════════════════════
+       These libraries are not deeply reflection-based, but they use patterns
+       (factory registries, codec detection, pluralisation rule scanning) that
+       are hard to fully trace statically.  Preserving them is cheap (they are
+       all small) and eliminates the risk of a subtle runtime miss.
+
+       HtmlAgilityPack: XPath evaluator builds an internal function table from
+         HtmlAgilityPack.HtmlNode subtype names; stripping a node type would
+         silently return empty results from HTML parse paths in osu.Game.
+       Humanizer: pluralisation and date-difference rules are stored in nested
+         types discovered via Assembly.GetTypes() + attribute scan at first use.
+       TagLibSharp: codec/container detection uses a static factory list that
+         maps MIME types and file extensions to TagLib.File subclass instances
+         via Activator.CreateInstance(type) — stripping any File subclass causes
+         a TagLibNotSupportedException at audio-file import. -->
+  <assembly fullname="HtmlAgilityPack" preserve="all" />
+  <assembly fullname="Humanizer"       preserve="all" />
+  <assembly fullname="TagLibSharp"     preserve="all" />
+
+  <!--
+    Assemblies intentionally NOT listed here (will be tree-shaken by ILLink):
+    ─────────────────────────────────────────────────────────────────────────
+    • NUnit — osu.Game embeds test-scene base classes referencing a small
+      subset of NUnit.Framework types.  ILLink keeps exactly those types (e.g.
+      TestAttribute, TestFixtureAttribute) and strips the bulk of the assertion,
+      runner, constraint, and parallel-execution subsystems.  The stripped types
+      are never invoked at runtime on a release Android build.
+
+    • DiffPlex — pure LCS diff algorithm; zero reflection; every type reachable
+      from osu.Game call sites is kept by the linker automatically.
+
+    • SharpCompress — stream-based archive/compression; all entry-point types
+      are accessed through factory static methods, not Type.GetType() lookups.
+
+    • Microsoft.Toolkit.HighPerformance — pure generics and unsafe extensions;
+      no runtime type lookup; the linker traces all references from osu.Game
+      correctly without a full-preservation override.
+
+    • All .NET BCL assemblies (System.*, mscorlib, netstandard) — ILLink follows
+      every reference from the preserved assemblies above and retains exactly the
+      BCL types that are used, discarding the rest.
+  -->
+
+</linker>

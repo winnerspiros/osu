@@ -46,11 +46,20 @@
            managed paths (the JIT no longer needs to tier them up at runtime, and Mono's
            profiled AOT covers framework/game hot loops including draw-thread Schedulers,
            bindable propagation, and the texture upload path).
-         * PublishTrimmed stays OFF — re-enabling it requires explicitly rooting every
-           reflection-using assembly (osu.Game, rulesets, Realm, Newtonsoft.Json,
-           AutoMapper, Sentry, OsuTK, Microsoft.CSharp, ppy.Veldrid.SPIRV …) and running
-           with SuppressTrimAnalysisWarnings=false to surface gaps before shipping. That
-           is a separate, larger PR.
+         * PublishTrimmed stays OFF — the .NET ILLink trimmer is driven exclusively
+           through AndroidLinkMode=Full + osu.Android/Linker.xml (see below).
+           Setting PublishTrimmed=true in addition would double-run ILLink with
+           automatic root discovery, re-introducing the risk of silent reflection
+           gaps this approach was designed to eliminate.
+         * AndroidLinkMode=Full (replacing the previous SdkOnly). Full enables
+           ILLink across all assemblies, not just Mono.Android.dll. Compared to
+           SdkOnly this additionally strips unused BCL types, ~80% of NUnit bulk,
+           and unreachable types in pure-algorithmic utility libs.
+           osu.Android/Linker.xml supplies a curated preserve="all" list for every
+           assembly that uses runtime reflection — implementing "manual trim": we
+           review and own the preserve list rather than letting the trimmer auto-
+           discover reflection roots.  See Linker.xml for per-assembly rationale.
+           When a new reflection-using package is added, add it to Linker.xml.
          * AndroidEnableMarshalMethods stays OFF (see PropertyGroup above) — silent
            SIGSEGV with current interop on .NET 10 Android.
          * Server GC is enabled for Release: workstation GC's STW pauses on the Update/
@@ -60,11 +69,7 @@
            the cost of ~20-30% extra resident memory. Mono Android has supported this
            since .NET 8; ppy/osu desktop already uses it. Concurrent GC is the .NET
            default but we set it explicitly so Server GC runs in the background mode
-           rather than blocking foreground.
-
-       To re-enable trimming in the future, reintroduce it on its own, root every
-       reflection-using assembly explicitly, and run with SuppressTrimAnalysisWarnings=false
-       to surface the gaps before shipping. -->
+           rather than blocking foreground. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
          but the download/APK size is significantly smaller. -->
@@ -74,27 +79,25 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <!-- Profiled AOT: pre-compile the hot methods listed in the bundled .NET / Android
-         profiles. Methods outside the profile remain JIT-compiled at runtime. NO trimming —
-         every method in every assembly stays present, so a profile-miss falls back to JIT
-         instead of throwing MissingMethodException like the previous trim+AOT combo did. -->
+         profiles. Methods outside the profile remain JIT-compiled at runtime.  Preserved
+         assemblies (see Linker.xml) are fully present, so a profile-miss falls back to JIT
+         instead of throwing MissingMethodException. -->
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <!-- Concurrent Server GC. Server GC uses per-core allocation contexts and parallel
          collections to reduce STW pause time, which is the largest source of >1ms frame
          spikes on the Update/Draw threads. Memory usage rises ~20-30% in exchange. -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <!-- Defensive explicit-set: we rely on the SDK linker to walk only Android SDK types
-         (NOT user assemblies — see PublishTrimmed=off rationale above). The .NET Android
-         SDK default is currently 'SdkOnly' but has changed across SDK versions; making it
-         explicit here pins the behaviour so a future SDK bump cannot silently flip us to
-         'Full' linking and break the reflection-heavy code paths in osu.Game / Realm /
-         Newtonsoft.Json / AutoMapper / Sentry / OsuTK. -->
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-    <!-- Defensive explicit-set: keep IL alongside profiled-AOT native code so any method
-         outside the bundled AOT profile has a JIT fallback (instead of MissingMethodException
-         at first call). The .NET Android SDK default is 'false' for non-trimmed builds
-         already, but we make it explicit so a future SDK bump cannot silently start
-         stripping IL and reproduce the trim-then-AOT crash class we removed above. -->
+    <!-- Full mode enables ILLink across all assemblies (not just Mono.Android.dll).
+         osu.Android/Linker.xml provides the curated preserve="all" list for every
+         assembly that uses runtime reflection, making this "manual trim" rather than
+         automatic: the linker strips only what we knowingly leave out of Linker.xml. -->
+    <AndroidLinkMode>Full</AndroidLinkMode>
+    <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
+         AOT profile has a JIT fallback (instead of MissingMethodException at first
+         call).  The .NET Android SDK default is 'false' for non-trimmed builds;
+         we make it explicit so a future SDK bump cannot silently start stripping IL
+         and reproduce the trim-then-AOT crash class we removed above. -->
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
   </PropertyGroup>
 
