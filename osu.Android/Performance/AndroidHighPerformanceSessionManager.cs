@@ -29,6 +29,25 @@ namespace osu.Android.Performance
         /// </summary>
         private static bool gcLatencyModeSupported = true;
 
+        /// <summary>
+        /// One-shot disable for <see cref="GC.TryStartNoGCRegion(long, bool)"/>.
+        /// The API is not implemented on Mono for Android and will throw
+        /// <see cref="NotImplementedException"/> or <see cref="PlatformNotSupportedException"/>
+        /// on older runtimes.  We disable it permanently on the first failure.
+        /// </summary>
+        private static bool noGCRegionSupported = true;
+
+        /// <summary>Whether the current session successfully started a no-GC region.</summary>
+        private bool noGCRegionActive;
+
+        /// <summary>
+        /// Heap budget in bytes for <see cref="GC.TryStartNoGCRegion(long, bool)"/>.
+        /// 64 MB covers typical per-map allocation rates (~4–8 MB/s × ~8 s per map load).
+        /// When this budget is exhausted the runtime silently reverts to normal GC, so
+        /// the value acts as an upper-bound guarantee rather than a hard limit.
+        /// </summary>
+        private const long NO_GC_REGION_BUDGET_BYTES = 64 * 1024 * 1024;
+
         public IDisposable BeginSession()
         {
             enterSession();
@@ -87,6 +106,34 @@ namespace osu.Android.Performance
                 gcLatencyModeSupported = false;
                 Logger.Log("GCSettings.LatencyMode unsupported on this runtime; high-performance GC tuning disabled.");
             }
+
+            // Suppress all GC generations for the duration of the session.
+            // GC.TryStartNoGCRegion(budget, disallowFullBlockingGC:false) blocks Gen0+Gen1+Gen2
+            // collection until the budget is exhausted; if allocation exceeds the budget
+            // the runtime silently reverts to normal GC — the failure mode is "old behaviour",
+            // not a crash.  A 64 MB budget covers typical per-map allocation rates.
+            // This eliminates the residual Gen0/Gen1 pauses that SustainedLowLatency
+            // (which only suppresses Gen2) leaves intact.
+            //
+            // GC.TryStartNoGCRegion is a .NET Core / .NET 5+ API.  Mono for Android
+            // older runtimes throw NotImplementedException; we disable it permanently
+            // on the first failure to avoid repeated catching overhead.
+            if (noGCRegionSupported && !noGCRegionActive)
+            {
+                try
+                {
+                    // disallowFullBlockingGC: false — if allocation exceeds the budget,
+                    // the runtime silently reverts to normal GC instead of throwing.
+                    noGCRegionActive = GC.TryStartNoGCRegion(NO_GC_REGION_BUDGET_BYTES, disallowFullBlockingGC: false);
+                    if (noGCRegionActive)
+                        Logger.Log("High performance session: no-GC region started (64 MB budget)");
+                }
+                catch
+                {
+                    noGCRegionSupported = false;
+                    Logger.Log("GC.TryStartNoGCRegion unsupported on this runtime; skipping no-GC region.");
+                }
+            }
         }
 
         private void exitSession()
@@ -110,6 +157,23 @@ namespace osu.Android.Performance
             catch (PlatformNotSupportedException)
             {
                 gcLatencyModeSupported = false;
+            }
+
+            if (noGCRegionActive)
+            {
+                try
+                {
+                    GC.EndNoGCRegion();
+                }
+                catch
+                {
+                    // EndNoGCRegion can throw InvalidOperationException if we are not actually
+                    // inside a no-GC region (e.g. budget was exhausted and the runtime exited
+                    // it automatically).  Swallow: the goal was to reduce pauses and the
+                    // runtime has already managed the transition gracefully.
+                }
+
+                noGCRegionActive = false;
             }
         }
     }
