@@ -174,7 +174,9 @@ def convert_audio_to_ogg(source: Path, output: Path, config: dict, relative_path
 
     base_args = ["-i", str(source), "-ar", str(target_sample_rate), "-ac", str(channel_count)]
     if audio_codec == "libopus":
-        bitrate = str(config.get("audio_opus_bitrate", config.get("audio_ogg_bitrate", "96k")))
+        stereo_bitrate = str(config.get("audio_opus_bitrate", config.get("audio_ogg_bitrate", "96k")))
+        mono_bitrate = str(config.get("audio_opus_mono_bitrate", stereo_bitrate))
+        bitrate = mono_bitrate if channel_count == 1 else stereo_bitrate
         opus_application = str(config.get("audio_opus_application", "audio"))
         frame_duration = str(config.get("audio_opus_frame_duration_ms", 20))
         run_ffmpeg(
