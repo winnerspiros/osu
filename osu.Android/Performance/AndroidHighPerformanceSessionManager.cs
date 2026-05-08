@@ -122,6 +122,8 @@ namespace osu.Android.Performance
             {
                 try
                 {
+                    // disallowFullBlockingGC: false — if allocation exceeds the budget,
+                    // the runtime silently reverts to normal GC instead of throwing.
                     noGCRegionActive = GC.TryStartNoGCRegion(NO_GC_REGION_BUDGET_BYTES, disallowFullBlockingGC: false);
                     if (noGCRegionActive)
                         Logger.Log("High performance session: no-GC region started (64 MB budget)");

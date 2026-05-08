@@ -841,6 +841,10 @@ OSU_EXPORT void nADPFCloseSession(intptr_t sessionPtr) {
 // giving an additional ~5% clock-frequency boost at the cost of slightly higher
 // power draw — acceptable for an interactive game session.
 // preferEfficiency=0 → prefer performance (disable power-efficiency bias).
+//
+// P/Invoke boundary uses `byte` instead of `bool` because Mono's P/Invoke marshaller
+// does not guarantee a 1-byte ABI for C++ `bool`.  The native side receives a `byte`
+// and converts it via `preferEfficiency != 0` before forwarding to the API's `bool` param.
 OSU_EXPORT void nADPFSetPreferPowerEfficiency(intptr_t sessionPtr, byte preferEfficiency) {
     if (!sessionPtr) return;
 
