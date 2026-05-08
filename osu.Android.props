@@ -93,6 +93,13 @@
          assembly that uses runtime reflection, making this "manual trim" rather than
          automatic: the linker strips only what we knowingly leave out of Linker.xml. -->
     <AndroidLinkMode>Full</AndroidLinkMode>
+    <!-- Suppress ILLink trim-analysis warnings (IL2xxx series).
+         ILLink 10.0.7 has a bug in MessageOrigin.ToString() that calls .Last() on an
+         empty source-location sequence, throwing InvalidOperationException and crashing
+         the trimmer with IL1012 "Fatal error in IL Linker" when any of these warnings is
+         flushed.  We use a curated Linker.xml for manual preservation, so the IL2xxx
+         hints serve no guidance purpose — suppressing them avoids the crash entirely. -->
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
          AOT profile has a JIT fallback (instead of MissingMethodException at first
          call).  The .NET Android SDK default is 'false' for non-trimmed builds;
