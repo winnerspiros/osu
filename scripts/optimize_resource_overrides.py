@@ -106,6 +106,8 @@ def convert_image_to_webp(source: Path, output: Path, config: dict, relative_pat
                 "1",
                 "-compression_level",
                 str(config.get("png_webp_lossless_compression_level", 6)),
+                "-f",
+                "webp",
                 str(lossless_path),
             ]
         )
@@ -126,6 +128,8 @@ def convert_image_to_webp(source: Path, output: Path, config: dict, relative_pat
             str(lossy_quality),
             "-compression_level",
             str(lossy_method),
+            "-f",
+            "webp",
             str(lossy_path),
         ]
     )
