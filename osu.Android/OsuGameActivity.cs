@@ -98,6 +98,8 @@ namespace osu.Android
         // The explicit SDL3-CS attribute roots SDLActivity(IntPtr, JniHandleOwnership) — the actual
         // overload TypeManager.Activate calls — which has NO managed call-graph path and would
         // otherwise be silently trimmed even if the parameterless constructor chain is preserved.
+        // See also the OsuGameActivity(IntPtr, JniHandleOwnership) constructor below, which is the
+        // direct fix for the v2026.509.229 crash: TypeManager.Activate needs this on the concrete type.
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
             "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
@@ -105,6 +107,19 @@ namespace osu.Android
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
+        }
+
+        // Required JNI activation constructor. TypeManager.Activate performs a reflection
+        // lookup for (IntPtr, JniHandleOwnership) on the *concrete* managed type when Android
+        // re-instantiates this Activity from a JNI handle (process death/recreation, back-stack
+        // restore). Inheriting this constructor from AndroidGameActivity/SDLActivity is not
+        // sufficient — .NET Android's TypeManager resolves it via GetConstructor on the concrete
+        // type; if the method is absent there the lookup falls through and Activate throws
+        // NotSupportedException ("Could not activate JNI Handle ... as managed type
+        // 'osu.Android.OsuGameActivity'"), which is the crash seen in v2026.509.229.
+        protected OsuGameActivity(IntPtr javaReference, JniHandleOwnership transfer)
+            : base(javaReference, transfer)
+        {
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
