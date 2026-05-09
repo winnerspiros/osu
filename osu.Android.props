@@ -32,11 +32,23 @@
          Stack traces still work via embedded metadata. -->
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <!-- Profiled AOT: pre-compile the hot methods listed in the bundled .NET / Android
+         profiles. Methods outside the profile remain JIT-compiled at runtime. NO trimming —
+         every method in every assembly stays present, so a profile-miss falls back to JIT
+         instead of throwing MissingMethodException like the previous trim+AOT combo did. -->
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <!-- Concurrent Server GC. Server GC uses per-core allocation contexts and parallel
          collections to reduce STW pause time, which is the largest source of >1ms frame
          spikes on the Update/Draw threads. Memory usage rises ~20-30% in exchange. -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <!-- Defensive explicit-set: SDK linker walks only Android SDK types, not user assemblies.
+         Making it explicit pins the behaviour so a future SDK bump cannot silently flip us to
+         Full linking and break reflection-heavy code paths in osu.Game / Realm / etc. -->
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
+         AOT profile has a JIT fallback instead of MissingMethodException at first call. -->
+    <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
   </PropertyGroup>
 
   <ItemGroup>
