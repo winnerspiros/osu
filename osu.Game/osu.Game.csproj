@@ -26,11 +26,11 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="Humanizer" Version="3.0.10" />
     <PackageReference Include="MessagePack" Version="3.1.4" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="10.0.5" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.7" />
     <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="ppy.LocalisationAnalyser" Version="2025.1208.0">
@@ -50,10 +50,10 @@
     -->
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" />
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.427.0" />
-    <PackageReference Include="Sentry" Version="6.2.0" />
+    <PackageReference Include="Sentry" Version="6.5.0" />
     <PackageReference Include="SharpCompress" Version="0.48.0" />
-    <PackageReference Include="NUnit" Version="4.5.1" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+    <PackageReference Include="NUnit" Version="4.6.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 </Project>
