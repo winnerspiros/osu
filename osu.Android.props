@@ -21,61 +21,9 @@
          unmanaged function pointers, reflection-based handle discovery).
          The default runtime-generated trampolines are slower but proven reliable. -->
     <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
-    <!-- IL2007: "Could not resolve assembly" emitted by ILLink when it processes
-         Linker.xml descriptor entries for assemblies that are not yet in the search
-         path at descriptor-parse time (ppy.osu.Framework and ppy.osu.Framework.Android).
-         SuppressTrimAnalysisWarnings=true covers the broader IL2xxx range during the
-         trim pass; IL2007 is added here explicitly so it is also suppressed during the
-         earlier descriptor-validation phase and does not appear as a build annotation. -->
-    <NoWarn>$(NoWarn);NU1608;XA4301;IL2007</NoWarn>
+    <NoWarn>$(NoWarn);NU1608;XA4301</NoWarn>
   </PropertyGroup>
 
-  <!-- Release-only optimisations.
-       History:
-         Trimming + AOT were once enabled together (PublishTrimmed + TrimMode=partial +
-         AndroidEnableProfiledAot, with SuppressTrimAnalysisWarnings=true masking the
-         build-time signal). That combination caused a reproducible "splash → black screen
-         → crash, no logs" failure: only Microsoft.CSharp and ppy.Veldrid.SPIRV were rooted,
-         while osu.Game, the rulesets, Realm, Newtonsoft.Json, AutoMapper, Sentry, OsuTK
-         and other reflection-heavy assemblies were not. A trimmed method/type or an
-         un-AOT'd profiled-AOT call site threw TypeLoadException / MissingMethodException
-         early in OsuGame construction, before the file logger was open; the process died
-         on SDLThread / .NET ThreadPool with only a tombstone, so the user got no osu.log
-         and Logcat showed a bare native crash.
-
-       Current policy:
-         * AndroidEnableProfiledAot=true — re-enabled. The crash root cause was the
-           trimming side of the combination (untrimmed-but-AOT'd is safe — every method
-           the profile lists exists in the assembly because nothing was stripped; methods
-           outside the profile fall back to the JIT and are also still present). This
-           gives a measurable startup time reduction and cuts steady-state CPU on hot
-           managed paths (the JIT no longer needs to tier them up at runtime, and Mono's
-           profiled AOT covers framework/game hot loops including draw-thread Schedulers,
-           bindable propagation, and the texture upload path).
-         * PublishTrimmed stays OFF — the .NET ILLink trimmer is driven exclusively
-           through AndroidLinkMode=Full + osu.Android/Linker.xml (see below).
-           Setting PublishTrimmed=true in addition would double-run ILLink with
-           automatic root discovery, re-introducing the risk of silent reflection
-           gaps this approach was designed to eliminate.
-         * AndroidLinkMode=Full (replacing the previous SdkOnly). Full enables
-           ILLink across all assemblies, not just Mono.Android.dll. Compared to
-           SdkOnly this additionally strips unused BCL types, ~80% of NUnit bulk,
-           and unreachable types in pure-algorithmic utility libs.
-           osu.Android/Linker.xml supplies a curated preserve="all" list for every
-           assembly that uses runtime reflection — implementing "manual trim": we
-           review and own the preserve list rather than letting the trimmer auto-
-           discover reflection roots.  See Linker.xml for per-assembly rationale.
-           When a new reflection-using package is added, add it to Linker.xml.
-         * AndroidEnableMarshalMethods stays OFF (see PropertyGroup above) — silent
-           SIGSEGV with current interop on .NET 10 Android.
-         * Server GC is enabled for Release: workstation GC's STW pauses on the Update/
-           Draw threads are a primary source of >1ms frame spikes that defeat our 1ms
-           frame-time goal. Server GC parallelises mark/sweep across cores and uses
-           per-core LOH/SOH allocation contexts, dramatically lowering pause time at
-           the cost of ~20-30% extra resident memory. Mono Android has supported this
-           since .NET 8; ppy/osu desktop already uses it. Concurrent GC is the .NET
-           default but we set it explicitly so Server GC runs in the background mode
-           rather than blocking foreground. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
          but the download/APK size is significantly smaller. -->
@@ -85,50 +33,22 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <!-- Profiled AOT: pre-compile the hot methods listed in the bundled .NET / Android
-         profiles. Methods outside the profile remain JIT-compiled at runtime.  Preserved
-         assemblies (see Linker.xml) are fully present, so a profile-miss falls back to JIT
-         instead of throwing MissingMethodException. -->
+         profiles. Methods outside the profile remain JIT-compiled at runtime. NO trimming —
+         every method in every assembly stays present, so a profile-miss falls back to JIT
+         instead of throwing MissingMethodException like the previous trim+AOT combo did. -->
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <!-- Concurrent Server GC. Server GC uses per-core allocation contexts and parallel
          collections to reduce STW pause time, which is the largest source of >1ms frame
          spikes on the Update/Draw threads. Memory usage rises ~20-30% in exchange. -->
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <!-- Full mode enables ILLink across all assemblies (not just Mono.Android.dll).
-         osu.Android/Linker.xml provides the curated preserve="all" list for every
-         assembly that uses runtime reflection, making this "manual trim" rather than
-         automatic: the linker strips only what we knowingly leave out of Linker.xml. -->
-    <AndroidLinkMode>Full</AndroidLinkMode>
-    <!-- Suppress ILLink trim-analysis warnings (IL2xxx series).
-         ILLink 10.0.7 has a bug in MessageOrigin.ToString() that calls .Last() on an
-         empty source-location sequence, throwing InvalidOperationException and crashing
-         the trimmer with IL1012 "Fatal error in IL Linker" when any of these warnings is
-         flushed.  We use a curated Linker.xml for manual preservation, so the IL2xxx
-         hints serve no guidance purpose — suppressing them avoids the crash entirely. -->
-    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <!-- Defensive explicit-set: SDK linker walks only Android SDK types, not user assemblies.
+         Making it explicit pins the behaviour so a future SDK bump cannot silently flip us to
+         Full linking and break reflection-heavy code paths in osu.Game / Realm / etc. -->
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
-         AOT profile has a JIT fallback (instead of MissingMethodException at first
-         call).  The .NET Android SDK default is 'false' for non-trimmed builds;
-         we make it explicit so a future SDK bump cannot silently start stripping IL
-         and reproduce the trim-then-AOT crash class we removed above. -->
+         AOT profile has a JIT fallback instead of MissingMethodException at first call. -->
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
-    <!-- AndroidLinkSkip: bypass ILLink entirely for osu.Framework.Android and SDL3-CS.
-         Both assemblies have preserve="all" entries in Linker.xml, but those entries carry
-         IL2007 at descriptor-processing time (the assemblies are NuGet-resolved and not yet
-         in ILLink's search path).  The IL2007 deferred-rule mechanism has proven unreliable
-         with ILLink 10.0.x — the v2026.508.228 crash was identical to v2026.508.226 despite
-         the Linker.xml entries being present, because the deferred rule for osu.Framework.Android
-         was silently dropped.  AndroidLinkSkip is an MSBuild-level directive processed before
-         ILLink runs; it reliably prevents any trimming of the listed assemblies regardless of
-         the deferred-rule issue.
-         osu.Framework.Android: carries AndroidGameActivity (RegisterAttribute-driven JNI glue).
-         SDL3-CS: carries Org.Libsdl.App.SDLActivity whose (IntPtr, JniHandleOwnership) JNI
-           activation constructor is only called via JNI and has no managed call-graph path.
-         osu.Android: contains OsuGameActivity whose build-generated (IntPtr, JniHandleOwnership)
-           JNI activation constructor (emitted by .NET Android build tooling for every [Activity]
-           subclass) has no managed callers and is trimmed by ILLink, causing the "Could not
-           activate JNI Handle … as managed type OsuGameActivity" crash at startup. -->
-    <AndroidLinkSkip>$(AndroidLinkSkip);osu.Android;osu.Framework.Android;SDL3-CS</AndroidLinkSkip>
   </PropertyGroup>
 
   <ItemGroup>
