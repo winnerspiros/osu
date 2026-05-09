@@ -61,13 +61,6 @@ namespace osu.Android
     // scanner that this activity is a game entry point — it scans for activities with
     // this category during app install and on periodic rescans.
     [IntentFilter(new[] { Intent.ActionMain }, Categories = new[] { "com.samsung.intent.category.GAME" })]
-    // Preserve AndroidGameActivity's (IntPtr, JniHandleOwnership) JNI-activation constructor.
-    // The [assembly: preserve="all"] descriptor for osu.Framework.Android in Linker.xml is deferred
-    // (IL2007) because the framework assembly is not yet in ILLink's search path at descriptor time.
-    // This attribute is processed when osu.Android (which IS always resolvable) is analysed, so
-    // ILLink sees the root reference before it has a chance to trim the inherited constructor.
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
-        "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
@@ -96,6 +89,13 @@ namespace osu.Android
             return game;
         }
 
+        // Preserve AndroidGameActivity's (IntPtr, JniHandleOwnership) JNI-activation constructor.
+        // The [assembly: preserve="all"] descriptor for osu.Framework.Android in Linker.xml is deferred
+        // (IL2007) because the framework assembly is not yet in ILLink's search path at descriptor time.
+        // Placing [DynamicDependency] on this constructor (which lives in osu.Android — always resolvable)
+        // roots the AndroidGameActivity constructor in ILLink's walk before it can be trimmed away.
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
+            "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
