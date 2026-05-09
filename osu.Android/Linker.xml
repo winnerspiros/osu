@@ -104,13 +104,16 @@
        "to silence the warnings" allows ILLink to freely trim JNI-only constructors
        from AndroidGameActivity, crashing the app on launch.
 
-       ADDITIONAL DEFENCE (v2026.508.227+): OsuGameActivity now also declares its own
-       explicit (IntPtr, JniHandleOwnership) constructor that chains to base.  Because
-       osu.Android is unambiguously preserve="all" and is always resolvable at
-       descriptor-processing time, this makes the JNI-activation constructor available
-       in the concrete type regardless of whether the IL2007-deferred rule for
-       osu.Framework.Android is honoured.  The v2026.508.226 field crash confirmed
-       that the deferred rule alone is not always sufficient. -->
+       ADDITIONAL DEFENCE (v2026.508.228+): OsuGameActivity carries a [DynamicDependency]
+       attribute that explicitly roots AndroidGameActivity's constructors from the
+       osu.Android assembly.  Because osu.Android is unambiguously preserve="all" and is
+       always resolvable at descriptor-processing time, ILLink processes this root
+       reference before it can trim the JNI-activation constructor, regardless of whether
+       the IL2007-deferred rule for osu.Framework.Android is honoured.  This supersedes
+       the v2026.508.227 approach (explicit OsuGameActivity(IntPtr, JniHandleOwnership)
+       constructor) which did not compile because AndroidGameActivity does not expose an
+       explicit (IntPtr, JniHandleOwnership) constructor — only its SDLActivity grandparent
+       does, and C# base() invocations resolve only against the direct parent class. -->
   <assembly fullname="osu.Framework"         preserve="all" />
   <assembly fullname="osu.Framework.Android" preserve="all" />
   <assembly fullname="ppy.Veldrid.SPIRV"     preserve="all" />

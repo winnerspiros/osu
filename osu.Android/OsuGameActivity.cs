@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Uri = Android.Net.Uri;
 using ManagedBass; // Required for Bass.AndroidAAudio + Bass.DevicePeriod startup init (FLAG_BASS_AAUDIO_ENABLED path in OnCreate)
 using osu.Android.Input;
@@ -88,19 +89,13 @@ namespace osu.Android
             return game;
         }
 
-        // JNI activation constructor. Android's TypeManager.Activate resolves this
-        // constructor via reflection when recreating the managed wrapper from a JNI
-        // handle (e.g. after process restore or across configuration changes). Without
-        // an explicit declaration here the linker might only find the inherited version
-        // in osu.Framework.Android — an assembly that ILLink cannot resolve during
-        // descriptor processing (IL2007), making the preserve="all" rule unreliable for
-        // inherited members. Declaring it in osu.Android (which is unambiguously
-        // preserve="all") guarantees the constructor survives trimming.
-        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
-            : base(handle, transfer)
-        {
-        }
-
+        // Preserve AndroidGameActivity's (IntPtr, JniHandleOwnership) JNI-activation constructor.
+        // The [assembly: preserve="all"] descriptor for osu.Framework.Android in Linker.xml is deferred
+        // (IL2007) because the framework assembly is not yet in ILLink's search path at descriptor time.
+        // Placing [DynamicDependency] on this constructor (which lives in osu.Android — always resolvable)
+        // roots the AndroidGameActivity constructor in ILLink's walk before it can be trimmed away.
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
+            "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
