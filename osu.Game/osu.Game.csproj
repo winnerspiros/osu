@@ -51,13 +51,7 @@
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" />
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.427.0" />
     <PackageReference Include="Sentry" Version="6.2.0" />
-    <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->
-    <!-- No fixed version for GHSA-6c8g-7p36-r338 exists (affects all ≤ 0.47.4); suppress NU1902.
-         The vulnerability is directory traversal in WriteToDirectory; osu! never calls that API
-         on untrusted archives, so it does not affect us. -->
-    <PackageReference Include="SharpCompress" Version="0.47.3">
-      <NoWarn>NU1902</NoWarn>
-    </PackageReference>
+    <PackageReference Include="SharpCompress" Version="0.48.0" />
     <PackageReference Include="NUnit" Version="4.5.1" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
