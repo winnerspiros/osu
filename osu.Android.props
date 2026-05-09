@@ -123,8 +123,12 @@
          the deferred-rule issue.
          osu.Framework.Android: carries AndroidGameActivity (RegisterAttribute-driven JNI glue).
          SDL3-CS: carries Org.Libsdl.App.SDLActivity whose (IntPtr, JniHandleOwnership) JNI
-           activation constructor is only called via JNI and has no managed call-graph path. -->
-    <AndroidLinkSkip>$(AndroidLinkSkip);osu.Framework.Android;SDL3-CS</AndroidLinkSkip>
+           activation constructor is only called via JNI and has no managed call-graph path.
+         osu.Android: contains OsuGameActivity whose build-generated (IntPtr, JniHandleOwnership)
+           JNI activation constructor (emitted by .NET Android build tooling for every [Activity]
+           subclass) has no managed callers and is trimmed by ILLink, causing the "Could not
+           activate JNI Handle … as managed type OsuGameActivity" crash at startup. -->
+    <AndroidLinkSkip>$(AndroidLinkSkip);osu.Android;osu.Framework.Android;SDL3-CS</AndroidLinkSkip>
   </PropertyGroup>
 
   <ItemGroup>
