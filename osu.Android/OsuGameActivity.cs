@@ -88,6 +88,19 @@ namespace osu.Android
             return game;
         }
 
+        // JNI activation constructor. Android's TypeManager.Activate resolves this
+        // constructor via reflection when recreating the managed wrapper from a JNI
+        // handle (e.g. after process restore or across configuration changes). Without
+        // an explicit declaration here the linker might only find the inherited version
+        // in osu.Framework.Android — an assembly that ILLink cannot resolve during
+        // descriptor processing (IL2007), making the preserve="all" rule unreliable for
+        // inherited members. Declaring it in osu.Android (which is unambiguously
+        // preserve="all") guarantees the constructor survives trimming.
+        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
+            : base(handle, transfer)
+        {
+        }
+
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
