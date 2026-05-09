@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Uri = Android.Net.Uri;
 using ManagedBass; // Required for Bass.AndroidAAudio + Bass.DevicePeriod startup init (FLAG_BASS_AAUDIO_ENABLED path in OnCreate)
 using osu.Android.Input;
@@ -60,6 +61,13 @@ namespace osu.Android
     // scanner that this activity is a game entry point — it scans for activities with
     // this category during app install and on periodic rescans.
     [IntentFilter(new[] { Intent.ActionMain }, Categories = new[] { "com.samsung.intent.category.GAME" })]
+    // Preserve AndroidGameActivity's (IntPtr, JniHandleOwnership) JNI-activation constructor.
+    // The [assembly: preserve="all"] descriptor for osu.Framework.Android in Linker.xml is deferred
+    // (IL2007) because the framework assembly is not yet in ILLink's search path at descriptor time.
+    // This attribute is processed when osu.Android (which IS always resolvable) is analysed, so
+    // ILLink sees the root reference before it has a chance to trim the inherited constructor.
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
+        "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
     public class OsuGameActivity : AndroidGameActivity, ISurfaceHolderCallback
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
@@ -86,19 +94,6 @@ namespace osu.Android
 
             gameCreated = true;
             return game;
-        }
-
-        // JNI activation constructor. Android's TypeManager.Activate resolves this
-        // constructor via reflection when recreating the managed wrapper from a JNI
-        // handle (e.g. after process restore or across configuration changes). Without
-        // an explicit declaration here the linker might only find the inherited version
-        // in osu.Framework.Android — an assembly that ILLink cannot resolve during
-        // descriptor processing (IL2007), making the preserve="all" rule unreliable for
-        // inherited members. Declaring it in osu.Android (which is unambiguously
-        // preserve="all") guarantees the constructor survives trimming.
-        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
-            : base(handle, transfer)
-        {
         }
 
         public OsuGameActivity()
