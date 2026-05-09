@@ -112,6 +112,19 @@
          we make it explicit so a future SDK bump cannot silently start stripping IL
          and reproduce the trim-then-AOT crash class we removed above. -->
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
+    <!-- AndroidLinkSkip: bypass ILLink entirely for osu.Framework.Android and SDL3-CS.
+         Both assemblies have preserve="all" entries in Linker.xml, but those entries carry
+         IL2007 at descriptor-processing time (the assemblies are NuGet-resolved and not yet
+         in ILLink's search path).  The IL2007 deferred-rule mechanism has proven unreliable
+         with ILLink 10.0.x — the v2026.508.228 crash was identical to v2026.508.226 despite
+         the Linker.xml entries being present, because the deferred rule for osu.Framework.Android
+         was silently dropped.  AndroidLinkSkip is an MSBuild-level directive processed before
+         ILLink runs; it reliably prevents any trimming of the listed assemblies regardless of
+         the deferred-rule issue.
+         osu.Framework.Android: carries AndroidGameActivity (RegisterAttribute-driven JNI glue).
+         SDL3-CS: carries Org.Libsdl.App.SDLActivity whose (IntPtr, JniHandleOwnership) JNI
+           activation constructor is only called via JNI and has no managed call-graph path. -->
+    <AndroidLinkSkip>$(AndroidLinkSkip);osu.Framework.Android;SDL3-CS</AndroidLinkSkip>
   </PropertyGroup>
 
   <ItemGroup>
