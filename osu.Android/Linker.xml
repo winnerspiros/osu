@@ -67,13 +67,24 @@
          Shader attribute scanning, TextureLoaderStore fallback chain, bindable system,
          resource store extension routing — all reflection-dependent.
        osu.Framework.Android: Android-specific host, input handling, surface wrappers.
-         AndroidGameActivity carries the (IntPtr, JniHandleOwnership) JNI-activation
-         constructor and RegisterAttribute-driven type-binding needed for all derived
-         Activity/Fragment types.  Without preserve="all", ILLink will trim these
-         constructors (they are only reachable via JNI, not through any managed call
-         graph), causing TypeManager.Activate to throw NotSupportedException:
+         AndroidGameActivity is the abstract base of OsuGameActivity but does NOT declare
+         its own (IntPtr, JniHandleOwnership) JNI-activation constructor — that constructor
+         lives on its SDLActivity grandparent (in the SDL3-CS assembly, listed below).
+         Without preserve="all", ILLink trims reflection-only members such as
+         RegisterAttribute-driven type-binding and generated JNI glue — none of which have
+         a managed call-graph path.
+       SDL3-CS (ppy.SDL3-CS): Contains Org.Libsdl.App.SDLActivity, the Java-binding class
+         from which AndroidGameActivity (and transitively OsuGameActivity) inherits.
+         SDLActivity's JNI-activation constructors — in particular the
+         (IntPtr, JniHandleOwnership) overload used by TypeManager.Activate to wrap the
+         freshly-created Android Activity Java object in a managed peer — are never called
+         from managed code, so ILLink has no static call-graph path to them and strips them
+         under AndroidLinkMode=Full.  The resulting crash is exactly the
          "Could not activate JNI Handle ... as managed type 'osu.Android.OsuGameActivity'"
-         at startup.
+         NotSupportedException seen in the v2026.508.226 and v2026.508.228 field logs.
+         (The v2026.508.228 fix added osu.Framework.Android to Linker.xml and a
+         [DynamicDependency] on OsuGameActivity() but missed SDL3-CS entirely, because the
+         assumption was that AndroidGameActivity carried the JNI ctor — it does not.)
        ppy.Veldrid.SPIRV: SPIR-V cross-compiler; dynamically loads shader reflector types.
          (NuGet package ID and assembly name are both ppy.Veldrid.SPIRV — no mismatch.)
 
@@ -84,38 +95,24 @@
          NuGet package ID          →  CLR assembly name (AssemblyName in csproj)
          ppy.osu.Framework         →  osu.Framework
          ppy.osu.Framework.Android →  osu.Framework.Android
+         ppy.SDL3-CS               →  SDL3-CS
          ppy.Veldrid.SPIRV         →  ppy.Veldrid.SPIRV   (same — no ppy. mismatch here)
-       Using the NuGet package ID instead of the assembly name causes the preserve rule
-       to be stored but never matched: ILLink looks for an assembly named
-       "ppy.osu.Framework.Android" in the link set, finds only "osu.Framework.Android",
-       skips preservation, and freely trims the JNI-activation constructor from
-       AndroidGameActivity.  The resulting startup crash ("Could not activate JNI Handle
-       ... as managed type 'osu.Android.OsuGameActivity'") is exactly what was reported
-       in the v2026.508.225 field log.
+       Using the NuGet package ID instead of the CLR assembly name causes the preserve rule
+       to be stored but never matched.
 
-       NOTE: osu.Framework and osu.Framework.Android originate from net10.0 NuGet
+       NOTE: osu.Framework, osu.Framework.Android, and SDL3-CS originate from NuGet
        packages and are not visible in ILLink's assembly search path at descriptor-
-       processing time.  ILLink therefore emits warning IL2007 ("Could not resolve
-       assembly") for each entry.  This warning is BENIGN and EXPECTED: ILLink stores
-       the preserve="all" rule in its internal table even when it cannot resolve the
-       assembly immediately.  When the assembly is later encountered during the trimming
-       pass (where the .NET Android SDK does include it in the link set), ILLink finds
-       the stored rule and preserves the assembly in full.  Removing these entries
-       "to silence the warnings" allows ILLink to freely trim JNI-only constructors
-       from AndroidGameActivity, crashing the app on launch.
-
-       ADDITIONAL DEFENCE (v2026.508.228+): OsuGameActivity carries a [DynamicDependency]
-       attribute that explicitly roots AndroidGameActivity's constructors from the
-       osu.Android assembly.  Because osu.Android is unambiguously preserve="all" and is
-       always resolvable at descriptor-processing time, ILLink processes this root
-       reference before it can trim the JNI-activation constructor, regardless of whether
-       the IL2007-deferred rule for osu.Framework.Android is honoured.  This supersedes
-       the v2026.508.227 approach (explicit OsuGameActivity(IntPtr, JniHandleOwnership)
-       constructor) which did not compile because AndroidGameActivity does not expose an
-       explicit (IntPtr, JniHandleOwnership) constructor — only its SDLActivity grandparent
-       does, and C# base() invocations resolve only against the direct parent class. -->
+       processing time, causing IL2007 ("Could not resolve assembly") for each entry.
+       In theory ILLink stores the rule for later application; in practice the deferred
+       mechanism has proven unreliable with ILLink 10.0.x + NuGet-resolved assemblies
+       (evidenced by the v2026.508.228 field crash being identical to v2026.508.226 despite
+       these entries being present).  The primary protection is therefore AndroidLinkSkip
+       in osu.Android.props, which bypasses ILLink entirely for these assemblies; these
+       Linker.xml entries and the [DynamicDependency] attributes on OsuGameActivity serve
+       as secondary and tertiary backstops respectively. -->
   <assembly fullname="osu.Framework"         preserve="all" />
   <assembly fullname="osu.Framework.Android" preserve="all" />
+  <assembly fullname="SDL3-CS"               preserve="all" />
   <assembly fullname="ppy.Veldrid.SPIRV"     preserve="all" />
 
   <!-- ═══════════════════════════════════════════════════════════════════════

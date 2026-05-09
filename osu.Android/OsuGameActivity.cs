@@ -89,13 +89,19 @@ namespace osu.Android
             return game;
         }
 
-        // Preserve AndroidGameActivity's (IntPtr, JniHandleOwnership) JNI-activation constructor.
-        // The [assembly: preserve="all"] descriptor for osu.Framework.Android in Linker.xml is deferred
-        // (IL2007) because the framework assembly is not yet in ILLink's search path at descriptor time.
-        // Placing [DynamicDependency] on this constructor (which lives in osu.Android — always resolvable)
-        // roots the AndroidGameActivity constructor in ILLink's walk before it can be trimmed away.
+        // Belt-and-suspenders: preserve the JNI activation constructor chain that TypeManager.Activate
+        // uses when Android creates this Activity: OsuGameActivity → AndroidGameActivity → SDLActivity.
+        // The primary guard is AndroidLinkSkip in osu.Android.props (bypasses ILLink entirely for
+        // osu.Framework.Android and SDL3-CS).  These [DynamicDependency] attributes are a code-level
+        // backstop in case AndroidLinkSkip is removed: ILLink's walk from OsuGameActivity() roots
+        // AndroidGameActivity constructors, which in turn roots SDLActivity() via the static call graph.
+        // The explicit SDL3-CS attribute roots SDLActivity(IntPtr, JniHandleOwnership) — the actual
+        // overload TypeManager.Activate calls — which has NO managed call-graph path and would
+        // otherwise be silently trimmed even if the parameterless constructor chain is preserved.
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
             "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
+            "Org.Libsdl.App.SDLActivity", "SDL3-CS")]
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);

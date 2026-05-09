@@ -20,7 +20,7 @@
     <ProjectReference Include="..\osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.51" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.60" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Assets.car" />
