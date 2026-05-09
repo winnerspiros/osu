@@ -40,12 +40,4 @@
   <ItemGroup>
     <AndroidNativeLibrary Include="libs\arm64-v8a\libosu_native.so" Condition="Exists('libs\arm64-v8a\libosu_native.so')" Abi="arm64-v8a" />
   </ItemGroup>
-  <!-- Curated ILLink preservation descriptor.  Together with AndroidLinkMode=Full
-       (in osu.Android.props) this implements manual trimming: every assembly that
-       uses runtime reflection is explicitly preserved, while the linker is free to
-       tree-shake unused BCL types, NUnit bulk, and pure-algorithmic utility libs.
-       See Linker.xml for the full rationale and per-assembly comments. -->
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <TrimmerRootDescriptor Include="Linker.xml" />
-  </ItemGroup>
 </Project>

@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Uri = Android.Net.Uri;
 using ManagedBass; // Required for Bass.AndroidAAudio + Bass.DevicePeriod startup init (FLAG_BASS_AAUDIO_ENABLED path in OnCreate)
 using osu.Android.Input;
@@ -28,10 +27,7 @@ namespace osu.Android
     // Declare ScreenOrientation in the manifest (rather than only assigning RequestedOrientation
     // at runtime in OnCreate) so Android creates the activity in landscape from the very first
     // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
-    // event during startup. This is defensive hardening alongside the linker fix in
-    // osu.Android/Linker.xml (using correct CLR assembly names osu.Framework /
-    // osu.Framework.Android instead of the NuGet package IDs ppy.osu.Framework /
-    // ppy.osu.Framework.Android, which was the actual cause of the startup crash).
+    // event during startup.
     [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.Landscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
@@ -89,25 +85,6 @@ namespace osu.Android
             return game;
         }
 
-        // Belt-and-suspenders: preserve the JNI activation constructor chain that TypeManager.Activate
-        // uses when Android creates this Activity: OsuGameActivity → AndroidGameActivity → SDLActivity.
-        // The primary guard is AndroidLinkSkip in osu.Android.props (bypasses ILLink entirely for
-        // osu.Framework.Android and SDL3-CS).  These [DynamicDependency] attributes are a code-level
-        // backstop in case AndroidLinkSkip is removed: ILLink's walk from OsuGameActivity() roots
-        // AndroidGameActivity constructors, which in turn roots SDLActivity() via the static call graph.
-        // The explicit SDL3-CS attribute roots SDLActivity(IntPtr, JniHandleOwnership) — the actual
-        // overload TypeManager.Activate calls — which has NO managed call-graph path and would
-        // otherwise be silently trimmed even if the parameterless constructor chain is preserved.
-        // NOTE: A (IntPtr, JniHandleOwnership) constructor on OsuGameActivity itself is intentionally
-        // omitted: AndroidGameActivity (C# class in osu.Framework.Android) does not declare this
-        // constructor, so calling base(javaReference, transfer) would fail to compile. TypeManager
-        // activates Activities via the parameterless constructor path in .NET Android; the actual
-        // cause of the v2026.509.229 crash was base-class constructor trimming, which is prevented
-        // by AndroidLinkSkip + the [DynamicDependency] attributes below.
-        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
-            "osu.Framework.Android.AndroidGameActivity", "osu.Framework.Android")]
-        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors,
-            "Org.Libsdl.App.SDLActivity", "SDL3-CS")]
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);
