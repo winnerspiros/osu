@@ -61,6 +61,9 @@ namespace osu.Game.Screens.Select
 
             private CancellationTokenSource? cancellationSource;
 
+            private float lastDifficultyTextMaxWidth = float.NaN;
+            private Color4 lastAccentColour;
+
             public DifficultyDisplay()
             {
                 RelativeSizeAxes = Axes.X;
@@ -303,15 +306,25 @@ namespace osu.Game.Screens.Select
             {
                 base.Update();
 
-                difficultyText.MaxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0);
+                float maxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0);
+
+                if (maxWidth != lastDifficultyTextMaxWidth)
+                {
+                    difficultyText.MaxWidth = maxWidth;
+                    lastDifficultyTextMaxWidth = maxWidth;
+                }
 
                 // Use difficulty colour until it gets too dark to be visible against dark backgrounds.
                 Color4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? starRatingDisplay.DisplayedDifficultyTextColour : starRatingDisplay.DisplayedDifficultyColour;
 
-                difficultyText.Colour = col;
-                mappedByText.Colour = col;
-                countStatisticsDisplay.AccentColour = col;
-                difficultyStatisticsDisplay.AccentColour = col;
+                if (col != lastAccentColour)
+                {
+                    difficultyText.Colour = col;
+                    mappedByText.Colour = col;
+                    countStatisticsDisplay.AccentColour = col;
+                    difficultyStatisticsDisplay.AccentColour = col;
+                    lastAccentColour = col;
+                }
             }
 
             private partial class MapperLinkContainer : OsuHoverContainer

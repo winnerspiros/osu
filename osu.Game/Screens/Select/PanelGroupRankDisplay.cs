@@ -200,14 +200,6 @@ namespace osu.Game.Screens.Select
             glow.FadeTo(Expanded.Value ? 0.4f : 0, duration, Easing.OutQuint);
         }
 
-        protected override void Update()
-        {
-            base.Update();
-
-            // Move the count pill in the opposite direction to keep it pinned to the screen regardless of the X position of TopLevelContent.
-            countPill.X = -TopLevelContent.X;
-        }
-
         public override MenuItem[] ContextMenuItems
         {
             get
