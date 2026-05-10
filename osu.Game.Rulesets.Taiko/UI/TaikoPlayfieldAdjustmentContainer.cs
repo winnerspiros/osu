@@ -29,9 +29,24 @@ namespace osu.Game.Rulesets.Taiko.UI
             Y = 135f / stable_gamefield_height;
         }
 
+        private float lastParentChildSizeX = float.NaN;
+        private float lastParentChildSizeY = float.NaN;
+        private bool lastLockAspectRange;
+
         protected override void Update()
         {
             base.Update();
+
+            float parentSizeX = Parent!.ChildSize.X;
+            float parentSizeY = Parent!.ChildSize.Y;
+            bool lockAspect = LockPlayfieldAspectRange.Value;
+
+            if (parentSizeX == lastParentChildSizeX && parentSizeY == lastParentChildSizeY && lockAspect == lastLockAspectRange)
+                return;
+
+            lastParentChildSizeX = parentSizeX;
+            lastParentChildSizeY = parentSizeY;
+            lastLockAspectRange = lockAspect;
 
             const float base_relative_height = TaikoPlayfield.BASE_HEIGHT / 768;
 
@@ -42,9 +57,9 @@ namespace osu.Game.Rulesets.Taiko.UI
             //
             // As a middle-ground, the aspect ratio can still be adjusted in the downwards direction but has a maximum limit.
             // This is still a bit weird, because readability changes with window size, but it is what it is.
-            if (LockPlayfieldAspectRange.Value)
+            if (lockAspect)
             {
-                float currentAspect = Parent!.ChildSize.X / Parent!.ChildSize.Y;
+                float currentAspect = parentSizeX / parentSizeY;
 
                 if (currentAspect > MAXIMUM_ASPECT)
                     relativeHeight *= currentAspect / MAXIMUM_ASPECT;
@@ -55,7 +70,7 @@ namespace osu.Game.Rulesets.Taiko.UI
             // Limit the maximum relative height of the playfield to one-third of available area to avoid it masking out on extreme resolutions.
             relativeHeight = Math.Min(relativeHeight, 1f / 3f);
 
-            Scale = new Vector2(Parent!.ChildSize.Y / 768f * (relativeHeight / base_relative_height));
+            Scale = new Vector2(parentSizeY / 768f * (relativeHeight / base_relative_height));
             Width = 1 / Scale.X;
         }
 

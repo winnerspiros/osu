@@ -126,6 +126,9 @@ namespace osu.Game.Screens.Select
 
         private GridContainer mainGridContainer = null!;
 
+        private float lastDetailsAreaHeight = float.NaN;
+        private float lastWidescreenBonusWidth = float.NaN;
+
         private NoResultsPlaceholder noResultsPlaceholder = null!;
 
         public override bool? ApplyModTrackAdjustments => true;
@@ -402,16 +405,26 @@ namespace osu.Game.Screens.Select
         {
             base.Update();
 
-            detailsArea.Height = wedgesContainer.ChildSize.Y - titleWedge.LayoutSize.Y - 4;
+            float detailsHeight = wedgesContainer.ChildSize.Y - titleWedge.LayoutSize.Y - 4;
+
+            if (detailsHeight != lastDetailsAreaHeight)
+            {
+                detailsArea.Height = detailsHeight;
+                lastDetailsAreaHeight = detailsHeight;
+            }
 
             float widescreenBonusWidth = Math.Max(0, DrawWidth / DrawHeight - 2f);
 
-            mainGridContainer.ColumnDimensions = new[]
+            if (widescreenBonusWidth != lastWidescreenBonusWidth)
             {
-                new Dimension(GridSizeMode.Relative, 0.5f, maxSize: 700 + widescreenBonusWidth * 100),
-                new Dimension(),
-                new Dimension(GridSizeMode.Relative, 0.5f, minSize: 500, maxSize: 700 + widescreenBonusWidth * 300),
-            };
+                mainGridContainer.ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Relative, 0.5f, maxSize: 700 + widescreenBonusWidth * 100),
+                    new Dimension(),
+                    new Dimension(GridSizeMode.Relative, 0.5f, minSize: 500, maxSize: 700 + widescreenBonusWidth * 300),
+                };
+                lastWidescreenBonusWidth = widescreenBonusWidth;
+            }
 
             if (this.IsCurrentScreen())
                 updateDebounce();

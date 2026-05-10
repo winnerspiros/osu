@@ -89,10 +89,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             ];
         }
 
+        private float lastDrawWidth = float.NaN;
+
         protected override void Update()
         {
             base.Update();
 
+            if (DrawWidth == lastDrawWidth)
+                return;
+
+            lastDrawWidth = DrawWidth;
             CenterColumn.Width = DrawWidth - RankedPlayCornerPiece.WidthFor(DrawWidth) * 2;
         }
 

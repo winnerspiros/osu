@@ -37,6 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
         private DateTimeOffset countdownStartTime;
         private DateTimeOffset countdownEndTime;
+        private float lastHeadingTextBackgroundWidth = float.NaN;
 
         private RankedPlayStage? activeStage;
 
@@ -217,7 +218,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         {
             base.Update();
 
-            headingTextBackground.Width = headingText!.DrawWidth + 80;
+            float headingBackgroundWidth = headingText!.DrawWidth + 80;
+
+            if (headingBackgroundWidth != lastHeadingTextBackgroundWidth)
+            {
+                headingTextBackground.Width = headingBackgroundWidth;
+                lastHeadingTextBackgroundWidth = headingBackgroundWidth;
+            }
 
             TimeSpan duration = countdownEndTime - countdownStartTime;
             TimeSpan remaining = countdownEndTime - DateTimeOffset.Now;

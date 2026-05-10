@@ -57,12 +57,26 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 };
             }
 
+            private float lastStatisticWidth = float.NaN;
+            private float lastDrawWidth = float.NaN;
+
             protected override void Update()
             {
                 base.Update();
 
+                if (DrawWidth == lastDrawWidth)
+                    return;
+
+                lastDrawWidth = DrawWidth;
+
                 int statisticsPerRow = (statisticsFlow.Count + 1) / 2;
                 float statisticWidth = (DrawWidth - (statisticsPerRow - 1) * statisticsFlow.Spacing.X) / statisticsPerRow;
+
+                if (statisticWidth == lastStatisticWidth)
+                    return;
+
+                lastStatisticWidth = statisticWidth;
+
                 foreach (var statistic in statisticsFlow)
                     statistic.Width = statisticWidth;
             }

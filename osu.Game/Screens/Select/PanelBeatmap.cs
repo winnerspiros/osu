@@ -43,6 +43,8 @@ namespace osu.Game.Screens.Select
         private OsuSpriteText authorText = null!;
         private FillFlowContainer mainFill = null!;
 
+        private float lastMainFillLeftMargin = float.NaN;
+
         private IBindable<StarDifficulty>? starDifficultyBindable;
         private CancellationTokenSource? starDifficultyCancellationSource;
 
@@ -261,7 +263,13 @@ namespace osu.Game.Screens.Select
 
             // Dirty hack to make sure we don't take up spacing in parent fill flow when not displaying a rank.
             // I can't find a better way to do this.
-            mainFill.Margin = new MarginPadding { Left = 1 / starRatingDisplay.Scale.X * (localRank.HasRank ? 0 : -3) };
+            float mainFillLeft = 1 / starRatingDisplay.Scale.X * (localRank.HasRank ? 0 : -3);
+
+            if (mainFillLeft != lastMainFillLeftMargin)
+            {
+                mainFill.Margin = new MarginPadding { Left = mainFillLeft };
+                lastMainFillLeftMargin = mainFillLeft;
+            }
 
             var diffColour = starRatingDisplay.DisplayedDifficultyColour;
 

@@ -286,12 +286,28 @@ namespace osu.Game.Overlays.Mods
         private static readonly LocalisableString input_search_placeholder = Resources.Localisation.Web.CommonStrings.InputSearch;
         private static readonly LocalisableString tab_to_search_placeholder = ModSelectOverlayStrings.TabToSearch;
 
+        private bool? lastSearchTextBoxHasFocus;
+        private bool? lastDisplaysStackedVertically;
+
         protected override void Update()
         {
             base.Update();
 
-            SearchTextBox.PlaceholderText = SearchTextBox.HasFocus ? input_search_placeholder : tab_to_search_placeholder;
-            aboveColumnsContent.Padding = aboveColumnsContent.Padding with { Bottom = DisplayedFooterContent?.DisplaysStackedVertically == true ? 75f : 15f };
+            bool hasFocus = SearchTextBox.HasFocus;
+
+            if (hasFocus != lastSearchTextBoxHasFocus)
+            {
+                SearchTextBox.PlaceholderText = hasFocus ? input_search_placeholder : tab_to_search_placeholder;
+                lastSearchTextBoxHasFocus = hasFocus;
+            }
+
+            bool displaysStackedVertically = DisplayedFooterContent?.DisplaysStackedVertically == true;
+
+            if (displaysStackedVertically != lastDisplaysStackedVertically)
+            {
+                aboveColumnsContent.Padding = aboveColumnsContent.Padding with { Bottom = displaysStackedVertically ? 75f : 15f };
+                lastDisplaysStackedVertically = displaysStackedVertically;
+            }
         }
 
         /// <summary>

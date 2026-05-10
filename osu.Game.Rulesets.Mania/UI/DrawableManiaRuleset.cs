@@ -61,6 +61,9 @@ namespace osu.Game.Rulesets.Mania.UI
 
         public double TargetTimeRange { get; protected set; }
 
+        private double lastTargetTimeRange = -1;
+        private float lastHitPosition = -1;
+
         // Stores the current speed adjustment active in gameplay.
         private readonly Track speedAdjustmentTrack = new TrackVirtual(0);
 
@@ -113,6 +116,8 @@ namespace osu.Game.Rulesets.Mania.UI
             });
 
             TimeRange.Value = TargetTimeRange = ComputeScrollTime(configScrollSpeed.Value);
+            // Apply scale from skin hit position immediately so the first frame has the correct value.
+            updateTimeRange();
 
             Config.BindWith(ManiaRulesetSetting.MobileLayout, mobileLayout);
             mobileLayout.BindValueChanged(_ => updateMobileLayout(), true);
@@ -141,7 +146,17 @@ namespace osu.Game.Rulesets.Mania.UI
         protected override void Update()
         {
             base.Update();
+
+            // updateTimeRange() is only needed when TargetTimeRange or hitPosition changes.
+            // During normal gameplay both are constant (changed only by config callbacks and
+            // skin changes respectively). The editor subclass mutates TargetTimeRange every
+            // frame via its own Update(), so we check here rather than removing the override.
+            if (TargetTimeRange == lastTargetTimeRange && hitPosition == lastHitPosition)
+                return;
+
             updateTimeRange();
+            lastTargetTimeRange = TargetTimeRange;
+            lastHitPosition = hitPosition;
         }
 
         private ScheduledDelegate? pendingSkinChange;

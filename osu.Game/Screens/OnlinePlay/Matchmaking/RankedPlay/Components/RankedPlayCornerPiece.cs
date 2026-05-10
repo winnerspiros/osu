@@ -18,6 +18,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         private readonly BufferedContainer background;
         private readonly Container bottomLayer;
         private readonly Container topLayer;
+        private float lastParentChildSizeX = float.NaN;
 
         protected override Container<Drawable> Content { get; }
 
@@ -124,7 +125,13 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
         {
             base.Update();
 
-            Width = WidthFor(Parent!.ChildSize.X);
+            float parentSizeX = Parent!.ChildSize.X;
+
+            if (parentSizeX != lastParentChildSizeX)
+            {
+                Width = WidthFor(parentSizeX);
+                lastParentChildSizeX = parentSizeX;
+            }
         }
 
         public static float WidthFor(float parentWidth) => float.Clamp(parentWidth * 0.25f, 250, 335);

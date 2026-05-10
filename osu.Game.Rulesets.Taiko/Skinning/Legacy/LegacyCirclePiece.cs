@@ -32,6 +32,8 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 
         private int animationFrame;
 
+        private float lastDrawHeight = float.NaN;
+
         // required for editor blueprints (not sure why these circle pieces are zero size).
         public override Quad ScreenSpaceDrawQuad => backgroundLayer.ScreenSpaceDrawQuad;
 
@@ -103,8 +105,16 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 
             // Not all skins (including the default osu-stable) have similar sizes for "hitcircle" and "hitcircleoverlay".
             // This ensures they are scaled relative to each other but also match the expected DrawableHit size.
-            foreach (var c in InternalChildren)
-                c.Scale = new Vector2(DrawHeight / circle_piece_size.Y);
+            // Only recompute when DrawHeight actually changes (constant during normal gameplay).
+            if (DrawHeight != lastDrawHeight)
+            {
+                float scale = DrawHeight / circle_piece_size.Y;
+
+                foreach (var c in InternalChildren)
+                    c.Scale = new Vector2(scale);
+
+                lastDrawHeight = DrawHeight;
+            }
 
             if (foregroundLayer is IFramedAnimation animatedForegroundLayer)
                 animateForegroundLayer(animatedForegroundLayer);

@@ -550,6 +550,8 @@ namespace osu.Game.Screens.Select
         }
 
         private DisplayMode? currentMode;
+        private float lastRankLabelWidth = float.NaN;
+        private float lastRightContentWidth = float.NaN;
 
         protected override void Update()
         {
@@ -560,11 +562,19 @@ namespace osu.Game.Screens.Select
             if (currentMode != mode)
                 updateDisplayMode(mode);
 
-            centreContent.Padding = new MarginPadding
+            float rankLabelWidth = rankLabelStandalone.DrawWidth;
+            float rightContentWidth = rightContent.DrawWidth;
+
+            if (rankLabelWidth != lastRankLabelWidth || rightContentWidth != lastRightContentWidth)
             {
-                Left = rankLabelStandalone.DrawWidth,
-                Right = rightContent.DrawWidth,
-            };
+                centreContent.Padding = new MarginPadding
+                {
+                    Left = rankLabelWidth,
+                    Right = rightContentWidth,
+                };
+                lastRankLabelWidth = rankLabelWidth;
+                lastRightContentWidth = rightContentWidth;
+            }
         }
 
         private void updateDisplayMode(DisplayMode mode)

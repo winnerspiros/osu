@@ -13,6 +13,7 @@ using System.Threading;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Android.Runtime;
 using Android.Views;
 using osu.Android.Native;
 using osu.Framework.Logging;
@@ -204,6 +205,22 @@ namespace osu.Android
 
         // https://developer.android.com/reference/android/view/Surface#CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
         private const int CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS = 0;
+
+        // android.app.GameState.MODE_* constants (API 33).
+        // Xamarin bindings expose these as ints rather than a dedicated enum;
+        // hard-coding the values avoids a binding version sensitivity and keeps
+        // them in line with the Surface constants pattern already established above.
+        // https://developer.android.com/reference/android/app/GameState#MODE_NONE
+        private const int GAME_STATE_MODE_NONE = 0;
+
+        // https://developer.android.com/reference/android/app/GameState#MODE_GAMEPLAY_UNINTERRUPTIBLE
+        private const int GAME_STATE_MODE_GAMEPLAY_UNINTERRUPTIBLE = 2;
+
+        // android.content.Context.GAME_STATE_SERVICE (API 33) — the service-name string
+        // used to obtain a GameStateManager instance via Context.getSystemService.
+        // Expressed as a string literal for the same binding-version-robustness reason
+        // as the Surface constants above.
+        private const string GAME_STATE_SERVICE = "game_state";
 
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
@@ -1137,7 +1154,17 @@ namespace osu.Android
             UserPlayingState.BindValueChanged(e =>
             {
                 if (e.NewValue == LocalUserPlayingState.Playing)
+                {
                     scheduleGameplayThreadTaming();
+                    // API 33: tell the system this activity is in uninterruptible gameplay.
+                    // Prevents system-level interruptions (battery-low dialogs, notification
+                    // sounds, some OEM overlay pop-ups) during active map play.
+                    setAndroidGameState(GAME_STATE_MODE_GAMEPLAY_UNINTERRUPTIBLE);
+                }
+                else if (e.OldValue == LocalUserPlayingState.Playing)
+                {
+                    setAndroidGameState(GAME_STATE_MODE_NONE);
+                }
             });
 
             // NOTE: no `true` (immediate-fire) flag — the initial apply is done inside
@@ -1634,6 +1661,73 @@ namespace osu.Android
                 }
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Signals to the Android GameStateManager (API 33) that this activity has
+        /// transitioned into a new game state.
+        ///
+        /// <para>
+        /// <paramref name="mode"/> maps to the <c>GameState.MODE_*</c> integer constants:
+        /// <list type="bullet">
+        ///   <item><c>0</c> — <c>MODE_NONE</c>: not actively in gameplay (menus, song select).</item>
+        ///   <item><c>1</c> — <c>MODE_GAMEPLAY_INTERRUPTIBLE</c>: loading / map select inside game.</item>
+        ///   <item><c>2</c> — <c>MODE_GAMEPLAY_UNINTERRUPTIBLE</c>: active play; suppress system
+        ///     interruptions (battery-low dialogs, notification sounds, OEM overlays).</item>
+        /// </list>
+        /// </para>
+        ///
+        /// <para>
+        /// On Pixel and AOSP devices, <c>MODE_GAMEPLAY_UNINTERRUPTIBLE</c> also suppresses
+        /// the "battery below 15%" alert and some system-server periodic wakeups that would
+        /// otherwise introduce frame spikes on the Draw thread via priority inversion.
+        /// </para>
+        ///
+        /// <para>
+        /// Uses JNI reflection rather than the C# binding layer because
+        /// <c>Android.App.GameStateManager</c> and <c>Android.App.GameState.Builder</c>
+        /// are not available as C# types in the current .NET Android workload version.
+        /// Silently no-ops if the service is unavailable (custom ROMs that omit it).
+        /// </para>
+        /// </summary>
+        private void setAndroidGameState(int mode)
+        {
+            try
+            {
+                // GetSystemService returns a Java.Lang.Object wrapping the
+                // android.app.GameStateManager instance, or null if unavailable.
+                var gsm = gameActivity.GetSystemService(GAME_STATE_SERVICE);
+                if (gsm == null) return;
+
+                // android.app.GameState.Builder (nested Java class) ctor + setMode + build.
+                var builderClass = JNIEnv.FindClass("android/app/GameState$Builder");
+                if (builderClass == IntPtr.Zero) return;
+
+                var builderCtor = JNIEnv.GetMethodID(builderClass, "<init>", "()V");
+                var setModeId = JNIEnv.GetMethodID(builderClass, "setMode", "(I)Landroid/app/GameState$Builder;");
+                var buildId = JNIEnv.GetMethodID(builderClass, "build", "()Landroid/app/GameState;");
+
+                var builderObj = JNIEnv.NewObject(builderClass, builderCtor);
+                var builderWithMode = JNIEnv.CallObjectMethod(builderObj, setModeId, new JValue(mode));
+                var gameState = JNIEnv.CallObjectMethod(builderWithMode != IntPtr.Zero ? builderWithMode : builderObj, buildId);
+
+                // android.app.GameStateManager.setGameState(GameState)
+                var gsmClass = JNIEnv.FindClass("android/app/GameStateManager");
+                var setGameStateId = JNIEnv.GetMethodID(gsmClass, "setGameState", "(Landroid/app/GameState;)V");
+                JNIEnv.CallVoidMethod(gsm.Handle, setGameStateId, new JValue(gameState));
+
+                JNIEnv.DeleteLocalRef(builderClass);
+                JNIEnv.DeleteLocalRef(gsmClass);
+                JNIEnv.DeleteLocalRef(builderObj);
+                if (builderWithMode != IntPtr.Zero) JNIEnv.DeleteLocalRef(builderWithMode);
+                if (gameState != IntPtr.Zero) JNIEnv.DeleteLocalRef(gameState);
+
+                Logger.Log($"[osu!] Android GameState set to mode={mode}", LoggingTarget.Performance);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] SetAndroidGameState(mode={mode}) failed: {e.Message}");
+            }
         }
 
         /// <summary>

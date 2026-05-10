@@ -32,11 +32,22 @@ namespace osu.Game.Rulesets.Mania.UI
             };
         }
 
+        private float lastAspectRatio = float.NaN;
+        private int lastStageCount = -1;
+
         protected override void Update()
         {
             base.Update();
 
             float aspectRatio = DrawWidth / DrawHeight;
+            int stageCount = drawableManiaRuleset.Beatmap.Stages.Count;
+
+            if (aspectRatio == lastAspectRatio && stageCount == lastStageCount)
+                return;
+
+            lastAspectRatio = aspectRatio;
+            lastStageCount = stageCount;
+
             bool isPortrait = aspectRatio < 1f;
 
             if (isPortrait && drawableManiaRuleset.Beatmap.Stages.Count == 1)

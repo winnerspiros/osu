@@ -75,10 +75,12 @@ namespace osu.Game.Screens.Select
             if (Beatmap == null)
                 return;
 
-            scoreSubscription = realm.RegisterForNotifications(r =>
-                    r.GetAllLocalScoresForUser(api.LocalUser.Value.Id)
-                     .Filter($@"{nameof(ScoreInfo.BeatmapInfo)}.{nameof(BeatmapInfo.ID)} == $0"
-                             + $" && {nameof(ScoreInfo.Ruleset)}.{nameof(RulesetInfo.ShortName)} == $1", Beatmap.ID, ruleset.Value.ShortName),
+            // Use the indexed BeatmapHash for the Realm filter instead of following a BeatmapInfo join,
+            // which Realm must resolve at query time and causes significant overhead when many panels are
+            // subscribed simultaneously during song-select scrolling. Post-filter by user ID and ruleset
+            // in managed code (cheap, the result set is tiny). Mirrors ppy/osu PR #37666.
+            scoreSubscription = realm.RegisterForNotifications(
+                r => r.All<ScoreInfo>().Where(s => s.BeatmapHash == Beatmap.Hash && !s.DeletePending),
                 localScoresChanged);
         }
 
