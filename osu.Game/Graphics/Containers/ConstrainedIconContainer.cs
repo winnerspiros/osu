@@ -19,6 +19,9 @@ namespace osu.Game.Graphics.Containers
             set => InternalChild = value;
         }
 
+        private float lastFitScale = float.NaN;
+        private Drawable? lastIcon;
+
         protected override void Update()
         {
             base.Update();
@@ -31,9 +34,15 @@ namespace osu.Game.Graphics.Containers
                 //   We can't do this because we would need access to AutoSizeAxes to set it to none.
                 //   Other issues come up along the way too, so it's not a good solution.
                 float fitScale = Math.Min(DrawSize.X / InternalChild.DrawSize.X, DrawSize.Y / InternalChild.DrawSize.Y);
-                InternalChild.Scale = new Vector2(fitScale);
-                InternalChild.Anchor = Anchor.Centre;
-                InternalChild.Origin = Anchor.Centre;
+
+                if (fitScale != lastFitScale || InternalChild != lastIcon)
+                {
+                    InternalChild.Scale = new Vector2(fitScale);
+                    InternalChild.Anchor = Anchor.Centre;
+                    InternalChild.Origin = Anchor.Centre;
+                    lastFitScale = fitScale;
+                    lastIcon = InternalChild;
+                }
             }
         }
     }

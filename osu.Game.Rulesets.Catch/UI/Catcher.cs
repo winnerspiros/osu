@@ -352,11 +352,9 @@ namespace osu.Game.Rulesets.Catch.UI
         {
             base.Update();
 
-            var scaleFromDirection = new Vector2((int)VisualDirection, 1);
-
             if (VisualDirection != lastVisualDirection)
             {
-                body.Scale = scaleFromDirection;
+                body.Scale = new Vector2((int)VisualDirection, 1);
                 lastVisualDirection = VisualDirection;
             }
 

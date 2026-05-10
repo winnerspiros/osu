@@ -225,6 +225,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             private readonly TrianglesV2 triangles;
             private readonly SpriteIcon heartIcon;
             private readonly OsuSpriteText healthText;
+            private float lastTrianglesWidth = float.NaN;
 
             /// <summary>
             /// Impact position for damage animation
@@ -438,7 +439,12 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             {
                 base.Update();
 
-                triangles.Width = DrawWidth;
+                if (DrawWidth != lastTrianglesWidth)
+                {
+                    triangles.Width = DrawWidth;
+                    lastTrianglesWidth = DrawWidth;
+                }
+
                 healthBar.Width = normalizedHealth;
 
                 damageIndicator.X = leftToRight ? normalizedHealthWithDamage : -normalizedHealthWithDamage;

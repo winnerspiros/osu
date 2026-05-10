@@ -52,6 +52,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             private BeatmapTitleWedge.DifficultyStatisticsDisplay countStatisticsDisplay = null!;
             private BeatmapTitleWedge.DifficultyStatisticsDisplay difficultyStatisticsDisplay = null!;
 
+            private float lastDifficultyTextMaxWidth = float.NaN;
+            private Color4 lastAccentColour;
+
             public DifficultyDisplay(APIBeatmap beatmap)
             {
                 this.beatmap = beatmap;
@@ -219,15 +222,25 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             {
                 base.Update();
 
-                difficultyText.MaxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0);
+                float maxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0);
+
+                if (maxWidth != lastDifficultyTextMaxWidth)
+                {
+                    difficultyText.MaxWidth = maxWidth;
+                    lastDifficultyTextMaxWidth = maxWidth;
+                }
 
                 // Use difficulty colour until it gets too dark to be visible against dark backgrounds.
                 Color4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? colours.Orange1 : starRatingDisplay.DisplayedDifficultyColour;
 
-                difficultyText.Colour = col;
-                mappedByText.Colour = col;
-                countStatisticsDisplay.AccentColour = col;
-                difficultyStatisticsDisplay.AccentColour = col;
+                if (col != lastAccentColour)
+                {
+                    difficultyText.Colour = col;
+                    mappedByText.Colour = col;
+                    countStatisticsDisplay.AccentColour = col;
+                    difficultyStatisticsDisplay.AccentColour = col;
+                    lastAccentColour = col;
+                }
             }
         }
     }
