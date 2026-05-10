@@ -402,7 +402,11 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             {
                 foreach (var match in matches)
                 {
-                    resultPanelContainer.Insert(-resultPanelContainer.Count, new RankedPlayMatchPanel(match)
+                    resultPanelContainer.Insert(-resultPanelContainer.Count, new DelayedLoadWrapper(new RankedPlayMatchPanel(match)
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Width = 1
+                    }, 0)
                     {
                         RelativeSizeAxes = Axes.X,
                         Width = 0.48f
