@@ -13,6 +13,7 @@ using System.Threading;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Android.Runtime;
 using Android.Views;
 using osu.Android.Native;
 using osu.Framework.Logging;
@@ -1663,8 +1664,8 @@ namespace osu.Android
         }
 
         /// <summary>
-        /// Signals to the Android <see cref="GameStateManager"/> (API 33) that
-        /// this activity has transitioned into a new game state.
+        /// Signals to the Android GameStateManager (API 33) that this activity has
+        /// transitioned into a new game state.
         ///
         /// <para>
         /// <paramref name="mode"/> maps to the <c>GameState.MODE_*</c> integer constants:
@@ -1683,19 +1684,45 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// Silently no-ops if <see cref="GameStateManager"/> is unavailable (non-Android 13 device —
-        /// which cannot happen with minSdkVersion=33 — or a custom ROM that omits the service).
+        /// Uses JNI reflection rather than the C# binding layer because
+        /// <c>Android.App.GameStateManager</c> and <c>Android.App.GameState.Builder</c>
+        /// are not available as C# types in the current .NET Android workload version.
+        /// Silently no-ops if the service is unavailable (custom ROMs that omit it).
         /// </para>
         /// </summary>
         private void setAndroidGameState(int mode)
         {
             try
             {
-                if (gameActivity.GetSystemService(GAME_STATE_SERVICE) is GameStateManager gsm)
-                {
-                    gsm.SetGameState(new GameState.Builder().SetMode(mode).Build());
-                    Logger.Log($"[osu!] Android GameState set to mode={mode}", LoggingTarget.Performance);
-                }
+                // GetSystemService returns a Java.Lang.Object wrapping the
+                // android.app.GameStateManager instance, or null if unavailable.
+                var gsm = gameActivity.GetSystemService(GAME_STATE_SERVICE);
+                if (gsm == null) return;
+
+                // android.app.GameState.Builder (nested Java class) ctor + setMode + build.
+                var builderClass = JNIEnv.FindClass("android/app/GameState$Builder");
+                if (builderClass == IntPtr.Zero) return;
+
+                var builderCtor = JNIEnv.GetMethodID(builderClass, "<init>", "()V");
+                var setModeId = JNIEnv.GetMethodID(builderClass, "setMode", "(I)Landroid/app/GameState$Builder;");
+                var buildId = JNIEnv.GetMethodID(builderClass, "build", "()Landroid/app/GameState;");
+
+                var builderObj = JNIEnv.NewObject(builderClass, builderCtor);
+                var builderWithMode = JNIEnv.CallObjectMethod(builderObj, setModeId, new JValue(mode));
+                var gameState = JNIEnv.CallObjectMethod(builderWithMode != IntPtr.Zero ? builderWithMode : builderObj, buildId);
+
+                // android.app.GameStateManager.setGameState(GameState)
+                var gsmClass = JNIEnv.FindClass("android/app/GameStateManager");
+                var setGameStateId = JNIEnv.GetMethodID(gsmClass, "setGameState", "(Landroid/app/GameState;)V");
+                JNIEnv.CallVoidMethod(gsm.Handle, setGameStateId, new JValue(gameState));
+
+                JNIEnv.DeleteLocalRef(builderClass);
+                JNIEnv.DeleteLocalRef(gsmClass);
+                JNIEnv.DeleteLocalRef(builderObj);
+                if (builderWithMode != IntPtr.Zero) JNIEnv.DeleteLocalRef(builderWithMode);
+                if (gameState != IntPtr.Zero) JNIEnv.DeleteLocalRef(gameState);
+
+                Logger.Log($"[osu!] Android GameState set to mode={mode}", LoggingTarget.Performance);
             }
             catch (Exception e)
             {

@@ -84,28 +84,41 @@ namespace osu.Game.Database
 
             if (changes.InsertedIndices.Length == 1 && changes.DeletedIndices.Length == 1)
             {
-                lock (detachedBeatmapSets)
+                int deletedIdx = changes.DeletedIndices[0];
+                int insertedIdx = changes.InsertedIndices[0];
+
+                // Guard: Realm guarantees InsertedIndices are valid positions in sender, but in
+                // rare edge-cases (rapid delete+re-insert during startup, or a Realm notification
+                // arriving with stale change data) the index can be out of range. If either guard
+                // fails, fall through to the standard per-item insert/delete path below.
+                if (insertedIdx < sender.Count)
                 {
-                    var deletedSet = detachedBeatmapSets[changes.DeletedIndices[0]];
-                    var insertedSet = sender[changes.InsertedIndices[0]];
-
-                    // this handles beatmap updates using a heuristic that a beatmap update will preserve the online ID.
-                    // it relies on the fact that updates are performed by removing the old set and adding a new one, in a single transaction.
-                    // instead of removing the old set and adding a new one to the collection too, which would trigger consumers' logic related to set removals,
-                    // move the deleted set to the index occupied by the new one and then replace it in-place.
-                    // due to this, the operation can be presented to consumer in a manner that permits them to actually handle this as a replace operation
-                    // and not trigger any set removal logic that may result in selections changing or similar undesirable side effects.
-                    if (deletedSet.OnlineID == insertedSet.OnlineID)
+                    lock (detachedBeatmapSets)
                     {
-                        pendingOperations.Enqueue(new OperationArgs
+                        if (deletedIdx < detachedBeatmapSets.Count)
                         {
-                            Type = OperationType.MoveAndReplace,
-                            BeatmapSet = insertedSet.Detach(),
-                            Index = changes.DeletedIndices[0],
-                            NewIndex = changes.InsertedIndices[0],
-                        });
+                            var deletedSet = detachedBeatmapSets[deletedIdx];
+                            var insertedSet = sender[insertedIdx];
 
-                        return;
+                            // this handles beatmap updates using a heuristic that a beatmap update will preserve the online ID.
+                            // it relies on the fact that updates are performed by removing the old set and adding a new one, in a single transaction.
+                            // instead of removing the old set and adding a new one to the collection too, which would trigger consumers' logic related to set removals,
+                            // move the deleted set to the index occupied by the new one and then replace it in-place.
+                            // due to this, the operation can be presented to consumer in a manner that permits them to actually handle this as a replace operation
+                            // and not trigger any set removal logic that may result in selections changing or similar undesirable side effects.
+                            if (deletedSet.OnlineID == insertedSet.OnlineID)
+                            {
+                                pendingOperations.Enqueue(new OperationArgs
+                                {
+                                    Type = OperationType.MoveAndReplace,
+                                    BeatmapSet = insertedSet.Detach(),
+                                    Index = deletedIdx,
+                                    NewIndex = insertedIdx,
+                                });
+
+                                return;
+                            }
+                        }
                     }
                 }
             }
