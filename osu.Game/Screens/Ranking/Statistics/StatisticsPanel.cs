@@ -25,7 +25,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Statistics.User;
 using osuTK;
-using Realms;
 
 namespace osu.Game.Screens.Ranking.Statistics
 {
@@ -247,7 +246,7 @@ namespace osu.Game.Screens.Ranking.Statistics
 
                 var localUserScore = AchievedScore ?? realm.Run(r =>
                     r.GetAllLocalScoresForUser(api.LocalUser.Value.Id)
-                     .Filter($@"{nameof(ScoreInfo.BeatmapInfo)}.{nameof(BeatmapInfo.ID)} == $0", newScore.BeatmapInfo.ID)
+                     .Where(s => s.BeatmapHash == newScore.BeatmapInfo.Hash)
                      .AsEnumerable()
                      .OrderByDescending(score => score.Ruleset.MatchesOnlineID(newScore.BeatmapInfo.Ruleset))
                      .ThenByDescending(score => score.Rank)

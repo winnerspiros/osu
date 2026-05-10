@@ -73,12 +73,15 @@ namespace osu.Game.Online.Leaderboards
             {
                 case BeatmapLeaderboardScope.Local:
                 {
-                    localScoreSubscription = realm.RegisterForNotifications(r =>
-                        r.All<ScoreInfo>().Filter($"{nameof(ScoreInfo.BeatmapInfo)}.{nameof(BeatmapInfo.ID)} == $0"
-                                                  + $" AND {nameof(ScoreInfo.BeatmapInfo)}.{nameof(BeatmapInfo.Hash)} == {nameof(ScoreInfo.BeatmapHash)}"
-                                                  + $" AND {nameof(ScoreInfo.Ruleset)}.{nameof(RulesetInfo.ShortName)} == $1"
-                                                  + $" AND {nameof(ScoreInfo.DeletePending)} == false"
-                            , newCriteria.Beatmap.ID, newCriteria.Ruleset.ShortName), localScoresChanged);
+                    // Use the indexed BeatmapHash as the primary Realm filter and do the
+                    // ruleset check in managed code (cheap — result set is small per beatmap).
+                    // The previous compound filter used BeatmapInfo.ID (link traversal) and
+                    // a cross-property Hash==BeatmapHash comparison, neither of which Realm
+                    // can satisfy via an index, causing a full table scan per notification.
+                    string beatmapHash = newCriteria.Beatmap.Hash;
+                    localScoreSubscription = realm.RegisterForNotifications(
+                        r => r.All<ScoreInfo>().Where(s => s.BeatmapHash == beatmapHash && !s.DeletePending),
+                        localScoresChanged);
                     return;
                 }
 
@@ -173,7 +176,11 @@ namespace osu.Game.Online.Leaderboards
             if (changes?.HasCollectionChanges() == false)
                 return;
 
-            var newScores = sender.AsEnumerable();
+            var newScores = sender.AsEnumerable()
+                                  // Post-filter by ruleset: the Realm query uses BeatmapHash as the
+                                  // primary indexed filter; ruleset filtering is done here in managed
+                                  // code since the result set per-beatmap is always small.
+                                  .Where(s => s.Ruleset.ShortName == CurrentCriteria.Ruleset!.ShortName);
 
             if (CurrentCriteria.ExactMods != null)
             {

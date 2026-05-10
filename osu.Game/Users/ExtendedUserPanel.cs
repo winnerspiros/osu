@@ -1,8 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -29,7 +29,11 @@ namespace osu.Game.Users
 
         private UserStatus? lastStatus;
         private UserActivity? lastActivity;
-        private DateTimeOffset? lastVisit;
+        private System.DateTimeOffset? lastVisit;
+
+        // Local bound copies of the presence dictionaries so we can subscribe to changes.
+        private readonly IBindableDictionary<int, UserPresence> friendPresences = new BindableDictionary<int, UserPresence>();
+        private readonly IBindableDictionary<int, UserPresence> userPresences = new BindableDictionary<int, UserPresence>();
 
         protected ExtendedUserPanel(APIUser user)
             : base(user)
@@ -46,16 +50,58 @@ namespace osu.Game.Users
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updatePresence();
+
+            if (metadata != null)
+            {
+                // Subscribe to presence dictionary changes and refresh only when this user's entry
+                // is added, updated, or removed. This replaces the previous per-frame Update() polling
+                // (which called GetPresence() — a dictionary lookup — on every rendered frame even when
+                // the user's status had not changed) with an event-driven approach that fires at most
+                // once per server presence update.
+                friendPresences.BindTo(metadata.FriendPresences);
+                friendPresences.BindCollectionChanged((_, e) =>
+                {
+                    if (affectsThisUser(e))
+                        updatePresence();
+                }, true);
+
+                userPresences.BindTo(metadata.UserPresences);
+                userPresences.BindCollectionChanged((_, e) =>
+                {
+                    if (affectsThisUser(e))
+                        updatePresence();
+                });
+            }
+            else
+            {
+                updatePresence();
+            }
 
             // Colour should be applied immediately on first load.
             statusIcon.FinishTransforms();
         }
 
-        protected override void Update()
+        private bool affectsThisUser(NotifyDictionaryChangedEventArgs<int, UserPresence> e)
         {
-            base.Update();
-            updatePresence();
+            if (e.NewItems != null)
+            {
+                foreach ((int userId, _) in e.NewItems)
+                {
+                    if (userId == User.OnlineID)
+                        return true;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach ((int userId, _) in e.OldItems)
+                {
+                    if (userId == User.OnlineID)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         protected Container CreateStatusIcon() => statusIcon = new StatusIcon();
@@ -90,7 +136,6 @@ namespace osu.Game.Users
 
         private void updatePresence()
         {
-            // TODO: we probably don't want to do this every frame.
             UserPresence? presence = metadata?.GetPresence(User.OnlineID);
             UserStatus status = presence?.Status ?? UserStatus.Offline;
             UserActivity? activity = presence?.Activity;
@@ -129,7 +174,7 @@ namespace osu.Game.Users
 
             lastStatus = status;
             lastActivity = activity;
-            lastVisit = status != UserStatus.Offline ? DateTimeOffset.Now : lastVisit;
+            lastVisit = status != UserStatus.Offline ? System.DateTimeOffset.Now : lastVisit;
         }
 
         protected override bool OnHover(HoverEvent e)

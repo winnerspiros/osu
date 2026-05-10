@@ -382,7 +382,10 @@ namespace osu.Game.Rulesets.Mania
         /// <returns>The <see cref="PlayfieldType"/> that corresponds to <paramref name="variant"/>.</returns>
         private PlayfieldType getPlayfieldType(int variant)
         {
-            return (PlayfieldType)Enum.GetValues(typeof(PlayfieldType)).Cast<int>().OrderDescending().First(v => variant >= v);
+            // Direct comparison instead of Enum.GetValues + Cast + OrderDescending + First,
+            // which allocates and iterates on every call. PlayfieldType only has two values
+            // (Single=0, Dual=1000), so a single branch suffices.
+            return variant >= (int)PlayfieldType.Dual ? PlayfieldType.Dual : PlayfieldType.Single;
         }
 
         public override IEnumerable<HitResult> GetValidHitResults()
