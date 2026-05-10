@@ -1137,7 +1137,17 @@ namespace osu.Android
             UserPlayingState.BindValueChanged(e =>
             {
                 if (e.NewValue == LocalUserPlayingState.Playing)
+                {
                     scheduleGameplayThreadTaming();
+                    // API 33: tell the system this activity is in uninterruptible gameplay.
+                    // Prevents system-level interruptions (battery-low dialogs, notification
+                    // sounds, some OEM overlay pop-ups) during active map play.
+                    setAndroidGameState(2); // MODE_GAMEPLAY_UNINTERRUPTIBLE = 2
+                }
+                else if (e.OldValue == LocalUserPlayingState.Playing)
+                {
+                    setAndroidGameState(0); // MODE_NONE = 0
+                }
             });
 
             // NOTE: no `true` (immediate-fire) flag — the initial apply is done inside
@@ -1634,6 +1644,47 @@ namespace osu.Android
                 }
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Signals to the Android <see cref="GameStateManager"/> (API 33) that
+        /// this activity has transitioned into a new game state.
+        ///
+        /// <para>
+        /// <paramref name="mode"/> maps to the <c>GameState.MODE_*</c> integer constants:
+        /// <list type="bullet">
+        ///   <item><c>0</c> — <c>MODE_NONE</c>: not actively in gameplay (menus, song select).</item>
+        ///   <item><c>1</c> — <c>MODE_GAMEPLAY_INTERRUPTIBLE</c>: loading / map select inside game.</item>
+        ///   <item><c>2</c> — <c>MODE_GAMEPLAY_UNINTERRUPTIBLE</c>: active play; suppress system
+        ///     interruptions (battery-low dialogs, notification sounds, OEM overlays).</item>
+        /// </list>
+        /// </para>
+        ///
+        /// <para>
+        /// On Pixel and AOSP devices, <c>MODE_GAMEPLAY_UNINTERRUPTIBLE</c> also suppresses
+        /// the "battery below 15%" alert and some system-server periodic wakeups that would
+        /// otherwise introduce frame spikes on the Draw thread via priority inversion.
+        /// </para>
+        ///
+        /// <para>
+        /// Silently no-ops if <see cref="GameStateManager"/> is unavailable (non-Android 13 device —
+        /// which cannot happen with minSdkVersion=33 — or a custom ROM that omits the service).
+        /// </para>
+        /// </summary>
+        private void setAndroidGameState(int mode)
+        {
+            try
+            {
+                if (gameActivity.GetSystemService("game_state") is GameStateManager gsm)
+                {
+                    gsm.SetGameState(new GameState.Builder().SetMode(mode).Build());
+                    Logger.Log($"[osu!] Android GameState set to mode={mode}", LoggingTarget.Performance);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] SetAndroidGameState(mode={mode}) failed: {e.Message}");
+            }
         }
 
         /// <summary>
