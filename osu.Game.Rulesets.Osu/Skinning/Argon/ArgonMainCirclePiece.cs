@@ -260,9 +260,20 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
             public bool HitLighting { get; set; }
 
+            private ColourInfo lastEdgeEffectColour;
+            private bool lastHitLighting;
+
             protected override void Update()
             {
                 base.Update();
+
+                // Only update EdgeEffect when the inputs actually change to avoid
+                // redundant layout invalidations on every hit circle every frame.
+                if (Colour.Equals(lastEdgeEffectColour) && HitLighting == lastHitLighting)
+                    return;
+
+                lastEdgeEffectColour = Colour;
+                lastHitLighting = HitLighting;
 
                 EdgeEffect = new EdgeEffectParameters
                 {

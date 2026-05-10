@@ -289,11 +289,19 @@ namespace osu.Game.Screens.Select
 
             var diffColour = starRatingDisplay.DisplayedDifficultyColour;
 
-            AccentColour = diffColour;
-            spreadDisplay.Current.Colour = diffColour;
+            // Guard colour assignments to avoid redundant per-frame invalidations
+            // (same pattern as PanelBeatmap.cs).
+            if (AccentColour != diffColour)
+            {
+                AccentColour = diffColour;
+                spreadDisplay.Current.Colour = diffColour;
+                backgroundBorder.Colour = diffColour;
+            }
 
-            backgroundBorder.Colour = diffColour;
-            difficultyIcon.Colour = starRatingDisplay.DisplayedDifficultyTextColour;
+            var diffTextColour = starRatingDisplay.DisplayedDifficultyTextColour;
+
+            if (difficultyIcon.Colour != diffTextColour)
+                difficultyIcon.Colour = diffTextColour;
         }
 
         private void updateKeyCount()
