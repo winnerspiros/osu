@@ -78,6 +78,8 @@ namespace osu.Game.Rulesets.Catch.UI
         /// </summary>
         private partial class ScalingContainer : Container
         {
+            private float lastParentChildSizeX = float.NaN;
+
             public ScalingContainer()
             {
                 Anchor = Anchor.BottomCentre;
@@ -88,6 +90,13 @@ namespace osu.Game.Rulesets.Catch.UI
             {
                 base.Update();
 
+                float parentSizeX = Parent!.ChildSize.X;
+
+                if (parentSizeX == lastParentChildSizeX)
+                    return;
+
+                lastParentChildSizeX = parentSizeX;
+
                 // in stable, fruit fall vertically from 100 pixels above the playfield top down to the catcher's Y position (i.e. -100 to 340),
                 // see: https://github.com/peppy/osu-stable-reference/blob/1531237b63392e82c003c712faa028406073aa8f/osu!/GameplayElements/HitObjects/Fruits/HitCircleFruits.cs#L65
                 // we already have the playfield positioned similar to stable (see CatchPlayfieldAdjustmentContainer constructor),
@@ -97,7 +106,7 @@ namespace osu.Game.Rulesets.Catch.UI
                 const float playfield_v_size_adjustment = (stable_catcher_y_position - stable_fruit_start_position) / CatchPlayfield.HEIGHT;
                 const float playfield_v_catcher_offset = stable_catcher_y_position - CatchPlayfield.HEIGHT;
 
-                Scale = new Vector2(Parent!.ChildSize.X / CatchPlayfield.WIDTH);
+                Scale = new Vector2(parentSizeX / CatchPlayfield.WIDTH);
                 Position = new Vector2(0f, playfield_v_catcher_offset * Scale.Y);
                 Size = Vector2.Divide(new Vector2(1, playfield_v_size_adjustment), Scale);
             }

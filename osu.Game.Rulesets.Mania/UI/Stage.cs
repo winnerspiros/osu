@@ -44,6 +44,7 @@ namespace osu.Game.Rulesets.Mania.UI
         private readonly JudgementPooler<DrawableManiaJudgement> judgementPooler;
 
         private readonly Drawable barLineContainer;
+        private float lastBarLineContainerWidth = float.NaN;
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
@@ -223,7 +224,13 @@ namespace osu.Game.Rulesets.Mania.UI
         {
             // Due to masking differences, it is not possible to get the width of the columns container automatically
             // While masking on effectively only the Y-axis, so we need to set the width of the bar line container manually
-            barLineContainer.Width = columnFlow.Width;
+            float w = columnFlow.Width;
+
+            if (w != lastBarLineContainerWidth)
+            {
+                barLineContainer.Width = w;
+                lastBarLineContainerWidth = w;
+            }
         }
     }
 }

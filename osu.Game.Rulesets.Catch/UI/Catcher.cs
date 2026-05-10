@@ -129,6 +129,9 @@ namespace osu.Game.Rulesets.Catch.UI
 
         private readonly HitExplosionContainer hitExplosionContainer;
 
+        private Direction lastVisualDirection = (Direction)(-1);
+        private float lastInverseScaleX = float.NaN;
+
         private readonly DrawablePool<CaughtFruit> caughtFruitPool;
         private readonly DrawablePool<CaughtBanana> caughtBananaPool;
         private readonly DrawablePool<CaughtDroplet> caughtDropletPool;
@@ -351,9 +354,20 @@ namespace osu.Game.Rulesets.Catch.UI
 
             var scaleFromDirection = new Vector2((int)VisualDirection, 1);
 
-            body.Scale = scaleFromDirection;
+            if (VisualDirection != lastVisualDirection)
+            {
+                body.Scale = scaleFromDirection;
+                lastVisualDirection = VisualDirection;
+            }
+
             // Inverse of catcher scale is applied here, as catcher gets scaled by circle size and so do the incoming fruit.
-            caughtObjectContainer.Scale = new Vector2(1 / Scale.X);
+            float inverseScaleX = 1 / Scale.X;
+
+            if (inverseScaleX != lastInverseScaleX)
+            {
+                caughtObjectContainer.Scale = new Vector2(inverseScaleX);
+                lastInverseScaleX = inverseScaleX;
+            }
 
             // Correct overshooting.
             if ((hyperDashDirection > 0 && hyperDashTargetPosition < X) ||

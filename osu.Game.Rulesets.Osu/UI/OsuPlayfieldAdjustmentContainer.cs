@@ -50,9 +50,20 @@ namespace osu.Game.Rulesets.Osu.UI
         {
             internal bool PlayfieldShift { get; set; }
 
+            private float lastChildSizeX = float.NaN;
+            private bool lastPlayfieldShift;
+
             protected override void Update()
             {
                 base.Update();
+
+                float childSizeX = Parent!.ChildSize.X;
+
+                if (childSizeX == lastChildSizeX && PlayfieldShift == lastPlayfieldShift)
+                    return;
+
+                lastChildSizeX = childSizeX;
+                lastPlayfieldShift = PlayfieldShift;
 
                 // The following calculation results in a constant of 1.6 when OsuPlayfieldAdjustmentContainer
                 // is consuming the full game_size. This matches the osu-stable "magic ratio".
@@ -65,7 +76,7 @@ namespace osu.Game.Rulesets.Osu.UI
                 //
                 // Scale = 819.2 / 512
                 // Scale = 1.6
-                Scale = new Vector2(Parent!.ChildSize.X / OsuPlayfield.BASE_SIZE.X);
+                Scale = new Vector2(childSizeX / OsuPlayfield.BASE_SIZE.X);
                 Position = new Vector2(0, (PlayfieldShift ? 8f : 0f) * Scale.X);
                 // Size = 0.625
                 Size = Vector2.Divide(Vector2.One, Scale);
