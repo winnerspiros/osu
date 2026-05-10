@@ -205,6 +205,22 @@ namespace osu.Android
         // https://developer.android.com/reference/android/view/Surface#CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
         private const int CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS = 0;
 
+        // android.app.GameState.MODE_* constants (API 33).
+        // Xamarin bindings expose these as ints rather than a dedicated enum;
+        // hard-coding the values avoids a binding version sensitivity and keeps
+        // them in line with the Surface constants pattern already established above.
+        // https://developer.android.com/reference/android/app/GameState#MODE_NONE
+        private const int GAME_STATE_MODE_NONE = 0;
+
+        // https://developer.android.com/reference/android/app/GameState#MODE_GAMEPLAY_UNINTERRUPTIBLE
+        private const int GAME_STATE_MODE_GAMEPLAY_UNINTERRUPTIBLE = 2;
+
+        // android.content.Context.GAME_STATE_SERVICE (API 33) — the service-name string
+        // used to obtain a GameStateManager instance via Context.getSystemService.
+        // Expressed as a string literal for the same binding-version-robustness reason
+        // as the Surface constants above.
+        private const string GAME_STATE_SERVICE = "game_state";
+
         public OsuGameAndroid(OsuGameActivity activity)
             : base(null)
         {
@@ -1142,11 +1158,11 @@ namespace osu.Android
                     // API 33: tell the system this activity is in uninterruptible gameplay.
                     // Prevents system-level interruptions (battery-low dialogs, notification
                     // sounds, some OEM overlay pop-ups) during active map play.
-                    setAndroidGameState(2); // MODE_GAMEPLAY_UNINTERRUPTIBLE = 2
+                    setAndroidGameState(GAME_STATE_MODE_GAMEPLAY_UNINTERRUPTIBLE);
                 }
                 else if (e.OldValue == LocalUserPlayingState.Playing)
                 {
-                    setAndroidGameState(0); // MODE_NONE = 0
+                    setAndroidGameState(GAME_STATE_MODE_NONE);
                 }
             });
 
@@ -1675,7 +1691,7 @@ namespace osu.Android
         {
             try
             {
-                if (gameActivity.GetSystemService("game_state") is GameStateManager gsm)
+                if (gameActivity.GetSystemService(GAME_STATE_SERVICE) is GameStateManager gsm)
                 {
                     gsm.SetGameState(new GameState.Builder().SetMode(mode).Build());
                     Logger.Log($"[osu!] Android GameState set to mode={mode}", LoggingTarget.Performance);
