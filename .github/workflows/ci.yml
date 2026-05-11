@@ -125,7 +125,7 @@ jobs:
        fail-fast: false
        matrix:
           os:
-            - { prettyname: Windows, fullname: windows-latest }
+            - { prettyname: Windows, fullname: windows-2025-vs2026 }
             # macOS runner performance has gotten unbearably slow so let's turn them off temporarily.
             # - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
@@ -217,7 +217,7 @@ jobs:
 
   build-only-android:
     name: Build only (Android)
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     timeout-minutes: 60
     steps:
       - name: Checkout
