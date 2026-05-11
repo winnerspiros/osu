@@ -231,6 +231,12 @@ jobs:
           # ── Clone the upstream ppy/osu-resources repository ─────────────────────
           git clone --depth=1 https://github.com/ppy/osu-resources /tmp/osu-resources
 
+          # Patch deprecated <PackageLicenseUrl> → <PackageLicenseExpression> to silence
+          # the "licenseUrl will be deprecated" NuGet warning during dotnet pack.
+          sed -i \
+            's|<PackageLicenseUrl>[^<]*</PackageLicenseUrl>|<PackageLicenseExpression>MIT</PackageLicenseExpression>|g' \
+            /tmp/osu-resources/osu.Game.Resources/osu.Game.Resources.csproj
+
           # ── Optimize ALL media assets with ffmpeg ────────────────────────────────
           # Uses keep_original_files=false so the packed DLL ships only the
           # compressed form (webp/ogg/webm) — originals would waste APK space
