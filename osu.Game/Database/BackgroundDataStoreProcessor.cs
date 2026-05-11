@@ -663,8 +663,10 @@ namespace osu.Game.Database
 
             Logger.Log(@"Updating user tags");
 
-            // while this is constrained to run every month or so (every time a new online.db cache is retrieved), there's some chance that this will still run much too often and be annoying to users.
-            // if that turns out to be the case we may need a better way to debounce this (or just delete the backpopulation logic after some time has passed?)
+            // This check runs on all ranked/approved/qualified beatmaps (not just those with no tags) to catch
+            // cases where a beatmap was previously unapproved or the API returned no tags on the first run.
+            // It is constrained to run at most once per metadata source update cycle (~monthly) to avoid
+            // being too disruptive to users.
             HashSet<Guid> beatmapIds = realmAccess.Run(r => new HashSet<Guid>(
                 r.All<BeatmapInfo>()
                  .Filter($"{nameof(BeatmapInfo.StatusInt)} IN {{ 1,2,4 }}")
