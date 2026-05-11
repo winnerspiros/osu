@@ -112,7 +112,6 @@ namespace osu.Game.Screens.Select
         } = string.Empty;
 
         private ImmutableHashSet<string>? collectionBeatmapMD5Hashes;
-        private Live<BeatmapCollection>? collection;
 
         /// <summary>
         /// Hashes from the <see cref="BeatmapCollection"/> to filter to.
@@ -122,10 +121,10 @@ namespace osu.Game.Screens.Select
 
         public Live<BeatmapCollection>? Collection
         {
-            get => collection;
+            get;
             set
             {
-                collection = value;
+                field = value;
                 collectionBeatmapMD5Hashes = null;
             }
         }
