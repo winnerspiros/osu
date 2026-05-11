@@ -51,6 +51,11 @@ namespace osu.Game.Users
         {
             base.LoadComplete();
 
+            // Always set the initial presence state so LastVisitMessage (and status icon colour)
+            // are correct from the very first frame, regardless of whether a MetadataClient is
+            // available or not.
+            updatePresence();
+
             if (metadata != null)
             {
                 // Subscribe to presence dictionary changes and refresh only when this user's entry
@@ -63,7 +68,7 @@ namespace osu.Game.Users
                 {
                     if (affectsThisUser(e))
                         updatePresence();
-                }, true);
+                });
 
                 userPresences.BindTo(metadata.UserPresences);
                 userPresences.BindCollectionChanged((_, e) =>
@@ -71,10 +76,6 @@ namespace osu.Game.Users
                     if (affectsThisUser(e))
                         updatePresence();
                 });
-            }
-            else
-            {
-                updatePresence();
             }
 
             // Colour should be applied immediately on first load.
