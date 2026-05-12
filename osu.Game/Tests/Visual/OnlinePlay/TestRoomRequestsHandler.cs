@@ -9,6 +9,9 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
+using osu.Game.Rulesets;
+using osu.Game.Tests.Beatmaps;
+using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Visual.OnlinePlay
 {
@@ -21,9 +24,9 @@ namespace osu.Game.Tests.Visual.OnlinePlay
     {
         public List<Room> ServerSideRooms = new List<Room>();
 
-        private static long currentRoomId = 10000;
-        private static long currentPlaylistItemId = 10000;
-        private static long currentScoreId = 10000;
+        private long currentRoomId = 1;
+        private long currentPlaylistItemId = 1;
+        private long currentScoreId = 1;
 
         public bool HandleRequest(APIRequest request, APIUser localUser, BeatmapManager beatmapManager)
         {
@@ -146,8 +149,14 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
                 case GetBeatmapRequest getBeatmapRequest:
                 {
-                    if (createResponseBeatmaps(getBeatmapRequest.OnlineID).FirstOrDefault() is APIBeatmap bm)
+                    if (createResponseBeatmaps(beatmapManager, getBeatmapRequest.OnlineID).FirstOrDefault() is APIBeatmap bm)
                         getBeatmapRequest.TriggerSuccess(bm);
+                    return true;
+                }
+
+                case GetBeatmapsRequest getBeatmapsRequest:
+                {
+                    getBeatmapsRequest.TriggerSuccess(new GetBeatmapsResponse { Beatmaps = createResponseBeatmaps(beatmapManager, getBeatmapsRequest.BeatmapIds.ToArray()) });
                     return true;
                 }
             }
@@ -195,9 +204,25 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             return responseRoom;
         }
 
-        private IEnumerable<APIBeatmap> createResponseBeatmaps(int onlineID)
+        private static List<APIBeatmap> createResponseBeatmaps(BeatmapManager beatmapManager, params int[] onlineIds)
         {
-            yield return new APIBeatmap { OnlineID = onlineID };
+            var result = new List<APIBeatmap>();
+
+            foreach (int id in onlineIds)
+            {
+                var baseBeatmap = beatmapManager.QueryBeatmap(b => b.OnlineID == id);
+
+                if (baseBeatmap == null)
+                {
+                    baseBeatmap = new TestBeatmap(new RulesetInfo { OnlineID = 0 }).BeatmapInfo;
+                    baseBeatmap.OnlineID = id;
+                    baseBeatmap.BeatmapSet!.OnlineID = id;
+                }
+
+                result.Add(OsuTestScene.CreateAPIBeatmap(baseBeatmap));
+            }
+
+            return result;
         }
     }
 }
