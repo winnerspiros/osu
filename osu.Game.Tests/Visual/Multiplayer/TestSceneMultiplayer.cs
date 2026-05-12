@@ -1238,15 +1238,15 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 if (user == null)
                     return true;
 
-                if (user.State == lastState)
-                    return false;
-
-                // Also wait for the client-side Room to reflect the same state change.
+                // Wait for the client-side Room to advance past the pre-click state.
                 // The client Room is updated asynchronously via the component Scheduler, so if we
                 // don't wait for it here, subsequent button clicks may observe a stale client state
                 // (e.g. IsReady() returns false even though we just readied up) and behave incorrectly.
+                // We intentionally check != lastState rather than == user.State, because user.State
+                // (ServerRoom) may advance through multiple states faster than ClientRoom catches up,
+                // making an equality check impossible to satisfy.
                 var clientUser = multiplayerClient.ClientRoom?.Users.FirstOrDefault(u => u.UserID == user.UserID);
-                return clientUser?.State == user.State;
+                return clientUser?.State != lastState;
             });
         }
 
