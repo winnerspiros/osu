@@ -1233,7 +1233,21 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddUntilStep("wait for state change", () => user?.State != lastState);
+            AddUntilStep("wait for state change", () =>
+            {
+                if (user == null)
+                    return true;
+
+                // Wait for the client-side Room to advance past the pre-click state.
+                // The client Room is updated asynchronously via the component Scheduler, so if we
+                // don't wait for it here, subsequent button clicks may observe a stale client state
+                // (e.g. IsReady() returns false even though we just readied up) and behave incorrectly.
+                // We intentionally check != lastState rather than == user.State, because user.State
+                // (ServerRoom) may advance through multiple states faster than ClientRoom catches up,
+                // making an equality check impossible to satisfy.
+                var clientUser = multiplayerClient.ClientRoom?.Users.FirstOrDefault(u => u.UserID == user.UserID);
+                return clientUser?.State != lastState;
+            });
         }
 
         private void createRoom(Func<Room> room)

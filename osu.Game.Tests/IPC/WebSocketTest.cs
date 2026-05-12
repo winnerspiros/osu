@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -13,10 +15,25 @@ namespace osu.Game.Tests.IPC
     [TestFixture]
     public class WebSocketTest
     {
+        /// <summary>
+        /// Asks the OS to allocate a free ephemeral port, then immediately releases it.
+        /// This avoids hardcoding port 54321 across all tests, which would cause
+        /// HttpListenerException ("conflicts with an existing registration") when tests
+        /// run concurrently or when a previous test's server wasn't cleaned up in time.
+        /// </summary>
+        private static int getFreePort()
+        {
+            var tcp = new TcpListener(IPAddress.Loopback, 0);
+            tcp.Start();
+            int port = ((IPEndPoint)tcp.LocalEndpoint).Port;
+            tcp.Stop();
+            return port;
+        }
+
         [Test]
         public async Task TestClientInitiatedDuplexCommunication()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -55,7 +72,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestServerInitiatedDuplexCommunication()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -97,7 +114,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestServerBroadcast()
         {
-            const int port = 54321;
+            int port = getFreePort();
             const int client_count = 5;
 
             var server = new WebSocketServer(port);
@@ -142,7 +159,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestClientSoftAborts()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -160,7 +177,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestClientHardAborts()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -178,7 +195,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestServerSoftAborts()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -196,7 +213,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestServerHardAborts()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -214,7 +231,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestClientMessageTooLong()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             var client = new WebSocketClient(port);
@@ -263,7 +280,7 @@ namespace osu.Game.Tests.IPC
         [Test]
         public async Task TestStartStopServerWithoutReceivingClients()
         {
-            const int port = 54321;
+            int port = getFreePort();
 
             var server = new WebSocketServer(port);
             await server.StartAsync();
