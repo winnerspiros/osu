@@ -170,7 +170,6 @@ jobs:
         run: dotnet build -c Debug -warnaserror osu.Desktop.slnf
 
       - name: Test
-        continue-on-error: true
         run: >
           dotnet test
           ${{matrix.testSuite.dlls}}
@@ -178,7 +177,7 @@ jobs:
           --
           NUnit.ConsoleOut=0
 
-      # Attempt to upload results even if test fails.
+      # Upload results even when the test step fails (non-cancellation failure still satisfies !cancelled()).
       # https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#cancelled
       - name: Upload Test Results
         uses: actions/upload-artifact@v7
