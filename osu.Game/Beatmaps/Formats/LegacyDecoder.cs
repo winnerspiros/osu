@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -43,21 +43,23 @@ namespace osu.Game.Beatmaps.Formats
 
             while ((line = stream.ReadLine()) != null)
             {
-                if (ShouldSkipLine(line))
+                ReadOnlySpan<char> lineSpan = line.AsSpan();
+
+                if (ShouldSkipLine(lineSpan))
                     continue;
 
                 if (section != Section.Metadata)
                 {
                     // comments should not be stripped from metadata lines, as the song metadata may contain "//" as valid data.
-                    line = StripComments(line);
+                    lineSpan = StripComments(lineSpan);
                 }
 
-                line = line.TrimEnd();
+                lineSpan = lineSpan.TrimEnd();
 
-                if (line.StartsWith('[') && line.EndsWith(']'))
+                if (lineSpan.Length > 0 && lineSpan[0] == '[' && lineSpan[^1] == ']')
                 {
-                    if (!Enum.TryParse(line[1..^1], out section))
-                        Logger.Log($"Unknown section \"{line}\" in \"{output}\"");
+                    if (!Enum.TryParse(lineSpan[1..^1], out section))
+                        Logger.Log($"Unknown section \"{lineSpan.ToString()}\" in \"{output}\"");
 
                     OnBeginNewSection(section);
                     continue;
@@ -65,16 +67,18 @@ namespace osu.Game.Beatmaps.Formats
 
                 try
                 {
-                    ParseLine(output, section, line);
+                    ParseLine(output, section, lineSpan);
                 }
                 catch (Exception e)
                 {
-                    Logger.Log($"Failed to process line \"{line}\" into \"{output}\": {e.Message}");
+                    Logger.Log($"Failed to process line \"{lineSpan.ToString()}\" into \"{output}\": {e.Message}");
                 }
             }
         }
 
-        protected virtual bool ShouldSkipLine(string line) => string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith("//".AsSpan(), StringComparison.Ordinal);
+        protected virtual bool ShouldSkipLine(string line) => ShouldSkipLine(line.AsSpan());
+
+        protected virtual bool ShouldSkipLine(ReadOnlySpan<char> line) => line.IsWhiteSpace() || line.TrimStart().StartsWith("//".AsSpan(), StringComparison.Ordinal);
 
         /// <summary>
         /// Invoked when a new <see cref="Section"/> has been entered.
@@ -84,7 +88,9 @@ namespace osu.Game.Beatmaps.Formats
         {
         }
 
-        protected virtual void ParseLine(T output, Section section, string line)
+        protected virtual void ParseLine(T output, Section section, string line) => ParseLine(output, section, line.AsSpan());
+
+        protected virtual void ParseLine(T output, Section section, ReadOnlySpan<char> line)
         {
             switch (section)
             {
@@ -94,44 +100,55 @@ namespace osu.Game.Beatmaps.Formats
             }
         }
 
-        protected string StripComments(string line)
+        protected string StripComments(string line) => StripComments(line.AsSpan()).ToString();
+
+        protected ReadOnlySpan<char> StripComments(ReadOnlySpan<char> line)
         {
-            int index = line.AsSpan().IndexOf("//".AsSpan());
+            int index = line.IndexOf("//".AsSpan());
             if (index > 0)
-                return line.Substring(0, index);
+                return line[..index];
 
             return line;
         }
 
-        private Color4 convertSettingStringToColor4(string[] split, bool allowAlpha, KeyValuePair<string, string> pair)
+        private Color4 convertSettingStringToColor4(ReadOnlySpan<char> value, bool allowAlpha)
         {
-            if (split.Length != 3 && split.Length != 4)
-                throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {pair.Value}");
+            // Note: We're still allocating a bit here due to Color4 taking components,
+            // but we avoid string splitting.
 
-            Color4 colour;
+            int count = 1;
+            foreach (char c in value)
+            {
+                if (c == ',') count++;
+            }
+
+            if (count != 3 && count != 4)
+                throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {value.ToString()}");
 
             try
             {
-                byte alpha = allowAlpha && split.Length == 4 ? byte.Parse(split[3]) : (byte)255;
-                colour = new Color4(byte.Parse(split[0]), byte.Parse(split[1]), byte.Parse(split[2]), alpha);
+                Span<Range> ranges = stackalloc Range[4];
+                int actualCount = value.Split(ranges, ',');
+
+                byte alpha = allowAlpha && actualCount == 4 ? byte.Parse(value[ranges[3]]) : (byte)255;
+                return new Color4(byte.Parse(value[ranges[0]]), byte.Parse(value[ranges[1]]), byte.Parse(value[ranges[2]]), alpha);
             }
             catch
             {
                 throw new InvalidOperationException(@"Color must be specified with 8-bit integer components");
             }
-
-            return colour;
         }
 
-        protected void HandleColours<TModel>(TModel output, string line, bool allowAlpha)
+        protected void HandleColours<TModel>(TModel output, string line, bool allowAlpha) => HandleColours(output, line.AsSpan(), allowAlpha);
+
+        protected void HandleColours<TModel>(TModel output, ReadOnlySpan<char> line, bool allowAlpha)
         {
             var pair = SplitKeyVal(line);
 
-            string[] split = pair.Value.Split(',');
-            Color4 colour = convertSettingStringToColor4(split, allowAlpha, pair);
+            Color4 colour = convertSettingStringToColor4(pair.ValueSpan, allowAlpha);
 
-            bool isCombo = pair.Key.StartsWith(@"Combo", StringComparison.Ordinal)
-                           && int.TryParse(pair.Key[5..], out int comboIndex)
+            bool isCombo = pair.KeySpan.StartsWith(@"Combo".AsSpan(), StringComparison.Ordinal)
+                           && int.TryParse(pair.KeySpan[5..], out int comboIndex)
                            && comboIndex >= 1 && comboIndex <= MAX_COMBO_COLOUR_COUNT;
 
             if (isCombo)
@@ -148,15 +165,42 @@ namespace osu.Game.Beatmaps.Formats
             }
         }
 
-        protected KeyValuePair<string, string> SplitKeyVal(string line, char separator = ':', bool shouldTrim = true)
-        {
-            string[] split = line.Split(separator, 2, shouldTrim ? StringSplitOptions.TrimEntries : StringSplitOptions.None);
+        protected KeyValuePair<string, string> SplitKeyVal(string line, char separator = ':', bool shouldTrim = true) => SplitKeyVal(line.AsSpan(), separator, shouldTrim).ToKeyValuePair();
 
-            return new KeyValuePair<string, string>
-            (
-                split[0],
-                split.Length > 1 ? split[1] : string.Empty
-            );
+        protected KeyValueSpan SplitKeyVal(ReadOnlySpan<char> line, char separator = ':', bool shouldTrim = true)
+        {
+            int index = line.IndexOf(separator);
+
+            if (index == -1)
+                return new KeyValueSpan(line, ReadOnlySpan<char>.Empty);
+
+            ReadOnlySpan<char> key = line[..index];
+            ReadOnlySpan<char> value = line[(index + 1)..];
+
+            if (shouldTrim)
+            {
+                key = key.Trim();
+                value = value.Trim();
+            }
+
+            return new KeyValueSpan(key, value);
+        }
+
+        protected readonly ref struct KeyValueSpan
+        {
+            public readonly ReadOnlySpan<char> KeySpan;
+            public readonly ReadOnlySpan<char> ValueSpan;
+
+            public string Key => KeySpan.ToString();
+            public string Value => ValueSpan.ToString();
+
+            public KeyValueSpan(ReadOnlySpan<char> key, ReadOnlySpan<char> value)
+            {
+                KeySpan = key;
+                ValueSpan = value;
+            }
+
+            public KeyValuePair<string, string> ToKeyValuePair() => new KeyValuePair<string, string>(Key, Value);
         }
 
         protected string CleanFilename(string path) => path

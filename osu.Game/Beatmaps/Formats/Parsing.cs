@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -15,7 +15,9 @@ namespace osu.Game.Beatmaps.Formats
 
         public const double MAX_PARSE_VALUE = int.MaxValue;
 
-        public static float ParseFloat(string input, float parseLimit = (float)MAX_PARSE_VALUE, bool allowNaN = false)
+        public static float ParseFloat(string input, float parseLimit = (float)MAX_PARSE_VALUE, bool allowNaN = false) => ParseFloat(input.AsSpan(), parseLimit, allowNaN);
+
+        public static float ParseFloat(ReadOnlySpan<char> input, float parseLimit = (float)MAX_PARSE_VALUE, bool allowNaN = false)
         {
             float output = float.Parse(input, CultureInfo.InvariantCulture);
 
@@ -27,7 +29,9 @@ namespace osu.Game.Beatmaps.Formats
             return output;
         }
 
-        public static double ParseDouble(string input, double parseLimit = MAX_PARSE_VALUE, bool allowNaN = false)
+        public static double ParseDouble(string input, double parseLimit = MAX_PARSE_VALUE, bool allowNaN = false) => ParseDouble(input.AsSpan(), parseLimit, allowNaN);
+
+        public static double ParseDouble(ReadOnlySpan<char> input, double parseLimit = MAX_PARSE_VALUE, bool allowNaN = false)
         {
             double output = double.Parse(input, CultureInfo.InvariantCulture);
 
@@ -39,7 +43,9 @@ namespace osu.Game.Beatmaps.Formats
             return output;
         }
 
-        public static int ParseInt(string input, int parseLimit = (int)MAX_PARSE_VALUE)
+        public static int ParseInt(string input, int parseLimit = (int)MAX_PARSE_VALUE) => ParseInt(input.AsSpan(), parseLimit);
+
+        public static int ParseInt(ReadOnlySpan<char> input, int parseLimit = (int)MAX_PARSE_VALUE)
         {
             int output = int.Parse(input, CultureInfo.InvariantCulture);
 

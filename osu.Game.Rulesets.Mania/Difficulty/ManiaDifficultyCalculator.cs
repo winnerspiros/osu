@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Rulesets.Difficulty;
@@ -46,12 +46,20 @@ namespace osu.Game.Rulesets.Mania.Difficulty
 
             ManiaDifficultyAttributes attributes = new ManiaDifficultyAttributes
             {
-                StarRating = skills.OfType<Strain>().Single().DifficultyValue() * difficulty_multiplier,
+                StarRating = ((Strain)skills[0]).DifficultyValue() * difficulty_multiplier,
                 Mods = mods,
-                MaxCombo = beatmap.HitObjects.Sum(maxComboForObject),
+                MaxCombo = calculateMaxCombo(beatmap),
             };
 
             return attributes;
+        }
+
+        private static int calculateMaxCombo(IBeatmap beatmap)
+        {
+            int maxCombo = 0;
+            foreach (var h in beatmap.HitObjects)
+                maxCombo += maxComboForObject(h);
+            return maxCombo;
         }
 
         private static int maxComboForObject(HitObject hitObject)

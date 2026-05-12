@@ -13,7 +13,7 @@ namespace osu.Game.Skinning
         {
         }
 
-        protected override void ParseLine(SkinConfiguration skin, Section section, string line)
+        protected override void ParseLine(SkinConfiguration skin, Section section, ReadOnlySpan<char> line)
         {
             if (section != Section.Colours)
             {
@@ -22,7 +22,7 @@ namespace osu.Game.Skinning
                 switch (section)
                 {
                     case Section.General:
-                        switch (pair.Key)
+                        switch (pair.KeySpan)
                         {
                             case @"Name":
                                 skin.SkinInfo.Name = pair.Value;
@@ -33,9 +33,9 @@ namespace osu.Game.Skinning
                                 return;
 
                             case @"Version":
-                                if (pair.Value == "latest")
+                                if (pair.ValueSpan.SequenceEqual("latest".AsSpan()))
                                     skin.LegacyVersion = SkinConfiguration.LATEST_VERSION;
-                                else if (decimal.TryParse(pair.Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal version))
+                                else if (decimal.TryParse(pair.ValueSpan, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal version))
                                     skin.LegacyVersion = version;
 
                                 return;

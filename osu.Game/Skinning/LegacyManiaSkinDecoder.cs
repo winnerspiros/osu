@@ -31,17 +31,17 @@ namespace osu.Game.Skinning
             currentConfig = null;
         }
 
-        protected override void ParseLine(List<LegacyManiaSkinConfiguration> output, Section section, string line)
+        protected override void ParseLine(List<LegacyManiaSkinConfiguration> output, Section section, ReadOnlySpan<char> line)
         {
             switch (section)
             {
                 case Section.Mania:
                     var pair = SplitKeyVal(line);
 
-                    switch (pair.Key)
+                    switch (pair.KeySpan)
                     {
                         case "Keys":
-                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(pair.Value, CultureInfo.InvariantCulture));
+                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(pair.ValueSpan, CultureInfo.InvariantCulture));
 
                             // Silently ignore duplicate configurations.
                             if (output.All(c => c.Keys != currentConfig.Keys))
@@ -52,7 +52,7 @@ namespace osu.Game.Skinning
                             break;
 
                         default:
-                            pendingLines.Add(line);
+                            pendingLines.Add(line.ToString());
 
                             // Hold all lines until a "Keys" item is found.
                             if (currentConfig != null)
@@ -72,7 +72,7 @@ namespace osu.Game.Skinning
             {
                 var pair = SplitKeyVal(line);
 
-                switch (pair.Key)
+                switch (pair.KeySpan)
                 {
                     case "ColumnLineWidth":
                         parseArrayValue(pair.Value, currentConfig.ColumnLineWidth, false);
@@ -132,7 +132,7 @@ namespace osu.Game.Skinning
                         break;
 
                     case "LightFramePerSecond":
-                        int lightFramePerSecond = int.Parse(pair.Value, CultureInfo.InvariantCulture);
+                        int lightFramePerSecond = int.Parse(pair.ValueSpan, CultureInfo.InvariantCulture);
                         currentConfig.LightFramePerSecond = lightFramePerSecond > 0 ? lightFramePerSecond : 24;
                         break;
 

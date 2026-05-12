@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps.Legacy;
 using osu.Game.IO;
@@ -55,7 +55,7 @@ namespace osu.Game.Beatmaps.Formats
             base.ParseStreamInto(stream, storyboard);
         }
 
-        protected override void ParseLine(Storyboard storyboard, Section section, string line)
+        protected override void ParseLine(Storyboard storyboard, Section section, ReadOnlySpan<char> line)
         {
             switch (section)
             {
@@ -75,29 +75,29 @@ namespace osu.Game.Beatmaps.Formats
             base.ParseLine(storyboard, section, line);
         }
 
-        private void handleGeneral(Storyboard storyboard, string line)
+        private void handleGeneral(Storyboard storyboard, ReadOnlySpan<char> line)
         {
             var pair = SplitKeyVal(line);
 
-            switch (pair.Key)
+            switch (pair.KeySpan)
             {
                 case "UseSkinSprites":
-                    storyboard.UseSkinSprites = pair.Value == "1";
+                    storyboard.UseSkinSprites = pair.ValueSpan.SequenceEqual("1".AsSpan());
                     break;
 
                 case @"WidescreenStoryboard":
-                    storyboard.Beatmap.WidescreenStoryboard = Parsing.ParseInt(pair.Value) == 1;
+                    storyboard.Beatmap.WidescreenStoryboard = Parsing.ParseInt(pair.ValueSpan) == 1;
                     break;
             }
         }
 
-        private void handleEvents(string line)
+        private void handleEvents(ReadOnlySpan<char> line)
         {
-            decodeVariables(ref line);
+            string lineStr = line.ToString(); decodeVariables(ref lineStr); ReadOnlySpan<char> lineDecoded = lineStr.AsSpan();;
 
             int depth = 0;
 
-            foreach (char c in line)
+            foreach (char c in lineDecoded)
             {
                 if (c == ' ' || c == '_')
                     depth++;
@@ -105,9 +105,9 @@ namespace osu.Game.Beatmaps.Formats
                     break;
             }
 
-            line = line.Substring(depth);
+            lineDecoded = lineDecoded[depth..];
 
-            string[] split = line.Split(',');
+            string[] split = lineDecoded.ToString().Split(',');
 
             if (depth == 0)
             {
@@ -370,7 +370,7 @@ namespace osu.Game.Beatmaps.Formats
             return Enum.IsDefined(parsed) ? parsed : AnimationLoopType.LoopForever;
         }
 
-        private void handleVariables(string line)
+        private void handleVariables(ReadOnlySpan<char> line)
         {
             var pair = SplitKeyVal(line, '=', false);
             variables[pair.Key] = pair.Value;
