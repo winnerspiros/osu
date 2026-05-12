@@ -5,6 +5,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using osu.Framework.Utils;
 using osu.Game.Audio;
@@ -60,7 +61,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
             double startTime = Parsing.ParseDouble(text[ranges[2]]) + offset;
 
-            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(text[ranges[3]]);
+            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(str[ranges[3]]);
 
             int comboOffset = (int)(type & LegacyHitObjectType.ComboOffset) >> 4;
             type &= ~LegacyHitObjectType.ComboOffset;
@@ -150,7 +151,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
                 for (int i = 0; i < nodes; i++)
                     nodeSamples.Add(convertSoundType(nodeSoundTypes[i], nodeBankInfos[i]));
 
-                result = createSlider(pos, combo, comboOffset, convertPathString(text[ranges[5]], pos), length, repeatCount, nodeSamples);
+                result = createSlider(pos, combo, comboOffset, convertPathString(text[ranges[5]].ToString(), pos), length, repeatCount, nodeSamples);
             }
             else if (type.HasFlag(LegacyHitObjectType.Spinner))
             {
@@ -167,11 +168,19 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
                 double endTime = Math.Max(startTime, Parsing.ParseDouble(text[ranges[2]]));
 
-                if (count > 5 && !string.IsNullOrEmpty(text[ranges[5]]))
+                if (count > 5 && !text[ranges[5]].IsEmpty)
                 {
-                    string[] ss = text[ranges[5]].Split(':');
-                    endTime = Math.Max(startTime, Parsing.ParseDouble(ss[0]));
-                    readCustomSampleBanks(string.Join(':', ss.Skip(1)), bankInfo);
+                    ReadOnlySpan<char> ss = text[ranges[5]];
+                    int firstColon = ss.IndexOf(':');
+                    if (firstColon == -1)
+                    {
+                        endTime = Math.Max(startTime, Parsing.ParseDouble(ss));
+                    }
+                    else
+                    {
+                        endTime = Math.Max(startTime, Parsing.ParseDouble(ss[..firstColon]));
+                        readCustomSampleBanks(ss[(firstColon + 1)..], bankInfo);
+                    }
                 }
 
                 result = createHold(pos, endTime + offset - startTime);
@@ -229,9 +238,9 @@ namespace osu.Game.Rulesets.Objects.Legacy
                 bankInfo.CustomSampleBank = Parsing.ParseInt(str[ranges[2]]);
 
             if (count > 3)
-                bankInfo.Volume = Math.Max(0, Parsing.ParseInt(text[ranges[3]]));
+                bankInfo.Volume = Math.Max(0, Parsing.ParseInt(str[ranges[3]]));
 
-            bankInfo.Filename = count > 4 ? text[ranges[4]] : null;
+            bankInfo.Filename = count > 4 ? str[ranges[4]].ToString() : null;
         }
 
         private PathType convertPathType(string input)

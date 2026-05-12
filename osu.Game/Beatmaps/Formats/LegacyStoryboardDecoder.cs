@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 
 using osu.Framework.Graphics;
@@ -33,7 +34,7 @@ namespace osu.Game.Beatmaps.Formats
         public static void Register()
         {
             // note that this isn't completely correct
-            AddDecoder<Storyboard>(@"osu file format v", m => new LegacyStoryboardDecoder(Parsing.ParseInt(m.Split('v').Last())));
+            AddDecoder<Storyboard>(@"osu file format v", m => new LegacyStoryboardDecoder(Parsing.ParseInt(m.AsSpan(m.LastIndexOf('v') + 1))));
             AddDecoder<Storyboard>(@"[Events]", _ => new LegacyStoryboardDecoder());
             SetFallbackDecoder<Storyboard>(() => new LegacyStoryboardDecoder());
         }
@@ -93,7 +94,9 @@ namespace osu.Game.Beatmaps.Formats
 
         private void handleEvents(ReadOnlySpan<char> line)
         {
-            string lineStr = line.ToString(); decodeVariables(ref lineStr); ReadOnlySpan<char> lineDecoded = lineStr.AsSpan();;
+            string lineStr = line.ToString();
+            decodeVariables(ref lineStr);
+            ReadOnlySpan<char> lineDecoded = lineStr.AsSpan();
 
             int depth = 0;
 

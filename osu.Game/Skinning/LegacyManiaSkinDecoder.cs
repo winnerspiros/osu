@@ -36,12 +36,12 @@ namespace osu.Game.Skinning
             switch (section)
             {
                 case Section.Mania:
-                    var pair = SplitKeyVal(line);
+                    var pair = SplitKeyVal(line.ToString());
 
-                    switch (pair.KeySpan)
+                    switch (pair.Key)
                     {
                         case "Keys":
-                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(pair.ValueSpan, CultureInfo.InvariantCulture));
+                            currentConfig = new LegacyManiaSkinConfiguration(int.Parse(pair.Value, CultureInfo.InvariantCulture));
 
                             // Silently ignore duplicate configurations.
                             if (output.All(c => c.Keys != currentConfig.Keys))
@@ -70,9 +70,9 @@ namespace osu.Game.Skinning
 
             foreach (string line in pendingLines)
             {
-                var pair = SplitKeyVal(line);
+                var pair = SplitKeyVal(line.ToString());
 
-                switch (pair.KeySpan)
+                switch (pair.Key)
                 {
                     case "ColumnLineWidth":
                         parseArrayValue(pair.Value, currentConfig.ColumnLineWidth, false);
@@ -132,7 +132,7 @@ namespace osu.Game.Skinning
                         break;
 
                     case "LightFramePerSecond":
-                        int lightFramePerSecond = int.Parse(pair.ValueSpan, CultureInfo.InvariantCulture);
+                        int lightFramePerSecond = int.Parse(pair.Value, CultureInfo.InvariantCulture);
                         currentConfig.LightFramePerSecond = lightFramePerSecond > 0 ? lightFramePerSecond : 24;
                         break;
 

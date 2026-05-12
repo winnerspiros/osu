@@ -50,8 +50,11 @@
     <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
          AOT profile has a JIT fallback instead of MissingMethodException at first call. -->
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
-    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
   </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.511.1" />

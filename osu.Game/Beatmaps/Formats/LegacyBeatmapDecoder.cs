@@ -185,9 +185,9 @@ namespace osu.Game.Beatmaps.Formats
 
                     var appliedNodeSamples = new List<HitSampleInfo>();
                     foreach (var s in hasRepeats.NodeSamples[i])
-                {
-                    appliedNodeSamples.Add(nodeSamplePoint.ApplyTo(s));
-                }
+                    {
+                        appliedNodeSamples.Add(nodeSamplePoint.ApplyTo(s));
+                    }
                     hasRepeats.NodeSamples[i] = appliedNodeSamples;
                 }
             }
@@ -448,7 +448,8 @@ namespace osu.Game.Beatmaps.Formats
 
         private void handleEvent(ReadOnlySpan<char> line)
         {
-            Span<Range> ranges = stackalloc Range[32]; int count = line.Split(ranges, ',');
+            Span<Range> ranges = stackalloc Range[32];
+            int count = line.Split(ranges, ',');
 
             // Until we have full storyboard encoder coverage, let's track any lines which aren't handled
             // and store them to a temporary location such that they aren't lost on editor save / export.
@@ -464,14 +465,14 @@ namespace osu.Game.Beatmaps.Formats
                         // Allow the first sprite (by file order) to act as the background in such cases.
                         if (string.IsNullOrEmpty(beatmap.BeatmapInfo.Metadata.BackgroundFile))
                         {
-                            beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(split[3]);
+                            beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(line[ranges[3]].ToString());
                             lineSupportedByEncoder = true;
                         }
 
                         break;
 
                     case LegacyEventType.Video:
-                        string filename = CleanFilename(split[2]);
+                        string filename = CleanFilename(line[ranges[2]].ToString());
 
                         // Some very old beatmaps had incorrect type specifications for their backgrounds (ie. using 1 for VIDEO
                         // instead of 0 for BACKGROUND). To handle this gracefully, check the file extension against known supported
@@ -485,13 +486,13 @@ namespace osu.Game.Beatmaps.Formats
                         break;
 
                     case LegacyEventType.Background:
-                        beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(split[2]);
+                        beatmap.BeatmapInfo.Metadata.BackgroundFile = CleanFilename(line[ranges[2]].ToString());
                         lineSupportedByEncoder = true;
                         break;
 
                     case LegacyEventType.Break:
-                        double start = getOffsetTime(Parsing.ParseDouble(split[1]));
-                        double end = Math.Max(start, getOffsetTime(Parsing.ParseDouble(split[2])));
+                        double start = getOffsetTime(Parsing.ParseDouble(line[ranges[1]]));
+                        double end = Math.Max(start, getOffsetTime(Parsing.ParseDouble(line[ranges[2]])));
 
                         beatmap.Breaks.Add(new BreakPeriod(start, end));
                         lineSupportedByEncoder = true;
@@ -500,12 +501,13 @@ namespace osu.Game.Beatmaps.Formats
             }
 
             if (!lineSupportedByEncoder)
-                beatmap.UnhandledEventLines.Add(line);
+                beatmap.UnhandledEventLines.Add(line.ToString());
         }
 
         private void handleTimingPoint(ReadOnlySpan<char> line)
         {
-            Span<Range> ranges = stackalloc Range[32]; int count = line.Split(ranges, ',');
+            Span<Range> ranges = stackalloc Range[32];
+            int count = line.Split(ranges, ',');
 
             double time = getOffsetTime(Parsing.ParseDouble(line[ranges[0]].Trim()));
 

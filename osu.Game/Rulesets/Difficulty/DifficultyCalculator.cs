@@ -278,22 +278,15 @@ namespace osu.Game.Rulesets.Difficulty
         /// <param name="mods">The <see cref="Mod"/>s that difficulty was calculated with.</param>
         /// <param name="skills">The skills which processed the beatmap.</param>
         /// <param name="clockRate">The rate at which the gameplay clock is run at.</param>
-                protected static T GetSkill<T>(IEnumerable<Skill> skills, Func<T, bool>? predicate = null) where T : Skill
-        {
-            T? found = findSkill(skills, predicate);
+        protected static T GetSkill<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
+            => findSkill(skills, predicate) ?? throw new InvalidOperationException($@"Could not find {typeof(T).Name}.");
 
-            if (found == null)
-                throw new InvalidOperationException($@"Could not find {typeof(T).Name}.");
-
-            return found;
-        }
-
-        protected static T? GetSkillOrDefault<T>(IEnumerable<Skill> skills, Func<T, bool>? predicate = null) where T : Skill
+        protected static T GetSkillOrDefault<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
             => findSkill(skills, predicate);
 
-        private static T? findSkill<T>(IEnumerable<Skill> skills, Func<T, bool>? predicate = null) where T : Skill
+        private static T findSkill<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
         {
-            T? found = null;
+            T found = null;
 
             foreach (var s in skills)
             {

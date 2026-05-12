@@ -18,12 +18,12 @@ namespace osu.Game.Skinning
         {
             if (section != Section.Colours)
             {
-                var pair = SplitKeyVal(line);
+                var pair = SplitKeyVal(line.ToString());
 
                 switch (section)
                 {
                     case Section.General:
-                        switch (pair.KeySpan)
+                        switch (pair.Key)
                         {
                             case @"Name":
                                 skin.SkinInfo.Name = pair.Value;
@@ -34,9 +34,9 @@ namespace osu.Game.Skinning
                                 return;
 
                             case @"Version":
-                                if (pair.ValueSpan.SequenceEqual("latest".AsSpan()))
+                                if (pair.Value == "latest")
                                     skin.LegacyVersion = SkinConfiguration.LATEST_VERSION;
-                                else if (decimal.TryParse(pair.ValueSpan, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal version))
+                                else if (decimal.TryParse(pair.Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal version))
                                     skin.LegacyVersion = version;
 
                                 return;
