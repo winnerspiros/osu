@@ -111,26 +111,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             if (beatmap.HitObjects.Count == 0)
                 return new TaikoDifficultyAttributes { Mods = mods };
 
-            Rhythm? rhythm = null;
-            Reading? reading = null;
-            Colour? colour = null;
-            Stamina? stamina = null;
-            Stamina? singleColourStamina = null;
-
-            foreach (var skill in skills)
-            {
-                if (skill is Rhythm r) rhythm = r;
-                else if (skill is Reading re) reading = re;
-                else if (skill is Colour c) colour = c;
-                else if (skill is Stamina s)
-                {
-                    if (s.SingleColourStamina) singleColourStamina = s;
-                    else stamina = s;
-                }
-            }
-
-            if (rhythm == null || reading == null || colour == null || stamina == null || singleColourStamina == null)
-                throw new InvalidOperationException("Required skills not found");
+            Rhythm rhythm = GetSkill<Rhythm>(skills);
+            Reading reading = GetSkill<Reading>(skills);
+            Colour colour = GetSkill<Colour>(skills);
+            Stamina stamina = GetSkill<Stamina>(skills, s => !s.SingleColourStamina);
+            Stamina singleColourStamina = GetSkill<Stamina>(skills, s => s.SingleColourStamina);
 
             double rhythmDifficulty = rhythm.DifficultyValue() * rhythm_skill_multiplier;
             double readingDifficulty = reading.DifficultyValue() * reading_skill_multiplier;

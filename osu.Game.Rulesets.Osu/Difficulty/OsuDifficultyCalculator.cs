@@ -51,30 +51,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (beatmap.HitObjects.Count == 0)
                 return new OsuDifficultyAttributes { Mods = mods };
 
-            Aim? aim = null;
-            Aim? aimWithoutSliders = null;
-            Speed? speed = null;
-            Flashlight? flashlight = null;
-
-            foreach (var skill in skills)
-            {
-                if (skill is Aim a)
-                {
-                    if (a.IncludeSliders) aim = a;
-                    else aimWithoutSliders = a;
-                }
-                else if (skill is Speed s)
-                {
-                    speed = s;
-                }
-                else if (skill is Flashlight f)
-                {
-                    flashlight = f;
-                }
-            }
-
-            if (aim == null || aimWithoutSliders == null || speed == null)
-                throw new InvalidOperationException("Required skills not found");
+            Aim aim = GetSkill<Aim>(skills, a => a.IncludeSliders);
+            Aim aimWithoutSliders = GetSkill<Aim>(skills, a => !a.IncludeSliders);
+            Speed speed = GetSkill<Speed>(skills);
+            Flashlight? flashlight = GetSkillOrDefault<Flashlight>(skills);
 
             double speedNotes = speed.RelevantNoteCount();
 
@@ -100,9 +80,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             foreach (var h in beatmap.HitObjects)
             {
-                if (h is HitCircle) hitCircleCount++;
-                else if (h is Slider) sliderCount++;
-                else if (h is Spinner) spinnerCount++;
+                if (h is HitCircle)
+                {
+                    hitCircleCount++;
+                }
+                else if (h is Slider)
+                {
+                    sliderCount++;
+                }
+                else if (h is Spinner)
+                {
+                    spinnerCount++;
+                }
             }
 
             int totalHits = beatmap.HitObjects.Count;

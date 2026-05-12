@@ -38,7 +38,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty
 
             CatchDifficultyAttributes attributes = new CatchDifficultyAttributes
             {
-                StarRating = Math.Sqrt(((Movement)skills[0]).DifficultyValue()) * difficulty_multiplier,
+                StarRating = Math.Sqrt(GetSkill<Movement>(skills).DifficultyValue()) * difficulty_multiplier,
                 Mods = mods,
                 MaxCombo = beatmap.GetMaxCombo(),
             };

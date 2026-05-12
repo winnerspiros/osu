@@ -172,7 +172,10 @@ namespace osu.Game.Beatmaps.Formats
                 SampleControlPoint sampleControlPoint = (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.StartTime + CONTROL_POINT_LENIENCY + 1)
                                                         ?? SampleControlPoint.DEFAULT;
                 var appliedSamples = new List<HitSampleInfo>();
-                foreach (var s in hitObject.Samples) appliedSamples.Add(sampleControlPoint.ApplyTo(s));
+                foreach (var s in hitObject.Samples)
+                {
+                    appliedSamples.Add(sampleControlPoint.ApplyTo(s));
+                }
                 hitObject.Samples = appliedSamples;
 
                 for (int i = 0; i < hasRepeats.NodeSamples.Count; i++)
@@ -181,7 +184,10 @@ namespace osu.Game.Beatmaps.Formats
                     var nodeSamplePoint = (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(time) ?? SampleControlPoint.DEFAULT;
 
                     var appliedNodeSamples = new List<HitSampleInfo>();
-                    foreach (var s in hasRepeats.NodeSamples[i]) appliedNodeSamples.Add(nodeSamplePoint.ApplyTo(s));
+                    foreach (var s in hasRepeats.NodeSamples[i])
+                {
+                    appliedNodeSamples.Add(nodeSamplePoint.ApplyTo(s));
+                }
                     hasRepeats.NodeSamples[i] = appliedNodeSamples;
                 }
             }
@@ -190,7 +196,10 @@ namespace osu.Game.Beatmaps.Formats
                 SampleControlPoint sampleControlPoint = (beatmap.ControlPointInfo as LegacyControlPointInfo)?.SamplePointAt(hitObject.GetEndTime() + CONTROL_POINT_LENIENCY)
                                                         ?? SampleControlPoint.DEFAULT;
                 var appliedSamples = new List<HitSampleInfo>();
-                foreach (var s in hitObject.Samples) appliedSamples.Add(sampleControlPoint.ApplyTo(s));
+                foreach (var s in hitObject.Samples)
+                {
+                    appliedSamples.Add(sampleControlPoint.ApplyTo(s));
+                }
                 hitObject.Samples = appliedSamples;
             }
         }

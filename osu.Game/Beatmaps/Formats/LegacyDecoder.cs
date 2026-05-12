@@ -116,21 +116,17 @@ namespace osu.Game.Beatmaps.Formats
             // Note: We're still allocating a bit here due to Color4 taking components,
             // but we avoid string splitting.
 
-            int count = 1;
-            foreach (char c in value)
-            {
-                if (c == ',') count++;
-            }
+            Span<Range> ranges = stackalloc Range[5];
+            int count = value.Split(ranges, ',');
 
             if (count != 3 && count != 4)
+            {
                 throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {value.ToString()}");
+            }
 
             try
             {
-                Span<Range> ranges = stackalloc Range[4];
-                int actualCount = value.Split(ranges, ',');
-
-                byte alpha = allowAlpha && actualCount == 4 ? byte.Parse(value[ranges[3]]) : (byte)255;
+                byte alpha = allowAlpha && count == 4 ? byte.Parse(value[ranges[3]]) : (byte)255;
                 return new Color4(byte.Parse(value[ranges[0]]), byte.Parse(value[ranges[1]]), byte.Parse(value[ranges[2]]), alpha);
             }
             catch

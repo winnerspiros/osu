@@ -46,7 +46,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
 
             ManiaDifficultyAttributes attributes = new ManiaDifficultyAttributes
             {
-                StarRating = ((Strain)skills[0]).DifficultyValue() * difficulty_multiplier,
+                StarRating = GetSkill<Strain>(skills).DifficultyValue() * difficulty_multiplier,
                 Mods = mods,
                 MaxCombo = calculateMaxCombo(beatmap),
             };

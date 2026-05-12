@@ -85,6 +85,11 @@ namespace osu.Android
             return game;
         }
 
+        protected OsuGameActivity(IntPtr handle, JniHandleOwnership transfer)
+            : base()
+        {
+        }
+
         public OsuGameActivity()
         {
             game = new OsuGameAndroid(this);

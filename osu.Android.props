@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <SupportedOSPlatformVersion>33.0</SupportedOSPlatformVersion>
     <!-- arm64-v8a only.  Modern Android devices are 99%+ arm64; 32-bit arm32 (armeabi-v7a)
@@ -22,6 +22,7 @@
          The default runtime-generated trampolines are slower but proven reliable. -->
     <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
     <NoWarn>$(NoWarn);NU1608;XA4301</NoWarn>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -49,6 +50,7 @@
     <!-- Keep IL alongside profiled-AOT native code so any method outside the bundled
          AOT profile has a JIT fallback instead of MissingMethodException at first call. -->
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
+    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
   </PropertyGroup>
 
   <ItemGroup>
@@ -74,6 +76,7 @@
          so excluding it entirely is safe. -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2025.806.0-nativelibs"
                       ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" NoWarn="NU1510" Condition="'$(Configuration)' == 'Release'" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -108,7 +111,7 @@
          RID does not start with `android` is stripped. This covers every non-Android
          desktop/mobile RID in one rule and is future-proof against new RIDs.
        * The path match uses forward-slash normalisation with the doubled-backslash
-         escape `'\\'` required inside MSBuild property-function string literals
+         escape `\\\\` required inside MSBuild property-function string literals
          (the previous `'\'` form is ambiguous to the expression parser).
        * Applied to `ResolvedFileToPublish` (the primary input to the .NET Android SDK's
          publish step) and also to `ReferenceCopyLocalPaths` / `RuntimeCopyLocalItems`
