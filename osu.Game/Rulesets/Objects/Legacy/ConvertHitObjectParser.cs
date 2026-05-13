@@ -61,7 +61,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
             double startTime = Parsing.ParseDouble(text[ranges[2]]) + offset;
 
-            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(str[ranges[3]]);
+            LegacyHitObjectType type = (LegacyHitObjectType)Parsing.ParseInt(text[ranges[3]]);
 
             int comboOffset = (int)(type & LegacyHitObjectType.ComboOffset) >> 4;
             type &= ~LegacyHitObjectType.ComboOffset;
