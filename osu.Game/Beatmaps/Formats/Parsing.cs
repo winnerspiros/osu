@@ -21,10 +21,19 @@ namespace osu.Game.Beatmaps.Formats
         {
             float output = float.Parse(input, CultureInfo.InvariantCulture);
 
-            if (output < -parseLimit) throw new OverflowException("Value is too low");
-            if (output > parseLimit) throw new OverflowException("Value is too high");
+            if (output < -parseLimit)
+            {
+                throw new OverflowException("Value is too low");
+            }
+            if (output > parseLimit)
+            {
+                throw new OverflowException("Value is too high");
+            }
 
-            if (!allowNaN && float.IsNaN(output)) throw new FormatException("Not a number");
+            if (!allowNaN && float.IsNaN(output))
+            {
+                throw new FormatException("Not a number");
+            }
 
             return output;
         }
@@ -35,8 +44,14 @@ namespace osu.Game.Beatmaps.Formats
         {
             double output = double.Parse(input, CultureInfo.InvariantCulture);
 
-            if (output < -parseLimit) throw new OverflowException("Value is too low");
-            if (output > parseLimit) throw new OverflowException("Value is too high");
+            if (output < -parseLimit)
+            {
+                throw new OverflowException("Value is too low");
+            }
+            if (output > parseLimit)
+            {
+                throw new OverflowException("Value is too high");
+            }
 
             if (!allowNaN && double.IsNaN(output)) throw new FormatException("Not a number");
 
@@ -49,8 +64,14 @@ namespace osu.Game.Beatmaps.Formats
         {
             int output = int.Parse(input, CultureInfo.InvariantCulture);
 
-            if (output < -parseLimit) throw new OverflowException("Value is too low");
-            if (output > parseLimit) throw new OverflowException("Value is too high");
+            if (output < -parseLimit)
+            {
+                throw new OverflowException("Value is too low");
+            }
+            if (output > parseLimit)
+            {
+                throw new OverflowException("Value is too high");
+            }
 
             return output;
         }

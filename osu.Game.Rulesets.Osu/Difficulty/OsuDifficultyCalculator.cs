@@ -175,7 +175,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             var difficultyHitObjects = new List<DifficultyHitObject>();
 
             for (int i = 1; i < beatmap.HitObjects.Count; i++)
+            {
                 difficultyHitObjects.Add(new OsuDifficultyHitObject(beatmap.HitObjects[i], beatmap.HitObjects[i - 1], clockRate, difficultyHitObjects, i));
+            }
 
             return difficultyHitObjects;
         }

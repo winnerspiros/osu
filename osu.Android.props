@@ -23,7 +23,10 @@
     <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
     <NoWarn>$(NoWarn);NU1608;XA4301</NoWarn>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+
   </PropertyGroup>
+
+
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- Compress managed assemblies inside the APK (LZ4).  Android extracts them on first run
@@ -52,9 +55,7 @@
     <AndroidStripILAfterAOT>false</AndroidStripILAfterAOT>
   </PropertyGroup>
 
-  <ItemGroup>
-    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework.Android" Version="2026.511.1" />
@@ -159,4 +160,12 @@
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
+
+
+
+
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
+  </ItemGroup>
 </Project>
