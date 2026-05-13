@@ -88,5 +88,6 @@ namespace osu.Game.Rulesets.Catch.Difficulty
             new CatchModHardRock(),
             new CatchModEasy(),
         };
+        protected override DifficultyAttributes CreateEmptyAttributes() => new CatchDifficultyAttributes();
     }
 }

@@ -1,9 +1,9 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Rulesets.Difficulty;
@@ -58,14 +58,19 @@ namespace osu.Game.Rulesets.Mania.Difficulty
         {
             int maxCombo = 0;
             foreach (var h in beatmap.HitObjects)
+            {
                 maxCombo += maxComboForObject(h);
+            }
+
             return maxCombo;
         }
 
         private static int maxComboForObject(HitObject hitObject)
         {
             if (hitObject is HoldNote hold)
+            {
                 return 1 + (int)((hold.EndTime - hold.StartTime) / 100);
+            }
 
             return 1;
         }
@@ -81,7 +86,9 @@ namespace osu.Game.Rulesets.Mania.Difficulty
             List<DifficultyHitObject>[] perColumnObjects = new List<DifficultyHitObject>[totalColumns];
 
             for (int column = 0; column < totalColumns; column++)
+            {
                 perColumnObjects[column] = new List<DifficultyHitObject>();
+            }
 
             for (int i = 1; i < sortedObjects.Length; i++)
             {
@@ -114,7 +121,9 @@ namespace osu.Game.Rulesets.Mania.Difficulty
                 };
 
                 if (isForCurrentRuleset)
+                {
                     return mods;
+                }
 
                 // if we are a convert, we can be played in any key mod.
                 return mods.Concat(new Mod[]
@@ -136,5 +145,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
                 }).ToArray();
             }
         }
+
+        protected override DifficultyAttributes CreateEmptyAttributes() => new ManiaDifficultyAttributes();
     }
 }
