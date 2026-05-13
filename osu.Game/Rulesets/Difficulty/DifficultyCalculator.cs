@@ -154,6 +154,12 @@ namespace osu.Game.Rulesets.Difficulty
             return found ?? throw new InvalidOperationException($@"Could not find {typeof(T).Name}.");
         }
 
+        /// <summary>
+        /// Retrieves a skill of a specific type from a collection of skills, or null if not found.
+        /// </summary>
+        /// <param name="skills">The collection of skills to search.</param>
+        /// <param name="predicate">An optional predicate to filter the skills.</param>
+        /// <typeparam name="T">The type of skill to retrieve.</typeparam>
         protected static T GetSkillOrDefault<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
         {
             return findSkill(skills, predicate);
