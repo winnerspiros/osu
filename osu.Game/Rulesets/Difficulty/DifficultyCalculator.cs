@@ -279,10 +279,19 @@ namespace osu.Game.Rulesets.Difficulty
         /// <param name="skills">The skills which processed the beatmap.</param>
         /// <param name="clockRate">The rate at which the gameplay clock is run at.</param>
         protected static T GetSkill<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
-            => findSkill(skills, predicate) ?? throw new InvalidOperationException($@"Could not find {typeof(T).Name}.");
+        {
+            T found = findSkill(skills, predicate);
+
+            if (found == null)
+                throw new InvalidOperationException($@"Could not find {typeof(T).Name}.");
+
+            return found;
+        }
 
         protected static T GetSkillOrDefault<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
-            => findSkill(skills, predicate);
+        {
+            return findSkill(skills, predicate);
+        }
 
         private static T findSkill<T>(IEnumerable<Skill> skills, Func<T, bool> predicate = null) where T : Skill
         {
