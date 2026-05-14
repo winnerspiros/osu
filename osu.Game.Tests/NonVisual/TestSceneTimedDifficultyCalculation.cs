@@ -206,6 +206,7 @@ namespace osu.Game.Tests.NonVisual
 
                 public override double DifficultyValue() => 1;
             }
+            protected override DifficultyAttributes CreateEmptyAttributes() => new DifficultyAttributes();
         }
 
         private class TestDifficultyAttributes : DifficultyAttributes

@@ -215,6 +215,7 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
                 => [];
+            protected override DifficultyAttributes CreateEmptyAttributes() => new DifficultyAttributes();
         }
 
         private class TestPerformanceCalculator : PerformanceCalculator

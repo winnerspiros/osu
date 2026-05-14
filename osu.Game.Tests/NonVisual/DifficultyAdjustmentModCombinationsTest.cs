@@ -237,6 +237,7 @@ namespace osu.Game.Tests.NonVisual
             {
                 throw new NotImplementedException();
             }
+            protected override DifficultyAttributes CreateEmptyAttributes() => new DifficultyAttributes();
         }
     }
 }

@@ -27,5 +27,6 @@ namespace osu.Game.Rulesets.Pippidon
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate) => [];
 
         protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate) => [];
+        protected override DifficultyAttributes CreateEmptyAttributes() => new DifficultyAttributes();
     }
 }
