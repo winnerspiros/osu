@@ -204,7 +204,7 @@ namespace osu.Game.Online.Spectator
             Schedule(() =>
             {
                 if (isPlaying)
-                    throw new InvalidOperationException($"Cannot invoke {nameof(BeginPlaying)} when already playing");
+                     { Logger.Log("BeginPlaying called while already playing; ignoring.", LoggingTarget.Network); return; }
 
                 // transfer state at point of beginning play
                 currentState.BeatmapID = score.ScoreInfo.BeatmapInfo!.OnlineID;

@@ -3,6 +3,7 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
@@ -18,8 +19,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
     {
         private readonly Room room;
 
-        private BeatmapCardNano card = null!;
-
         public NewDailyChallengeNotification(Room room)
         {
             this.room = room;
@@ -30,8 +29,15 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             Text = DailyChallengeStrings.ChallengeLiveNotification;
             var playlistItem = room.Playlist.FirstOrDefault();
+
             if (playlistItem != null)
-                Content.Add(card = new BeatmapCardNano((APIBeatmapSet)playlistItem.Beatmap.BeatmapSet!));
+            {
+                Content.Add(new BeatmapCardNano((APIBeatmapSet)playlistItem.Beatmap.BeatmapSet!)
+                {
+                    RelativeSizeAxes = Axes.X,
+                });
+            }
+
             Activated = () =>
             {
                 if (statics.Get<bool>(Static.DailyChallengeIntroPlayed))
@@ -41,12 +47,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
                 return true;
             };
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-            card.Width = Content.DrawWidth;
         }
     }
 }

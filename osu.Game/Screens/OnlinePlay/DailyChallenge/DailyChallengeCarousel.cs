@@ -96,7 +96,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             if (currentDisplay == lastDisplayed)
                 return;
 
-            if (lastDisplayed >= 0)
+            if (lastDisplayed >= 0 && lastDisplayed < content.Count)
             {
                 content[lastDisplayed].FadeOutFromOne(250, Easing.OutQuint);
                 navigationFlow[lastDisplayed].Active.Value = false;
