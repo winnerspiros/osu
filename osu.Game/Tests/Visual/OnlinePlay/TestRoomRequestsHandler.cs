@@ -9,8 +9,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
-using osu.Game.Tests.Beatmaps;
-using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Visual.OnlinePlay
 {
@@ -33,16 +31,18 @@ namespace osu.Game.Tests.Visual.OnlinePlay
             {
                 case CreateRoomRequest createRoomRequest:
                 {
-                    var apiRoom = cloneRoom(createRoomRequest.Room);
+                    var apiRoom = createRoomRequest.Room;
+                    var responseRoom = cloneRoom(apiRoom);
 
-                    // Passwords are explicitly not copied between rooms.
-                    apiRoom.Password = createRoomRequest.Room.Password;
+                    responseRoom.RoomID = currentRoomId++;
+                    responseRoom.Host = localUser;
 
-                    AddServerSideRoom(apiRoom, localUser);
+                    foreach (var item in responseRoom.Playlist)
+                    {
+                        item.ID = currentPlaylistItemId++;
+                    }
 
-                    var responseRoom = new APICreatedRoom();
-                    if (createResponseRoom(apiRoom, false) is Room res)
-                        responseRoom.CopyFrom(res);
+                    ServerSideRooms.Add(responseRoom);
 
                     // Propagate back to the source room object used by the test.
                     createRoomRequest.Room.RoomID = apiRoom.RoomID;
@@ -213,12 +213,12 @@ namespace osu.Game.Tests.Visual.OnlinePlay
 
                 if (baseBeatmap == null)
                 {
-                    baseBeatmap = new TestBeatmap(new RulesetInfo { OnlineID = 0 }).BeatmapInfo;
+                    baseBeatmap = new osu.Game.Tests.Beatmaps.TestBeatmap(new osu.Game.Rulesets.RulesetInfo { OnlineID = 0 }).BeatmapInfo;
                     baseBeatmap.OnlineID = id;
                     baseBeatmap.BeatmapSet!.OnlineID = id;
                 }
 
-                result.Add(OsuTestScene.CreateAPIBeatmap(baseBeatmap));
+                result.Add(osu.Game.Tests.Visual.OsuTestScene.CreateAPIBeatmap(baseBeatmap));
             }
 
             return result;
