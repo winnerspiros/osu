@@ -145,7 +145,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(ServerRoom != null);
 
-            ServerRoom.Users.Remove(ServerRoom.Users.FirstOrDefault(u => u.UserID == user.Id));
+            ServerRoom.Users.Remove(ServerRoom.Users.First(u => u.UserID == user.Id));
             ((IMultiplayerClient)this).UserLeft(clone(new MultiplayerRoomUser(user.Id)));
 
             if (ServerRoom.Users.Any())
@@ -165,7 +165,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(ServerRoom != null);
 
-            var user = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            var user = ServerRoom.Users.First(u => u.UserID == userId);
             user.State = clone(newState);
 
             ((IMultiplayerClient)this).UserStateChanged(clone(userId), clone(user.State));
@@ -224,7 +224,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(ServerRoom != null);
 
-            var user = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            var user = ServerRoom.Users.First(u => u.UserID == userId);
             user.BeatmapAvailability = newBeatmapAvailability;
 
             ((IMultiplayerClient)this).UserBeatmapAvailabilityChanged(clone(userId), clone(user.BeatmapAvailability));
@@ -238,7 +238,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             roomId = clone(roomId);
             password = clone(password);
 
-            ServerAPIRoom = ServerSideRooms.FirstOrDefault(r => r.RoomID == roomId);
+            ServerAPIRoom = ServerSideRooms.First(r => r.RoomID == roomId);
 
             if (password != ServerAPIRoom.Password)
                 throw new InvalidOperationException("Invalid password.");
@@ -301,7 +301,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             Debug.Assert(ServerRoom != null);
 
-            ServerRoom.Host = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            ServerRoom.Host = ServerRoom.Users.First(u => u.UserID == userId);
 
             return ((IMultiplayerClient)this).HostChanged(clone(userId));
         }
@@ -312,7 +312,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             Debug.Assert(ServerRoom != null);
 
-            var user = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            var user = ServerRoom.Users.First(u => u.UserID == userId);
             ServerRoom.Users.Remove(user);
 
             return ((IMultiplayerClient)this).UserKicked(clone(user));
@@ -377,7 +377,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(ServerRoom != null);
 
-            var user = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            var user = ServerRoom.Users.First(u => u.UserID == userId);
             user.BeatmapId = beatmapId;
             user.RulesetId = rulesetId;
 
@@ -391,7 +391,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         {
             Debug.Assert(ServerRoom != null);
 
-            var user = ServerRoom.Users.FirstOrDefault(u => u.UserID == userId);
+            var user = ServerRoom.Users.First(u => u.UserID == userId);
             user.Mods = newMods.ToArray();
 
             ((IMultiplayerClient)this).UserModsChanged(clone(userId), clone(user.Mods));
@@ -810,39 +810,28 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             // Also ensure that the API room's playlist is correct.
             foreach (var item in ServerAPIRoom.Playlist)
-                item.PlaylistOrder = ServerRoom.Playlist.FirstOrDefault(i => i.ID == item.ID) ?? new MultiplayerPlaylistItem { ID = item.ID }.PlaylistOrder;
+                item.PlaylistOrder = (ServerRoom.Playlist.FirstOrDefault(i => i.ID == item.ID) ?? new MultiplayerPlaylistItem { ID = item.ID }).PlaylistOrder;
         }
 
         private T clone<T>(T incoming)
         {
             byte[] serialized = MessagePackSerializer.Serialize(typeof(T), incoming, SignalRUnionWorkaroundResolver.OPTIONS);
             var result = MessagePackSerializer.Deserialize<T>(serialized, SignalRUnionWorkaroundResolver.OPTIONS);
-            if (incoming is MultiplayerRoomUser { User: { } } sourceUser && result is MultiplayerRoomUser targetUser) targetUser.User = sourceUser.User;
 
-            if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
+            if (incoming is MultiplayerRoomUser sourceUser && result is MultiplayerRoomUser targetUser)
+            {
+                targetUser.User = sourceUser.User;
+            }
+            else if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
             {
                 for (int i = 0; i < sourceRoom.Users.Count; i++)
                 {
-                    if (sourceRoom.Users[i].User != null)
+                    if (i < targetRoom.Users.Count)
                         targetRoom.Users[i].User = sourceRoom.Users[i].User;
                 }
 
-                if (sourceRoom.Host?.User != null)
+                if (targetRoom.Host != null && sourceRoom.Host != null)
                     targetRoom.Host.User = sourceRoom.Host.User;
-            }
-
-            if (incoming is MultiplayerRoomUser { User: { } } sourceUser && result is MultiplayerRoomUser targetUser) targetUser.User = sourceUser.User;
-
-            if (incoming is MultiplayerRoom sourceRoom && result is MultiplayerRoom targetRoom)
-            {
-                foreach (var user in targetRoom.Users)
-                    user.User = sourceRoom.Users.FirstOrDefault(u => u.UserID == user.UserID)?.User;
-
-                targetRoom.Host?.User = sourceRoom.Host?.User;
-            }
-            else if (incoming is MultiplayerRoomUser sourceSingleUser && result is MultiplayerRoomUser targetSingleUser)
-            {
-                targetSingleUser.User = sourceSingleUser.User;
             }
 
             return result;
