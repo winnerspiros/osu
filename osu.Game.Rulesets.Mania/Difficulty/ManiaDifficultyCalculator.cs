@@ -77,7 +77,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
-            var sortedObjects = beatmap.HitObjects.ToArray();
+            var sortedObjects = Enumerable.ToArray(beatmap.HitObjects);
             int totalColumns = ((ManiaBeatmap)beatmap).TotalColumns;
 
             LegacySortHelper<HitObject>.Sort(sortedObjects, Comparer<HitObject>.Create((a, b) => (int)Math.Round(a.StartTime) - (int)Math.Round(b.StartTime)));
@@ -126,7 +126,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
                 }
 
                 // if we are a convert, we can be played in any key mod.
-                return mods.Concat(new Mod[]
+                return Enumerable.Concat(mods, new Mod[]
                 {
                     new ManiaModKey1(),
                     new ManiaModKey2(),
