@@ -161,11 +161,11 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- Disable ELF alignment patching in Release to prevent APK signature corruption. -->
     <PatchElfPageSizeEnabled>false</PatchElfPageSizeEnabled>
+    <!-- Root Microsoft.CSharp to prevent XACAS7023 DirectoryNotFoundException. -->
+    <AndroidLinkSkip>$(AndroidLinkSkip);Microsoft.CSharp</AndroidLinkSkip>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <TrimmerRootAssembly Include="Microsoft.CSharp" RootMode="all" />
-    <!-- Root Microsoft.CSharp to prevent XACAS7023 DirectoryNotFoundException. -->
     <!-- Explicitly reference Microsoft.CSharp for the trimmer. -->
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" NoWarn="NU1510" />
   </ItemGroup>

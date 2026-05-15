@@ -70,27 +70,6 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                     return true;
                 }
 
-                case GetRoomsRequest getRoomsRequest:
-                {
-                    var roomsWithoutParticipants = new List<Room>();
-
-                    foreach (var r in ServerSideRooms)
-                    {
-                        if (createResponseRoom(r, false) is Room roomsRes)
-                            roomsWithoutParticipants.Add(roomsRes);
-                    }
-
-                    getRoomsRequest.TriggerSuccess(roomsWithoutParticipants);
-                    return true;
-                }
-
-                case GetRoomRequest getRoomRequest:
-                {
-                    if (createResponseRoom(ServerSideRooms.FirstOrDefault(r => r.RoomID == getRoomRequest.RoomId), true) is Room getRes)
-                        getRoomRequest.TriggerSuccess(getRes);
-                    return true;
-                }
-
                 case CreateRoomScoreRequest createRoomScoreRequest:
                     createRoomScoreRequest.TriggerSuccess(new APIScoreToken { ID = 1 });
                     return true;
@@ -156,6 +135,27 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                 case GetBeatmapsRequest getBeatmapsRequest:
                 {
                     getBeatmapsRequest.TriggerSuccess(new GetBeatmapsResponse { Beatmaps = createResponseBeatmaps(beatmapManager, getBeatmapsRequest.BeatmapIds.ToArray()) });
+                    return true;
+                }
+
+                case GetRoomsRequest getRoomsRequest:
+                {
+                    var roomsWithoutParticipants = new List<Room>();
+
+                    foreach (var r in ServerSideRooms)
+                    {
+                        if (createResponseRoom(r, false) is Room roomsRes)
+                            roomsWithoutParticipants.Add(roomsRes);
+                    }
+
+                    getRoomsRequest.TriggerSuccess(roomsWithoutParticipants);
+                    return true;
+                }
+
+                case GetRoomRequest getRoomRequest:
+                {
+                    if (createResponseRoom(ServerSideRooms.FirstOrDefault(r => r.RoomID == getRoomRequest.RoomId), true) is Room getRes)
+                        getRoomRequest.TriggerSuccess(getRes);
                     return true;
                 }
             }
