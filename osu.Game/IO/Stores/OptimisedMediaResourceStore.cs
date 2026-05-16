@@ -45,7 +45,8 @@ namespace osu.Game.IO.Stores
             this.underlyingStore = underlyingStore;
         }
 
-        public override byte[]? Get(string name)
+        // NRT not enabled on framework side classes (IResourceStore / ResourceStore), welp.
+        public override byte[] Get(string name)
         {
             byte[]? result = null;
 
@@ -56,10 +57,11 @@ namespace osu.Game.IO.Stores
                     result = candidate;
             }
 
-            return result;
+            return result!;
         }
 
-        public override async Task<byte[]?> GetAsync(string name, CancellationToken cancellationToken = default)
+        // NRT not enabled on framework side classes (IResourceStore / ResourceStore), welp.
+        public override async Task<byte[]> GetAsync(string name, CancellationToken cancellationToken = default)
         {
             byte[]? result = null;
 
@@ -70,7 +72,7 @@ namespace osu.Game.IO.Stores
                     result = candidate;
             }
 
-            return result;
+            return result!;
         }
 
         protected override IEnumerable<string> GetFilenames(string name)
