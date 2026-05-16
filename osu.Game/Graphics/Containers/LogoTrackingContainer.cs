@@ -24,7 +24,7 @@ namespace osu.Game.Graphics.Containers
         private readonly InternalFacade facade = new InternalFacade();
 
         private Easing easing;
-        private Vector2? startPosition;
+        private System.Numerics.Vector2? startPosition;
         private double? startTime;
         private double duration;
 
@@ -72,11 +72,11 @@ namespace osu.Game.Graphics.Containers
         /// Manually performs a conversion of the Facade's position to the Logo's parent's relative space.
         /// </summary>
         /// <remarks>Will only be correct if the logo's <see cref="Drawable.RelativePositionAxes"/> are set to Axes.Both</remarks>
-        protected Vector2 ComputeLogoTrackingPosition()
+        protected System.Numerics.Vector2 ComputeLogoTrackingPosition()
         {
             var absolutePos = Logo!.Parent!.ToLocalSpace(LogoFacade.ScreenSpaceDrawQuad.Centre);
 
-            return new Vector2(absolutePos.X / Logo.Parent!.RelativeToAbsoluteFactor.X,
+            return new System.Numerics.Vector2(absolutePos.X / Logo.Parent!.RelativeToAbsoluteFactor.X,
                 absolutePos.Y / Logo.Parent!.RelativeToAbsoluteFactor.Y);
         }
 
@@ -91,7 +91,7 @@ namespace osu.Game.Graphics.Containers
                 throw new InvalidOperationException($"Tracking logo must have {nameof(RelativePositionAxes)} = Axes.Both");
 
             // Account for the scale of the actual OsuLogo, as SizeForFlow only accounts for the sprite scale.
-            facade.SetSize(new Vector2(Logo.SizeForFlow * Logo.Scale.X));
+            facade.SetSize(new System.Numerics.Vector2(Logo.SizeForFlow * Logo.Scale.X));
 
             var localPos = ComputeLogoTrackingPosition();
 
@@ -111,7 +111,7 @@ namespace osu.Game.Graphics.Containers
                     float amount = (float)Interpolation.ApplyEasing(easing, Math.Min(elapsedDuration / duration, 1));
 
                     // Interpolate the position of the logo, where amount 0 is where the logo was when it first began interpolating, and amount 1 is the target location.
-                    Logo.Position = Vector2.Lerp(startPosition.Value, localPos, amount);
+                    Logo.Position = System.Numerics.Vector2.Lerp(startPosition.Value, localPos, amount);
                 }
                 else
                 {
@@ -129,7 +129,7 @@ namespace osu.Game.Graphics.Containers
 
         private partial class InternalFacade : Facade
         {
-            public new void SetSize(Vector2 size)
+            public new void SetSize(System.Numerics.Vector2 size)
             {
                 base.SetSize(size);
             }
@@ -140,13 +140,13 @@ namespace osu.Game.Graphics.Containers
         /// </summary>
         public abstract partial class Facade : Drawable
         {
-            public override Vector2 Size
+            public override System.Numerics.Vector2 Size
             {
                 get => base.Size;
                 set => throw new InvalidOperationException($"Cannot set the Size of a {typeof(Facade)} outside of a {typeof(LogoTrackingContainer)}");
             }
 
-            protected void SetSize(Vector2 size)
+            protected void SetSize(System.Numerics.Vector2 size)
             {
                 base.Size = size;
             }

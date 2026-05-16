@@ -43,7 +43,7 @@ namespace osu.Game.Overlays.Mods
 
         public Bindable<IReadOnlyList<Mod>> SelectedMods { get; } = new Bindable<IReadOnlyList<Mod>>([]);
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         // Handle{Non}PositionalInput controls whether the panel should act as a blocking layer on the screen. only block when the panel is expanded.
         // These properties are used because they correctly handle blocking/unblocking hover when mouse is pointing at a drawable outside

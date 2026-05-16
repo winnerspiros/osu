@@ -71,7 +71,7 @@ namespace osu.Game.Graphics.Containers
         public virtual bool BlockScreenWideMouse => BlockPositionalInput;
 
         // receive input outside our bounds so we can trigger a close event on ourselves.
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => BlockScreenWideMouse || base.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => BlockScreenWideMouse || base.ReceivePositionalInputAt(screenSpacePos);
 
         private bool closeOnMouseUp;
 

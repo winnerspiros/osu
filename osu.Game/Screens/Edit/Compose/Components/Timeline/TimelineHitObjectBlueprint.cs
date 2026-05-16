@@ -264,7 +264,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         protected override bool ShouldBeConsideredForInput(Drawable child) => true;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
             circle.ReceivePositionalInputAt(screenSpacePos);
 
         public override Quad SelectionQuad => circle.ScreenSpaceDrawQuad;
@@ -530,7 +530,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             protected readonly Circle Content;
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Content.ReceivePositionalInputAt(screenSpacePos);
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => Content.ReceivePositionalInputAt(screenSpacePos);
 
             public override Quad ScreenSpaceDrawQuad => Content.ScreenSpaceDrawQuad;
 

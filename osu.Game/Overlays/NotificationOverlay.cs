@@ -52,7 +52,7 @@ namespace osu.Game.Overlays
         [Cached]
         private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
         {
             if (State.Value == Visibility.Visible)
                 return base.ReceivePositionalInputAt(screenSpacePos);

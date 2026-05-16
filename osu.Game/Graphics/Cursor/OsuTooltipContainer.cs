@@ -99,7 +99,7 @@ namespace osu.Game.Graphics.Cursor
 
             protected override void PopOut() => this.Delay(150).FadeOut(300, Easing.OutQuint);
 
-            public override void Move(Vector2 pos)
+            public override void Move(System.Numerics.Vector2 pos)
             {
                 if (instantMovement)
                 {

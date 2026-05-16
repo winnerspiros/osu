@@ -358,7 +358,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
         {
             public bool LayoutDisabled;
 
-            protected override IEnumerable<Vector2> ComputeLayoutPositions()
+            protected override IEnumerable<System.Numerics.Vector2> ComputeLayoutPositions()
             {
                 if (LayoutDisabled)
                     return FlowingChildren.Select(c => c.Position);

@@ -17,7 +17,7 @@ namespace osu.Game.Screens.Play.HUD
 {
     public partial class PlayerTeamFlag : CompositeDrawable, ISerialisableDrawable
     {
-        protected override bool ReceivePositionalInputAtSubTree(Vector2 screenSpacePos) => false;
+        protected override bool ReceivePositionalInputAtSubTree(System.Numerics.Vector2 screenSpacePos) => false;
 
         private readonly UpdateableTeamFlag flag;
 

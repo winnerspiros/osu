@@ -440,7 +440,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             return Math.Ceiling(value / factor) * factor;
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
         {
             return chartContainer.DrawRectangle.Inflate(20).Contains(chartContainer.ToLocalSpace(screenSpacePos));
         }
@@ -726,9 +726,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 valueText.Text = content.Value;
             }
 
-            public void Move(Vector2 pos)
+            public void Move(System.Numerics.Vector2 pos)
             {
-                pos = Parent!.ToLocalSpace(content.Position) - new Vector2(DrawWidth + 10, 0);
+                pos = Parent!.ToLocalSpace(content.Position) - new System.Numerics.Vector2(DrawWidth + 10, 0);
 
                 if (instantMove)
                 {

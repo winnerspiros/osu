@@ -17,7 +17,7 @@ namespace osu.Game.Screens.Play.HUD
             Button = button;
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         private static string getStringRepresentation(MouseButton button)
         {

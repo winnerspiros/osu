@@ -44,7 +44,7 @@ namespace osu.Game.Rulesets.Edit
             ShowHitMarkers = config.GetBindable<bool>(OsuSetting.EditorShowHitMarkers);
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => DrawableObject.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => DrawableObject.ReceivePositionalInputAt(screenSpacePos);
 
         public override Vector2 ScreenSpaceSelectionPoint => DrawableObject.ScreenSpaceDrawQuad.Centre;
 

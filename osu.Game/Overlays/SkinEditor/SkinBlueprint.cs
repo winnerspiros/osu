@@ -38,13 +38,13 @@ namespace osu.Game.Overlays.SkinEditor
         public override Quad ScreenSpaceDrawQuad => drawableQuad;
         public override Quad SelectionQuad => drawable.ScreenSpaceDrawQuad;
 
-        public override bool Contains(Vector2 screenSpacePos) => drawableQuad.Contains(screenSpacePos);
+        public override bool Contains(System.Numerics.Vector2 screenSpacePos) => drawableQuad.Contains(screenSpacePos);
 
         public override Vector2 ScreenSpaceSelectionPoint =>
             // Important to use a stable position (not based on origin) as origin may be automatically updated during drag operations.
             drawable.ScreenSpaceDrawQuad.Centre;
 
-        protected override bool ReceivePositionalInputAtSubTree(Vector2 screenSpacePos) =>
+        protected override bool ReceivePositionalInputAtSubTree(System.Numerics.Vector2 screenSpacePos) =>
             drawableQuad.Contains(screenSpacePos);
 
         public SkinBlueprint(ISerialisableDrawable component)

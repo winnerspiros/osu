@@ -214,7 +214,7 @@ namespace osu.Game.Graphics.UserInterface
             set => spriteText.Font = spriteText.Font.With(size: value);
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => backgroundContainer.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => backgroundContainer.ReceivePositionalInputAt(screenSpacePos);
 
         private bool clickAnimating;
 

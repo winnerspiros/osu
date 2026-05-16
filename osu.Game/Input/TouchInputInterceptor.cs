@@ -21,7 +21,7 @@ namespace osu.Game.Input
     /// </summary>
     public partial class TouchInputInterceptor : Component
     {
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         private readonly BindableBool touchInputActive = new BindableBool();
 

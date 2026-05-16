@@ -714,7 +714,7 @@ namespace osu.Game.Overlays.Mods
         [Cached]
         internal partial class ColumnScrollContainer : OsuScrollContainer<ColumnFlowContainer>
         {
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
             public ColumnScrollContainer()
                 : base(Direction.Horizontal)

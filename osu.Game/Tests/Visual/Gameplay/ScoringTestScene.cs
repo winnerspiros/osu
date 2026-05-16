@@ -577,7 +577,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                     }
                 }
 
-                public void Move(Vector2 pos) => this.MoveTo(pos);
+                public void Move(System.Numerics.Vector2 pos) => this.MoveTo(pos);
             }
         }
 

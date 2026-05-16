@@ -363,7 +363,7 @@ namespace osu.Game.Screens.Select
                     extendedModDisplay.Current.Value = content;
                 }
 
-                public void Move(Vector2 pos) => Position = pos;
+                public void Move(System.Numerics.Vector2 pos) => Position = pos;
 
                 protected override void PopIn() => this.FadeIn(240, Easing.OutQuint);
                 protected override void PopOut() => this.FadeOut(240, Easing.OutQuint);

@@ -74,9 +74,7 @@ namespace osu.Game.Users.Drawables
             protected override void PopIn() => this.FadeIn(150, Easing.OutQuint);
             protected override void PopOut() => this.Delay(150).FadeOut(500, Easing.OutQuint);
 
-            public void Move(Vector2 pos) => Position = pos;
-
-            private APIUser? user;
+            public void Move(System.Numerics.Vector2 pos) => Position = pos;
 
             public void SetContent(APIUser? content)
             {
@@ -117,7 +115,7 @@ namespace osu.Game.Users.Drawables
             protected override void PopIn() => tooltip.Show();
             protected override void PopOut() => tooltip.Hide();
 
-            public void Move(Vector2 pos) => Position = pos;
+            public void Move(System.Numerics.Vector2 pos) => Position = pos;
 
             public void SetContent(APIUser? content)
             {

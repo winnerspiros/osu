@@ -46,7 +46,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         /// Positional input must be received outside the container's bounds,
         /// in order to handle timeline blueprints which are stacked offscreen.
         /// </remarks>
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => timeline.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => timeline.ReceivePositionalInputAt(screenSpacePos);
 
         public TimelineBlueprintContainer(HitObjectComposer composer)
             : base(composer)
@@ -338,7 +338,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             [Resolved]
             private OsuColour colours { get; set; }
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
             {
                 float localY = ToLocalSpace(screenSpacePos).Y;
                 return DrawRectangle.Top <= localY && DrawRectangle.Bottom >= localY;

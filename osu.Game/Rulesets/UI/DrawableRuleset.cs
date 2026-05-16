@@ -379,7 +379,7 @@ namespace osu.Game.Rulesets.UI
         protected override bool OnHover(HoverEvent e) => true; // required for IProvideCursor
 
         // only show the cursor when within the playfield, by default.
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Playfield.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => Playfield.ReceivePositionalInputAt(screenSpacePos);
 
         CursorContainer IProvideCursor.Cursor => Playfield.Cursor;
 

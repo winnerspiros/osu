@@ -116,7 +116,7 @@ namespace osu.Game.Graphics.Containers
             base.OnDragEnd(e);
         }
 
-        protected override bool IsDraggableAt(Vector2 screenSpacePos) => handle.HandlingDrag;
+        protected override bool IsDraggableAt(System.Numerics.Vector2 screenSpacePos) => handle.HandlingDrag;
 
         protected override bool OnHover(HoverEvent e)
         {

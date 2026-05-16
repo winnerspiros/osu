@@ -29,7 +29,7 @@ namespace osu.Game.Screens.Play.HUD
 {
     public partial class HoldForMenuButton : FillFlowContainer
     {
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         public override bool PropagatePositionalInputSubTree => alwaysShow.Value || touchActive.Value;
 

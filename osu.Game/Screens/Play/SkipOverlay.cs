@@ -59,7 +59,7 @@ namespace osu.Game.Screens.Play
         private IGameplayClock gameplayClock { get; set; }
 
         internal bool IsButtonVisible => FadingContent.State == Visibility.Visible && buttonContainer.State.Value == Visibility.Visible;
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         /// <summary>
         /// Displays a skip overlay, giving the user the ability to skip forward.

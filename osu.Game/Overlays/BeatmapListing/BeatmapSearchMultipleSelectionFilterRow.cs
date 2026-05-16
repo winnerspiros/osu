@@ -152,7 +152,7 @@ namespace osu.Game.Overlays.BeatmapListing
 
             protected override Color4 ColourActive => ColourProvider.Light1;
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
             {
                 return Active.Value
                     ? background.ReceivePositionalInputAt(screenSpacePos)

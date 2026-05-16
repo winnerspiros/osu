@@ -141,7 +141,7 @@ namespace osu.Game.Graphics.UserInterface
                 BackgroundColour = Color4.Transparent;
             }
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
                 base.ReceivePositionalInputAt(screenSpacePos)
                 && screenSpacePos.X <= Nub.ScreenSpaceDrawQuad.TopRight.X;
         }
@@ -155,7 +155,7 @@ namespace osu.Game.Graphics.UserInterface
                 RightBox.Height = 6; // just to match the left bar height really
             }
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
                 base.ReceivePositionalInputAt(screenSpacePos)
                 && screenSpacePos.X >= Nub.ScreenSpaceDrawQuad.TopLeft.X;
         }

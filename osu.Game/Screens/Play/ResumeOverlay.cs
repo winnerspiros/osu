@@ -35,7 +35,7 @@ namespace osu.Game.Screens.Play
 
         protected abstract LocalisableString Message { get; }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         protected ResumeOverlay()
         {

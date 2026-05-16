@@ -343,19 +343,19 @@ namespace osu.Game.Graphics.UserInterface
 
             public Color4 SelectionColour { get; set; }
 
-            public override void DisplayAt(Vector2 position, float? selectionWidth)
+            public override void DisplayAt(System.Numerics.Vector2 position, float? selectionWidth)
             {
                 beatSync.HasSelection = selectionWidth != null;
 
                 if (selectionWidth != null)
                 {
-                    this.MoveTo(new Vector2(position.X, position.Y), 60, Easing.Out);
+                    this.MoveTo(new System.Numerics.Vector2(position.X, position.Y), 60, Easing.Out);
                     this.ResizeWidthTo(selectionWidth.Value + CaretWidth / 2, caret_move_time, Easing.Out);
                     this.FadeColour(SelectionColour, 200, Easing.Out);
                 }
                 else
                 {
-                    this.MoveTo(new Vector2(position.X - CaretWidth / 2, position.Y), 60, Easing.Out);
+                    this.MoveTo(new System.Numerics.Vector2(position.X - CaretWidth / 2, position.Y), 60, Easing.Out);
                     this.ResizeWidthTo(CaretWidth, caret_move_time, Easing.Out);
                     this.FadeColour(Color4.White, 200, Easing.Out);
                 }

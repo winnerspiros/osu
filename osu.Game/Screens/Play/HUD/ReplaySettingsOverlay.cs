@@ -94,7 +94,7 @@ namespace osu.Game.Screens.Play.HUD
             inputManager = GetContainingInputManager()!;
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
             screenSpacePos.X > button.ScreenSpaceDrawQuad.TopLeft.X;
 
         protected override bool OnMouseMove(MouseMoveEvent e)

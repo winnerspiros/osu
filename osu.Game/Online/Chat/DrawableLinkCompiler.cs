@@ -30,7 +30,7 @@ namespace osu.Game.Online.Chat
         [Resolved]
         private OverlayColourProvider? overlayColourProvider { get; set; }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
         {
             foreach (var part in Parts)
             {
@@ -71,7 +71,7 @@ namespace osu.Game.Online.Chat
                 this.parts = parts;
             }
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
             {
                 foreach (var part in parts)
                 {

@@ -195,7 +195,7 @@ namespace osu.Game.Screens.Edit.Timing
             reset();
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
             hoverLayer.ReceivePositionalInputAt(screenSpacePos);
 
         private ColourInfo textColour

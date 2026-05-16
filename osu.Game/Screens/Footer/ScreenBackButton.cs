@@ -19,7 +19,7 @@ namespace osu.Game.Screens.Footer
     {
         public const float BUTTON_WIDTH = 240;
 
-        public sealed override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        public sealed override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
         {
             // Ensure clicks in the corner of the screen still trigger the back button.
             // Need to apply more than 1x inflation due to shear.

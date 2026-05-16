@@ -167,7 +167,7 @@ namespace osu.Game.Graphics.UserInterface
             set => text.Text = value;
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => IconLayer.ReceivePositionalInputAt(screenSpacePos) || TextLayer.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => IconLayer.ReceivePositionalInputAt(screenSpacePos) || TextLayer.ReceivePositionalInputAt(screenSpacePos);
 
         protected override bool OnHover(HoverEvent e)
         {

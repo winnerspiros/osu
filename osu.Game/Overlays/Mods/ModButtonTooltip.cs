@@ -68,6 +68,6 @@ namespace osu.Game.Overlays.Mods
             descriptionText.Text = mod.Description;
         }
 
-        public void Move(Vector2 pos) => Position = pos;
+        public void Move(System.Numerics.Vector2 pos) => Position = pos;
     }
 }
