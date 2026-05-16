@@ -82,7 +82,7 @@ namespace osu.Game.Rulesets.Mods
         {
             SpeedChange.SetDefault();
 
-            double firstObjectStart = beatmap.HitObjects.FirstOrDefault()?.StartTime ?? 0;
+            double firstObjectStart = beatmap.HitObjects.Count > 0 ? beatmap.HitObjects[0].StartTime : 0;
             double lastObjectEnd = beatmap.HitObjects.Count > 0 ? beatmap.GetLastObjectTime() : 0;
 
             beginRampTime = firstObjectStart;
