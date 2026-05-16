@@ -28,7 +28,10 @@ namespace osu.Android
     // at runtime in OnCreate) so Android creates the activity in landscape from the very first
     // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
     // event during startup.
-    [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.Landscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    // SensorLandscape (rather than plain Landscape) allows the device to rotate between both
+    // landscape sides (normal and reverse/upside-down landscape) based on the physical sensor,
+    // so the user can hold the phone with the home button on either side.
+    [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.SensorLandscape, ConfigurationChanges =ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
@@ -468,7 +471,7 @@ namespace osu.Android
             if (Resources?.Configuration != null)
                 IsTablet = Resources.Configuration.SmallestScreenWidthDp >= 600;
 
-            // Phones: manifest already requests Landscape; do not re-assign at runtime —
+            // Phones: manifest already requests SensorLandscape; do not re-assign at runtime —
             // a no-op assignment is harmless on most devices but a redundant RequestedOrientation
             // write can still nudge the SurfaceView into a recreate cycle on some OEMs while the
             // SDL draw thread is mid-Vulkan-init. Tablets and DeX get a more permissive policy:
@@ -480,7 +483,7 @@ namespace osu.Android
             if (IsTablet || IsDeX)
                 RequestedOrientation = DefaultOrientation = ScreenOrientation.FullUser;
             else
-                DefaultOrientation = ScreenOrientation.Landscape;
+                DefaultOrientation = ScreenOrientation.SensorLandscape;
 
             foreach (string asm in new[] { "osu.Game.Rulesets.Osu", "osu.Game.Rulesets.Taiko", "osu.Game.Rulesets.Catch", "osu.Game.Rulesets.Mania" })
             {
