@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Mods
         /// Therefore, the approximated target rate for this object would be equal to 500 / 480 * <see cref="InitialRate"/>.
         /// </para>
         /// </example>
-        private readonly List<double> recentRates = Enumerable.Repeat(1d, recent_rate_count).ToList();
+        private readonly List<double> recentRates = new List<double>(recent_rate_count);
 
         /// <summary>
         /// For each given <see cref="HitObject"/> in the map, this dictionary maps the object onto the latest end time of any other object
@@ -133,6 +133,9 @@ namespace osu.Game.Rulesets.Mods
             rateAdjustHelper = new RateAdjustModHelper(SpeedChange);
             rateAdjustHelper.HandleAudioAdjustments(AdjustPitch);
 
+            for (int i = 0; i < recent_rate_count; i++)
+                recentRates.Add(1d);
+
             InitialRate.BindValueChanged(val =>
             {
                 SpeedChange.Value = val.NewValue;
@@ -143,8 +146,9 @@ namespace osu.Game.Rulesets.Mods
         public void ApplyToTrack(IAdjustableAudioComponent track)
         {
             InitialRate.TriggerChange();
-            recentRates.Clear();
-            recentRates.AddRange(Enumerable.Repeat(InitialRate.Value, recent_rate_count));
+
+            for (int i = 0; i < recentRates.Count; i++)
+                recentRates[i] = InitialRate.Value;
 
             rateAdjustHelper.ApplyToTrack(track);
         }
@@ -247,14 +251,16 @@ namespace osu.Game.Rulesets.Mods
             // If the player hits half of the notes too fast and the other half too slow:  Abs(consistency) = 0
             // If the player hits all their notes too fast or too slow:                    Abs(consistency) = recent_rate_count - 1
             int consistency = 0;
+            double sum = recentRates[0];
 
             for (int i = 1; i < recentRates.Count; i++)
             {
                 consistency += Math.Sign(recentRates[i] - recentRates[i - 1]);
+                sum += recentRates[i];
             }
 
             // Scale the rate adjustment based on consistency
-            targetRate = Interpolation.Lerp(targetRate, recentRates.Average(), Math.Abs(consistency) / (recent_rate_count - 1d));
+            targetRate = Interpolation.Lerp(targetRate, sum / recentRates.Count, Math.Abs(consistency) / (recent_rate_count - 1d));
         }
     }
 }

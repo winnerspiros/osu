@@ -37,7 +37,11 @@ namespace osu.Game.Graphics
         {
             base.Update();
 
-            Invalidate(Invalidation.DrawNode);
+            // Only push a DrawNode when the icon is actually visible; it is hidden most of the time
+            // (shown only in NoResultsPlaceholder) so skipping the per-frame invalidation while
+            // invisible saves CPU on every frame the search panel is open with results.
+            if (IsPresent)
+                Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new GhostIconDrawNode(this);
