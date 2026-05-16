@@ -155,8 +155,10 @@ namespace osu.Game.Beatmaps.Formats
             if (idx < 0)
                 return new KeyValuePair<string, string>(shouldTrim ? line.Trim() : line, string.Empty);
 
-            string key = shouldTrim ? line[..idx].Trim() : line[..idx];
-            string val = shouldTrim ? line[(idx + 1)..].Trim() : line[(idx + 1)..];
+            // Use AsSpan().Trim() so the trim scan is done on a span before materialising
+            // a single string — avoids creating an intermediate substring just to trim it.
+            string key = shouldTrim ? line.AsSpan(0, idx).Trim().ToString() : line[..idx];
+            string val = shouldTrim ? line.AsSpan(idx + 1).Trim().ToString() : line[(idx + 1)..];
             return new KeyValuePair<string, string>(key, val);
         }
 

@@ -133,6 +133,8 @@ namespace osu.Game.Rulesets.Mods
             rateAdjustHelper = new RateAdjustModHelper(SpeedChange);
             rateAdjustHelper.HandleAudioAdjustments(AdjustPitch);
 
+            // Pre-populate the list so it has exactly recent_rate_count elements at all times.
+            // ApplyToTrack updates the values in-place (requires the elements to already exist).
             for (int i = 0; i < recent_rate_count; i++)
                 recentRates.Add(1d);
 

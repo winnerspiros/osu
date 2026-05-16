@@ -406,9 +406,11 @@ namespace osu.Game.Rulesets.Objects.Drawables
             }
 
             // Fallback for custom GetSamples() implementations that don't return IList<HitSampleInfo>.
-            var fallbackSamples = source.Cast<ISampleInfo>().ToArray();
+            // Use ToArray() to materialise into HitSampleInfo[]; array covariance lets us assign it
+            // directly to ISampleInfo[] without an extra Cast<ISampleInfo>() enumerator.
+            HitSampleInfo[] fallbackSamples = source.ToArray();
 
-            if (fallbackSamples.Length <= 0)
+            if (fallbackSamples.Length == 0)
                 return;
 
             Samples.Samples = fallbackSamples;
