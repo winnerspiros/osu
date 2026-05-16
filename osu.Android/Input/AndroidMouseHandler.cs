@@ -106,10 +106,10 @@ namespace osu.Android.Input
                 // A zero delta means no physical movement — skip to avoid flooding the input queue.
                 float relX = historyIndex < 0
                     ? e.GetAxisValue(axis_relative_x, pointer_index)
-                    : e.GetHistoricalAxisValue((int)axis_relative_x, pointer_index, historyIndex);
+                    : e.GetHistoricalAxisValue(axis_relative_x, pointer_index, historyIndex);
                 float relY = historyIndex < 0
                     ? e.GetAxisValue(axis_relative_y, pointer_index)
-                    : e.GetHistoricalAxisValue((int)axis_relative_y, pointer_index, historyIndex);
+                    : e.GetHistoricalAxisValue(axis_relative_y, pointer_index, historyIndex);
 
                 if (relX == 0f && relY == 0f) return;
 
