@@ -416,17 +416,7 @@ namespace osu.Android
                     // Setting it only on DecorView is not enough in DeX mode: Android
                     // uses the innermost view's pointer icon when the cursor is over
                     // that view, so the SurfaceView's default arrow would still show.
-                    try
-                    {
-                        var surface = GetSurface();
-
-                        if (surface != null)
-                            surface.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log($"[osu!] Failed to hide SurfaceView pointer icon: {e.Message}", LoggingTarget.Input);
-                    }
+                    applyNullPointerIconToSurfaceView();
                 }
                 catch (Exception e)
                 {
@@ -472,17 +462,7 @@ namespace osu.Android
                 catch { /* best-effort; will also be requested per-event in dispatch methods */ }
 
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
-                try
-                {
-                    var decorView = Window.DecorView;
-
-                    if (decorView != null)
-                        decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                }
-                catch (Exception e)
-                {
-                    Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
-                }
+                applyNullPointerIconToDecorView();
             }
 
             if (Resources?.Configuration != null)
@@ -1000,6 +980,71 @@ namespace osu.Android
             if (!wasDeX && IsDeX)
             {
                 (game as OsuGameAndroid)?.OnDeXConnected();
+            }
+
+            // Re-apply the null pointer icon whenever the display configuration changes
+            // (DeX connect/disconnect, orientation, external monitor change). Android can
+            // reset the pointer icon to its default when the window context is updated for
+            // the new display, causing the system cursor to reappear alongside osu!'s
+            // in-game cursor.
+            applyNullPointerIcon();
+        }
+
+        public override void OnWindowFocusChanged(bool hasFocus)
+        {
+            base.OnWindowFocusChanged(hasFocus);
+
+            // Re-apply the null pointer icon every time the window regains focus.
+            // In DeX/freeform mode, Android can reset the pointer icon to its default
+            // arrow when the window transitions between focused and unfocused states
+            // (e.g. task-switching on the external display, lock/unlock, Game Booster
+            // overlay dismiss). Without this, the system cursor reappears on top of
+            // osu!'s in-game cursor after any focus-change event.
+            if (hasFocus)
+                applyNullPointerIcon();
+        }
+
+        /// <summary>
+        /// Hides the system pointer icon on both the DecorView and the SDL SurfaceView
+        /// to prevent a double-cursor situation in DeX mode and with hardware mice.
+        /// Must be called on the UI thread.
+        /// </summary>
+        private void applyNullPointerIcon()
+        {
+            applyNullPointerIconToDecorView();
+            applyNullPointerIconToSurfaceView();
+        }
+
+        private void applyNullPointerIconToDecorView()
+        {
+            try
+            {
+                var decorView = Window?.DecorView;
+
+                if (decorView != null)
+                    decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
+            }
+        }
+
+        private void applyNullPointerIconToSurfaceView()
+        {
+            // Setting it only on DecorView is not enough in DeX mode: Android
+            // uses the innermost view's pointer icon when the cursor is over
+            // that view, so the SurfaceView's default arrow would still show.
+            try
+            {
+                var surface = GetSurface();
+
+                if (surface != null)
+                    surface.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"[osu!] Failed to hide SurfaceView pointer icon: {e.Message}", LoggingTarget.Input);
             }
         }
 
