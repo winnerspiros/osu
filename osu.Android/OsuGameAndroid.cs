@@ -2926,6 +2926,9 @@ namespace osu.Android
             if (handler is AndroidStylusHandler stylus)
                 return new AndroidStylusSettings(stylus);
 
+            if (handler is AndroidMouseHandler mouse)
+                return new AndroidMouseSettings(mouse);
+
             return base.CreateSettingsSubsectionFor(handler);
         }
     }
