@@ -64,7 +64,8 @@ namespace osu.Game.Graphics
         {
             base.Update();
 
-            Invalidate(Invalidation.DrawNode);
+            if (hasActiveParticles)
+                Invalidate(Invalidation.DrawNode);
 
             if (!Active.Value || !CanSpawnParticles)
                 return;

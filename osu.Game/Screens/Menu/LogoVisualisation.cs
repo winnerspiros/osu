@@ -132,6 +132,7 @@ namespace osu.Game.Screens.Menu
             base.Update();
 
             float decayFactor = (float)Time.Elapsed * decay_per_millisecond;
+            bool anyVisible = false;
 
             for (int i = 0; i < bars_per_visualiser; i++)
             {
@@ -139,9 +140,13 @@ namespace osu.Game.Screens.Menu
                 frequencyAmplitudes[i] -= decayFactor * (frequencyAmplitudes[i] + 0.03f);
                 if (frequencyAmplitudes[i] < 0)
                     frequencyAmplitudes[i] = 0;
+
+                if (frequencyAmplitudes[i] > amplitude_dead_zone)
+                    anyVisible = true;
             }
 
-            Invalidate(Invalidation.DrawNode);
+            if (anyVisible)
+                Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new VisualisationDrawNode(this);
