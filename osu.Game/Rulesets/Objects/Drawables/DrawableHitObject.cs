@@ -389,12 +389,29 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         protected virtual void LoadSamples()
         {
-            var samples = GetSamples().Cast<ISampleInfo>().ToArray();
+            var source = GetSamples();
 
-            if (samples.Length <= 0)
+            if (source is IList<HitSampleInfo> list)
+            {
+                if (list.Count == 0)
+                    return;
+
+                var samples = new ISampleInfo[list.Count];
+
+                for (int i = 0; i < list.Count; i++)
+                    samples[i] = list[i];
+
+                Samples.Samples = samples;
+                return;
+            }
+
+            // Fallback for custom GetSamples() implementations that don't return IList<HitSampleInfo>.
+            var fallbackSamples = source.Cast<ISampleInfo>().ToArray();
+
+            if (fallbackSamples.Length <= 0)
                 return;
 
-            Samples.Samples = samples;
+            Samples.Samples = fallbackSamples;
         }
 
         private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);

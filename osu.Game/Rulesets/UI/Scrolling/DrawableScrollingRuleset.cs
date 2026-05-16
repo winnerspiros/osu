@@ -105,7 +105,7 @@ namespace osu.Game.Rulesets.UI.Scrolling
         {
             updateScrollAlgorithm();
 
-            double lastObjectTime = Beatmap.HitObjects.Any() ? Beatmap.GetLastObjectTime() : double.MaxValue;
+            double lastObjectTime = Beatmap.HitObjects.Count > 0 ? Beatmap.GetLastObjectTime() : double.MaxValue;
             double baseBeatLength = TimingControlPoint.DEFAULT_BEAT_LENGTH;
 
             if (RelativeScaleBeatLengths)

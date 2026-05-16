@@ -150,13 +150,14 @@ namespace osu.Game.Beatmaps.Formats
 
         protected KeyValuePair<string, string> SplitKeyVal(string line, char separator = ':', bool shouldTrim = true)
         {
-            string[] split = line.Split(separator, 2, shouldTrim ? StringSplitOptions.TrimEntries : StringSplitOptions.None);
+            int idx = line.IndexOf(separator);
 
-            return new KeyValuePair<string, string>
-            (
-                split[0],
-                split.Length > 1 ? split[1] : string.Empty
-            );
+            if (idx < 0)
+                return new KeyValuePair<string, string>(shouldTrim ? line.Trim() : line, string.Empty);
+
+            string key = shouldTrim ? line[..idx].Trim() : line[..idx];
+            string val = shouldTrim ? line[(idx + 1)..].Trim() : line[(idx + 1)..];
+            return new KeyValuePair<string, string>(key, val);
         }
 
         protected string CleanFilename(string path) => path
