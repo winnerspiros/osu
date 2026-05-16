@@ -171,7 +171,7 @@ namespace osu.Game.Rulesets.Catch.Tests
                 }, skin);
             });
 
-            AddAssert("hyper-dash colour is correct", () => checkLegacyFruitHyperDashColour(drawableFruit, expectedColour));
+            AddUntilStep("hyper-dash colour is correct", () => checkLegacyFruitHyperDashColour(drawableFruit, expectedColour));
         }
 
         private Drawable setupSkinHierarchy(Drawable child, ISkin skin)

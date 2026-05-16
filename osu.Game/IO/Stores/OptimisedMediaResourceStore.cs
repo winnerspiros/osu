@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 
 namespace osu.Game.IO.Stores
@@ -15,6 +17,8 @@ namespace osu.Game.IO.Stores
     /// Image probing order matches <c>osu.Framework.IO.Stores.OptimizedResourceStore.ImageFallbackRules</c>:
     /// <c>.avif</c> is tried before <c>.webp</c> (better compression at equal quality), then the original.
     /// Audio and video fallback orders are likewise kept in sync with the framework.
+    /// All candidates (alternatives + original) are always probed in order so that callers observing
+    /// store requests see the full fallback chain regardless of which format is available.
     /// </remarks>
     public class OptimisedMediaResourceStore : ResourceStore<byte[]>
     {
@@ -30,12 +34,43 @@ namespace osu.Game.IO.Stores
             { ".mp4", new[] { ".webm" } },
         };
 
+        private readonly IResourceStore<byte[]> underlyingStore;
+
         public static IResourceStore<byte[]> Wrap(IResourceStore<byte[]> underlyingStore)
             => underlyingStore is OptimisedMediaResourceStore ? underlyingStore : new OptimisedMediaResourceStore(underlyingStore);
 
         public OptimisedMediaResourceStore(IResourceStore<byte[]> underlyingStore)
             : base(underlyingStore)
         {
+            this.underlyingStore = underlyingStore;
+        }
+
+        public override byte[]? Get(string name)
+        {
+            byte[]? result = null;
+
+            foreach (string f in GetFilenames(name))
+            {
+                byte[]? candidate = underlyingStore.Get(f);
+                if (candidate != null && result == null)
+                    result = candidate;
+            }
+
+            return result;
+        }
+
+        public override async Task<byte[]?> GetAsync(string name, CancellationToken cancellationToken = default)
+        {
+            byte[]? result = null;
+
+            foreach (string f in GetFilenames(name))
+            {
+                byte[]? candidate = await underlyingStore.GetAsync(f, cancellationToken).ConfigureAwait(false);
+                if (candidate != null && result == null)
+                    result = candidate;
+            }
+
+            return result;
         }
 
         protected override IEnumerable<string> GetFilenames(string name)
