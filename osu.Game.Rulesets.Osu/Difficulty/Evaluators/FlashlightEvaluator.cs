@@ -57,7 +57,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
 
                 if (!(currentObj.BaseObject is Spinner))
                 {
-                    double jumpDistance = (osuHitObject.StackedPosition - currentHitObject.StackedEndPosition).Length;
+                    double jumpDistance = (osuHitObject.StackedPosition - currentHitObject.StackedEndPosition).Length();
 
                     // We want to nerf objects that can be easily seen within the Flashlight circle radius.
                     if (i == 0)

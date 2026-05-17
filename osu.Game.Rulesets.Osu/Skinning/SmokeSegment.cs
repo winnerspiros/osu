@@ -91,14 +91,14 @@ namespace osu.Game.Rulesets.Osu.Skinning
         {
             lastPosition ??= position;
 
-            float delta = (position - (Vector2)lastPosition).LengthFast;
+            float delta = (position - (Vector2)lastPosition).Length();
             totalDistance += delta;
             int count = (int)(totalDistance / pointInterval);
 
             if (count > 0)
             {
                 Vector2 increment = position - (Vector2)lastPosition;
-                increment.NormalizeFast();
+                increment = Vector2.Normalize(increment);
 
                 Vector2 pointPos = (pointInterval - (totalDistance - delta)) * increment + (Vector2)lastPosition;
                 increment *= pointInterval;
@@ -282,7 +282,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 {
                     float fraction = Math.Clamp((float)(timeDoingFinalFadeOut / final_fade_out_duration), 0, 1);
                     fraction = MathF.Pow(fraction, 5);
-                    color.A = (1 - fraction) * re_fade_in_alpha;
+                    color = new Colour4(color.R, color.G, color.B, (1 - fraction) * re_fade_in_alpha);
                 }
                 else
                 {
@@ -291,7 +291,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                     if (timeDoingInitialFadeOut > 0)
                     {
                         float fraction = Math.Clamp((float)(timeDoingInitialFadeOut / initial_fade_out_duration), 0, 1);
-                        color.A = (1 - fraction) * initial_alpha;
+                        color = new Colour4(color.R, color.G, color.B, (1 - fraction) * initial_alpha);
                     }
 
                     if (point.Time > firstVisiblePointTimeAfterSmokeEnded)
@@ -302,7 +302,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                         {
                             float fraction = Math.Clamp((float)(timeDoingReFadeIn / re_fade_in_duration), 0, 1);
                             fraction = 1 - MathF.Pow(1 - fraction, 5);
-                            color.A = fraction * (re_fade_in_alpha - color.A) + color.A;
+                            color = new Colour4(color.R, color.G, color.B, fraction * (re_fade_in_alpha - color.A) + color.A);
                         }
                     }
                 }
@@ -343,7 +343,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
                     return;
 
                 var dir = PointDirection(point, index);
-                var ortho = dir.PerpendicularLeft;
+                var ortho = dir.PerpendicularLeft();
                 dir *= scale * width;
                 ortho *= scale * height;
 

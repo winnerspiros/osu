@@ -111,7 +111,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 // When the first nested object that is further outside the follow area is reached,
                 // forcefully miss all other nested objects that would otherwise be valid to be hit.
                 // This covers a case of a slider overlapping itself that requires tracking to a tick on an outer edge.
-                if ((objectPosition - mousePositionInSlider).LengthSquared > radius * radius)
+                if ((objectPosition - mousePositionInSlider).LengthSquared() > radius * radius)
                 {
                     allTicksInRange = false;
                     break;
@@ -208,7 +208,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             Vector2 followCirclePosition = slider.HitObject.CurvePositionAt(followProgress);
             Vector2 mousePositionInSlider = slider.ToLocalSpace(pos) - slider.OriginPosition;
 
-            return (mousePositionInSlider - followCirclePosition).LengthSquared <= radius * radius;
+            return (mousePositionInSlider - followCirclePosition).LengthSquared() <= radius * radius;
         }
 
         /// <summary>

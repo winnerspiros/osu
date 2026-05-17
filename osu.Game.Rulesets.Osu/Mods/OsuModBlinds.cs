@@ -147,7 +147,7 @@ namespace osu.Game.Rulesets.Osu.Mods
                 else
                 {
                     float center = restrictTo.ToSpaceOfOtherDrawable(restrictTo.OriginPosition, Parent!).X;
-                    float halfDiagonal = (restrictTo.DrawSize / 2).LengthFast;
+                    float halfDiagonal = (restrictTo.DrawSize / 2).Length();
 
                     start = center - halfDiagonal;
                     end = center + halfDiagonal;

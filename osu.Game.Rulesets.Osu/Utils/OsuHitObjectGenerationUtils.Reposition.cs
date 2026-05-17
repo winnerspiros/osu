@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.Osu.Utils
                 positionInfos.Add(positionInfo = new ObjectPositionInfo(hitObject)
                 {
                     RelativeAngle = relativeAngle,
-                    DistanceFromPrevious = relativePosition.Length
+                    DistanceFromPrevious = relativePosition.Length()
                 });
 
                 if (hitObject is Slider slider)

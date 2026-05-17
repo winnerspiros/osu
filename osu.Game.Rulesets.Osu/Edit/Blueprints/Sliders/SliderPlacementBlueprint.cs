@@ -507,7 +507,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders
             foreach (var point in points)
             {
                 var vec = point - circleArc.Centre;
-                loss += Math.Pow((vec.Length - circleArc.Radius) / length, 2);
+                loss += Math.Pow((vec.Length() - circleArc.Radius) / length, 2);
 
                 if (lastVec.HasValue)
                 {

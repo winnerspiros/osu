@@ -100,8 +100,8 @@ namespace osu.Game.Rulesets.Osu.Utils
             float finalAngleRad = initialAngleRad + rotationRatio * diff;
 
             return new Vector2(
-                initial.Length * MathF.Cos(finalAngleRad),
-                initial.Length * MathF.Sin(finalAngleRad)
+                initial.Length() * MathF.Cos(finalAngleRad),
+                initial.Length() * MathF.Sin(finalAngleRad)
             );
         }
 
@@ -178,7 +178,7 @@ namespace osu.Game.Rulesets.Osu.Utils
         private static Vector2 rotateVector(Vector2 vector, float rotation)
         {
             float angle = MathF.Atan2(vector.Y, vector.X) + rotation;
-            float length = vector.Length;
+            float length = vector.Length();
             return new Vector2(
                 length * MathF.Cos(angle),
                 length * MathF.Sin(angle)

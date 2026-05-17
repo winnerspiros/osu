@@ -117,7 +117,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                     var lastBaseObject = (OsuHitObject)osuLastObj.BaseObject;
                     var last2BaseObject = (OsuHitObject)osuLast2Obj.BaseObject;
 
-                    float distance = (last2BaseObject.StackedPosition - lastBaseObject.StackedPosition).Length;
+                    float distance = (last2BaseObject.StackedPosition - lastBaseObject.StackedPosition).Length();
 
                     if (distance < 1)
                     {
