@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mania.UI
 {

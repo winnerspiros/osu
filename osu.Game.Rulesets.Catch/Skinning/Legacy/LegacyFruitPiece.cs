@@ -3,7 +3,7 @@
 
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Legacy
 {

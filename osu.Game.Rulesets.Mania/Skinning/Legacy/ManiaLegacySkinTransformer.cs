@@ -17,7 +17,7 @@ using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {

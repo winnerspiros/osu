@@ -21,7 +21,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {

@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {

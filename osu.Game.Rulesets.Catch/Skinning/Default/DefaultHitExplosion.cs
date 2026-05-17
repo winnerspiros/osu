@@ -10,6 +10,7 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Utils;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default

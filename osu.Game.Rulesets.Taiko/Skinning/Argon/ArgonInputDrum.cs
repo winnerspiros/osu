@@ -13,6 +13,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Screens.Ranking;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon

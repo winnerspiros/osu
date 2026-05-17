@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {
