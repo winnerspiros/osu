@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Taiko.Objects;
+using osu.Game.Rulesets.Taiko.Objects.Drawables;
 using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Tests.Skinning
