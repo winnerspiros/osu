@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -137,8 +136,8 @@ namespace osu.Game.Overlays.SkinEditor
         {
             base.Update();
 
-            var scaleVec = drawable.DrawInfo.MatrixInverse.ExtractScale();
-            Vector2 scale = new Vector2(scaleVec.X, scaleVec.Y);
+            var scaleM = drawable.DrawInfo.MatrixInverse;
+            Vector2 scale = new Vector2(MathF.Sqrt(scaleM.M11 * scaleM.M11 + scaleM.M21 * scaleM.M21), MathF.Sqrt(scaleM.M12 * scaleM.M12 + scaleM.M22 * scaleM.M22));
             drawableQuad = drawable.ToScreenSpace(
                 drawable.DrawRectangle
                         .Inflate(SkinSelectionHandler.INFLATE_SIZE * scale));

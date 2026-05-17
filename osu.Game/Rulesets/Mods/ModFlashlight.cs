@@ -260,8 +260,8 @@ namespace osu.Game.Rulesets.Mods
                     flashlightPosition = Vector2Extensions.Transform(Source.FlashlightPosition, DrawInfo.Matrix);
 
                     // scale the flashlight based on the playfield to match gameplay components scale.
-                    var drawInfoScaleVec = Source.playfieldDrawInfo.Matrix.ExtractScale();
-                    Vector2 drawInfoScale = new Vector2(drawInfoScaleVec.X, drawInfoScaleVec.Y);
+                    var drawInfoM = Source.playfieldDrawInfo.Matrix;
+                    Vector2 drawInfoScale = new Vector2(MathF.Sqrt(drawInfoM.M11 * drawInfoM.M11 + drawInfoM.M21 * drawInfoM.M21), MathF.Sqrt(drawInfoM.M12 * drawInfoM.M12 + drawInfoM.M22 * drawInfoM.M22));
                     flashlightSize = Source.FlashlightSize * drawInfoScale;
 
                     flashlightDim = Source.FlashlightDim;

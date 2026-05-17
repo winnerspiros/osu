@@ -296,7 +296,7 @@ namespace osu.Game.Screens.Menu
             if (e.Repeat || e.ControlPressed || e.ShiftPressed || e.AltPressed || e.SuperPressed)
                 return false;
 
-            if (e.Key >= Key.F1 && e.Key <= Key.F35)
+            if (e.Key >= Key.F1 && e.Key <= Key.F24)
                 return false;
 
             if (e.Key >= Key.Mute && e.Key <= Key.TrackNext)

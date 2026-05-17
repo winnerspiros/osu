@@ -164,7 +164,7 @@ namespace osu.Game.Graphics.Backgrounds
                     particle.Position.Y = newY;
                 }
 
-                particle.Colour.A = adjustedAlpha;
+                particle.Colour = new Colour4(particle.Colour.R, particle.Colour.G, particle.Colour.B, adjustedAlpha);
                 parts[i] = particle;
             }
 

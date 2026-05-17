@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
@@ -203,8 +202,8 @@ namespace osu.Game.Screens.Menu
 
                 shader.Bind();
 
-                var inflationScale = DrawInfo.MatrixInverse.ExtractScale();
-                Vector2 inflation = new Vector2(inflationScale.X, inflationScale.Y);
+                var inflationM = DrawInfo.MatrixInverse;
+                Vector2 inflation = new Vector2(MathF.Sqrt(inflationM.M11 * inflationM.M11 + inflationM.M21 * inflationM.M21), MathF.Sqrt(inflationM.M12 * inflationM.M12 + inflationM.M22 * inflationM.M22));
 
                 ColourInfo colourInfo = DrawColourInfo.Colour;
                 colourInfo.ApplyChild(transparent_white);

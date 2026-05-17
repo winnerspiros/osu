@@ -37,7 +37,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             private Colour4 getColour(float saturation, float lightness, bool isAccent = false)
             {
-                float hue = Primary.ToHSV().h / 360f;
+                float hue = Primary.ToHSV().X;
 
                 // at higher star ratings primary colour can become pure black. in that case we want to just use a very desaturated purple as base
                 if (beatmap.StarRating >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF)
@@ -58,8 +58,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                 }
 
                 return mix(
-                    Colour4.FromHsl(new Vector4(hue, saturation, lightness, 1)),
-                    Colour4.FromHsl(new Vector4(shadowHue, saturation, lightness, 1)),
+                    Colour4.FromHSL(hue, saturation, lightness),
+                    Colour4.FromHSL(shadowHue, saturation, lightness),
                     colourShift
                 );
             }
