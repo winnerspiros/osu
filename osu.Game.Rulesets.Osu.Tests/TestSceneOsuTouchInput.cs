@@ -732,7 +732,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
             private Colour4 colourFor(TouchSource source)
             {
-                return Colour4.FromHsv(new Vector4((float)source / TouchState.MAX_TOUCH_COUNT, 1f, 1f, 1f));
+                return Colour4.FromHSV((float)source / TouchState.MAX_TOUCH_COUNT, 1f, 1f);
             }
 
             private partial class FadingCircle : Circle

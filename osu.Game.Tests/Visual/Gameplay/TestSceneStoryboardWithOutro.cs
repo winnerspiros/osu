@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
 using NUnit.Framework;
+using osu.Framework.Input;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
