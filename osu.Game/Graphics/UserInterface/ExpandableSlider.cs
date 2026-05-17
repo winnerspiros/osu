@@ -12,7 +12,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
 
-
 namespace osu.Game.Graphics.UserInterface
 {
     /// <summary>
