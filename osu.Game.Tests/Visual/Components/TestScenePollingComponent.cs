@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;

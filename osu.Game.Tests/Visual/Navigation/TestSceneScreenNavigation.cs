@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;

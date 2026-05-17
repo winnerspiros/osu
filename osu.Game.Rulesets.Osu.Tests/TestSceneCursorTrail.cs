@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;

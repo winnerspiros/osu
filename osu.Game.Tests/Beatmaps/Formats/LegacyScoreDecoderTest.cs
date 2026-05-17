@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Framework.Extensions;

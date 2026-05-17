@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects;

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;

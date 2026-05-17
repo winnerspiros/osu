@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;

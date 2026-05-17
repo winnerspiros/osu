@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;

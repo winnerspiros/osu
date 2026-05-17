@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using Humanizer;
 using NUnit.Framework;
 using osu.Framework.Testing;

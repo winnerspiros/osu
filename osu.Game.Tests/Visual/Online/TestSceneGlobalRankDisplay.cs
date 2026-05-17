@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;

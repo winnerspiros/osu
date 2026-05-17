@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;

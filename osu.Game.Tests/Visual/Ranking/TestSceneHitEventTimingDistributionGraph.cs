@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;

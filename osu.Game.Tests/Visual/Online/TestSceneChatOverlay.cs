@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Numerics;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;

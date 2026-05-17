@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using Moq;
 using NUnit.Framework;
 using osu.Framework.Allocation;

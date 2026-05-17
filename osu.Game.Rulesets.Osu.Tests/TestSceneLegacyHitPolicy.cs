@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;

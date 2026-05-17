@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Bindables;

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
+using System.Numerics;
 using Android.Views;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Handlers;

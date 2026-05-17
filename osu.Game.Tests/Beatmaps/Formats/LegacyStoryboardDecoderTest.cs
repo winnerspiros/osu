@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Framework.Graphics;

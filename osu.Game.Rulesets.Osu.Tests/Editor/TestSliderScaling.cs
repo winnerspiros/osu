@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Framework.Graphics.Primitives;

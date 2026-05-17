@@ -5,6 +5,7 @@
 
 using System.IO;
 using System.Text;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;

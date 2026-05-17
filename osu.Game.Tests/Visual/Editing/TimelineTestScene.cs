@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
