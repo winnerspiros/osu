@@ -210,7 +210,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 new Vector2(halfUsableArea.X, halfUsableArea.Y)
             );
 
-            var matrix = Matrix3x2.Identity;
+            osuTK.Matrix3 matrix = osuTK.Matrix3.Identity;
 
             MatrixExtensions.TranslateFromLeft(ref matrix, offset);
             MatrixExtensions.RotateFromLeft(ref matrix, float.DegreesToRadians(rotation.Value));

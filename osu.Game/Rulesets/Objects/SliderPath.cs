@@ -471,7 +471,7 @@ namespace osu.Game.Rulesets.Objects
                 }
 
                 // The direction of the segment to shorten or lengthen
-                Vector2 dir = (calculatedPath[pathEndIndex] - calculatedPath[pathEndIndex - 1]).Normalized();
+                Vector2 dir = Vector2.Normalize(calculatedPath[pathEndIndex] - calculatedPath[pathEndIndex - 1]);
 
                 calculatedPath[pathEndIndex] = calculatedPath[pathEndIndex - 1] + dir * (float)(expectedDistance - cumulativeLength[^1]);
                 cumulativeLength.Add(expectedDistance);
