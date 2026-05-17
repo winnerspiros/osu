@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 using osu.Game.Beatmaps;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay

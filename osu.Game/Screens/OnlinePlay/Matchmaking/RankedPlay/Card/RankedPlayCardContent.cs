@@ -14,7 +14,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card

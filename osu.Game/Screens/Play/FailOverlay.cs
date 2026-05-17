@@ -12,7 +12,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Scoring;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Play

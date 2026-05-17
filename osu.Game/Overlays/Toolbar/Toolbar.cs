@@ -17,7 +17,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Input.Bindings;
 using osu.Game.Rulesets;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays.Toolbar

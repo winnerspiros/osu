@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Configuration;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Play.HUD

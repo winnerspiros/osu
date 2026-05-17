@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
 using Vector2 = System.Numerics.Vector2;
+using Vector4 = System.Numerics.Vector4;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts

@@ -510,7 +510,7 @@ namespace osu.Game.Overlays
                 Vector2 change = e.MousePosition - e.MouseDownPosition;
 
                 // Diminish the drag distance as we go further to simulate "rubber band" feeling.
-                change *= change.Length <= 0 ? 0 : MathF.Pow(change.Length, 0.7f) / change.Length;
+                change *= change.Length() <= 0 ? 0 : MathF.Pow(change.Length(), 0.7f) / change.Length();
 
                 this.MoveTo(change);
             }

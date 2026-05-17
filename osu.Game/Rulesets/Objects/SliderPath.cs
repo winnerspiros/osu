@@ -426,7 +426,7 @@ namespace osu.Game.Rulesets.Objects
             for (int i = 0; i < calculatedPath.Count - 1; i++)
             {
                 Vector2 diff = calculatedPath[i + 1] - calculatedPath[i];
-                calculatedLength += diff.Length;
+                calculatedLength += diff.Length();
                 cumulativeLength.Add(calculatedLength);
             }
 

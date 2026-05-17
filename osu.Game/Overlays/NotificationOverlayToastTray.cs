@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Overlays.Notifications;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays

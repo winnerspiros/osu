@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Ranking.Expanded.Accuracy

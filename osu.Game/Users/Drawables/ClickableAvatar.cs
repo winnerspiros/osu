@@ -12,7 +12,6 @@ using osu.Game.Graphics.Cursor;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
-using System.Numerics;
 
 namespace osu.Game.Users.Drawables
 {
@@ -66,6 +65,8 @@ namespace osu.Game.Users.Drawables
 
         public partial class UserCardTooltip : VisibilityContainer, ITooltip<APIUser?>
         {
+            private APIUser? user;
+
             public UserCardTooltip()
             {
                 AutoSizeAxes = Axes.Both;

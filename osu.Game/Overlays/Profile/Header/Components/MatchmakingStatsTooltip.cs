@@ -14,7 +14,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Header.Components

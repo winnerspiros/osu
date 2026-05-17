@@ -33,7 +33,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
             target.Position = positionWithOrigin - anchorPosition;
 
-            target.Rotation = MathHelper.RadiansToDegrees(new Line(drawQuad.TopLeft, drawQuad.TopRight).Theta);
+            target.Rotation = float.RadiansToDegrees(new Line(drawQuad.TopLeft, drawQuad.TopRight).Theta);
 
             target.Scale = new Vector2(Vector2.Distance(drawQuad.TopLeft, drawQuad.TopRight) / target.DrawWidth);
 

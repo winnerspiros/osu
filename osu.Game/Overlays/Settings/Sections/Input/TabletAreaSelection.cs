@@ -210,7 +210,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 new Vector2(halfUsableArea.X, halfUsableArea.Y)
             );
 
-            var matrix = Matrix3.Identity;
+            var matrix = Matrix3x2.Identity;
 
             MatrixExtensions.TranslateFromLeft(ref matrix, offset);
             MatrixExtensions.RotateFromLeft(ref matrix, float.DegreesToRadians(rotation.Value));
@@ -233,7 +233,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             if (!(tablet.Value?.Size is Vector2 size))
                 return;
 
-            float maxDimension = size.LengthFast;
+            float maxDimension = size.Length();
 
             float fitX = maxDimension / (DrawWidth - Padding.Left - Padding.Right);
             float fitY = maxDimension / DrawHeight;

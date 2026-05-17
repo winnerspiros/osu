@@ -26,7 +26,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
-using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {

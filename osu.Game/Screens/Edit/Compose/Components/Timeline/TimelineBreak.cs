@@ -19,7 +19,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Objects;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline

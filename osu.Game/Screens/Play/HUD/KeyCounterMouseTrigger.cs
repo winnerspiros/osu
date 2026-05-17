@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.Events;
-using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Play.HUD

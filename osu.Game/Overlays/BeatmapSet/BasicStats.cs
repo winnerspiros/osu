@@ -17,7 +17,6 @@ using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays.BeatmapSet

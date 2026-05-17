@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface

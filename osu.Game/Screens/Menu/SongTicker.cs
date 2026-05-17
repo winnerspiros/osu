@@ -12,7 +12,6 @@ using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Menu

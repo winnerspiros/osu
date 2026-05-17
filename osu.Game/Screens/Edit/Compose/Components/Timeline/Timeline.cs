@@ -16,7 +16,6 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Edit;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 using osuTK.Input;
 

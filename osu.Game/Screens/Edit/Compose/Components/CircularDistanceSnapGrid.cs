@@ -48,7 +48,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             float dx = Math.Max(StartPosition.X, DrawWidth - StartPosition.X);
             float dy = Math.Max(StartPosition.Y, DrawHeight - StartPosition.Y);
-            float maxDistance = new Vector2(dx, dy).Length;
+            float maxDistance = new Vector2(dx, dy).Length();
             int requiredCircles = Math.Min(MaxIntervals, (int)(maxDistance / DistanceBetweenTicks));
 
             // We need to offset the drawn lines to the next valid snap for the currently selected divisor.
@@ -88,7 +88,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             if (travelVector == Vector2.Zero)
                 travelVector = new Vector2(0, -1);
 
-            float travelLength = travelVector.Length;
+            float travelLength = travelVector.Length();
 
             // FindSnappedDistance will always round down, but we want to potentially round upwards.
             travelLength += DistanceBetweenTicks / 2;

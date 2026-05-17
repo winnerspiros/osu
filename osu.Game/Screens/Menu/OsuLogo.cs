@@ -442,7 +442,7 @@ namespace osu.Game.Screens.Menu
             Vector2 change = e.MousePosition - e.MouseDownPosition;
 
             // Diminish the drag distance as we go further to simulate "rubber band" feeling.
-            change *= change.Length <= 0 ? 0 : MathF.Pow(change.Length, 0.6f) / change.Length;
+            change *= change.Length() <= 0 ? 0 : MathF.Pow(change.Length(), 0.6f) / change.Length();
 
             logoBounceContainer.MoveTo(change);
         }

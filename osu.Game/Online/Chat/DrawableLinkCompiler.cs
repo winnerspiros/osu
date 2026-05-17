@@ -13,7 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using System.Numerics;
 
 namespace osu.Game.Online.Chat
 {

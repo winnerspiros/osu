@@ -20,7 +20,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Resources.Localisation.Web;
-using System.Numerics;
 using osuTK.Graphics;
 using NotificationsStrings = osu.Game.Localisation.NotificationsStrings;
 

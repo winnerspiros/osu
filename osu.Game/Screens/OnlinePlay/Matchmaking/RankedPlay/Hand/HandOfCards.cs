@@ -344,7 +344,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 
         protected static Vector2 GetCardUpwardsDirection(float rotation)
         {
-            float angle = MathHelper.DegreesToRadians(rotation - 90);
+            float angle = float.DegreesToRadians(rotation - 90);
 
             return new Vector2(MathF.Cos(angle), MathF.Sin(angle));
         }

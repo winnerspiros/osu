@@ -20,7 +20,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation.HUD;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Play.HUD.HitErrorMeters

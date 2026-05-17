@@ -41,7 +41,6 @@ using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
 using osu.Game.Screens.OnlinePlay.Playlists;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 using ParticipantsList = osu.Game.Screens.OnlinePlay.Multiplayer.Participants.ParticipantsList;
 

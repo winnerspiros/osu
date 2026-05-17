@@ -47,8 +47,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// <param name="e">The mouse event.</param>
         public virtual void HandleDrag(MouseButtonEvent e)
         {
-            Box.Position = Vector2.ComponentMin(e.MouseDownPosition, e.MousePosition);
-            Box.Size = Vector2.ComponentMax(e.MouseDownPosition, e.MousePosition) - Box.Position;
+            Box.Position = Vector2.Min(e.MouseDownPosition, e.MousePosition);
+            Box.Size = Vector2.Max(e.MouseDownPosition, e.MousePosition) - Box.Position;
         }
 
         public Visibility State

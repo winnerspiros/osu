@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using System.Numerics;
 
 namespace osu.Game.Graphics
 {

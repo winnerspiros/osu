@@ -24,7 +24,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 using osuTK.Input;
 

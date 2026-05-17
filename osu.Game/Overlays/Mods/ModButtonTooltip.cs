@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Mods;
-using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {

@@ -22,7 +22,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             // Make lines the same width independent of display resolution.
             float lineWidth = DrawWidth / ScreenSpaceDrawQuad.Width;
-            float rotation = MathHelper.RadiansToDegrees(MathF.Atan2(step.Y, step.X));
+            float rotation = float.RadiansToDegrees(MathF.Atan2(step.Y, step.X));
 
             List<Box> generatedLines = new List<Box>();
 
@@ -31,7 +31,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 Vector2 currentPosition = StartPosition.Value + index * step;
                 index++;
 
-                if (!lineDefinitelyIntersectsBox(currentPosition, step.PerpendicularLeft, drawSize, out var p1, out var p2))
+                if (!lineDefinitelyIntersectsBox(currentPosition, step.PerpendicularLeft(), drawSize, out var p1, out var p2))
                 {
                     if (!isMovingTowardsBox(currentPosition, step, drawSize))
                         break;
@@ -64,8 +64,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private bool isMovingTowardsBox(Vector2 currentPosition, Vector2 step, Vector2 box)
         {
-            return (currentPosition + step).LengthSquared < currentPosition.LengthSquared ||
-                   (currentPosition + step - box).LengthSquared < (currentPosition - box).LengthSquared;
+            return (currentPosition + step).LengthSquared() < currentPosition.LengthSquared() ||
+                   (currentPosition + step - box).LengthSquared() < (currentPosition - box).LengthSquared();
         }
 
         /// <summary>

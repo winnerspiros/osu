@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
-using System.Numerics;
 
 namespace osu.Game.Graphics.Containers
 {

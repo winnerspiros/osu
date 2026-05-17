@@ -204,7 +204,8 @@ namespace osu.Game.Screens.Menu
 
                 shader.Bind();
 
-                Vector2 inflation = DrawInfo.MatrixInverse.ExtractScale().Xy;
+                var inflationScale = DrawInfo.MatrixInverse.ExtractScale();
+                Vector2 inflation = new Vector2(inflationScale.X, inflationScale.Y);
 
                 ColourInfo colourInfo = DrawColourInfo.Colour;
                 colourInfo.ApplyChild(transparent_white);
@@ -242,7 +243,7 @@ namespace osu.Game.Screens.Menu
                             null,
                             vertexBatch.AddAction,
                             // barSize by itself will make it smooth more in the X axis than in the Y axis, this reverts that.
-                            Vector2.Divide(inflation, barSize.Yx));
+                            Vector2.Divide(inflation, new Vector2(barSize.Y, barSize.X)));
                     }
                 }
 

@@ -138,7 +138,8 @@ namespace osu.Game.Overlays.SkinEditor
         {
             base.Update();
 
-            Vector2 scale = drawable.DrawInfo.MatrixInverse.ExtractScale().Xy;
+            var scaleVec = drawable.DrawInfo.MatrixInverse.ExtractScale();
+            Vector2 scale = new Vector2(scaleVec.X, scaleVec.Y);
             drawableQuad = drawable.ToScreenSpace(
                 drawable.DrawRectangle
                         .Inflate(SkinSelectionHandler.INFLATE_SIZE * scale));
@@ -217,8 +218,8 @@ namespace osu.Game.Overlays.SkinEditor
             var point2 = ToLocalSpace(originBox.ScreenSpaceDrawQuad.Centre);
 
             anchorLine.Position = point1;
-            anchorLine.Width = (point2 - point1).Length;
-            anchorLine.Rotation = MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X));
+            anchorLine.Width = (point2 - point1).Length();
+            anchorLine.Rotation = float.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X));
         }
 
         private Vector2 tweenPosition(Vector2 oldPosition, Vector2 newPosition)

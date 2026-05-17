@@ -30,7 +30,6 @@ using osu.Game.Overlays.BeatmapSet;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect

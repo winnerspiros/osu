@@ -20,7 +20,6 @@ using osu.Game.Input.Bindings;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
-using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components

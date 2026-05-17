@@ -32,7 +32,6 @@ using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.ClicksPerSecond;
-using System.Numerics;
 
 namespace osu.Game.Rulesets.UI
 {
