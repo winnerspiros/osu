@@ -3,6 +3,7 @@
 
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Objects.Drawables
 {

@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -192,7 +193,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
 
                     Vector2 pos1 = lastPosition.Value;
                     Vector2 diff = pos2 - pos1;
-                    float distance = diff.Length;
+                    float distance = diff.Length();
                     Vector2 direction = diff / distance;
 
                     float interval = Texture.DisplayWidth * CursorScale.X / 2.5f * IntervalMultiplier;

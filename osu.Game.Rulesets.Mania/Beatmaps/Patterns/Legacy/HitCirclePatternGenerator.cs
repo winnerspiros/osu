@@ -36,7 +36,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
 
             var positionData = hitObject as IHasPosition;
 
-            float positionSeparation = ((positionData?.Position ?? Vector2.Zero) - previousPosition).Length;
+            float positionSeparation = ((positionData?.Position ?? Vector2.Zero) - previousPosition).Length();
             double timeSeparation = hitObject.StartTime - previousTime;
 
             if (timeSeparation <= 80)
