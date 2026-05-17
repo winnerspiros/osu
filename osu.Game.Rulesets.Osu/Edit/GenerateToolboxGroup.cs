@@ -8,6 +8,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Components;
 using osu.Framework.Input;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {

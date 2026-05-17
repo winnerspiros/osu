@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Game.Rulesets.Replays;
 
 namespace osu.Game.Rulesets.EmptyFreeform.Replays

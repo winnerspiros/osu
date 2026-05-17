@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Skinning;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {

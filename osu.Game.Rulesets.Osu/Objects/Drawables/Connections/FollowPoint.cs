@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Skinning;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
 {

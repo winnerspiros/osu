@@ -4,6 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Rulesets.Judgements;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {

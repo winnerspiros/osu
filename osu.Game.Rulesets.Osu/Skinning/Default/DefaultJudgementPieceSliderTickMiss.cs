@@ -9,6 +9,7 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
