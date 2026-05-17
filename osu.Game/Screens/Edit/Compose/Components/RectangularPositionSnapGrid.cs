@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Bindables;
 using osu.Game.Utils;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {

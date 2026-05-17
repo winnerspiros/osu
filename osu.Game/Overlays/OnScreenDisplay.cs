@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Threading;
 using osu.Game.Overlays.OSD;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {

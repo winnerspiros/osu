@@ -18,7 +18,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking.Expanded.Accuracy

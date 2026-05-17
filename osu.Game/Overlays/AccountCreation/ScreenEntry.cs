@@ -21,7 +21,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.Chat;
 using osu.Game.Overlays.Settings;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays.AccountCreation

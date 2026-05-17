@@ -21,6 +21,7 @@ using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays.Rankings
 {

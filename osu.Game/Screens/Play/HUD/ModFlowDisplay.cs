@@ -10,7 +10,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {

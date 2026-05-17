@@ -40,7 +40,7 @@ using osu.Game.Screens.Play.PlayerSettings;
 using osu.Game.Skinning;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play

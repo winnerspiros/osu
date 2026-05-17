@@ -8,7 +8,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Setup
 {

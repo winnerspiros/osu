@@ -10,7 +10,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning.Triangles
 {

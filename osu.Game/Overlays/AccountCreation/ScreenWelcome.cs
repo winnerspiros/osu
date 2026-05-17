@@ -11,7 +11,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens.Menu;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.AccountCreation
 {

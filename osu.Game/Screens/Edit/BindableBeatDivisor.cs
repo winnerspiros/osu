@@ -7,7 +7,7 @@ using System.Linq;
 using osu.Framework.Bindables;
 using osu.Game.Graphics;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit

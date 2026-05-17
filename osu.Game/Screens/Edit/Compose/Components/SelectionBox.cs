@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components

@@ -19,7 +19,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.Leaderboards;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer

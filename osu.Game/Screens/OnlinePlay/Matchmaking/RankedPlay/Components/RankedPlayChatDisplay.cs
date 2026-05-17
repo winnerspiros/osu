@@ -23,7 +23,7 @@ using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components

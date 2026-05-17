@@ -18,7 +18,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.Rooms;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {

@@ -5,7 +5,7 @@ using osu.Game.Beatmaps.Legacy;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Objects.Legacy
 {

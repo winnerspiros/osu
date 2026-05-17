@@ -14,7 +14,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD

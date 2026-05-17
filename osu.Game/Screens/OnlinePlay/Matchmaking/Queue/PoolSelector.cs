@@ -14,7 +14,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Matchmaking;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using osuTK.Input;
 

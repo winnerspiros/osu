@@ -5,7 +5,7 @@
 
 using JetBrains.Annotations;
 using osu.Game.Rulesets.Objects;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Scoring
 {

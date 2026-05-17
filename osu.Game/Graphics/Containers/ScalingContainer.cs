@@ -14,7 +14,7 @@ using osu.Framework.Screens;
 using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Graphics.Containers

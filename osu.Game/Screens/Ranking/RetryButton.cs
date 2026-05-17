@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.Play;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Ranking
 {

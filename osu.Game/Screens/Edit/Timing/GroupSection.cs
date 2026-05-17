@@ -10,7 +10,7 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Timing
 {

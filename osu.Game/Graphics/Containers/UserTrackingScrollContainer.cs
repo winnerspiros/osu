@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers
 {

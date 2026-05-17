@@ -14,7 +14,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Screens.Select

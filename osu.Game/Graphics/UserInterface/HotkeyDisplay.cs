@@ -11,7 +11,7 @@ using osu.Framework.Platform;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Input;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {

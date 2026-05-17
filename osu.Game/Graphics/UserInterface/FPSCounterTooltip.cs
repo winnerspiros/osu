@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Game.Graphics.Containers;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
 {

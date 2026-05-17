@@ -19,7 +19,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Settings.Sections.Input
 {

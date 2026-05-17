@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using Realms;
 

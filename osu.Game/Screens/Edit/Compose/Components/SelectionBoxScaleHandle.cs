@@ -6,7 +6,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components

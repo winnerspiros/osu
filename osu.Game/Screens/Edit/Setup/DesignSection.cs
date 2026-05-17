@@ -11,7 +11,7 @@ using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Setup
 {

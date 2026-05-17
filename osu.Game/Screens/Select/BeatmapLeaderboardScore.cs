@@ -35,7 +35,7 @@ using osu.Game.Scoring;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using CommonStrings = osu.Game.Localisation.CommonStrings;
 

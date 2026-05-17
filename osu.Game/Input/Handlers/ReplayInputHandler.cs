@@ -13,7 +13,7 @@ using osu.Framework.Input.States;
 using osu.Framework.Platform;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Input.Handlers
 {

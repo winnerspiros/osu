@@ -29,7 +29,7 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using ChatStrings = osu.Game.Localisation.ChatStrings;
 

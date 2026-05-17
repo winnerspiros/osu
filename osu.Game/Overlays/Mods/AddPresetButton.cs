@@ -12,7 +12,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Mods;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {

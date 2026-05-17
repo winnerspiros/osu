@@ -17,7 +17,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Online.Leaderboards
 {

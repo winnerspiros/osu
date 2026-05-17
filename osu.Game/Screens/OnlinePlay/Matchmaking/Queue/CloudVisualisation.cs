@@ -13,7 +13,7 @@ using osu.Framework.Utils;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
 using osu.Game.Screens.Ranking;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {

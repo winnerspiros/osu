@@ -20,7 +20,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Screens.Select

@@ -3,7 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Extensions
 {

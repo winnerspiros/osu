@@ -37,7 +37,7 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.Results;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 {

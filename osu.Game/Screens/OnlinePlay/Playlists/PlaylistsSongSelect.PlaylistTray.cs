@@ -16,6 +16,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Screens.OnlinePlay.Playlists

@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Ranking

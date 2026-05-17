@@ -11,7 +11,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Overlays.SkinEditor

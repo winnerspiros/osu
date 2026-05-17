@@ -28,6 +28,7 @@ using osu.Game.Input.Bindings;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Input;
 
 namespace osu.Game.Overlays.Settings.Sections.Input

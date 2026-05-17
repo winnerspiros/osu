@@ -30,7 +30,7 @@ using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Screens.OnlinePlay.Playlists;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 

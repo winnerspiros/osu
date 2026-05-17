@@ -9,7 +9,7 @@ using osu.Framework.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.Chat;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {

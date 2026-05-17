@@ -12,7 +12,7 @@ using osu.Game.Localisation;
 using osu.Game.Overlays.SkinEditor;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

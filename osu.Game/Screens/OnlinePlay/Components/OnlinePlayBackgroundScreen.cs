@@ -15,7 +15,7 @@ using osu.Game.Database;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Components

@@ -11,7 +11,7 @@ using osu.Game.IO;
 using osu.Game.Storyboards;
 using osu.Game.Storyboards.Commands;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Formats

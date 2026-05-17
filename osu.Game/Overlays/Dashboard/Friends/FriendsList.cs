@@ -12,7 +12,7 @@ using osu.Framework.Localisation;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Dashboard.Friends
 {

@@ -16,7 +16,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers.Markdown;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Wiki.Markdown;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Wiki

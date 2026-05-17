@@ -31,7 +31,7 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants

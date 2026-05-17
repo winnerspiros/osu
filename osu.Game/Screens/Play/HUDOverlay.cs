@@ -27,7 +27,7 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.ClicksPerSecond;
 using osu.Game.Screens.Play.HUD.JudgementCounter;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {

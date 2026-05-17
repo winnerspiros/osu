@@ -25,7 +25,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Comments.Buttons;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Overlays.Comments

@@ -10,7 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Database;
 using osu.Game.Graphics.Containers;
-using osuTK;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Collections

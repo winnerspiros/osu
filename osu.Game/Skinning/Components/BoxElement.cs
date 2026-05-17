@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Configuration;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Overlays.Settings;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Skinning.Components

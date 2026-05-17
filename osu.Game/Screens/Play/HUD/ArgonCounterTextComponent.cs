@@ -14,7 +14,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Text;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD

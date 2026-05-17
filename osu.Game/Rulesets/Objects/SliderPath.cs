@@ -11,7 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Objects
 {

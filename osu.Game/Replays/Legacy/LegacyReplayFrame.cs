@@ -4,7 +4,7 @@
 using MessagePack;
 using Newtonsoft.Json;
 using osu.Game.Rulesets.Replays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Replays.Legacy
 {

@@ -25,7 +25,7 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Match;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.DailyChallenge

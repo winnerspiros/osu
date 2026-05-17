@@ -8,7 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers.Markdown
 {

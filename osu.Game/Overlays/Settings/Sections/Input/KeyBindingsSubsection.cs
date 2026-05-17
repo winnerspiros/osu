@@ -10,7 +10,7 @@ using osu.Framework.Localisation;
 using osu.Game.Database;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Overlays.Settings.Sections.Input

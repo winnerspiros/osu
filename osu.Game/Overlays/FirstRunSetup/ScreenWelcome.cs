@@ -18,7 +18,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Settings;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.FirstRunSetup
 {

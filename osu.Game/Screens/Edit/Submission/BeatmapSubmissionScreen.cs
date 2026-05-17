@@ -31,7 +31,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Screens.Select;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Submission
 {

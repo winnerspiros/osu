@@ -27,7 +27,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays.SkinEditor

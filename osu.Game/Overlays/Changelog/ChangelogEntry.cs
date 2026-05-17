@@ -14,7 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 

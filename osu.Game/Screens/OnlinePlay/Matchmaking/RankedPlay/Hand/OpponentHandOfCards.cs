@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Game.Online.RankedPlay;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {

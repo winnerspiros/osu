@@ -7,7 +7,7 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets.Mods;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
 {

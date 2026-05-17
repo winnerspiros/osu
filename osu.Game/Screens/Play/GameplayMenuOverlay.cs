@@ -27,7 +27,7 @@ using osu.Game.Localisation;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play

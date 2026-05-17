@@ -7,7 +7,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Game.Storyboards.Commands;
 using osu.Game.Storyboards.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Storyboards
 {

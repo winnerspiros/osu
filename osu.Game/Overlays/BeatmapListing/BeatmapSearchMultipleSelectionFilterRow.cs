@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using FontWeight = osu.Game.Graphics.FontWeight;
 

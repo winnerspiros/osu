@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Skinning

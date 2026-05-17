@@ -15,7 +15,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Checks.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Verify
 {

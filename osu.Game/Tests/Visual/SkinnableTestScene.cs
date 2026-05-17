@@ -22,7 +22,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.IO;
 using osu.Game.Rulesets;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual

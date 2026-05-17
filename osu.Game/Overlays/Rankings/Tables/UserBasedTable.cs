@@ -15,7 +15,7 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Scoring;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Rankings.Tables
 {

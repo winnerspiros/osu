@@ -7,7 +7,7 @@ using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {

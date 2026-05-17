@@ -20,7 +20,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
 using osu.Game.Screens.Ranking.Statistics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Ranking
 {

@@ -12,7 +12,7 @@ using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {

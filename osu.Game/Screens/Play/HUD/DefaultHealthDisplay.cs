@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD

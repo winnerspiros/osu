@@ -22,7 +22,7 @@ using osu.Framework.Platform;
 using osu.Game.Database;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2

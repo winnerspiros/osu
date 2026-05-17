@@ -15,7 +15,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Settings.Sections.Input

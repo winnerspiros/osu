@@ -28,7 +28,7 @@ using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge

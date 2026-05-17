@@ -39,7 +39,7 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {

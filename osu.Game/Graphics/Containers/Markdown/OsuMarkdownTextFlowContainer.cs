@@ -18,7 +18,7 @@ using osu.Game.Graphics.Containers.Markdown.Footnotes;
 using osu.Game.Overlays;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers.Markdown
 {

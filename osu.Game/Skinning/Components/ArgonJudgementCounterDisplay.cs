@@ -13,7 +13,7 @@ using osu.Game.Localisation.HUD;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD.JudgementCounter;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning.Components
 {

@@ -18,7 +18,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 

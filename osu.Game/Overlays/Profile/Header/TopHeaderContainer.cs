@@ -19,6 +19,7 @@ using osu.Game.Overlays.Profile.Header.Components;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays.Profile.Header
 {

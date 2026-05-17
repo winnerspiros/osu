@@ -13,7 +13,7 @@ using osu.Game.Configuration;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Containers;
 using osu.Game.Screens.Play;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Backgrounds
 {

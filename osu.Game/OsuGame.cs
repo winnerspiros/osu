@@ -76,7 +76,7 @@ using osu.Game.Skinning;
 using osu.Game.Updater;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 using Sentry;
 using IntroScreen = osu.Game.Screens.Menu.IntroScreen;

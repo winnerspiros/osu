@@ -22,7 +22,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Ranking;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer

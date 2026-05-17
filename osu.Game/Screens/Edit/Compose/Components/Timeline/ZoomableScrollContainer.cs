@@ -12,7 +12,7 @@ using osu.Framework.Layout;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osu.Game.Graphics.Containers;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {

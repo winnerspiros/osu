@@ -25,7 +25,7 @@ using osu.Game.Localisation;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Overlays.SkinEditor;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 using Realms;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 

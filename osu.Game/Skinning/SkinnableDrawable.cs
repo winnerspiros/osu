@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

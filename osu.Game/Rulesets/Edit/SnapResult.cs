@@ -4,7 +4,7 @@
 #nullable disable
 
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Edit
 {

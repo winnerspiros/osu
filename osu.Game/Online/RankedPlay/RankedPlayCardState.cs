@@ -3,7 +3,7 @@
 
 using System;
 using MessagePack;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Online.RankedPlay
 {

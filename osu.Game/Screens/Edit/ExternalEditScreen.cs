@@ -25,7 +25,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Match.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit
 {

@@ -11,7 +11,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Audio;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers
 {

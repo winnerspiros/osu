@@ -17,7 +17,7 @@ using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Screens.Ranking

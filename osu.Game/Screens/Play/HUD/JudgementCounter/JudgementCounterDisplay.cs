@@ -12,7 +12,7 @@ using osu.Game.Configuration;
 using osu.Game.Localisation.HUD;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD.JudgementCounter
 {

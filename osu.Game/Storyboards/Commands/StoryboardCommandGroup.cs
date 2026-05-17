@@ -6,7 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using osu.Framework.Graphics;
 using osu.Framework.Lists;
-using osuTK;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Game.Storyboards.Commands
