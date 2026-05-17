@@ -23,7 +23,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using osuTK.Graphics;
-using Vector2 = osuTK.Vector2;
+
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
