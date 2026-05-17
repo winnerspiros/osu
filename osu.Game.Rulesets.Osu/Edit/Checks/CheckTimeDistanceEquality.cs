@@ -111,7 +111,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Checks
                     continue;
                 }
 
-                if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_problem) / distance > distance_leniency_percent_problem)
+                if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_problem) / distance >= distance_leniency_percent_problem)
                     yield return new IssueTemplateIrregularSpacingProblem(this).Create(expectedDistance, distance, hitObject, nextHitObject);
                 else if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_warning) / distance > distance_leniency_percent_warning)
                     yield return new IssueTemplateIrregularSpacingWarning(this).Create(expectedDistance, distance, hitObject, nextHitObject);
