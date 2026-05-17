@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 {

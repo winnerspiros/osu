@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Game.Beatmaps.Formats;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Skinning
 {

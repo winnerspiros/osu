@@ -3,6 +3,7 @@
 
 using osu.Framework.Utils;
 using osu.Game.Screens.Menu;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Seasonal
 {

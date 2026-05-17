@@ -6,6 +6,7 @@ using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Default
 {

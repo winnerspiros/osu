@@ -12,6 +12,7 @@ using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Skinning;
 using osu.Game.Tests.Beatmaps;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {

@@ -6,6 +6,7 @@ using osu.Framework.Bindables;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Objects
 {

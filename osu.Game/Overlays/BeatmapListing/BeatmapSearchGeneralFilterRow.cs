@@ -20,6 +20,7 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Utils;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Overlays.BeatmapListing
 {

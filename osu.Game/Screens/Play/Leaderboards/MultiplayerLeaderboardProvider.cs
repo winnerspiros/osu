@@ -22,6 +22,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Spectator;
 using osu.Game.Rulesets.Scoring;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Screens.Play.Leaderboards
 {

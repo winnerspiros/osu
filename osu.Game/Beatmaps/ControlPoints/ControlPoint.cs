@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using osu.Game.Graphics;
 using osu.Game.Utils;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {

@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Game.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {

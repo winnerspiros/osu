@@ -7,6 +7,7 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
 using osu.Game.Utils;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {

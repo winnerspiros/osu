@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Utils;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Utils
 {

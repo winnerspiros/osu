@@ -13,6 +13,7 @@ using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Beatmaps
 {

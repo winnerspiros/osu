@@ -3,6 +3,7 @@
 
 using osu.Framework.Bindables;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Types
 {

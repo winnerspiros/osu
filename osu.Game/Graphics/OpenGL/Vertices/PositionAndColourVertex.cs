@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Vertices;
 using System.Numerics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics.OpenGL.Vertices
 {

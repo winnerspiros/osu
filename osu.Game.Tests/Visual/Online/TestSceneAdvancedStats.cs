@@ -17,6 +17,7 @@ using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {

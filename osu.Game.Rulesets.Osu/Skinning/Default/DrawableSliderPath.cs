@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Lines;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {

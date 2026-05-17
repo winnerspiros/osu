@@ -4,6 +4,7 @@
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {

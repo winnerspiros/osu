@@ -10,6 +10,7 @@ using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using osu.Game.Utils;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Objects
 {

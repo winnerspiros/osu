@@ -10,6 +10,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Users
 {

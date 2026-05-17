@@ -5,6 +5,7 @@ using NUnit.Framework;
 using osu.Game.IO;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Skins
 {

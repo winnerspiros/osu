@@ -10,6 +10,7 @@ using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Screens.Play.HUD.HitErrorMeters
 {

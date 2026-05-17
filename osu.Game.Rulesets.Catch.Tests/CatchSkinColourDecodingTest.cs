@@ -7,6 +7,7 @@ using osu.Framework.IO.Stores;
 using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Rulesets.Catch.Skinning.Legacy;
 using osu.Game.Skinning;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {

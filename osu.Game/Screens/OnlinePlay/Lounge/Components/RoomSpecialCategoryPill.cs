@@ -7,6 +7,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Online.Rooms;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 {

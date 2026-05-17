@@ -6,6 +6,7 @@ using System.ComponentModel;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Resources.Localisation.Web;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Users
 {

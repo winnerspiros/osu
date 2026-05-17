@@ -12,31 +12,6 @@ namespace osu.Game.Utils
         public static Colour4 InterpolateNonLinear(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, Easing easing = Easing.None)
             => InterpolateNonLinear(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
 
-        public static Colour4 InterpolateNonLinear(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, Easing easing = Easing.None)
-            => InterpolateNonLinear(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
-
-        /// <summary>
-        /// Interpolates between two sRGB <see cref="Colour4"/>s directly in sRGB space.
-        /// </summary>
-        public static Colour4 InterpolateNonLinear<TEasing>(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, TEasing easing) where TEasing : IEasingFunction
-        {
-            if (startColour == endColour)
-                return startColour;
-
-            double current = time - startTime;
-            double duration = endTime - startTime;
-
-            if (duration == 0 || current == 0)
-                return startColour;
-
-            float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
-
-            return new Colour4(
-                startColour.R + t * (endColour.R - startColour.R),
-                startColour.G + t * (endColour.G - startColour.G),
-                startColour.B + t * (endColour.B - startColour.B),
-                startColour.A + t * (endColour.A - startColour.A));
-        }
 
         /// <summary>
         /// Interpolates between two sRGB <see cref="Colour4"/>s directly in sRGB space.

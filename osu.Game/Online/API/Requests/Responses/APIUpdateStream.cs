@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Online.API.Requests.Responses
 {

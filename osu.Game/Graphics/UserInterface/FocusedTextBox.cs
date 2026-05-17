@@ -8,6 +8,7 @@ using osu.Framework.Platform;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Framework.Input;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {

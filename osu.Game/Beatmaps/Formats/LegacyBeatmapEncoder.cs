@@ -15,6 +15,7 @@ using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using System.Numerics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.Formats
 {

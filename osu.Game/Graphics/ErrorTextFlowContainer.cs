@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics
 {

@@ -8,6 +8,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Screens.Edit;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
