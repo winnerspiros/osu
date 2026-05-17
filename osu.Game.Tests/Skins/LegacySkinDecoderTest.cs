@@ -9,7 +9,6 @@ using NUnit.Framework.Legacy;
 using osu.Game.IO;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Skins
 {
@@ -25,12 +24,12 @@ namespace osu.Game.Tests.Skins
             using (var stream = new LineBufferedReader(resStream))
             {
                 var comboColors = decoder.Decode(stream).ComboColours;
-                var expectedColors = new List<Color4>
+                var expectedColors = new List<Colour4>
                 {
-                    new Color4(142, 199, 255, 255),
-                    new Color4(255, 128, 128, 255),
-                    new Color4(128, 255, 255, 255),
-                    new Color4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
+                    new Colour4(142, 199, 255, 255),
+                    new Colour4(255, 128, 128, 255),
+                    new Colour4(128, 255, 255, 255),
+                    new Colour4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
                 };
 
                 ClassicAssert.AreEqual(expectedColors.Count, comboColors?.Count);

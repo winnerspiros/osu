@@ -12,7 +12,6 @@ using osu.Game.Beatmaps.Drawables;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

@@ -17,7 +17,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Framework.Threading;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play
 {
@@ -53,9 +52,9 @@ namespace osu.Game.Screens.Play
             }
         }
 
-        private Color4 fillColour;
+        private Colour4 fillColour;
 
-        public Color4 FillColour
+        public Colour4 FillColour
         {
             get => fillColour;
             set
@@ -178,9 +177,9 @@ namespace osu.Game.Screens.Play
 
         public partial class Column : Container, IStateful<ColumnState>
         {
-            protected readonly Color4 EmptyColour = Color4.White.Opacity(20);
-            public Color4 LitColour = Color4.LightBlue;
-            protected readonly Color4 DimmedColour = Color4.White.Opacity(140);
+            protected readonly Colour4 EmptyColour = Colour4.White.Opacity(20);
+            public Colour4 LitColour = Colour4.LightBlue;
+            protected readonly Colour4 DimmedColour = Colour4.White.Opacity(140);
 
             private float cubeCount => DrawHeight / WIDTH;
             private const float cube_size = 4;
@@ -248,7 +247,7 @@ namespace osu.Game.Screens.Play
 
             private void fillActive()
             {
-                Color4 colour = State == ColumnState.Lit ? LitColour : DimmedColour;
+                Colour4 colour = State == ColumnState.Lit ? LitColour : DimmedColour;
 
                 int countFilled = (int)Math.Clamp(Filled * drawableRows.Count, 0, drawableRows.Count);
 

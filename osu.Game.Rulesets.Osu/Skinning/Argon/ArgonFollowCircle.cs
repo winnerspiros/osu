@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -20,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         private readonly CircularContainer circleContainer;
         private readonly Box circleFill;
 
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
 
         [Resolved(canBeNull: true)]
         private DrawableHitObject? parentObject { get; set; }

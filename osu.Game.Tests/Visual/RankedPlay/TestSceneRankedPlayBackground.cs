@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

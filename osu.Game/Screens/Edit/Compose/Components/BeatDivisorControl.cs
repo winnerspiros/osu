@@ -24,8 +24,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -376,7 +375,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             private void load(OsuColour colours, OverlayColourProvider colourProvider)
             {
                 IconColour = colourProvider.Light3;
-                IconHoverColour = Color4.White;
+                IconHoverColour = Colour4.White;
                 HoverColour = colours.Gray6;
                 FlashColour = colours.Gray9;
             }
@@ -550,7 +549,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                         {
                             RelativeSizeAxes = Axes.Both,
                             EdgeSmoothness = new Vector2(1),
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         }
                     };
                 }

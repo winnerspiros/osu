@@ -22,7 +22,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 
 namespace osu.Game.Graphics.UserInterfaceV2
@@ -561,8 +560,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
             {
                 rightBox.Colour = colourProvider.Background5;
 
-                Color4 leftColour = colourProvider.Light4;
-                Color4 nubColour;
+                Colour4 leftColour = colourProvider.Light4;
+                Colour4 nubColour;
 
                 if (IsHovered || HasFocus || IsDragged)
                     nubColour = colourProvider.Highlight1;

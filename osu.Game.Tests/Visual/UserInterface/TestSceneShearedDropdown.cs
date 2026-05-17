@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.UserInterfaceV2;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -25,7 +24,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.Black.Opacity(0.75f),
+                    Colour = Colour4.Black.Opacity(0.75f),
                     RelativeSizeAxes = Axes.Both,
                 },
                 new ShearedDropdown<string>("Test")

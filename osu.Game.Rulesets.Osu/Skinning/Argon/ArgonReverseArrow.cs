@@ -14,8 +14,6 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -23,7 +21,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
     {
         private DrawableSliderRepeat drawableRepeat { get; set; } = null!;
 
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         private SpriteIcon icon = null!;
         private Container main = null!;
@@ -51,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                         new Circle
                         {
                             Size = new Vector2(40, 20),
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                         },

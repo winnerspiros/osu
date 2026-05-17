@@ -23,8 +23,6 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Statistics;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
-using osuTK;
-using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Rulesets.Osu.HUD
@@ -348,7 +346,7 @@ namespace osu.Game.Rulesets.Osu.HUD
             lastObjectPosition = ((OsuHitObject)circleJudgement.HitObject).StackedPosition;
         }
 
-        private Color4 getColourForPosition(Vector2 position)
+        private Colour4 getColourForPosition(Vector2 position)
         {
             float distance = Vector2.Distance(position, Vector2.Zero);
 

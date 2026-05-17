@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Sections
 {
@@ -19,9 +18,9 @@ namespace osu.Game.Overlays.Profile.Sections
         private readonly Box background;
         private readonly Container content;
 
-        private Color4 idleColour;
+        private Colour4 idleColour;
 
-        protected Color4 IdleColour
+        protected Colour4 IdleColour
         {
             get => idleColour;
             set
@@ -31,9 +30,9 @@ namespace osu.Game.Overlays.Profile.Sections
             }
         }
 
-        private Color4 hoverColour;
+        private Colour4 hoverColour;
 
-        protected Color4 HoverColour
+        protected Colour4 HoverColour
         {
             get => hoverColour;
             set

@@ -9,7 +9,6 @@ using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {
@@ -71,7 +70,7 @@ namespace osu.Game.Rulesets.Catch.UI
             updateCombo(result.ComboAtJudgement, null);
         }
 
-        private void updateCombo(int newCombo, Color4? hitObjectColour)
+        private void updateCombo(int newCombo, Colour4? hitObjectColour)
         {
             currentCombo = newCombo;
             ComboCounter?.UpdateCombo(newCombo, hitObjectColour);

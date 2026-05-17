@@ -8,9 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Objects.Drawables;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {
@@ -45,7 +43,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
                 RelativeSizeAxes = Axes.Both,
                 Masking = true,
                 BorderThickness = tick_border_width,
-                BorderColour = Color4.White,
+                BorderColour = Colour4.White,
                 Children = new[]
                 {
                     fillBox = new Box

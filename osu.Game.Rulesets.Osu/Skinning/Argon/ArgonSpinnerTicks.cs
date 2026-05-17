@@ -7,8 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -30,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                     RelativePositionAxes = Axes.Both,
                     Masking = true,
                     CornerRadius = 5,
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     BorderThickness = 2f,
                     Size = new Vector2(30, 5),
                     Origin = Anchor.Centre,

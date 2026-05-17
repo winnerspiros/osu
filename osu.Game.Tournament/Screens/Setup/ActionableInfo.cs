@@ -6,8 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Setup
 {
@@ -40,7 +38,7 @@ namespace osu.Game.Tournament.Screens.Setup
 
         public bool Failing
         {
-            set => valueText.Colour = value ? Color4.Red : Color4.White;
+            set => valueText.Colour = value ? Colour4.Red : Colour4.White;
         }
 
         protected override Drawable CreateComponent() => new Container

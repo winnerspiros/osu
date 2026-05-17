@@ -14,7 +14,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Utility.SampleComponents;
 using System.Numerics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Utility
 {

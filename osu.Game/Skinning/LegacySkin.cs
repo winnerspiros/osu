@@ -24,7 +24,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -91,7 +90,7 @@ namespace osu.Game.Skinning
                             case GlobalSkinColours.ComboColours:
                                 var comboColours = Configuration.ComboColours;
                                 if (comboColours != null)
-                                    return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Color4>>(comboColours));
+                                    return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Colour4>>(comboColours));
 
                                 break;
 
@@ -314,14 +313,14 @@ namespace osu.Game.Skinning
         /// <param name="source">The source to retrieve the combo colours from.</param>
         /// <param name="colourIndex">The preferred index for retrieving the combo colour with.</param>
         /// <param name="combo">Information on the combo whose using the returned colour.</param>
-        protected virtual IBindable<Color4>? GetComboColour(IHasComboColours source, int colourIndex, IHasComboInformation combo)
+        protected virtual IBindable<Colour4>? GetComboColour(IHasComboColours source, int colourIndex, IHasComboInformation combo)
         {
             var colour = source.ComboColours?[colourIndex % source.ComboColours.Count];
-            return colour.HasValue ? new Bindable<Color4>(colour.Value) : null;
+            return colour.HasValue ? new Bindable<Colour4>(colour.Value) : null;
         }
 
-        private IBindable<Color4>? getCustomColour(IHasCustomColours source, string lookup)
-            => source.CustomColours.TryGetValue(lookup, out var col) ? new Bindable<Color4>(col) : null;
+        private IBindable<Colour4>? getCustomColour(IHasCustomColours source, string lookup)
+            => source.CustomColours.TryGetValue(lookup, out var col) ? new Bindable<Colour4>(col) : null;
 
         private IBindable<string>? getManiaImage(LegacyManiaSkinConfiguration source, string lookup)
             => source.ImageLookups.TryGetValue(lookup, out string? image) ? new Bindable<string>(image) : null;

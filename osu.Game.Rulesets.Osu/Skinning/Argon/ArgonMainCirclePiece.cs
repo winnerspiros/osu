@@ -17,8 +17,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Default;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -41,7 +39,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         private readonly RingPiece border;
         private readonly OsuSpriteText number;
 
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
         private readonly IBindable<int> indexInCurrentCombo = new Bindable<int>();
         private readonly FlashPiece flash;
         private readonly Container kiaiContainer;
@@ -206,7 +204,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                             outerGradient.ResizeTo(OUTER_GRADIENT_SIZE * shrink_size, resize_duration, Easing.OutElasticHalf);
 
                             outerGradient
-                                .FadeColour(Color4.White, 80)
+                                .FadeColour(Colour4.White, 80)
                                 .Then()
                                 .FadeOut(flash_in_duration);
                         }
@@ -260,7 +258,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
             public bool HitLighting { get; set; }
 
-            private Color4 lastEdgeEffectColour;
+            private Colour4 lastEdgeEffectColour;
             private bool lastHitLighting;
 
             protected override void Update()
@@ -269,7 +267,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
                 // Only update EdgeEffect when the inputs actually change to avoid
                 // redundant layout invalidations on every hit circle every frame.
-                Color4 currentColour = Colour;
+                Colour4 currentColour = Colour;
 
                 if (currentColour == lastEdgeEffectColour && HitLighting == lastHitLighting)
                     return;

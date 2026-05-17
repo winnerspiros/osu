@@ -16,7 +16,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Rankings
 {
@@ -158,7 +157,7 @@ namespace osu.Game.Overlays.Rankings
             private void load(OverlayColourProvider colourProvider)
             {
                 IdleColour = colourProvider.Light2;
-                HoverColour = Color4.White;
+                HoverColour = Colour4.White;
             }
         }
     }

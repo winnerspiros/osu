@@ -12,7 +12,6 @@ using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Skinning;
 using osu.Game.Tests.Beatmaps;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {
@@ -110,23 +109,23 @@ namespace osu.Game.Rulesets.Catch.Tests
             {
             }
 
-            public Color4 UsableHyperDashColour =>
+            public Colour4 UsableHyperDashColour =>
                 GameplayClockContainer.ChildrenOfType<BeatmapSkinProvidingContainer>()
                                       .First()
-                                      .GetConfig<SkinCustomColourLookup, Color4>(new SkinCustomColourLookup(CatchSkinColour.HyperDash))?
-                                      .Value ?? Color4.Red;
+                                      .GetConfig<SkinCustomColourLookup, Colour4>(new SkinCustomColourLookup(CatchSkinColour.HyperDash))?
+                                      .Value ?? Colour4.Red;
 
-            public Color4 UsableHyperDashAfterImageColour =>
+            public Colour4 UsableHyperDashAfterImageColour =>
                 GameplayClockContainer.ChildrenOfType<BeatmapSkinProvidingContainer>()
                                       .First()
-                                      .GetConfig<SkinCustomColourLookup, Color4>(new SkinCustomColourLookup(CatchSkinColour.HyperDashAfterImage))?
-                                      .Value ?? Color4.Red;
+                                      .GetConfig<SkinCustomColourLookup, Colour4>(new SkinCustomColourLookup(CatchSkinColour.HyperDashAfterImage))?
+                                      .Value ?? Colour4.Red;
 
-            public Color4 UsableHyperDashFruitColour =>
+            public Colour4 UsableHyperDashFruitColour =>
                 GameplayClockContainer.ChildrenOfType<BeatmapSkinProvidingContainer>()
                                       .First()
-                                      .GetConfig<SkinCustomColourLookup, Color4>(new SkinCustomColourLookup(CatchSkinColour.HyperDashFruit))?
-                                      .Value ?? Color4.Red;
+                                      .GetConfig<SkinCustomColourLookup, Colour4>(new SkinCustomColourLookup(CatchSkinColour.HyperDashFruit))?
+                                      .Value ?? Colour4.Red;
         }
 
         private class CatchCustomSkinWorkingBeatmap : CustomSkinWorkingBeatmap

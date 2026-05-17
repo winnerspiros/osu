@@ -24,7 +24,6 @@ using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking.Contracted
 {
@@ -66,7 +65,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                             CornerRadius = 20,
                             EdgeEffect = new EdgeEffectParameters
                             {
-                                Colour = Color4.Black.Opacity(0.25f),
+                                Colour = Colour4.Black.Opacity(0.25f),
                                 Type = EdgeEffectType.Shadow,
                                 Radius = 1,
                                 Offset = new Vector2(0, 2)
@@ -82,7 +81,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     User = score.User,
-                                    Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
+                                    Colour = ColourInfo.GradientVertical(Colour4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
                                 },
                                 new FillFlowContainer
                                 {
@@ -102,7 +101,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                             CornerRadius = 20,
                                             EdgeEffect = new EdgeEffectParameters
                                             {
-                                                Colour = Color4.Black.Opacity(0.15f),
+                                                Colour = Colour4.Black.Opacity(0.15f),
                                                 Type = EdgeEffectType.Shadow,
                                                 Radius = 8,
                                                 Offset = new Vector2(0, 1),

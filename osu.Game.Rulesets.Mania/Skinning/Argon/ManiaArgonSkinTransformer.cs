@@ -11,9 +11,7 @@ using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -118,16 +116,16 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             return base.GetDrawableComponent(lookup);
         }
 
-        private static readonly Color4 colour_special_column = new Color4(169, 106, 255, 255);
+        private static readonly Colour4 colour_special_column = new Colour4(169, 106, 255, 255);
 
         private const int total_colours = 6;
 
-        private static readonly Color4 colour_yellow = new Color4(255, 197, 40, 255);
-        private static readonly Color4 colour_orange = new Color4(252, 109, 1, 255);
-        private static readonly Color4 colour_pink = new Color4(213, 35, 90, 255);
-        private static readonly Color4 colour_purple = new Color4(203, 60, 236, 255);
-        private static readonly Color4 colour_cyan = new Color4(72, 198, 255, 255);
-        private static readonly Color4 colour_green = new Color4(100, 192, 92, 255);
+        private static readonly Colour4 colour_yellow = new Colour4(255, 197, 40, 255);
+        private static readonly Colour4 colour_orange = new Colour4(252, 109, 1, 255);
+        private static readonly Colour4 colour_pink = new Colour4(213, 35, 90, 255);
+        private static readonly Colour4 colour_purple = new Colour4(203, 60, 236, 255);
+        private static readonly Colour4 colour_cyan = new Colour4(72, 198, 255, 255);
+        private static readonly Colour4 colour_green = new Colour4(100, 192, 92, 255);
 
         public override IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)
         {
@@ -156,14 +154,14 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     case LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour:
                         var colour = getColourForLayout(columnIndex, stage);
 
-                        return SkinUtils.As<TValue>(new Bindable<Color4>(colour));
+                        return SkinUtils.As<TValue>(new Bindable<Colour4>(colour));
                 }
             }
 
             return base.GetConfig<TLookup, TValue>(lookup);
         }
 
-        private Color4 getColourForLayout(int columnIndex, StageDefinition stage)
+        private Colour4 getColourForLayout(int columnIndex, StageDefinition stage)
         {
             // Account for cases like dual-stage (assume that all stages have the same column count for now).
             columnIndex %= stage.Columns;

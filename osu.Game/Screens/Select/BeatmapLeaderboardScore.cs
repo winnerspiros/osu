@@ -36,7 +36,6 @@ using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 using CommonStrings = osu.Game.Localisation.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -91,8 +90,8 @@ namespace osu.Game.Screens.Select
         private const int corner_radius = 10;
         private const int transition_duration = 200;
 
-        private static readonly Color4 personal_best_gradient_left = Color4Extensions.FromHex("#66FFCC");
-        private static readonly Color4 personal_best_gradient_right = Color4Extensions.FromHex("#51A388");
+        private static readonly Colour4 personal_best_gradient_left = Color4Extensions.FromHex("#66FFCC");
+        private static readonly Colour4 personal_best_gradient_right = Color4Extensions.FromHex("#51A388");
 
         private Colour4 foregroundColour;
         private Colour4 backgroundColour;
@@ -394,7 +393,7 @@ namespace osu.Game.Screens.Select
                                         Colour = DrawableRank.GetRankLetterColour(Score.Rank),
                                         Font = OsuFont.Numeric.With(size: 14),
                                         Text = DrawableRank.GetRankLetter(Score.Rank),
-                                        ShadowColour = Color4.Black.Opacity(0.3f),
+                                        ShadowColour = Colour4.Black.Opacity(0.3f),
                                         ShadowOffset = new Vector2(0, 0.08f),
                                         Shadow = true,
                                         UseFullGlyphHeight = false,
@@ -710,7 +709,7 @@ namespace osu.Game.Screens.Select
                             BypassAutoSizeAxes = Axes.X,
                             Text = value,
                             Font = OsuFont.Style.Body,
-                            Colour = perfect ? colours.Lime1 : Color4.White,
+                            Colour = perfect ? colours.Lime1 : Colour4.White,
                         },
                         Empty().With(d => d.Width = minWidth),
                     }

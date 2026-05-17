@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Catch.UI;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Argon
 {
@@ -36,7 +35,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Width = Catcher.ALLOWED_CATCH_RANGE,
                         },
                         new Box
@@ -44,7 +43,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             Name = "long line left",
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreRight,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Alpha = 0.25f,
                             RelativeSizeAxes = Axes.X,
                             Width = 20,
@@ -55,7 +54,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             Name = "bumper left",
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             RelativeSizeAxes = Axes.X,
                             Width = (1 - Catcher.ALLOWED_CATCH_RANGE) / 2,
                             Height = 4,
@@ -65,7 +64,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             Name = "long line right",
                             Anchor = Anchor.CentreRight,
                             Origin = Anchor.CentreLeft,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Alpha = 0.25f,
                             RelativeSizeAxes = Axes.X,
                             Width = 20,
@@ -76,7 +75,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             Name = "bumper right",
                             Anchor = Anchor.CentreRight,
                             Origin = Anchor.CentreRight,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             RelativeSizeAxes = Axes.X,
                             Width = (1 - Catcher.ALLOWED_CATCH_RANGE) / 2,
                             Height = 4,

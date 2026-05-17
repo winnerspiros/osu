@@ -10,7 +10,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Rankings;
 using osu.Game.Users;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -28,7 +27,7 @@ namespace osu.Game.Tests.Visual.Online
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Gray,
+                    Colour = Colour4.Gray,
                 },
                 new FillFlowContainer
                 {

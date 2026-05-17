@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -21,7 +20,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
             Origin = Anchor.Centre;
 
             Masking = true;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
 
             Child = new Box
             {

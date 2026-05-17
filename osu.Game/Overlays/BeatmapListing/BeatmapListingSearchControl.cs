@@ -18,7 +18,6 @@ using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapListing
 {
@@ -179,7 +178,7 @@ namespace osu.Game.Overlays.BeatmapListing
             /// </summary>
             public Action? TextChanged;
 
-            protected override Color4 SelectionColour => Color4.Gray;
+            protected override Colour4 SelectionColour => Colour4.Gray;
 
             public BeatmapSearchTextBox()
             {

@@ -12,7 +12,6 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -43,15 +42,15 @@ namespace osu.Game.Screens.Play.HUD
 
         private readonly Container fill;
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => fill.Colour;
             set => fill.Colour = value;
         }
 
-        private Color4 glowColour;
+        private Colour4 glowColour;
 
-        public Color4 GlowColour
+        public Colour4 GlowColour
         {
             get => glowColour;
             set
@@ -92,7 +91,7 @@ namespace osu.Game.Screens.Play.HUD
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     },
                     fill = new Container
                     {

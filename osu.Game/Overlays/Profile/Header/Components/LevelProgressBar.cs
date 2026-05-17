@@ -13,7 +13,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {
@@ -43,7 +42,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
                     Child = levelProgressBar = new Bar
                     {
                         RelativeSizeAxes = Axes.Both,
-                        BackgroundColour = Color4.Black,
+                        BackgroundColour = Colour4.Black,
                         Direction = BarDirection.LeftToRight,
                         AccentColour = colourProvider.Highlight1
                     }

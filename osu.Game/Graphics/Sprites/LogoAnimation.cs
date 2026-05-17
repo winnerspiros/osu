@@ -13,8 +13,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Game.Graphics.Sprites
 {
@@ -124,7 +122,7 @@ namespace osu.Game.Graphics.Sprites
                 public Vector2 Position;
 
                 [VertexMember(4, VertexAttribPointerType.Float)]
-                public Color4 Colour;
+                public Colour4 Colour;
 
                 [VertexMember(2, VertexAttribPointerType.Float)]
                 public Vector2 TexturePosition;

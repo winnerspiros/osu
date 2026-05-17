@@ -27,8 +27,7 @@ using osu.Game.Screens.Footer;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Select
 {
@@ -242,7 +241,7 @@ namespace osu.Game.Screens.Select
             else if (multiplier < 1)
                 multiplierText.FadeColour(colours.Lime1, duration, easing);
             else
-                multiplierText.FadeColour(Color4.White, duration, easing);
+                multiplierText.FadeColour(Colour4.White, duration, easing);
         }
 
         protected override void Update()
@@ -385,7 +384,7 @@ namespace osu.Game.Screens.Select
                 AutoSizeAxes = Axes.X;
                 Height = BAR_HEIGHT;
                 Masking = true;
-                BorderColour = Color4.White;
+                BorderColour = Colour4.White;
                 BorderThickness = 2f;
                 TooltipText = ModSelectOverlayStrings.UnrankedExplanation;
             }
@@ -409,7 +408,7 @@ namespace osu.Game.Screens.Select
                         Margin = new MarginPadding { Horizontal = 15 },
                         UseFullGlyphHeight = false,
                         Font = OsuFont.Torus.With(size: 14f, weight: FontWeight.Bold),
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     }
                 };
             }

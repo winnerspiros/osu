@@ -23,8 +23,6 @@ using osu.Game.Rulesets.Osu.Edit;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {
@@ -97,7 +95,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.SlateGray
+                    Colour = Colour4.SlateGray
                 },
                 cursor = new SnappingCursorContainer { GetSnapPosition = v => grid.GetSnappedPosition(grid.ToLocalSpace(v)).position },
                 grid = new OsuDistanceSnapGrid(new HitCircle { Position = grid_position }),
@@ -175,7 +173,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     cursor = new SnappingCursorContainer { GetSnapPosition = v => grid.GetSnappedPosition(grid.ToLocalSpace(v)).position },
                     grid = new OsuDistanceSnapGrid(new HitCircle
@@ -217,7 +215,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     cursor = new SnappingCursorContainer { GetSnapPosition = v => grid.GetSnappedPosition(grid.ToLocalSpace(v)).position },
                     grid = new OsuDistanceSnapGrid(new HitCircle { Position = grid_position }, new HitCircle { StartTime = 200 }),
@@ -255,7 +253,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
                 {
                     Origin = Anchor.Centre,
                     Size = new Vector2(50),
-                    Colour = Color4.Red
+                    Colour = Colour4.Red
                 };
             }
 

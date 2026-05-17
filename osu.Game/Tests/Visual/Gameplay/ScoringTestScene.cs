@@ -27,8 +27,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring.Legacy;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -267,7 +266,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             }
         }
 
-        private void runForProcessor(string name, Color4 colour, ScoringMode scoringMode, BindableBool visibility)
+        private void runForProcessor(string name, Colour4 colour, ScoringMode scoringMode, BindableBool visibility)
         {
             int maxCombo = sliderMaxCombo.Current.Value;
             var beatmap = CreateBeatmap(maxCombo);
@@ -320,7 +319,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         private class ScoringAlgorithmInfo
         {
             public string Name { get; init; } = null!;
-            public Color4 Colour { get; init; }
+            public Colour4 Colour { get; init; }
             public IScoringAlgorithm Algorithm { get; init; } = null!;
             public BindableBool Visible { get; init; } = null!;
         }
@@ -396,7 +395,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                         },
                         hoverLine = new Box
                         {
-                            Colour = Color4.Yellow,
+                            Colour = Colour4.Yellow,
                             RelativeSizeAxes = Axes.Y,
                             Origin = Anchor.TopCentre,
                             Alpha = 0,
@@ -463,7 +462,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     missLines.Add(new Box
                     {
-                        Colour = Color4.Red,
+                        Colour = Colour4.Red,
                         Origin = Anchor.TopCentre,
                         Width = 1,
                         RelativeSizeAxes = Axes.Y,
@@ -476,7 +475,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     missLines.Add(new Box
                     {
-                        Colour = Color4.Orange,
+                        Colour = Colour4.Orange,
                         Origin = Anchor.TopCentre,
                         Width = 1,
                         RelativeSizeAxes = Axes.Y,
@@ -545,7 +544,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                         },
                         textFlow = new OsuTextFlowContainer
                         {
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             AutoSizeAxes = Axes.Both,
                             Padding = new MarginPadding(10),
                         }
@@ -583,7 +582,7 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private partial class LegendEntry : OsuClickableContainer, IHasAccentColour
         {
-            public Color4 AccentColour { get; set; }
+            public Colour4 AccentColour { get; set; }
 
             public BindableBool Visible { get; } = new BindableBool(true);
 

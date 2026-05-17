@@ -12,7 +12,7 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.SkinEditor
 {

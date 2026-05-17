@@ -18,7 +18,7 @@ using osu.Game.Graphics.Containers.Markdown.Footnotes;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Wiki.Markdown;
 using osu.Game.Users.Drawables;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Online
 {

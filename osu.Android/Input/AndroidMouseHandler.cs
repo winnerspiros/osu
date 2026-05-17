@@ -7,8 +7,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Android.Input
 {

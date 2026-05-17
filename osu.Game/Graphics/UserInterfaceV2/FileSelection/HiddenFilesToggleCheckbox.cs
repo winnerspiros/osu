@@ -7,7 +7,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2.FileSelection
 {
@@ -35,8 +34,8 @@ namespace osu.Game.Graphics.UserInterfaceV2.FileSelection
                 return;
 
             Nub.AccentColour = colours.GreySeaFoamLighter;
-            Nub.GlowingAccentColour = Color4.White;
-            Nub.GlowColour = Color4.White;
+            Nub.GlowingAccentColour = Colour4.White;
+            Nub.GlowColour = Colour4.White;
         }
     }
 }

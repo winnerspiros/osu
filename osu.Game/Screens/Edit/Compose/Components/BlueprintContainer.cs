@@ -19,7 +19,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
 using osu.Game.Rulesets.Edit;
 using System.Numerics;
-using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {

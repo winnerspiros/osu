@@ -16,7 +16,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 
 namespace osu.Game.Overlays.BeatmapSet
@@ -59,7 +58,7 @@ namespace osu.Game.Overlays.BeatmapSet
                     },
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Type = EdgeEffectType.Shadow,
                         Radius = 4,
                         Offset = new Vector2(0f, 1f),

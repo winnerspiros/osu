@@ -14,9 +14,7 @@ using osu.Game.Tournament.IPC;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Gameplay;
 using osu.Game.Tournament.Screens.Gameplay.Components;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Screens.MapPool
 {
@@ -146,7 +144,7 @@ namespace osu.Game.Tournament.Screens.MapPool
             buttonRedPick.Colour = setColour(pickColour == TeamColour.Red && pickType == ChoiceType.Pick);
             buttonBluePick.Colour = setColour(pickColour == TeamColour.Blue && pickType == ChoiceType.Pick);
 
-            static Color4 setColour(bool active) => active ? Color4.White : Color4.Gray;
+            static Colour4 setColour(bool active) => active ? Colour4.White : Colour4.Gray;
         }
 
         private void setNextMode()

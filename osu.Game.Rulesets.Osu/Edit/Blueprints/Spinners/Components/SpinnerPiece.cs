@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Osu.Objects;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Spinners.Components

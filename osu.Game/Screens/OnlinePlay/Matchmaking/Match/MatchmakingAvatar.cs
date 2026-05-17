@@ -9,7 +9,6 @@ using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 {
@@ -62,7 +61,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.LightSlateGray,
+                            Colour = Colour4.LightSlateGray,
                         },
                         new ClickableAvatar(user, true)
                         {

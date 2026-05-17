@@ -14,7 +14,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -233,7 +232,7 @@ namespace osu.Game.Graphics.UserInterface
                 if (!isUpper)
                 {
                     AccentColour = BackgroundColour;
-                    BackgroundColour = Color4.Transparent;
+                    BackgroundColour = Colour4.Transparent;
                 }
 
                 Current.BindValueChanged(current => UpdateDisplay(current.NewValue), true);

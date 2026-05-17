@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 {
@@ -122,7 +121,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
                     cell.SetFacade(facadeContainer[cell.FacadeIndex], false);
                 }
 
-                cell.FadeColour(hasMaximised && cell != target ? Color4.Gray : Color4.White, ANIMATION_DELAY, Easing.OutQuint);
+                cell.FadeColour(hasMaximised && cell != target ? Colour4.Gray : Colour4.White, ANIMATION_DELAY, Easing.OutQuint);
             }
 
             facadeContainer.ScaleTo(hasMaximised ? 0.95f : 1, ANIMATION_DELAY, Easing.OutQuint);

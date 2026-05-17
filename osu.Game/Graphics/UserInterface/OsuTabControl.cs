@@ -20,17 +20,16 @@ using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
     public partial class OsuTabControl<T> : TabControl<T>
     {
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
         public const float HORIZONTAL_SPACING = 10;
 
-        public virtual Color4 AccentColour
+        public virtual Colour4 AccentColour
         {
             get => accentColour;
             set
@@ -68,7 +67,7 @@ namespace osu.Game.Graphics.UserInterface
                 Anchor = Anchor.BottomLeft,
                 Origin = Anchor.BottomLeft,
                 Height = 1,
-                Colour = Color4.White.Opacity(0),
+                Colour = Colour4.White.Opacity(0),
             });
 
             if (isEnumType && AddEnumEntriesAutomatically)
@@ -85,7 +84,7 @@ namespace osu.Game.Graphics.UserInterface
                 AccentColour = colours.Blue;
         }
 
-        public Color4 StripColour
+        public Colour4 StripColour
         {
             get => strip.Colour;
             set => strip.Colour = value;
@@ -105,9 +104,9 @@ namespace osu.Game.Graphics.UserInterface
             protected readonly SpriteText Text;
             protected readonly Box Bar;
 
-            private Color4 accentColour;
+            private Colour4 accentColour;
 
-            public Color4 AccentColour
+            public Colour4 AccentColour
             {
                 get => accentColour;
                 set
@@ -123,13 +122,13 @@ namespace osu.Game.Graphics.UserInterface
             protected virtual void FadeHovered()
             {
                 Bar.FadeIn(TRANSITION_LENGTH, Easing.OutQuint);
-                Text.FadeColour(Color4.White, TRANSITION_LENGTH, Easing.OutQuint);
+                Text.FadeColour(Colour4.White, TRANSITION_LENGTH, Easing.OutQuint);
             }
 
             protected virtual void FadeUnhovered()
             {
                 Bar.FadeTo(IsHovered ? 1 : 0, TRANSITION_LENGTH, Easing.OutQuint);
-                Text.FadeColour(IsHovered ? Color4.White : AccentColour, TRANSITION_LENGTH, Easing.OutQuint);
+                Text.FadeColour(IsHovered ? Colour4.White : AccentColour, TRANSITION_LENGTH, Easing.OutQuint);
             }
 
             protected override bool OnHover(HoverEvent e)
@@ -187,7 +186,7 @@ namespace osu.Game.Graphics.UserInterface
                         RelativeSizeAxes = Axes.X,
                         Height = 1,
                         Alpha = 0,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomLeft,
                     },

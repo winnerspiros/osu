@@ -12,9 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Rulesets.Mania.UI
@@ -82,8 +80,8 @@ namespace osu.Game.Rulesets.Mania.UI
                                 RelativePositionAxes = Axes.Both,
                                 Height = 0.25f,
                                 Colour = ColourInfo.GradientVertical(
-                                    Color4.White.Opacity(0f),
-                                    Color4.White.Opacity(1f)
+                                    Colour4.White.Opacity(0f),
+                                    Colour4.White.Opacity(1f)
                                 )
                             },
                             filled = new Box

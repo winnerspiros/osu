@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Dashboard.Home
 {
@@ -26,7 +25,7 @@ namespace osu.Game.Overlays.Dashboard.Home
             Masking = true;
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black.Opacity(0.25f),
+                Colour = Colour4.Black.Opacity(0.25f),
                 Type = EdgeEffectType.Shadow,
                 Radius = 3,
                 Offset = new Vector2(0, 1)

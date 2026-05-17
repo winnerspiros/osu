@@ -10,7 +10,6 @@ using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Objects
 {
@@ -31,20 +30,20 @@ namespace osu.Game.Rulesets.Catch.Objects
         }
 
         // override any external colour changes with banananana
-        Color4 IHasComboInformation.GetComboColour(ISkin skin) => getBananaColour();
+        Colour4 IHasComboInformation.GetComboColour(ISkin skin) => getBananaColour();
 
-        private Color4 getBananaColour()
+        private Colour4 getBananaColour()
         {
             switch (StatelessRNG.NextInt(3, RandomSeed))
             {
                 default:
-                    return new Color4(255, 240, 0, 255);
+                    return new Colour4(255, 240, 0, 255);
 
                 case 1:
-                    return new Color4(255, 192, 0, 255);
+                    return new Colour4(255, 192, 0, 255);
 
                 case 2:
-                    return new Color4(214, 221, 28, 255);
+                    return new Colour4(214, 221, 28, 255);
             }
         }
 

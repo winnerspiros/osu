@@ -3,9 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.EmptyScrolling.Objects.Drawables
 {
@@ -39,7 +37,7 @@ namespace osu.Game.Rulesets.EmptyScrolling.Objects.Drawables
 
                 case ArmedState.Miss:
 
-                    this.FadeColour(Color4.Red, duration);
+                    this.FadeColour(Colour4.Red, duration);
                     this.FadeOut(duration, Easing.InQuint).Expire();
                     break;
             }

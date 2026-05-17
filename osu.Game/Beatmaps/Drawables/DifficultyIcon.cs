@@ -15,7 +15,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables
 {
@@ -91,7 +90,7 @@ namespace osu.Game.Beatmaps.Drawables
                     Masking = true,
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0.06f),
+                        Colour = Colour4.Black.Opacity(0.06f),
                         Type = EdgeEffectType.Shadow,
                         Radius = 3,
                     },

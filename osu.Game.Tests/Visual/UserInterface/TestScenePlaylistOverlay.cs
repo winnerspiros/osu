@@ -14,7 +14,6 @@ using osu.Game.Database;
 using osu.Game.Overlays.Music;
 using osu.Game.Rulesets;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

@@ -18,10 +18,7 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Game.Rulesets.Osu.UI.Cursor
 {
@@ -409,7 +406,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
             public Vector2 Position;
 
             [VertexMember(4, VertexAttribPointerType.Float)]
-            public Color4 Colour;
+            public Colour4 Colour;
 
             [VertexMember(2, VertexAttribPointerType.Float)]
             public Vector2 TexturePosition;

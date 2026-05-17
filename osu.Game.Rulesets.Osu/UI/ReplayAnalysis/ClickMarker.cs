@@ -7,8 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.UI.ReplayAnalysis
 {
@@ -42,10 +40,10 @@ namespace osu.Game.Rulesets.Osu.UI.ReplayAnalysis
                     Colour = Colours.Gray5,
                     Masking = true,
                     BorderThickness = 2.2f,
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     Child = new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                         AlwaysPresent = true,
                         Alpha = 0,

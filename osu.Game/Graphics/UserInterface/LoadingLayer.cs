@@ -10,7 +10,6 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Input.Bindings;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -51,7 +50,7 @@ namespace osu.Game.Graphics.UserInterface
                 AddInternal(new Box
                 {
                     Depth = float.MaxValue,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = 0.5f,
                     RelativeSizeAxes = Axes.Both,
                 });

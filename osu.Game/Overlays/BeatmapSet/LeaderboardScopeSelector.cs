@@ -10,7 +10,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.Play.Leaderboards;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -74,7 +73,7 @@ namespace osu.Game.Overlays.BeatmapSet
             {
                 base.OnHoverLost(e);
 
-                Text.FadeColour(Color4.White);
+                Text.FadeColour(Colour4.White);
             }
         }
     }

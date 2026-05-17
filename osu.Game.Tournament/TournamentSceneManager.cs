@@ -24,9 +24,7 @@ using osu.Game.Tournament.Screens.Setup;
 using osu.Game.Tournament.Screens.Showcase;
 using osu.Game.Tournament.Screens.TeamIntro;
 using osu.Game.Tournament.Screens.TeamWin;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament
 {
@@ -75,7 +73,7 @@ namespace osu.Game.Tournament
                     {
                         new Box
                         {
-                            Colour = new Color4(20, 20, 20, 255),
+                            Colour = new Colour4(20, 20, 20, 255),
                             Anchor = Anchor.TopRight,
                             RelativeSizeAxes = Axes.Both,
                             Width = 10,
@@ -120,7 +118,7 @@ namespace osu.Game.Tournament
                     {
                         new Box
                         {
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                         },
                         buttons = new FillFlowContainer
@@ -311,8 +309,8 @@ namespace osu.Game.Tournament
                         return;
 
                     field = value;
-                    BackgroundColour = field ? Color4.SkyBlue : OsuColour.Gray(0.2f);
-                    SpriteText.Colour = field ? Color4.Black : Color4.White;
+                    BackgroundColour = field ? Colour4.SkyBlue : OsuColour.Gray(0.2f);
+                    SpriteText.Colour = field ? Colour4.Black : Colour4.White;
                 }
             }
         }

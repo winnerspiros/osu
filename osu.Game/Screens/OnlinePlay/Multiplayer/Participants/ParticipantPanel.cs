@@ -32,7 +32,6 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 {
@@ -124,7 +123,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                                     Origin = Anchor.CentreRight,
                                     RelativeSizeAxes = Axes.Both,
                                     Width = 0.75f,
-                                    Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White.Opacity(0.25f))
+                                    Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0), Colour4.White.Opacity(0.25f))
                                 },
                                 new FillFlowContainer
                                 {

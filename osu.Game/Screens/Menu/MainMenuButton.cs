@@ -20,8 +20,7 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Menu
 {
@@ -84,7 +83,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action<MainMenuButton, UIEvent>? clickAction = null, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Colour4 colour, Action<MainMenuButton, UIEvent>? clickAction = null, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -104,7 +103,7 @@ namespace osu.Game.Screens.Menu
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.2f),
+                        Colour = Colour4.Black.Opacity(0.2f),
                         Roundness = 5,
                         Radius = 8,
                     },
@@ -123,7 +122,7 @@ namespace osu.Game.Screens.Menu
                             EdgeSmoothness = new Vector2(1.5f, 0),
                             RelativeSizeAxes = Axes.Both,
                             Blending = BlendingParameters.Additive,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Depth = float.MinValue,
                             Alpha = 0,
                         },

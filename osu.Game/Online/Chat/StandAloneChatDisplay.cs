@@ -14,8 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Chat;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Online.Chat
 {
@@ -55,7 +54,7 @@ namespace osu.Game.Online.Chat
             {
                 Background = new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = 0.8f,
                     RelativeSizeAxes = Axes.Both
                 },
@@ -153,8 +152,8 @@ namespace osu.Game.Online.Chat
             {
                 base.LoadComplete();
 
-                BackgroundUnfocused = new Color4(10, 10, 10, 10);
-                BackgroundFocused = new Color4(10, 10, 10, 255);
+                BackgroundUnfocused = new Colour4(10, 10, 10, 10);
+                BackgroundFocused = new Colour4(10, 10, 10, 255);
             }
 
             protected override void OnFocus(FocusEvent e)

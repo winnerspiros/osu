@@ -17,7 +17,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -114,7 +113,7 @@ namespace osu.Game.Overlays
                 base.OnHoverLost(e);
             }
 
-            private void updateState() => icon.Colour = Active.Value || IsHovered ? colourProvider.Light1 : Color4.White;
+            private void updateState() => icon.Colour = Active.Value || IsHovered ? colourProvider.Light1 : Colour4.White;
         }
     }
 

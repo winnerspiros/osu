@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Background
 {
@@ -25,7 +23,7 @@ namespace osu.Game.Tests.Visual.Background
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Gray
+                    Colour = Colour4.Gray
                 },
                 new FillFlowContainer
                 {
@@ -54,7 +52,7 @@ namespace osu.Game.Tests.Visual.Background
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Red
+                                    Colour = Colour4.Red
                                 },
                                 triangles = new TrianglesV2
                                 {
@@ -80,7 +78,7 @@ namespace osu.Game.Tests.Visual.Background
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Red
+                                    Colour = Colour4.Red
                                 },
                                 maskedTriangles = new TrianglesV2
                                 {
@@ -126,9 +124,9 @@ namespace osu.Game.Tests.Visual.Background
             });
             AddSliderStep("Thickness", 0f, 1f, 0.02f, t => triangles.Thickness = maskedTriangles.Thickness = t);
 
-            AddStep("White colour", () => box.Colour = triangles.Colour = maskedTriangles.Colour = Color4.White);
-            AddStep("Vertical gradient", () => box.Colour = triangles.Colour = maskedTriangles.Colour = ColourInfo.GradientVertical(Color4.White, Color4.Red));
-            AddStep("Horizontal gradient", () => box.Colour = triangles.Colour = maskedTriangles.Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.Red));
+            AddStep("White colour", () => box.Colour = triangles.Colour = maskedTriangles.Colour = Colour4.White);
+            AddStep("Vertical gradient", () => box.Colour = triangles.Colour = maskedTriangles.Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.Red));
+            AddStep("Horizontal gradient", () => box.Colour = triangles.Colour = maskedTriangles.Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.Red));
             AddStep("ClampAxes X", () => maskedTriangles.ClampAxes = Axes.X);
             AddStep("ClampAxes Y", () => maskedTriangles.ClampAxes = Axes.Y);
             AddStep("ClampAxes Both", () => maskedTriangles.ClampAxes = Axes.Both);

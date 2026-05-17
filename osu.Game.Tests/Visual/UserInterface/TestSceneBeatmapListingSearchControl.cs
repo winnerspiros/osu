@@ -15,7 +15,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapListing;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

@@ -23,7 +23,6 @@ using osu.Game.Screens.Play;
 using osu.Game.Storyboards;
 using osu.Game.Tests;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -264,7 +263,7 @@ namespace osu.Game.Rulesets.Osu.Tests
             {
                 addSeekStep(time);
                 AddAssert($"total rotation @ {time} is {expected}", () => drawableSpinner.Result.TotalRotation,
-                    () => Is.EqualTo(expected).Within(MathHelper.RadiansToDegrees(SpinFramesGenerator.SPIN_ERROR * 2)));
+                    () => Is.EqualTo(expected).Within(float.RadiansToDegrees(SpinFramesGenerator.SPIN_ERROR * 2)));
             }
 
             void addSeekStep(double time)

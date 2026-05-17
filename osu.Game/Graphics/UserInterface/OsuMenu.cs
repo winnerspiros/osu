@@ -12,7 +12,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -38,7 +37,7 @@ namespace osu.Game.Graphics.UserInterface
             : base(direction, topLevelMenu)
         {
             PlaySamples = playSamples;
-            BackgroundColour = Color4.Black.Opacity(0.5f);
+            BackgroundColour = Colour4.Black.Opacity(0.5f);
 
             MaskingContainer.CornerRadius = 4;
             ItemsContainer.Padding = new MarginPadding(5);

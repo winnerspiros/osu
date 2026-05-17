@@ -10,8 +10,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -38,13 +36,13 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
                 Origin = Anchor.Centre,
                 Blending = BlendingParameters.Additive,
                 BorderThickness = 10,
-                BorderColour = Color4.White,
+                BorderColour = Colour4.White,
                 Alpha = 1,
                 Child = box = new Box
                 {
                     Blending = BlendingParameters.Additive,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     AlwaysPresent = true,
                     Alpha = 0
                 }

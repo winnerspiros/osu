@@ -3,7 +3,6 @@
 
 using osu.Framework.Utils;
 using osu.Game.Screens.Menu;
-using osuTK.Graphics;
 
 namespace osu.Game.Seasonal
 {
@@ -13,6 +12,6 @@ namespace osu.Game.Seasonal
 
         protected override float Intensity => 4;
 
-        protected override Color4 GetBaseColour() => RNG.NextBool() ? SeasonalUIConfig.PRIMARY_COLOUR_1 : SeasonalUIConfig.PRIMARY_COLOUR_2;
+        protected override Colour4 GetBaseColour() => RNG.NextBool() ? SeasonalUIConfig.PRIMARY_COLOUR_1 : SeasonalUIConfig.PRIMARY_COLOUR_2;
     }
 }

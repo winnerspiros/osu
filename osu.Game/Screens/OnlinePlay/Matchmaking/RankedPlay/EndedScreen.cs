@@ -16,7 +16,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -92,7 +91,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.Black,
+                                        Colour = Colour4.Black,
                                         Alpha = 0.5f
                                     },
                                     new Container
@@ -126,7 +125,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                     new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.Black,
+                                        Colour = Colour4.Black,
                                         Alpha = 0.5f
                                     },
                                     new Container

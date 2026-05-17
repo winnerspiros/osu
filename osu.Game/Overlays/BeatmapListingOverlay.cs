@@ -27,7 +27,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.BeatmapListing;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -123,7 +122,7 @@ namespace osu.Game.Overlays
 
         protected override BeatmapListingHeader CreateHeader() => new BeatmapListingHeader();
 
-        protected override Color4 BackgroundColour => ColourProvider.Background6;
+        protected override Colour4 BackgroundColour => ColourProvider.Background6;
 
         private void onTypingStarted()
         {

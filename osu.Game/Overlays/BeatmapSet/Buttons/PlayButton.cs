@@ -16,7 +16,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet.Buttons
 {
@@ -46,7 +45,7 @@ namespace osu.Game.Overlays.BeatmapSet.Buttons
             }
         }
 
-        private Color4 hoverColour;
+        private Colour4 hoverColour;
         private readonly SpriteIcon icon;
         private readonly LoadingSpinner loadingSpinner;
 
@@ -115,14 +114,14 @@ namespace osu.Game.Overlays.BeatmapSet.Buttons
         protected override void OnHoverLost(HoverLostEvent e)
         {
             if (!playing.Value)
-                icon.FadeColour(Color4.White, 120, Easing.InOutQuint);
+                icon.FadeColour(Colour4.White, 120, Easing.InOutQuint);
             base.OnHoverLost(e);
         }
 
         private void playingStateChanged(ValueChangedEvent<bool> e)
         {
             icon.Icon = e.NewValue ? FontAwesome.Solid.Stop : FontAwesome.Solid.Play;
-            icon.FadeColour(e.NewValue || IsHovered ? hoverColour : Color4.White, 120, Easing.InOutQuint);
+            icon.FadeColour(e.NewValue || IsHovered ? hoverColour : Colour4.White, 120, Easing.InOutQuint);
 
             if (e.NewValue)
             {

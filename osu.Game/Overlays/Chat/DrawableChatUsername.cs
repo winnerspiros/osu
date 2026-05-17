@@ -30,7 +30,6 @@ using osu.Game.Screens;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
 using System.Numerics;
-using osuTK.Graphics;
 using ChatStrings = osu.Game.Localisation.ChatStrings;
 
 namespace osu.Game.Overlays.Chat
@@ -42,7 +41,7 @@ namespace osu.Game.Overlays.Chat
         /// <summary>
         /// The primary colour to use for the username.
         /// </summary>
-        public Color4 AccentColour { get; init; }
+        public Colour4 AccentColour { get; init; }
 
         /// <summary>
         /// If set to <see langword="false"/>, the username will be drawn as plain text in <see cref="AccentColour"/>.
@@ -135,7 +134,7 @@ namespace osu.Game.Overlays.Chat
                     {
                         Roundness = 1,
                         Radius = 1,
-                        Colour = Color4.Black.Opacity(0.3f),
+                        Colour = Colour4.Black.Opacity(0.3f),
                         Offset = new Vector2(0, 1),
                         Type = EdgeEffectType.Shadow,
                     },

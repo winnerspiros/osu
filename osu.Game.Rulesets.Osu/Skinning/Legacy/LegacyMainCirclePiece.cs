@@ -14,8 +14,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -37,7 +35,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 
         private SkinnableSpriteText hitCircleText = null!;
 
-        private readonly Bindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly Bindable<Colour4> accentColour = new Bindable<Colour4>();
         private readonly IBindable<int> indexInCurrentCombo = new Bindable<int>();
 
         [Resolved(canBeNull: true)] // Can't really be null but required to handle potential of disposal before DI completes.
@@ -132,10 +130,10 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 
             accentColour.BindValueChanged(colour =>
             {
-                Color4 objectColour = colour.NewValue;
+                Colour4 objectColour = colour.NewValue;
                 int add = Math.Max(25, 300 - (int)(objectColour.R * 255) - (int)(objectColour.G * 255) - (int)(objectColour.B * 255));
 
-                var kiaiTintColour = new Color4(
+                var kiaiTintColour = new Colour4(
                     (byte)Math.Min((byte)(objectColour.R * 255) + add, 255),
                     (byte)Math.Min((byte)(objectColour.G * 255) + add, 255),
                     (byte)Math.Min((byte)(objectColour.B * 255) + add, 255),

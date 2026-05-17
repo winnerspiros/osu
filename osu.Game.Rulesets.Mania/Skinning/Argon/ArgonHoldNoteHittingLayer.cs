@@ -4,14 +4,13 @@
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
-using osuTK.Graphics;
 using Box = osu.Framework.Graphics.Shapes.Box;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
     public partial class ArgonHoldNoteHittingLayer : Box
     {
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
         public readonly Bindable<bool> IsHitting = new Bindable<bool>();
 
         public ArgonHoldNoteHittingLayer()

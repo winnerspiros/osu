@@ -13,7 +13,6 @@ using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Beatmaps
 {
@@ -77,10 +76,10 @@ namespace osu.Game.Tests.Beatmaps
                 return dependencies;
             }
 
-            public IReadOnlyList<Color4> UsableComboColours =>
+            public IReadOnlyList<Colour4> UsableComboColours =>
                 GameplayClockContainer.ChildrenOfType<BeatmapSkinProvidingContainer>()
                                       .First()
-                                      .GetConfig<GlobalSkinColours, IReadOnlyList<Color4>>(GlobalSkinColours.ComboColours)?.Value;
+                                      .GetConfig<GlobalSkinColours, IReadOnlyList<Colour4>>(GlobalSkinColours.ComboColours)?.Value;
         }
 
         protected class CustomSkinWorkingBeatmap : ClockBackedTestWorkingBeatmap
@@ -98,19 +97,19 @@ namespace osu.Game.Tests.Beatmaps
 
         protected class TestBeatmapSkin : LegacyBeatmapSkin
         {
-            public static Color4[] Colours { get; } =
+            public static Colour4[] Colours { get; } =
             {
-                new Color4(50, 100, 150, 255),
-                new Color4(40, 80, 120, 255),
-                new Color4(25, 50, 75, 255),
-                new Color4(10, 20, 30, 255),
+                new Colour4(50, 100, 150, 255),
+                new Colour4(40, 80, 120, 255),
+                new Colour4(25, 50, 75, 255),
+                new Colour4(10, 20, 30, 255),
             };
 
-            public static readonly Color4 HYPER_DASH_COLOUR = Color4.DarkBlue;
+            public static readonly Colour4 HYPER_DASH_COLOUR = Colour4.DarkBlue;
 
-            public static readonly Color4 HYPER_DASH_AFTER_IMAGE_COLOUR = Color4.DarkCyan;
+            public static readonly Colour4 HYPER_DASH_AFTER_IMAGE_COLOUR = Colour4.DarkCyan;
 
-            public static readonly Color4 HYPER_DASH_FRUIT_COLOUR = Color4.DarkGoldenrod;
+            public static readonly Colour4 HYPER_DASH_FRUIT_COLOUR = Colour4.DarkGoldenrod;
 
             public TestBeatmapSkin(BeatmapInfo beatmapInfo, bool hasColours)
                 : base(beatmapInfo, null)
@@ -127,19 +126,19 @@ namespace osu.Game.Tests.Beatmaps
 
         protected class TestSkin : LegacySkin, ISkinSource
         {
-            public static Color4[] Colours { get; } =
+            public static Colour4[] Colours { get; } =
             {
-                new Color4(150, 100, 50, 255),
-                new Color4(20, 20, 20, 255),
-                new Color4(75, 50, 25, 255),
-                new Color4(80, 80, 80, 255),
+                new Colour4(150, 100, 50, 255),
+                new Colour4(20, 20, 20, 255),
+                new Colour4(75, 50, 25, 255),
+                new Colour4(80, 80, 80, 255),
             };
 
-            public static readonly Color4 HYPER_DASH_COLOUR = Color4.LightBlue;
+            public static readonly Colour4 HYPER_DASH_COLOUR = Colour4.LightBlue;
 
-            public static readonly Color4 HYPER_DASH_AFTER_IMAGE_COLOUR = Color4.LightCoral;
+            public static readonly Colour4 HYPER_DASH_AFTER_IMAGE_COLOUR = Colour4.LightCoral;
 
-            public static readonly Color4 HYPER_DASH_FRUIT_COLOUR = Color4.LightCyan;
+            public static readonly Colour4 HYPER_DASH_FRUIT_COLOUR = Colour4.LightCyan;
 
             public TestSkin(bool hasCustomColours)
                 : base(new SkinInfo(), null, null)

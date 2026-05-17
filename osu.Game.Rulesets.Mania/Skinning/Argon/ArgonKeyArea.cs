@@ -14,9 +14,7 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -32,7 +30,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
         private Container<Circle> bottomIcon = null!;
         private CircularContainer topIcon = null!;
 
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         [Resolved]
         private Column column { get; set; } = null!;
@@ -132,7 +130,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                                 Size = new Vector2(22, 14),
                                 Masking = true,
                                 BorderThickness = 4,
-                                BorderColour = Color4.White,
+                                BorderColour = Colour4.White,
                                 EdgeEffect = new EdgeEffectParameters { Type = EdgeEffectType.Glow },
                                 Children = new Drawable[]
                                 {
@@ -187,7 +185,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             if (e.Action != column.Action.Value) return false;
 
             const double lighting_fade_in_duration = 70;
-            Color4 lightingColour = getLightingColour();
+            Colour4 lightingColour = getLightingColour();
 
             background
                 .FlashColour(accentColour.Value.Lighten(0.8f), 200, Easing.OutQuint)
@@ -195,7 +193,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                 .Then()
                 .FadeTo(0.8f, 500);
 
-            hitTargetLine.FadeColour(Color4.White, lighting_fade_in_duration, Easing.OutQuint);
+            hitTargetLine.FadeColour(Colour4.White, lighting_fade_in_duration, Easing.OutQuint);
             hitTargetLine.TransformTo(nameof(EdgeEffect), new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Glow,
@@ -211,7 +209,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                 Radius = 20,
             }, lighting_fade_in_duration, Easing.OutQuint);
 
-            bottomIcon.FadeColour(Color4.White, lighting_fade_in_duration, Easing.OutQuint);
+            bottomIcon.FadeColour(Colour4.White, lighting_fade_in_duration, Easing.OutQuint);
 
             foreach (var circle in bottomIcon)
             {
@@ -232,7 +230,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
 
             const double lighting_fade_out_duration = 800;
 
-            Color4 lightingColour = getLightingColour().Opacity(0);
+            Colour4 lightingColour = getLightingColour().Opacity(0);
 
             // background fades out faster than lighting elements to give better definition to the player.
             background.FadeTo(0.3f, 50, Easing.OutQuint)
@@ -268,6 +266,6 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             }
         }
 
-        private Color4 getLightingColour() => Interpolation.ValueAt(0.2f, accentColour.Value, Color4.White, 0, 1);
+        private Colour4 getLightingColour() => Interpolation.ValueAt(0.2f, accentColour.Value, Colour4.White, 0, 1);
     }
 }

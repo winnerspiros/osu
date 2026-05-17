@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Default
 {
@@ -21,7 +20,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
     /// </summary>
     public partial class DefaultBodyPiece : CompositeDrawable, IHoldNoteBody
     {
-        protected readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+        protected readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
         protected readonly IBindable<bool> IsHitting = new Bindable<bool>();
 
         protected Drawable Background { get; private set; } = null!;
@@ -62,11 +61,11 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
             IsHitting = { BindTarget = IsHitting }
         };
 
-        private void onAccentChanged(ValueChangedEvent<Color4> accent) => Background.Colour = accent.NewValue.Opacity(0.7f);
+        private void onAccentChanged(ValueChangedEvent<Colour4> accent) => Background.Colour = accent.NewValue.Opacity(0.7f);
 
         private partial class ForegroundPiece : CompositeDrawable
         {
-            public readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+            public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
             public readonly IBindable<bool> IsHitting = new Bindable<bool>();
 
             private readonly LayoutValue subtractionCache = new LayoutValue(Invalidation.DrawSize);
@@ -96,7 +95,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
                         {
                             RelativeSizeAxes = Axes.Both,
                             // This is needed because we're blending with another object
-                            BackgroundColour = Color4.White.Opacity(0),
+                            BackgroundColour = Colour4.White.Opacity(0),
                             // The 'hole' is achieved by subtracting the result of this container with the parent
                             Blending = new BlendingParameters { AlphaEquation = BlendingEquation.ReverseSubtract },
                             Child = subtractionLayer = new CircularContainer
@@ -118,10 +117,10 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
                 };
 
                 AccentColour.BindValueChanged(onAccentChanged, true);
-                IsHitting.BindValueChanged(_ => onAccentChanged(new ValueChangedEvent<Color4>(AccentColour.Value, AccentColour.Value)), true);
+                IsHitting.BindValueChanged(_ => onAccentChanged(new ValueChangedEvent<Colour4>(AccentColour.Value, AccentColour.Value)), true);
             }
 
-            private void onAccentChanged(ValueChangedEvent<Color4> accent)
+            private void onAccentChanged(ValueChangedEvent<Colour4> accent)
             {
                 foregroundBuffer.Colour = accent.NewValue.Opacity(0.5f);
 
@@ -150,7 +149,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
                     subtractionLayer.Height = Math.Max(0, DrawHeight - DrawWidth);
                     subtractionLayer.EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Type = EdgeEffectType.Glow,
                         Radius = DrawWidth
                     };

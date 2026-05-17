@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using osu.Framework.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Utils
 {
@@ -14,8 +13,8 @@ namespace osu.Game.Utils
         /// </summary>
         /// <param name="gradient">The gradient, defining the colour stops and their positions (in [0-1] range) in the gradient.</param>
         /// <param name="point">The point to sample the colour at.</param>
-        /// <returns>A <see cref="Color4"/> sampled from the linear gradient.</returns>
-        public static Color4 SampleFromLinearGradient(IReadOnlyList<(float position, Color4 colour)> gradient, float point)
+        /// <returns>A <see cref="Colour4"/> sampled from the linear gradient.</returns>
+        public static Colour4 SampleFromLinearGradient(IReadOnlyList<(float position, Colour4 colour)> gradient, float point)
         {
             if (point < gradient[0].position)
                 return gradient[0].colour;

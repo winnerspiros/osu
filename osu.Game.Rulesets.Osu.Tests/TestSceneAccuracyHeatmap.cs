@@ -15,8 +15,6 @@ using osu.Game.Rulesets.Osu.Statistics;
 using osu.Game.Scoring;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -44,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 object1 = new BorderCircle
                 {
                     Position = new Vector2(256, 192),
-                    Colour = Color4.Yellow,
+                    Colour = Colour4.Yellow,
                 },
                 object2 = new BorderCircle
                 {
@@ -135,7 +133,7 @@ namespace osu.Game.Rulesets.Osu.Tests
 
                 Masking = true;
                 BorderThickness = 2;
-                BorderColour = Color4.White;
+                BorderColour = Colour4.White;
 
                 InternalChildren = new Drawable[]
                 {

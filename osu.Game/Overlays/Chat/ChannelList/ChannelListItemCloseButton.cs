@@ -8,7 +8,6 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Chat.ChannelList
 {
@@ -16,14 +15,14 @@ namespace osu.Game.Overlays.Chat.ChannelList
     {
         private SpriteIcon icon = null!;
 
-        private Color4 normalColour;
-        private Color4 hoveredColour;
+        private Colour4 normalColour;
+        private Colour4 hoveredColour;
 
         [BackgroundDependencyLoader]
         private void load(OsuColour osuColour)
         {
             normalColour = osuColour.Red2;
-            hoveredColour = Color4.White;
+            hoveredColour = Colour4.White;
 
             Alpha = 0f;
             Size = new Vector2(20);

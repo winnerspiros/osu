@@ -19,7 +19,6 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -82,14 +81,14 @@ namespace osu.Game.Graphics.UserInterface
         [BackgroundDependencyLoader(true)]
         private void load(OverlayColourProvider? colourProvider, OsuColour colour, AudioManager audio)
         {
-            BackgroundUnfocused = colourProvider?.Background5 ?? Color4.Black.Opacity(0.5f);
+            BackgroundUnfocused = colourProvider?.Background5 ?? Colour4.Black.Opacity(0.5f);
             BackgroundFocused = colourProvider?.Background4 ?? OsuColour.Gray(0.3f).Opacity(0.8f);
             BackgroundCommit = BorderColour = colourProvider?.Highlight1 ?? colour.Yellow;
-            selectionColour = colourProvider?.Background1 ?? new Color4(249, 90, 255, 255);
+            selectionColour = colourProvider?.Background1 ?? new Colour4(249, 90, 255, 255);
 
             caret?.SelectionColour = selectionColour;
 
-            Placeholder.Colour = colourProvider?.Foreground1 ?? new Color4(180, 180, 180, 255);
+            Placeholder.Colour = colourProvider?.Foreground1 ?? new Colour4(180, 180, 180, 255);
 
             // Note that `KeyBindingRow` uses similar logic for input feedback, so remember to update there if changing here.
             var textAddedSamples = new Sample?[4];
@@ -111,9 +110,9 @@ namespace osu.Game.Graphics.UserInterface
             };
         }
 
-        private Color4 selectionColour;
+        private Colour4 selectionColour;
 
-        protected override Color4 SelectionColour => selectionColour;
+        protected override Colour4 SelectionColour => selectionColour;
 
         protected override void OnUserTextAdded(string added)
         {
@@ -323,7 +322,7 @@ namespace osu.Game.Graphics.UserInterface
 
             public OsuCaret()
             {
-                Colour = Color4.Transparent;
+                Colour = Colour4.Transparent;
 
                 InternalChild = beatSync = new CaretBeatSyncedContainer
                 {
@@ -340,7 +339,7 @@ namespace osu.Game.Graphics.UserInterface
 
             public float CaretWidth { get; set; }
 
-            public Color4 SelectionColour { get; set; }
+            public Colour4 SelectionColour { get; set; }
 
             public override void DisplayAt(System.Numerics.Vector2 position, float? selectionWidth)
             {
@@ -356,7 +355,7 @@ namespace osu.Game.Graphics.UserInterface
                 {
                     this.MoveTo(new System.Numerics.Vector2(position.X - CaretWidth / 2, position.Y), 60, Easing.Out);
                     this.ResizeWidthTo(CaretWidth, caret_move_time, Easing.Out);
-                    this.FadeColour(Color4.White, 200, Easing.Out);
+                    this.FadeColour(Colour4.White, 200, Easing.Out);
                 }
             }
 
@@ -381,7 +380,7 @@ namespace osu.Game.Graphics.UserInterface
                     InternalChild = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                     };
                 }
 

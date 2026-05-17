@@ -13,7 +13,6 @@ using osu.Framework.Input.Events;
 using osu.Game.Audio;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Objects.Drawables

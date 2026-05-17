@@ -9,8 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -51,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             }
         }
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => Colour;
             set

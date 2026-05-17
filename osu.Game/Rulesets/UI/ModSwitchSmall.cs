@@ -12,7 +12,6 @@ using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Mods;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -27,11 +26,11 @@ namespace osu.Game.Rulesets.UI
         private Drawable background = null!;
         private SpriteIcon? modIcon;
 
-        private Color4 activeForegroundColour;
-        private Color4 inactiveForegroundColour;
+        private Colour4 activeForegroundColour;
+        private Colour4 inactiveForegroundColour;
 
-        private Color4 activeBackgroundColour;
-        private Color4 inactiveBackgroundColour;
+        private Colour4 activeBackgroundColour;
+        private Colour4 inactiveBackgroundColour;
 
         public ModSwitchSmall(IMod mod)
         {

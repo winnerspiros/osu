@@ -14,7 +14,6 @@ using osu.Game.Online;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 {
@@ -65,7 +64,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                                 RelativeSizeAxes = Axes.Both,
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                BackgroundColour = Color4.Black.Opacity(0.4f),
+                                BackgroundColour = Colour4.Black.Opacity(0.4f),
                                 FillColour = colours.Blue,
                                 Alpha = 0f,
                             },

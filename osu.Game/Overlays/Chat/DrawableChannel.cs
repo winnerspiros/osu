@@ -13,7 +13,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.Chat;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Chat
 {
@@ -228,7 +227,7 @@ namespace osu.Game.Overlays.Chat
             if (removedLine == null)
                 return;
 
-            removedLine.FadeColour(Color4.Red, 400).FadeOut(fade_time).Expire();
+            removedLine.FadeColour(Colour4.Red, 400).FadeOut(fade_time).Expire();
 
             // Resolve new colours and timestamps resulting from the removal.
             this.Delay(fade_time).Schedule(() =>

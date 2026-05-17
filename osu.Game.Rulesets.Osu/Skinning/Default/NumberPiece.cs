@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -36,7 +35,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
                     {
                         Type = EdgeEffectType.Glow,
                         Radius = 60,
-                        Colour = Color4.White.Opacity(0.5f),
+                        Colour = Colour4.White.Opacity(0.5f),
                     },
                 },
                 number = new SkinnableSpriteText(new OsuSkinComponentLookup(OsuSkinComponents.HitCircleText), _ => new OsuSpriteText

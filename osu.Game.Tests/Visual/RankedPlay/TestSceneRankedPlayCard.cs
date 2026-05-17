@@ -18,7 +18,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Taiko;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

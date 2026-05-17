@@ -17,7 +17,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Header
 {
@@ -28,7 +27,7 @@ namespace osu.Game.Overlays.Profile.Header
         private LinkFlowContainer topLinkContainer = null!;
         private LinkFlowContainer bottomLinkContainer = null!;
 
-        private Color4 iconColour;
+        private Colour4 iconColour;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;

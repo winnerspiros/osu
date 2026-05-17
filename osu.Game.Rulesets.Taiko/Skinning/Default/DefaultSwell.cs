@@ -13,9 +13,7 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.Objects.Drawables;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {
@@ -91,7 +89,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
                                 RelativeSizeAxes = Axes.Both,
                                 Masking = true,
                                 BorderThickness = target_ring_thin_border,
-                                BorderColour = Color4.White,
+                                BorderColour = Colour4.White,
                                 Children = new[]
                                 {
                                     new Box

@@ -13,7 +13,6 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Screens.Edit;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Backgrounds
 {
@@ -47,7 +46,7 @@ namespace osu.Game.Screens.Backgrounds
                     // There's probably a better way to do this, but it's high effort.
                     blackBox = new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                     },
                     content = new EditorSkinProvidingContainer(editorBeatmap)

@@ -11,7 +11,6 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
                         RelativeSizeAxes = Axes.Both,
                         CornerRadius = BeatmapCard.CORNER_RADIUS,
                         Masking = true,
-                        Colour = Color4.White.Opacity(0.1f),
+                        Colour = Colour4.White.Opacity(0.1f),
                         Blending = BlendingParameters.Additive,
                         Child = new Box { RelativeSizeAxes = Axes.Both, }
                     },

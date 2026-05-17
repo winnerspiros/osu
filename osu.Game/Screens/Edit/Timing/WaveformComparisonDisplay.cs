@@ -18,7 +18,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Timing
 {
@@ -82,7 +81,7 @@ namespace osu.Game.Screens.Edit.Timing
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Colour = Color4.White,
+                Colour = Colour4.White,
                 RelativeSizeAxes = Axes.Y,
                 Width = 3,
             });

@@ -23,7 +23,6 @@ using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Tests.Gameplay;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -254,7 +253,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                         blackBackground = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             Alpha = 0f,
                         },
                         leaderboard = new DrawableGameplayLeaderboard

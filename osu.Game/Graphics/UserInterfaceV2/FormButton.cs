@@ -17,7 +17,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -41,7 +40,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
         /// <summary>
         /// Sets a custom background colour for the button.
         /// </summary>
-        public Color4? BackgroundColour
+        public Colour4? BackgroundColour
         {
             get;
             init
@@ -183,9 +182,9 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
             protected override float HoverLayerFinalAlpha => 0;
 
-            private Color4? triangleGradientSecondColour;
+            private Colour4? triangleGradientSecondColour;
 
-            public override Color4 BackgroundColour
+            public override Colour4 BackgroundColour
             {
                 get => base.BackgroundColour;
                 set

@@ -17,7 +17,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Notifications
 {
@@ -131,7 +130,7 @@ namespace osu.Game.Overlays.Notifications
                 case ProgressNotificationState.Cancelled:
                     cancellationTokenSource.Cancel();
 
-                    IconContent.FadeColour(ColourInfo.GradientVertical(Color4.Gray, Color4.Gray.Lighten(0.5f)), colour_fade_duration);
+                    IconContent.FadeColour(ColourInfo.GradientVertical(Colour4.Gray, Colour4.Gray.Lighten(0.5f)), colour_fade_duration);
                     cancelSample?.Play();
                     loadingSpinner.Hide();
 
@@ -191,9 +190,9 @@ namespace osu.Game.Overlays.Notifications
         public override bool DisplayOnTop => false;
 
         private readonly ProgressBar progressBar;
-        private Color4 colourQueued;
-        private Color4 colourActive;
-        private Color4 colourCancelled;
+        private Colour4 colourQueued;
+        private Colour4 colourActive;
+        private Colour4 colourCancelled;
 
         private LoadingSpinner loadingSpinner = null!;
 
@@ -280,8 +279,8 @@ namespace osu.Game.Overlays.Notifications
         {
             private readonly Box box;
 
-            private Color4 colourActive;
-            private Color4 colourInactive;
+            private Colour4 colourActive;
+            private Colour4 colourInactive;
 
             public float Progress
             {

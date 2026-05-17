@@ -16,7 +16,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using System.Numerics;
-using osuTK.Graphics;
 using FontWeight = osu.Game.Graphics.FontWeight;
 
 namespace osu.Game.Overlays.BeatmapListing
@@ -134,7 +133,7 @@ namespace osu.Game.Overlays.BeatmapListing
                     {
                         background = new Circle
                         {
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             RelativeSizeAxes = Axes.Both,
                         },
                         new SpriteIcon
@@ -150,7 +149,7 @@ namespace osu.Game.Overlays.BeatmapListing
                 });
             }
 
-            protected override Color4 ColourActive => ColourProvider.Light1;
+            protected override Colour4 ColourActive => ColourProvider.Light1;
 
             public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
             {
@@ -161,7 +160,7 @@ namespace osu.Game.Overlays.BeatmapListing
 
             protected override void UpdateState()
             {
-                Color4 colour = Active.Value ? ColourActive : ColourNormal;
+                Colour4 colour = Active.Value ? ColourActive : ColourNormal;
 
                 if (!Enabled.Value)
                     colour = colour.Darken(1f);

@@ -9,7 +9,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -44,7 +43,7 @@ namespace osu.Game.Overlays
                 overlay = new Box
                 {
                     Alpha = 0,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both,
                 }
             };

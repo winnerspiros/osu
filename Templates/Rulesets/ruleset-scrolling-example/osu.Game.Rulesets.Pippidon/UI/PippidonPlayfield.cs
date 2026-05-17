@@ -11,7 +11,6 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Pippidon.UI
 {
@@ -107,7 +106,7 @@ namespace osu.Game.Rulesets.Pippidon.UI
                     {
                         new Box
                         {
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,

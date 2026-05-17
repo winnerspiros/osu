@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.Performance;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Judgements;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {
@@ -23,14 +22,14 @@ namespace osu.Game.Rulesets.Catch.UI
         /// <summary>
         /// The accent colour of the object caught.
         /// </summary>
-        public Color4 ObjectColour { get; }
+        public Colour4 ObjectColour { get; }
 
         /// <summary>
         /// The position at which the object was caught.
         /// </summary>
         public float Position { get; }
 
-        public HitExplosionEntry(double startTime, JudgementResult judgementResult, Color4 objectColour, float position)
+        public HitExplosionEntry(double startTime, JudgementResult judgementResult, Colour4 objectColour, float position)
         {
             LifetimeStart = startTime;
             Position = position;

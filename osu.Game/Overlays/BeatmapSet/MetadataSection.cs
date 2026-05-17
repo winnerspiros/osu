@@ -10,7 +10,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -100,7 +99,7 @@ namespace osu.Game.Overlays.BeatmapSet
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Colour = Color4.White.Opacity(0.75f),
+                Colour = Colour4.White.Opacity(0.75f),
             }, loaded =>
             {
                 textFlow?.Expire();

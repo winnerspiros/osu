@@ -7,9 +7,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Catch.UI;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Objects.Drawables
 {
@@ -20,7 +18,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
 
         public double DisplayStartTime => LifetimeStart;
 
-        Bindable<Color4> IHasCatchObjectState.AccentColour => AccentColour;
+        Bindable<Colour4> IHasCatchObjectState.AccentColour => AccentColour;
 
         public Bindable<bool> HyperDash { get; } = new Bindable<bool>();
 

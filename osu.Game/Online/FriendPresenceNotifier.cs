@@ -19,7 +19,6 @@ using osu.Game.Online.Metadata;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Users;
-using osuTK.Graphics;
 
 namespace osu.Game.Online
 {
@@ -305,7 +304,7 @@ namespace osu.Game.Online
             private void load()
             {
                 Icon = FontAwesome.Solid.UserSlash;
-                Avatar.Colour = Color4.White.Opacity(0.25f);
+                Avatar.Colour = Colour4.White.Opacity(0.25f);
             }
 
             public override string PopInSampleName => "UI/notification-friend-offline";

@@ -10,8 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Overlays;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -37,7 +36,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     Child = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Gray
+                        Colour = Colour4.Gray
                     }
                 }
             };

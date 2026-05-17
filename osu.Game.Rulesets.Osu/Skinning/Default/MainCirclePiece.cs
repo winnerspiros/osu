@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -40,7 +39,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             };
         }
 
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
         private readonly IBindable<int> indexInCurrentCombo = new Bindable<int>();
 
         [Resolved]

@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Sections.Recent
 {
@@ -42,7 +41,7 @@ namespace osu.Game.Overlays.Profile.Sections.Recent
             {
                 case RecentActivityType.BeatmapPlaycount:
                     icon.Icon = FontAwesome.Solid.Play;
-                    icon.Colour = Color4.White;
+                    icon.Colour = Colour4.White;
                     break;
 
                 case RecentActivityType.BeatmapsetApprove:
@@ -57,7 +56,7 @@ namespace osu.Game.Overlays.Profile.Sections.Recent
 
                 case RecentActivityType.BeatmapsetRevive:
                     icon.Icon = FontAwesome.Solid.TrashRestore;
-                    icon.Colour = Color4.White;
+                    icon.Colour = Colour4.White;
                     break;
 
                 case RecentActivityType.BeatmapsetUpdate:
@@ -72,7 +71,7 @@ namespace osu.Game.Overlays.Profile.Sections.Recent
 
                 case RecentActivityType.RankLost:
                     icon.Icon = FontAwesome.Solid.AngleDoubleDown;
-                    icon.Colour = Color4.White;
+                    icon.Colour = Colour4.White;
                     break;
 
                 case RecentActivityType.UserSupportAgain:
@@ -92,12 +91,12 @@ namespace osu.Game.Overlays.Profile.Sections.Recent
 
                 case RecentActivityType.UsernameChange:
                     icon.Icon = FontAwesome.Solid.Tag;
-                    icon.Colour = Color4.White;
+                    icon.Colour = Colour4.White;
                     break;
             }
         }
 
-        private Color4 getColorForApprovalType(BeatmapApproval approvalType)
+        private Colour4 getColorForApprovalType(BeatmapApproval approvalType)
         {
             switch (approvalType)
             {

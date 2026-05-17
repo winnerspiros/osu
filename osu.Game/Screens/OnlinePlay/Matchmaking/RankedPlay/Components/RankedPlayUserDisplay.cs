@@ -23,7 +23,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 {
@@ -311,8 +310,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                         Alpha = 0.1f,
                                         Blending = BlendingParameters.Additive,
                                         Colour = leftToRight
-                                            ? ColourInfo.GradientHorizontal(Color4.Transparent, Color4.White)
-                                            : ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent),
+                                            ? ColourInfo.GradientHorizontal(Colour4.Transparent, Colour4.White)
+                                            : ColourInfo.GradientHorizontal(Colour4.White, Colour4.Transparent),
                                     },
                                 ],
                             },
@@ -322,7 +321,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                     {
                         RelativeSizeAxes = Axes.Both,
                         Shear = -shear,
-                        BackgroundColour = Color4.White.Opacity(0), // workaround for non-premultiplied alpha blending of white content on transparent background
+                        BackgroundColour = Colour4.White.Opacity(0), // workaround for non-premultiplied alpha blending of white content on transparent background
                         Child = new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -392,7 +391,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                     content.CreateView().With(d =>
                                     {
                                         d.SynchronisedDrawQuad = true;
-                                        d.Colour = Color4.Red;
+                                        d.Colour = Colour4.Red;
                                     })
                                 ],
                             },
@@ -431,7 +430,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                    .Then(delay: 1100)
                                    .FadeOut(200);
 
-                    healthBarBackground.FadeColour(Color4.Red, 100)
+                    healthBarBackground.FadeColour(Colour4.Red, 100)
                                        .Then()
                                        .FadeColour(healthBarColour, 1000);
 
@@ -468,7 +467,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                 if (Health.NormalizedValue > HealthFlashThreshold)
                     return;
 
-                var almostRed = Interpolation.ValueAt(0.75, healthBarColour, ColourInfo.SingleColour(Color4.Red), 0.0, 1.0);
+                var almostRed = Interpolation.ValueAt(0.75, healthBarColour, ColourInfo.SingleColour(Colour4.Red), 0.0, 1.0);
 
                 healthBarBackground.FadeColour(almostRed, 150)
                                    .Then()

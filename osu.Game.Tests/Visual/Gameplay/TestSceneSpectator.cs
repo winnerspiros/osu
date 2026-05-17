@@ -24,7 +24,6 @@ using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Visual.Multiplayer;
 using osu.Game.Tests.Visual.Spectator;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

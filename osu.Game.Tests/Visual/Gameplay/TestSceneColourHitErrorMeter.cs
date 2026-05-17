@@ -15,7 +15,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

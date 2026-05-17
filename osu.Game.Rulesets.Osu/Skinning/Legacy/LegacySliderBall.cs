@@ -12,8 +12,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -30,7 +28,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         private TextureAnimation ballAnimation = null!;
         private Texture[] ballTextures = null!;
 
-        public Color4 BallColour => ballAnimation.Colour;
+        public Colour4 BallColour => ballAnimation.Colour;
 
         public LegacySliderBall(ISkin skin)
         {
@@ -44,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         {
             Vector2 maxSize = OsuLegacySkinTransformer.MAX_FOLLOW_CIRCLE_AREA_SIZE;
 
-            var ballColour = skin.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.SliderBall)?.Value ?? Color4.White;
+            var ballColour = skin.GetConfig<OsuSkinColour, Colour4>(OsuSkinColour.SliderBall)?.Value ?? Colour4.White;
             ballTextures = skin.GetTextures("sliderb", default, default, true, "", maxSize, out _);
 
             InternalChildren = new Drawable[]
@@ -54,7 +52,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Texture = skin.GetTexture("sliderb-nd")?.WithMaximumSize(maxSize),
-                    Colour = new Color4(5, 5, 5, 255),
+                    Colour = new Colour4(5, 5, 5, 255),
                 },
                 ballAnimation = new LegacySkinExtensions.SkinnableTextureAnimation
                 {
@@ -76,7 +74,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
             onHitObjectApplied(parentObject);
         }
 
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
 
         protected override void LoadComplete()
         {

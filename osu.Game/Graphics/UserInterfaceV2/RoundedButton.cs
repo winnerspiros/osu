@@ -14,7 +14,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -24,9 +23,9 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         protected override float HoverLayerFinalAlpha => 0;
 
-        private Color4? triangleGradientSecondColour;
+        private Colour4? triangleGradientSecondColour;
 
-        public override Color4 BackgroundColour
+        public override Colour4 BackgroundColour
         {
             get => base.BackgroundColour;
             set

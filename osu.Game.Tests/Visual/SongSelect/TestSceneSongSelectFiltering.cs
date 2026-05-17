@@ -18,7 +18,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
-using osuTK.Input;
 using FilterControl = osu.Game.Screens.Select.FilterControl;
 using NoResultsPlaceholder = osu.Game.Screens.Select.NoResultsPlaceholder;
 

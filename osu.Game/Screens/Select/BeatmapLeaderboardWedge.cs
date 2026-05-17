@@ -35,7 +35,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.Leaderboards;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Select
 {
@@ -475,29 +474,29 @@ namespace osu.Game.Screens.Select
 
                 if (!requireBottomFade && !requireTopFade)
                 {
-                    c.Colour = Color4.White;
+                    c.Colour = Colour4.White;
                     continue;
                 }
 
                 if (topY > fadeBottom + height || bottomY < fadeTop - height)
                 {
-                    c.Colour = Color4.Transparent;
+                    c.Colour = Colour4.Transparent;
                     continue;
                 }
 
                 if (requireBottomFade)
                 {
                     c.Colour = ColourInfo.GradientVertical(
-                        Color4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / height, 1)),
-                        Color4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / height, 1)));
+                        Colour4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / height, 1)),
+                        Colour4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / height, 1)));
                 }
                 else
                 {
                     Debug.Assert(requireTopFade);
 
                     c.Colour = ColourInfo.GradientVertical(
-                        Color4.White.Opacity(Math.Min(1 - (fadeTop - topY) / height, 1)),
-                        Color4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / height, 1)));
+                        Colour4.White.Opacity(Math.Min(1 - (fadeTop - topY) / height, 1)),
+                        Colour4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / height, 1)));
                 }
             }
         }

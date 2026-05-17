@@ -23,8 +23,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Timing;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -331,7 +329,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 AddInternal(new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)
+                    Colour = new Colour4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)
                 });
             }
         }

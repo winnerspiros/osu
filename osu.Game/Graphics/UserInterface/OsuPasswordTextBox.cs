@@ -13,8 +13,6 @@ using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osu.Game.Localisation;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -89,7 +87,7 @@ namespace osu.Game.Graphics.UserInterface
                         {
                             new Box
                             {
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 RelativeSizeAxes = Axes.Both,
                             }
                         },

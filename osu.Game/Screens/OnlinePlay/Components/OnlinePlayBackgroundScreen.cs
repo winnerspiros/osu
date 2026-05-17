@@ -16,7 +16,6 @@ using osu.Game.Graphics.Backgrounds;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Components
 {
@@ -69,7 +68,7 @@ namespace osu.Game.Screens.OnlinePlay.Components
                 }
 
                 newBackground.Depth = newDepth;
-                newBackground.Colour = ColourInfo.GradientVertical(new Color4(0.1f, 0.1f, 0.1f, 1f), new Color4(0.4f, 0.4f, 0.4f, 1f));
+                newBackground.Colour = ColourInfo.GradientVertical(new Colour4(0.1f, 0.1f, 0.1f, 1f), new Colour4(0.4f, 0.4f, 0.4f, 1f));
                 newBackground.BlurTo(new Vector2(10));
 
                 AddInternal(lastBackground = newBackground);

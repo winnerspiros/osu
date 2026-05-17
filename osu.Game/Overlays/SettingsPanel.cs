@@ -22,7 +22,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Settings;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -118,7 +117,7 @@ namespace osu.Game.Overlays
                     Masking = true,
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0),
+                        Colour = Colour4.Black.Opacity(0),
                         Type = EdgeEffectType.Shadow,
                         Hollow = true,
                         Radius = 10

@@ -13,7 +13,6 @@ using osu.Game.Localisation.SkinComponents;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Scoring;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -54,7 +53,7 @@ namespace osu.Game.Screens.Play.HUD
                     .ScaleTo(Vector2.One, duration, Easing.OutQuint);
 
                 if (wasMiss)
-                    Text.FlashColour(Color4.Red, duration, Easing.OutQuint);
+                    Text.FlashColour(Colour4.Red, duration, Easing.OutQuint);
             });
         }
 

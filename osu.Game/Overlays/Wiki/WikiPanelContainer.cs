@@ -17,7 +17,6 @@ using osu.Game.Graphics.Containers.Markdown;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Wiki.Markdown;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Wiki
 {
@@ -83,7 +82,7 @@ namespace osu.Game.Overlays.Wiki
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(25),
+                        Colour = Colour4.Black.Opacity(25),
                         Offset = new Vector2(0, 1),
                         Radius = 3,
                     },

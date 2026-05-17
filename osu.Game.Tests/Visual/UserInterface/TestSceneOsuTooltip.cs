@@ -12,7 +12,6 @@ using osu.Framework.Testing;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

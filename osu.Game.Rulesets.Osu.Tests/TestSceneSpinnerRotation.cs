@@ -23,7 +23,6 @@ using osu.Game.Screens.Play;
 using osu.Game.Storyboards;
 using osu.Game.Tests;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

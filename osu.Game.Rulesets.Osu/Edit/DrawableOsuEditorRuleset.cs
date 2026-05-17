@@ -9,7 +9,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {

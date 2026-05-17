@@ -12,7 +12,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Colours
 {

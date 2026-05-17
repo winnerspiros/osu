@@ -13,7 +13,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Components;
 using osu.Game.Screens.Edit.Components.Timelines.Summary;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit
 {
@@ -37,7 +36,7 @@ namespace osu.Game.Screens.Edit
             Masking = true;
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black.Opacity(0.2f),
+                Colour = Colour4.Black.Opacity(0.2f),
                 Type = EdgeEffectType.Shadow,
                 Radius = 10f,
             };

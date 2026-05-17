@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Game.Tournament.Models;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Screens.Gameplay.Components
 {

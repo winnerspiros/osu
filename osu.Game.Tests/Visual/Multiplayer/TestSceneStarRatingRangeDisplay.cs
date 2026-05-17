@@ -11,7 +11,6 @@ using osu.Game.Beatmaps.Drawables;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

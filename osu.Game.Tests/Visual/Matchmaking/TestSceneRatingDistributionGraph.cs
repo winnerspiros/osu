@@ -8,7 +8,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Queue;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Matchmaking
 {

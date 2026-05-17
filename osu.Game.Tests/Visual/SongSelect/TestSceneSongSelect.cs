@@ -26,7 +26,7 @@ using osu.Game.Screens.Ranking;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
 using osu.Game.Tests.Resources;
-using osuTK.Input;
+using osu.Framework.Input;
 using BeatmapCarousel = osu.Game.Screens.Select.BeatmapCarousel;
 using FooterButtonMods = osu.Game.Screens.Select.FooterButtonMods;
 using FooterButtonOptions = osu.Game.Screens.Select.FooterButtonOptions;

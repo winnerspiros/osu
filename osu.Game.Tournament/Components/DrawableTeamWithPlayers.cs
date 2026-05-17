@@ -8,8 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Tournament.Models;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Components
 {
@@ -65,7 +63,7 @@ namespace osu.Game.Tournament.Components
                 {
                     Text = p.Username,
                     Font = OsuFont.Torus.With(size: 24, weight: FontWeight.SemiBold),
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                 };
         }
     }

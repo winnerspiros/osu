@@ -10,7 +10,6 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {

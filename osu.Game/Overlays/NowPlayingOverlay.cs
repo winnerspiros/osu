@@ -23,7 +23,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Music;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -103,7 +102,7 @@ namespace osu.Game.Overlays
                             EdgeEffect = new EdgeEffectParameters
                             {
                                 Type = EdgeEffectType.Shadow,
-                                Colour = Color4.Black.Opacity(40),
+                                Colour = Colour4.Black.Opacity(40),
                                 Radius = 5,
                             },
                             Children = new[]
@@ -114,7 +113,7 @@ namespace osu.Game.Overlays
                                     Origin = Anchor.BottomCentre,
                                     Anchor = Anchor.TopCentre,
                                     Position = new Vector2(0, 40),
-                                    Colour = Color4.White,
+                                    Colour = Colour4.White,
                                     CreateContent = () => new OsuSpriteText
                                     {
                                         Font = title_font,
@@ -130,7 +129,7 @@ namespace osu.Game.Overlays
                                     Origin = Anchor.TopCentre,
                                     Anchor = Anchor.TopCentre,
                                     Position = new Vector2(0, 45),
-                                    Colour = Color4.White,
+                                    Colour = Colour4.White,
                                     CreateContent = () => new OsuSpriteText
                                     {
                                         Font = artist_font,
@@ -258,7 +257,7 @@ namespace osu.Game.Overlays
                 {
                     playlistContainer.Add(playlist);
 
-                    playlist.State.BindValueChanged(s => playlistButton.FadeColour(s.NewValue == Visibility.Visible ? colours.Yellow : Color4.White, 200, Easing.OutQuint), true);
+                    playlist.State.BindValueChanged(s => playlistButton.FadeColour(s.NewValue == Visibility.Visible ? colours.Yellow : Colour4.White, 200, Easing.OutQuint), true);
 
                     togglePlaylist();
                 });
@@ -280,7 +279,7 @@ namespace osu.Game.Overlays
             allowTrackControl.BindValueChanged(_ => Scheduler.AddOnce(updateEnabledStates), true);
 
             shuffle.BindTo(musicController.Shuffle);
-            shuffle.BindValueChanged(s => shuffleButton.FadeColour(s.NewValue ? colours.Yellow : Color4.White, 200, Easing.OutQuint), true);
+            shuffle.BindValueChanged(s => shuffleButton.FadeColour(s.NewValue ? colours.Yellow : Colour4.White, 200, Easing.OutQuint), true);
 
             musicController.TrackChanged += trackChanged;
             trackChanged(beatmap.Value);
@@ -486,7 +485,7 @@ namespace osu.Game.Overlays
                         Height = bottom_black_area_height,
                         Origin = Anchor.BottomCentre,
                         Anchor = Anchor.BottomCentre,
-                        Colour = Color4.Black.Opacity(0.5f)
+                        Colour = Colour4.Black.Opacity(0.5f)
                     }
                 };
             }

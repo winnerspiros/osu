@@ -16,7 +16,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Beatmaps;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -174,7 +173,7 @@ namespace osu.Game.Screens.Menu
             // Assuming the logo is a circle, we don't need a second dimension.
             private float size;
 
-            private static readonly Color4 transparent_white = Color4.White.Opacity(0.2f);
+            private static readonly Colour4 transparent_white = Colour4.White.Opacity(0.2f);
 
             private readonly float[] audioData = new float[256];
 

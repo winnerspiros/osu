@@ -3,7 +3,6 @@
 
 using osu.Framework.Bindables;
 using osu.Game.Rulesets.Catch.Objects;
-using osuTK;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
 {

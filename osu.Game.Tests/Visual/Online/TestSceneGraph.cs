@@ -6,7 +6,6 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

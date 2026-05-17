@@ -20,7 +20,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Collections
 {
@@ -253,7 +252,7 @@ namespace osu.Game.Collections
 
             protected override bool OnClick(ClickEvent e)
             {
-                background.FlashColour(Color4.White, 150);
+                background.FlashColour(Colour4.White, 150);
 
                 return base.OnClick(e);
             }

@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dashboard.Friends;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

@@ -17,9 +17,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Skinning.Default;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 {
@@ -43,8 +41,8 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
         private readonly Container tickContainer;
         private SkinnableDrawable headPiece;
 
-        private Color4 colourIdle;
-        private Color4 colourEngaged;
+        private Colour4 colourIdle;
+        private Colour4 colourEngaged;
 
         public override bool DisplayResult => false;
 
@@ -187,7 +185,7 @@ namespace osu.Game.Rulesets.Taiko.Objects.Drawables
 
         private void updateColour(double fadeDuration = 0)
         {
-            Color4 newColour = Interpolation.ValueAt((float)rollingHits / rolling_hits_for_engaged_colour, colourIdle, colourEngaged, 0, 1);
+            Colour4 newColour = Interpolation.ValueAt((float)rollingHits / rolling_hits_for_engaged_colour, colourIdle, colourEngaged, 0, 1);
 
             if (fadeDuration == 0)
             {

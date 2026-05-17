@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

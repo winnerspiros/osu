@@ -9,7 +9,6 @@ using osu.Game.Audio;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.IO;
 using osu.Game.Rulesets.Objects.Legacy;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Formats
 {
@@ -103,17 +102,17 @@ namespace osu.Game.Beatmaps.Formats
             return line;
         }
 
-        private Color4 convertSettingStringToColor4(string[] split, bool allowAlpha, KeyValuePair<string, string> pair)
+        private Colour4 convertSettingStringToColor4(string[] split, bool allowAlpha, KeyValuePair<string, string> pair)
         {
             if (split.Length != 3 && split.Length != 4)
                 throw new InvalidOperationException($@"Color specified in incorrect format (should be R,G,B or R,G,B,A): {pair.Value}");
 
-            Color4 colour;
+            Colour4 colour;
 
             try
             {
                 byte alpha = allowAlpha && split.Length == 4 ? byte.Parse(split[3]) : (byte)255;
-                colour = new Color4(byte.Parse(split[0]), byte.Parse(split[1]), byte.Parse(split[2]), alpha);
+                colour = new Colour4(byte.Parse(split[0]), byte.Parse(split[1]), byte.Parse(split[2]), alpha);
             }
             catch
             {
@@ -128,7 +127,7 @@ namespace osu.Game.Beatmaps.Formats
             var pair = SplitKeyVal(line);
 
             string[] split = pair.Value.Split(',');
-            Color4 colour = convertSettingStringToColor4(split, allowAlpha, pair);
+            Colour4 colour = convertSettingStringToColor4(split, allowAlpha, pair);
 
             bool isCombo = pair.Key.StartsWith(@"Combo", StringComparison.Ordinal)
                            && int.TryParse(pair.Key[5..], out int comboIndex)

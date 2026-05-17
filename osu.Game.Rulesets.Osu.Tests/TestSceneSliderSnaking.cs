@@ -23,7 +23,6 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Storyboards;
 using osu.Game.Tests;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

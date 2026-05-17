@@ -19,7 +19,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Multiplayer.MatchTypes.Matchmaking;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 {
@@ -52,7 +51,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
                 new BufferedContainer(cachedFrameBuffer: true)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = ColourInfo.GradientVertical(Color4.White, Color4.Transparent),
+                    Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.Transparent),
                     Alpha = 0.8f,
                     Child = new Box
                     {

@@ -8,7 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Ranking
 {

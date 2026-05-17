@@ -15,7 +15,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Online.API;
 using osu.Game.Overlays.AccountCreation;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -51,7 +50,7 @@ namespace osu.Game.Overlays
                     {
                         Type = EdgeEffectType.Shadow,
                         Radius = 5,
-                        Colour = Color4.Black.Opacity(0.2f),
+                        Colour = Colour4.Black.Opacity(0.2f),
                     },
                     Masking = true,
                     CornerRadius = 10,
@@ -60,7 +59,7 @@ namespace osu.Game.Overlays
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             Alpha = 0.6f,
                         },
                         new DelayedLoadWrapper(new AccountCreationBackground(), 0),
@@ -75,7 +74,7 @@ namespace osu.Game.Overlays
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     Alpha = 0.9f,
                                 },
                                 new ScreenStack(welcomeScreen = new ScreenWelcome())

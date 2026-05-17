@@ -6,7 +6,6 @@ using osu.Framework.Bindables;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -28,9 +27,9 @@ namespace osu.Game.Screens.Menu
         protected virtual void UpdateColour()
         {
             if (user.Value?.IsSupporter ?? false)
-                Colour = skin.Value.GetConfig<GlobalSkinColours, Color4>(GlobalSkinColours.MenuGlow)?.Value ?? Color4.White;
+                Colour = skin.Value.GetConfig<GlobalSkinColours, Colour4>(GlobalSkinColours.MenuGlow)?.Value ?? Colour4.White;
             else
-                Colour = Color4.White;
+                Colour = Colour4.White;
         }
     }
 }

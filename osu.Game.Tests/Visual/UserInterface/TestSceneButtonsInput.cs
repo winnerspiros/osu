@@ -12,8 +12,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -51,7 +49,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Red
+                                Colour = Colour4.Red
                             },
                             new OsuSpriteText
                             {

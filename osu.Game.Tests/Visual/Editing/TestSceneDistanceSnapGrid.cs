@@ -15,8 +15,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -56,7 +54,7 @@ namespace osu.Game.Tests.Visual.Editing
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.SlateGray
+                    Colour = Colour4.SlateGray
                 },
                 grid = new TestDistanceSnapGrid()
             };
@@ -98,7 +96,7 @@ namespace osu.Game.Tests.Visual.Editing
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     grid = new TestDistanceSnapGrid(end_time)
                 };

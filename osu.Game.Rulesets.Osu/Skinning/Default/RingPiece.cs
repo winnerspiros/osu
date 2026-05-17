@@ -5,7 +5,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Osu.Objects;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -20,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
 
             Masking = true;
             BorderThickness = thickness;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
 
             Child = new Box
             {

@@ -3,7 +3,6 @@
 
 using NUnit.Framework;
 using osu.Game.Utils;
-using osuTK;
 
 namespace osu.Game.Tests.Utils
 {

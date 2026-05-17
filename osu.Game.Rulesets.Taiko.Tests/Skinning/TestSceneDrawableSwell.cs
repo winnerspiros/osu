@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Taiko.Objects;
-using osu.Game.Rulesets.Taiko.Objects.Drawables;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Tests.Skinning
 {
@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Taiko.Tests.Skinning
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Scale = new osuTK.Vector2(0.5f),
+                Scale = new Vector2(0.5f),
             }));
         }
 

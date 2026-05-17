@@ -15,7 +15,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -70,7 +69,7 @@ namespace osu.Game.Overlays.Toolbar
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Alpha = 0,
-                                    Colour = Color4.White.Opacity(100),
+                                    Colour = Colour4.White.Opacity(100),
                                     Blending = BlendingParameters.Additive,
                                 },
                             }

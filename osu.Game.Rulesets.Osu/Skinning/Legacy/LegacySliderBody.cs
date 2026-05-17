@@ -7,7 +7,6 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -15,16 +14,16 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
     {
         protected override DrawableSliderPath CreateSliderPath() => new LegacyDrawableSliderPath();
 
-        protected override Color4 GetBorderColour(ISkinSource skin)
-            => skin.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.SliderBorder)?.Value ?? Color4.White;
+        protected override Colour4 GetBorderColour(ISkinSource skin)
+            => skin.GetConfig<OsuSkinColour, Colour4>(OsuSkinColour.SliderBorder)?.Value ?? Colour4.White;
 
-        protected override Color4 GetBodyAccentColour(ISkinSource skin, Color4 hitObjectAccentColour)
+        protected override Colour4 GetBodyAccentColour(ISkinSource skin, Colour4 hitObjectAccentColour)
             // legacy skins use a constant value for slider track alpha, regardless of the source colour.
-            => (skin.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.SliderTrackOverride)?.Value ?? hitObjectAccentColour).Opacity(0.7f);
+            => (skin.GetConfig<OsuSkinColour, Colour4>(OsuSkinColour.SliderTrackOverride)?.Value ?? hitObjectAccentColour).Opacity(0.7f);
 
         private partial class LegacyDrawableSliderPath : DrawableSliderPath
         {
-            protected override Color4 ColourAt(float position)
+            protected override Colour4 ColourAt(float position)
             {
                 // https://github.com/peppy/osu-stable-reference/blob/3ea48705eb67172c430371dcfc8a16a002ed0d3d/osu!/Graphics/Renderers/MmSliderRendererGL.cs#L99
                 // float aaWidth = Math.Min(Math.Max(0.5f / PathRadius, 3.0f / 256.0f), 1.0f / 16.0f);
@@ -32,16 +31,16 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                 // this might be related to SmoothPath applying AA internally, but disabling that does not seem to have much of an effect.
                 const float aa_width = 0f;
 
-                Color4 shadow = new Color4(0, 0, 0, 0.25f);
-                Color4 outerColour = AccentColour.Darken(0.1f);
-                Color4 innerColour = lighten(AccentColour, 0.5f);
+                Colour4 shadow = new Colour4(0, 0, 0, 0.25f);
+                Colour4 outerColour = AccentColour.Darken(0.1f);
+                Colour4 innerColour = lighten(AccentColour, 0.5f);
 
                 // https://github.com/peppy/osu-stable-reference/blob/3ea48705eb67172c430371dcfc8a16a002ed0d3d/osu!/Graphics/Renderers/MmSliderRendererGL.cs#L59-L70
                 const float shadow_portion = 1 - (OsuLegacySkinTransformer.LEGACY_CIRCLE_RADIUS / OsuHitObject.OBJECT_RADIUS);
                 const float border_portion = 0.1875f;
 
                 if (position <= shadow_portion - aa_width)
-                    return LegacyUtils.InterpolateNonLinear(position, Color4.Black.Opacity(0f), shadow, 0, shadow_portion - aa_width);
+                    return LegacyUtils.InterpolateNonLinear(position, Colour4.Black.Opacity(0f), shadow, 0, shadow_portion - aa_width);
 
                 if (position <= shadow_portion + aa_width)
                     return LegacyUtils.InterpolateNonLinear(position, shadow, BorderColour, shadow_portion - aa_width, shadow_portion + aa_width);
@@ -58,10 +57,10 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
             /// <summary>
             /// Lightens a colour in a way more friendly to dark or strong colours.
             /// </summary>
-            private static Color4 lighten(Color4 color, float amount)
+            private static Colour4 lighten(Colour4 color, float amount)
             {
                 amount *= 0.5f;
-                return new Color4(
+                return new Colour4(
                     Math.Min(1, color.R * (1 + 0.5f * amount) + 1 * amount),
                     Math.Min(1, color.G * (1 + 0.5f * amount) + 1 * amount),
                     Math.Min(1, color.B * (1 + 0.5f * amount) + 1 * amount),

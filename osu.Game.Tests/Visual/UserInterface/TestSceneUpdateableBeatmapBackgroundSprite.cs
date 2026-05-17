@@ -17,7 +17,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Tests.Beatmaps.IO;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

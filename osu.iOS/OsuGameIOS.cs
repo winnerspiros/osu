@@ -11,7 +11,6 @@ using osu.Game;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
-using osuTK;
 using UIKit;
 
 namespace osu.iOS

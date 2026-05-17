@@ -17,7 +17,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -116,7 +115,7 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black.Opacity(0.7f),
+                            Colour = Colour4.Black.Opacity(0.7f),
                         },
                         countText = new OsuSpriteText
                         {
@@ -137,7 +136,7 @@ namespace osu.Game.Screens.Select
             Expanded.BindValueChanged(_ => onExpanded(), true);
         }
 
-        private Color4 ratingColour;
+        private Colour4 ratingColour;
 
         protected override void PrepareForUse()
         {

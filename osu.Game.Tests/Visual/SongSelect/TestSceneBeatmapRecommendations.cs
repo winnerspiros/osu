@@ -27,7 +27,7 @@ using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {

@@ -31,8 +31,6 @@ using osu.Game.Overlays.Chat;
 using osu.Game.Overlays.Chat.ChannelList;
 using osu.Game.Overlays.Chat.Listing;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Online
 {

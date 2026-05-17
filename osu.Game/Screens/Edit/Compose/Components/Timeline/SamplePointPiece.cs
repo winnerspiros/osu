@@ -26,8 +26,7 @@ using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Screens.Edit.Timing;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {
@@ -52,7 +51,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
         public bool AlternativeColor { get; init; }
 
-        protected override Color4 GetRepresentingColour(OsuColour colours) => AlternativeColor ? colours.Pink2 : colours.Pink1;
+        protected override Colour4 GetRepresentingColour(OsuColour colours) => AlternativeColor ? colours.Pink2 : colours.Pink1;
 
         protected virtual double GetTime() => HitObject is IHasRepeats r ? HitObject.StartTime + r.Duration / r.SpanCount() / 2 : HitObject.StartTime;
 

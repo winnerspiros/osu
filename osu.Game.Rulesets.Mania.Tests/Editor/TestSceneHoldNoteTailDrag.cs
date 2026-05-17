@@ -6,8 +6,7 @@ using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Game.Rulesets.Mania.Objects;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 using DragArea = osu.Game.Screens.Edit.Compose.Components.Timeline.TimelineHitObjectBlueprint.DragArea;
 
 namespace osu.Game.Rulesets.Mania.Tests.Editor

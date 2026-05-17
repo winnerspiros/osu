@@ -8,7 +8,7 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Extensions;
 using osu.Framework.Input.Events;
 using osu.Game.Audio;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Graphics.UserInterface
 {

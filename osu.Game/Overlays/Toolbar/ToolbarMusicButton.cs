@@ -14,8 +14,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input.Events;
 using osu.Framework.Threading;
 using osu.Game.Input.Bindings;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -50,7 +49,7 @@ namespace osu.Game.Overlays.Toolbar
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White.Opacity(0.25f),
+                        Colour = Colour4.White.Opacity(0.25f),
                     },
                     volumeBar = new Box
                     {
@@ -58,7 +57,7 @@ namespace osu.Game.Overlays.Toolbar
                         Height = 0f,
                         Anchor = Anchor.BottomLeft,
                         Origin = Anchor.BottomLeft,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                     }
                 }
             });

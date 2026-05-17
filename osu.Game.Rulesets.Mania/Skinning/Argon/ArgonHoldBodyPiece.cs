@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Mania.Skinning.Default;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -19,7 +18,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
     /// </summary>
     public partial class ArgonHoldBodyPiece : CompositeDrawable, IHoldNoteBody
     {
-        protected readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+        protected readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
 
         private Drawable background = null!;
         private ArgonHoldNoteHittingLayer hittingLayer = null!;

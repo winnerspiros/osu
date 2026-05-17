@@ -30,7 +30,6 @@ using osu.Game.Rulesets;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -263,7 +262,7 @@ namespace osu.Game.Overlays.BeatmapSet
                     ModBar.Length = (value.adjustedValue ?? 0) / MaxValue;
 
                     if (Precision.AlmostEquals(value.baseValue, value.adjustedValue ?? value.baseValue, 0.05f))
-                        ModBar.AccentColour = valueText.Colour = Color4.White;
+                        ModBar.AccentColour = valueText.Colour = Colour4.White;
                     else if (value.adjustedValue > value.baseValue)
                         ModBar.AccentColour = valueText.Colour = colours.Red;
                     else if (value.adjustedValue < value.baseValue)
@@ -271,7 +270,7 @@ namespace osu.Game.Overlays.BeatmapSet
                 }
             }
 
-            public Color4 AccentColour
+            public Colour4 AccentColour
             {
                 get => bar.AccentColour;
                 set => bar.AccentColour = value;
@@ -317,7 +316,7 @@ namespace osu.Game.Overlays.BeatmapSet
                                     bar = new Bar
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        BackgroundColour = Color4.White.Opacity(0.5f),
+                                        BackgroundColour = Colour4.White.Opacity(0.5f),
                                     },
                                     ModBar = new Bar
                                     {

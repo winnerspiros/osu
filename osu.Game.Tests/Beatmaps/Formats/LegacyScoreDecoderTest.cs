@@ -35,7 +35,6 @@ using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 using osu.Game.Tests.Resources;
 using osu.Game.Users;
-using osuTK;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {

@@ -16,7 +16,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -105,7 +104,7 @@ namespace osu.Game.Screens.Menu
 
                     Schedule(() =>
                     {
-                        heart.FlashColour(Color4.White, 750, Easing.OutQuint).Loop();
+                        heart.FlashColour(Colour4.White, 750, Easing.OutQuint).Loop();
                     });
                 });
             }, true);

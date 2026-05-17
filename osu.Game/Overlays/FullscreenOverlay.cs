@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -25,7 +24,7 @@ namespace osu.Game.Overlays
 
         public T Header { get; private set; }
 
-        protected virtual Color4 BackgroundColour => ColourProvider.Background5;
+        protected virtual Colour4 BackgroundColour => ColourProvider.Background5;
 
         [Resolved]
         protected IAPIProvider API { get; private set; } = null!;
@@ -54,7 +53,7 @@ namespace osu.Game.Overlays
 
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black.Opacity(0),
+                Colour = Colour4.Black.Opacity(0),
                 Type = EdgeEffectType.Shadow,
                 Hollow = true,
                 Radius = 10

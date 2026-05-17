@@ -11,7 +11,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning.Components
 {
@@ -50,7 +49,7 @@ namespace osu.Game.Skinning.Components
             {
                 box = new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both,
                 },
                 text = new OsuSpriteText

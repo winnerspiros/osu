@@ -43,7 +43,6 @@ using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
@@ -827,7 +826,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         private partial class ExperimentalLinkFlowContainer : LinkFlowContainer
         {
             public ExperimentalLinkFlowContainer()
-                : base(sp => sp.Colour = Color4.Black)
+                : base(sp => sp.Colour = Colour4.Black)
             {
             }
 
@@ -850,7 +849,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 private void load(OsuColour colours)
                 {
                     IdleColour = colours.YellowDarker;
-                    HoverColour = Color4.Black;
+                    HoverColour = Colour4.Black;
                 }
             }
         }

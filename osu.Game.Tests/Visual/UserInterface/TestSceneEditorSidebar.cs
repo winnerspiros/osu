@@ -9,8 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Components;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -53,7 +51,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                                                 Spacing = new Vector2(3),
                                                 ChildrenEnumerable = Enumerable.Range(0, 10).Select(_ => new Box
                                                 {
-                                                    Colour = Color4.White,
+                                                    Colour = Colour4.White,
                                                     Size = new Vector2(32),
                                                 })
                                             },
@@ -68,7 +66,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                                                 Spacing = new Vector2(3),
                                                 ChildrenEnumerable = Enumerable.Range(0, 400).Select(_ => new Box
                                                 {
-                                                    Colour = Color4.Gray,
+                                                    Colour = Colour4.Gray,
                                                     Size = new Vector2(32),
                                                 })
                                             },

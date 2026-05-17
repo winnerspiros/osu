@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards
 {
@@ -38,7 +37,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = 0.5f,
                 },
                 iconContainer = new Container

@@ -7,15 +7,13 @@ using osu.Game.Configuration;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
     public partial class DrawableOsuJudgement : DrawableJudgement
     {
-        internal Color4 AccentColour { get; private set; }
+        internal Colour4 AccentColour { get; private set; }
 
         internal SkinnableLighting Lighting { get; private set; } = null!;
 

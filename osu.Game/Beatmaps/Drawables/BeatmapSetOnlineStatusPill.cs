@@ -13,7 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables
 {
@@ -77,7 +76,7 @@ namespace osu.Game.Beatmaps.Drawables
                 background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                 },
                 statusText = new OsuSpriteText
                 {
@@ -125,12 +124,12 @@ namespace osu.Game.Beatmaps.Drawables
             if (Alpha == 0)
                 duration = 0;
 
-            Color4 statusTextColour;
+            Colour4 statusTextColour;
 
             if (colourProvider != null)
                 statusTextColour = Status == BeatmapOnlineStatus.Graveyard ? colourProvider.Background1 : colourProvider.Background3;
             else
-                statusTextColour = Status == BeatmapOnlineStatus.Graveyard ? colours.GreySeaFoamLight : Color4.Black;
+                statusTextColour = Status == BeatmapOnlineStatus.Graveyard ? colours.GreySeaFoamLight : Colour4.Black;
 
             statusText.FadeColour(statusTextColour, duration, Easing.OutQuint);
             background.FadeColour(OsuColour.ForBeatmapSetOnlineStatus(Status) ?? colourProvider?.Light1 ?? colours.GreySeaFoamLighter, duration, Easing.OutQuint);

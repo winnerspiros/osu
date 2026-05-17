@@ -12,7 +12,6 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.JudgementCounter;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning.Components
 {
@@ -60,10 +59,10 @@ namespace osu.Game.Skinning.Components
 
             var result = Result.Types.First();
             textComponent.LabelColour.Value = getJudgementColor(result);
-            textComponent.ShowLabel.BindValueChanged(v => textComponent.TextColour.Value = !v.NewValue ? getJudgementColor(result) : Color4.White, true);
+            textComponent.ShowLabel.BindValueChanged(v => textComponent.TextColour.Value = !v.NewValue ? getJudgementColor(result) : Colour4.White, true);
         }
 
-        private Color4 getJudgementColor(HitResult result)
+        private Colour4 getJudgementColor(HitResult result)
         {
             return result.IsBasic() ? colours.ForHitResult(result) : !result.IsBonus() ? colours.PurpleLight : colours.PurpleLighter;
         }

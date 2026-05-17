@@ -19,9 +19,7 @@ using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Editors.Components;
 using osu.Game.Tournament.Screens.Ladder;
 using osu.Game.Tournament.Screens.Ladder.Components;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Editors
 {
@@ -168,7 +166,7 @@ namespace osu.Game.Tournament.Screens.Editors
 
                 AddInternal(path = new ProgressionPath(matchesContainer.First(c => c.Match == Source), found)
                 {
-                    Colour = Color4.Yellow,
+                    Colour = Colour4.Yellow,
                 });
 
                 return base.OnMouseMove(e);

@@ -18,9 +18,7 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -44,7 +42,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
         private void load(ISkinSource skin)
         {
             var texture = skin.GetTexture("star2");
-            var starBreakAdditive = skin.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.StarBreakAdditive)?.Value ?? new Color4(255, 182, 193, 255);
+            var starBreakAdditive = skin.GetConfig<OsuSkinColour, Colour4>(OsuSkinColour.StarBreakAdditive)?.Value ?? new Colour4(255, 182, 193, 255);
 
             // stable "magic ratio". see OsuPlayfieldAdjustmentContainer for full explanation.
             texture?.ScaleAdjust *= 1.6f;

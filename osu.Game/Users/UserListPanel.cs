@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Profile.Header.Components;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Users
 {
@@ -32,7 +31,7 @@ namespace osu.Game.Users
             Background.Width = 0.5f;
             Background.Origin = Anchor.CentreRight;
             Background.Anchor = Anchor.CentreRight;
-            Background.Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(1), Color4.White.Opacity(0.3f));
+            Background.Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(1), Colour4.White.Opacity(0.3f));
         }
 
         protected override Drawable CreateLayout()

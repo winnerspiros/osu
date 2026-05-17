@@ -6,9 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Objects.Drawables
 {
@@ -19,7 +17,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
     public abstract partial class CaughtObject : SkinnableDrawable, IHasCatchObjectState
     {
         public PalpableCatchHitObject HitObject { get; private set; } = null!;
-        public Bindable<Color4> AccentColour { get; } = new Bindable<Color4>();
+        public Bindable<Colour4> AccentColour { get; } = new Bindable<Colour4>();
         public Bindable<bool> HyperDash { get; } = new Bindable<bool>();
         public Bindable<int> IndexInBeatmap { get; } = new Bindable<int>();
         public Vector2 DisplayPosition => DrawPosition;

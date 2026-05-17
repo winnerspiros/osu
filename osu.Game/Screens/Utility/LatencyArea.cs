@@ -12,7 +12,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Overlays;
 using osu.Game.Screens.Utility.SampleComponents;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Utility
 {

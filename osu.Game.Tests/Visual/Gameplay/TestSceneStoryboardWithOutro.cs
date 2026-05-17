@@ -23,7 +23,6 @@ using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Ranking;
 using osu.Game.Storyboards;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -60,7 +59,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddStep("set storyboard duration to long", () => currentStoryboardDuration = 200000);
             CreateTest();
             AddUntilStep("completion set by processor", () => Player.ScoreProcessor.HasCompleted.Value);
-            AddStep("skip outro", () => InputManager.Key(osuTK.Input.Key.Space));
+            AddStep("skip outro", () => InputManager.Key(Key.Space));
             AddUntilStep("player is no longer current screen", () => !Player.IsCurrentScreen());
             AddUntilStep("wait for score shown", () => Player.IsScoreShown);
         }

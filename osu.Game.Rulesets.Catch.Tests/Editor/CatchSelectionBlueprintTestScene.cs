@@ -11,7 +11,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Catch.Tests.Editor
 {

@@ -12,7 +12,6 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Online.Multiplayer;
-using osuTK;
 
 namespace osu.Game.Tournament
 {

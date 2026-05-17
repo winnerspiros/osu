@@ -15,7 +15,6 @@ using osu.Game.Configuration;
 using osu.Game.Screens;
 using osu.Game.Screens.Backgrounds;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -180,7 +179,7 @@ namespace osu.Game.Graphics.Containers
                         AddInternal(backgroundStack = new BackgroundScreenStack
                         {
                             Alpha = 0,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             Depth = float.MaxValue
                         });
 

@@ -10,7 +10,6 @@ using osu.Game.Online.API;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

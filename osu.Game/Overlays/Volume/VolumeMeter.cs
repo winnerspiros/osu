@@ -27,7 +27,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Volume
 {
@@ -42,7 +41,7 @@ namespace osu.Game.Overlays.Volume
 
         protected readonly float CircleSize;
 
-        private readonly Color4 meterColour;
+        private readonly Colour4 meterColour;
         private readonly LocalisableString name;
 
         private OsuSpriteText text;
@@ -74,7 +73,7 @@ namespace osu.Game.Overlays.Volume
 
         private const float transition_length = 500;
 
-        public VolumeMeter(LocalisableString name, float circleSize, Color4 meterColour)
+        public VolumeMeter(LocalisableString name, float circleSize, Colour4 meterColour)
         {
             CircleSize = circleSize;
             this.meterColour = meterColour;
@@ -90,7 +89,7 @@ namespace osu.Game.Overlays.Volume
             notchSample = audio.Samples.Get(@"UI/notch-tick");
             sampleLastPlaybackTime = Time.Current;
 
-            Color4 backgroundColour = colours.Gray1;
+            Colour4 backgroundColour = colours.Gray1;
 
             CircularProgress bgProgress;
 
@@ -205,7 +204,7 @@ namespace osu.Game.Overlays.Volume
                             Font = OsuFont.Numeric.With(size: 0.16f * CircleSize)
                         }).WithEffect(new GlowEffect
                         {
-                            Colour = Color4.Transparent,
+                            Colour = Colour4.Transparent,
                             PadExtent = true,
                         })
                     }
@@ -267,7 +266,7 @@ namespace osu.Game.Overlays.Volume
                 }
                 else
                 {
-                    maxGlow.EffectColour = Color4.Transparent;
+                    maxGlow.EffectColour = Colour4.Transparent;
                     text.Text = intValue.ToString(CultureInfo.CurrentCulture);
                 }
 

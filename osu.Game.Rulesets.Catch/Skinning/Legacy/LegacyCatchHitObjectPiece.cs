@@ -10,9 +10,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Rulesets.Catch.Objects.Drawables;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Legacy
 {
@@ -20,7 +18,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
     {
         protected readonly Bindable<int> IndexInBeatmap = new Bindable<int>();
 
-        private readonly Bindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly Bindable<Colour4> accentColour = new Bindable<Colour4>();
         private readonly Bindable<bool> hyperDash = new Bindable<bool>();
 
         private readonly Sprite colouredSprite;
@@ -69,8 +67,8 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
             hyperDash.BindTo(ObjectState.HyperDash);
             IndexInBeatmap.BindTo(ObjectState.IndexInBeatmap);
 
-            hyperSprite.Colour = Skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDashFruit)?.Value ??
-                                 Skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDash)?.Value ??
+            hyperSprite.Colour = Skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDashFruit)?.Value ??
+                                 Skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDash)?.Value ??
                                  Catcher.DEFAULT_HYPER_DASH_COLOUR;
 
             accentColour.BindValueChanged(colour =>

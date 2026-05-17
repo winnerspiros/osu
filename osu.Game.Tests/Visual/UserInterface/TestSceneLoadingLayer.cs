@@ -14,9 +14,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -42,7 +40,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     {
                         new Box
                         {
-                            Colour = Color4.SlateGray,
+                            Colour = Colour4.SlateGray,
                             RelativeSizeAxes = Axes.Both,
                         },
                         new FillFlowContainer

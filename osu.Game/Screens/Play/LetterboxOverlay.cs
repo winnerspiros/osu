@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play
 {
@@ -35,7 +34,7 @@ namespace osu.Game.Screens.Play
                         Origin = Anchor.TopLeft,
                         RelativeSizeAxes = Axes.Both,
                         Height = letterbox_height,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     },
                     new Box
                     {
@@ -43,7 +42,7 @@ namespace osu.Game.Screens.Play
                         Origin = Anchor.BottomLeft,
                         RelativeSizeAxes = Axes.Both,
                         Height = letterbox_height,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     }
                 }
             };

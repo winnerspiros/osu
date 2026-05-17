@@ -18,8 +18,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Containers;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Dialog
 {
@@ -132,7 +131,7 @@ namespace osu.Game.Overlays.Dialog
                             EdgeEffect = new EdgeEffectParameters
                             {
                                 Type = EdgeEffectType.Shadow,
-                                Colour = Color4.Black.Opacity(0.2f),
+                                Colour = Colour4.Black.Opacity(0.2f),
                                 Radius = 14,
                             },
                             Children = new Drawable[]
@@ -180,14 +179,14 @@ namespace osu.Game.Overlays.Dialog
                                             Origin = Anchor.Centre,
                                             Anchor = Anchor.Centre,
                                             Masking = true,
-                                            BorderColour = Color4.White,
+                                            BorderColour = Colour4.White,
                                             BorderThickness = 5f,
                                             Children = new Drawable[]
                                             {
                                                 new Box
                                                 {
                                                     RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.Black.Opacity(0),
+                                                    Colour = Colour4.Black.Opacity(0),
                                                 },
                                                 icon = new SpriteIcon
                                                 {

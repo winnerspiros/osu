@@ -8,7 +8,6 @@ using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {

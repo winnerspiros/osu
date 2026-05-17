@@ -19,8 +19,6 @@ using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -206,7 +204,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     new Box
                     {
-                        Colour = Color4.Gray,
+                        Colour = Colour4.Gray,
                         RelativeSizeAxes = Axes.Both,
                     },
                     text = new OsuSpriteText
@@ -232,7 +230,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new OsuSpriteText
@@ -292,7 +290,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 componentLookupName is TestSkinComponentLookup { LookupName: "available" }
                     ? new DrawWidthBox
                     {
-                        Colour = Color4.Yellow,
+                        Colour = Colour4.Yellow,
                         Size = new Vector2(size)
                     }
                     : null;

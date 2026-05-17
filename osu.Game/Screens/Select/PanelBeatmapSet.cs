@@ -29,7 +29,6 @@ using osu.Game.Online.API;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using System.Numerics;
-using osuTK.Graphics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -108,7 +107,7 @@ namespace osu.Game.Screens.Select
             Background = chevronBackground = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.White,
+                Colour = Colour4.White,
                 Alpha = 0f,
             };
 

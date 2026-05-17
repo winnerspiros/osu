@@ -11,8 +11,6 @@ using osu.Framework.Threading;
 using osu.Game.Overlays;
 using osu.Game.Screens;
 using osu.Game.Screens.Menu;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Menus
 {
@@ -41,7 +39,7 @@ namespace osu.Game.Tests.Visual.Menus
                 {
                     RelativeSizeAxes = Axes.Both,
                     Depth = float.MaxValue,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                 },
                 logo = new OsuLogo
                 {

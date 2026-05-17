@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Osu;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -64,7 +63,7 @@ namespace osu.Game.Tests.Visual.Editing
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     Alpha = 0.75f
                                 },
                                 new OsuSpriteText

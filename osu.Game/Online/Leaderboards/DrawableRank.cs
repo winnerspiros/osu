@@ -11,7 +11,6 @@ using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Scoring;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Online.Leaderboards
 {
@@ -55,7 +54,7 @@ namespace osu.Game.Online.Leaderboards
                             Colour = GetRankLetterColour(rank),
                             Font = OsuFont.Numeric.With(size: 25),
                             Text = GetRankLetter(rank),
-                            ShadowColour = Color4.Black.Opacity(0.3f),
+                            ShadowColour = Colour4.Black.Opacity(0.3f),
                             ShadowOffset = new Vector2(0, 0.08f),
                             Shadow = true,
                         },
@@ -92,7 +91,7 @@ namespace osu.Game.Online.Leaderboards
             {
                 case ScoreRank.XH:
                 case ScoreRank.SH:
-                    return ColourInfo.GradientVertical(Color4.White, Color4Extensions.FromHex("afdff0"));
+                    return ColourInfo.GradientVertical(Colour4.White, Color4Extensions.FromHex("afdff0"));
 
                 case ScoreRank.X:
                 case ScoreRank.S:

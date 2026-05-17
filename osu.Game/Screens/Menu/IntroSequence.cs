@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -68,7 +67,7 @@ namespace osu.Game.Screens.Menu
                             Anchor = Anchor.Centre,
                             Position = new Vector2(-line_offset, -line_offset),
                             Rotation = 45,
-                            Colour = Color4.White.Opacity(180),
+                            Colour = Colour4.White.Opacity(180),
                         },
                         lineTopRight = new Box
                         {
@@ -76,7 +75,7 @@ namespace osu.Game.Screens.Menu
                             Anchor = Anchor.Centre,
                             Position = new Vector2(line_offset, -line_offset),
                             Rotation = -45,
-                            Colour = Color4.White.Opacity(80),
+                            Colour = Colour4.White.Opacity(80),
                         },
                         lineBottomLeft = new Box
                         {
@@ -84,7 +83,7 @@ namespace osu.Game.Screens.Menu
                             Anchor = Anchor.Centre,
                             Position = new Vector2(-line_offset, line_offset),
                             Rotation = -45,
-                            Colour = Color4.White.Opacity(230),
+                            Colour = Colour4.White.Opacity(230),
                         },
                         lineBottomRight = new Box
                         {
@@ -92,13 +91,13 @@ namespace osu.Game.Screens.Menu
                             Anchor = Anchor.Centre,
                             Position = new Vector2(line_offset, line_offset),
                             Rotation = 45,
-                            Colour = Color4.White.Opacity(130),
+                            Colour = Colour4.White.Opacity(130),
                         },
                     }
                 },
                 bigRing = new Ring(Color4Extensions.FromHex(@"B6C5E9"), 0.85f),
-                mediumRing = new Ring(Color4.White.Opacity(130), 0.7f),
-                smallRing = new Ring(Color4.White, 0.6f),
+                mediumRing = new Ring(Colour4.White.Opacity(130), 0.7f),
+                smallRing = new Ring(Colour4.White, 0.6f),
                 welcomeText = new OsuSpriteText
                 {
                     Anchor = Anchor.Centre,
@@ -132,7 +131,7 @@ namespace osu.Game.Screens.Menu
                             Size = Vector2.Zero,
                             RelativeSizeAxes = Axes.Both,
                             Width = 0,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
                     }
                 },
@@ -207,7 +206,7 @@ namespace osu.Game.Screens.Menu
                 const int line_end_offset = 120;
 
                 smallRing.Foreground.ResizeTo(1, line_duration, Easing.OutQuint);
-                smallRing.Delay(400).FadeColour(Color4.Black, 300);
+                smallRing.Delay(400).FadeColour(Colour4.Black, 300);
 
                 lineTopLeft.MoveTo(new Vector2(-line_end_offset, -line_end_offset), line_duration, Easing.OutQuint);
                 lineTopRight.MoveTo(new Vector2(line_end_offset, -line_end_offset), line_duration, Easing.OutQuint);
@@ -270,7 +269,7 @@ namespace osu.Game.Screens.Menu
         {
             public readonly Circle Foreground;
 
-            public Ring(Color4 ringColour, float foregroundSize)
+            public Ring(Colour4 ringColour, float foregroundSize)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
@@ -290,7 +289,7 @@ namespace osu.Game.Screens.Menu
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     }
                 };
             }

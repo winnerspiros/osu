@@ -6,7 +6,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Online.Rooms;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 {
@@ -32,7 +31,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
             Pill.Background.Colour = colours.Yellow;
 
             TextFlow.Text = "Freestyle";
-            TextFlow.Colour = Color4.Black;
+            TextFlow.Colour = Colour4.Black;
 
             room.PropertyChanged += onRoomPropertyChanged;
             updateFreestyleStatus();

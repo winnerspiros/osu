@@ -4,8 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.Backgrounds;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Background
 {
@@ -20,13 +18,13 @@ namespace osu.Game.Tests.Visual.Background
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black
+                    Colour = Colour4.Black
                 },
                 triangles = new Triangles
                 {
                     RelativeSizeAxes = Axes.Both,
-                    ColourLight = Color4.White,
-                    ColourDark = Color4.Gray,
+                    ColourLight = Colour4.White,
+                    ColourDark = Colour4.Gray,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(0.9f),

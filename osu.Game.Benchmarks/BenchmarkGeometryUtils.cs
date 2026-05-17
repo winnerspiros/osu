@@ -4,7 +4,6 @@
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Utils;
 using osu.Game.Utils;
-using osuTK;
 
 namespace osu.Game.Benchmarks
 {

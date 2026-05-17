@@ -12,7 +12,6 @@ using osu.Framework.Logging;
 using osu.Framework.Testing.Input;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Skinning;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

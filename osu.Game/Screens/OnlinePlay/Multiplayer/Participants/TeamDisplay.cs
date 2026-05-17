@@ -18,7 +18,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 {
@@ -71,7 +70,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                         Origin = Anchor.Centre,
                         Child = new Box
                         {
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,

@@ -17,7 +17,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.RankedPlay;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 {
@@ -168,7 +167,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                     ScaleAdjust = 0.75f,
                                     Alpha = 0.1f,
                                     Blending = BlendingParameters.Additive,
-                                    Colour = ColourInfo.GradientHorizontal(Color4.Transparent, Color4.White)
+                                    Colour = ColourInfo.GradientHorizontal(Colour4.Transparent, Colour4.White)
                                 },
                             ],
                         },

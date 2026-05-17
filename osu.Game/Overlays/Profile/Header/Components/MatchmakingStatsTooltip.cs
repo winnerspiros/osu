@@ -14,7 +14,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {
@@ -32,7 +31,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Shadow,
-                Colour = Color4.Black.Opacity(0.25f),
+                Colour = Colour4.Black.Opacity(0.25f),
                 Radius = 30f,
             };
         }
@@ -84,7 +83,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
                 new StatisticText(colourProvider)
                 {
                     Text = stat.Pool.Name,
-                    Colour = Color4.White
+                    Colour = Colour4.White
                 },
                 new StatisticText(colourProvider) { Text = $"#{stat.Rank:N0}" },
                 new StatisticText(colourProvider) { Text = stat.FirstPlacements.ToString("N0") },

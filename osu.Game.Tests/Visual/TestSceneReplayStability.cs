@@ -11,7 +11,6 @@ using osu.Game.Rulesets.Osu.Replays;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
 
 namespace osu.Game.Tests.Visual
 {

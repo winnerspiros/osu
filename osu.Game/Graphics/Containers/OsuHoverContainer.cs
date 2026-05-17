@@ -7,7 +7,6 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -15,11 +14,11 @@ namespace osu.Game.Graphics.Containers
     {
         protected const float FADE_DURATION = 500;
 
-        public Color4? HoverColour { get; set; }
-        private Color4 fallbackHoverColour;
+        public Colour4? HoverColour { get; set; }
+        private Colour4 fallbackHoverColour;
 
-        public Color4? IdleColour { get; set; }
-        private Color4 fallbackIdleColour;
+        public Colour4? IdleColour { get; set; }
+        private Colour4 fallbackIdleColour;
 
         protected virtual IEnumerable<Drawable> EffectTargets => new[] { Content };
 
@@ -70,7 +69,7 @@ namespace osu.Game.Graphics.Containers
         private void load(OsuColour colours)
         {
             fallbackHoverColour = colours.Yellow;
-            fallbackIdleColour = Color4.White;
+            fallbackIdleColour = Colour4.White;
         }
 
         protected override void LoadComplete()

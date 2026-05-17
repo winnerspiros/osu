@@ -11,8 +11,6 @@ using osu.Framework.Graphics.Pooling;
 using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Rulesets.Objects.Pooling;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {
@@ -29,9 +27,9 @@ namespace osu.Game.Rulesets.Catch.UI
         /// </summary>
         public double LastDashTrailTime => getLastDashTrailTime();
 
-        public Color4 HyperDashTrailsColour => hyperDashTrails.Colour;
+        public Colour4 HyperDashTrailsColour => hyperDashTrails.Colour;
 
-        public Color4 HyperDashAfterImageColour => hyperDashAfterImages.Colour;
+        public Colour4 HyperDashAfterImageColour => hyperDashAfterImages.Colour;
 
         protected override bool RemoveRewoundEntry => true;
 
@@ -86,8 +84,8 @@ namespace osu.Game.Rulesets.Catch.UI
 
         private void skinSourceChanged()
         {
-            hyperDashTrails.Colour = skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDash)?.Value ?? Catcher.DEFAULT_HYPER_DASH_COLOUR;
-            hyperDashAfterImages.Colour = skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDashAfterImage)?.Value ?? hyperDashTrails.Colour;
+            hyperDashTrails.Colour = skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDash)?.Value ?? Catcher.DEFAULT_HYPER_DASH_COLOUR;
+            hyperDashAfterImages.Colour = skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDashAfterImage)?.Value ?? hyperDashTrails.Colour;
         }
 
         protected override void AddDrawable(CatcherTrailEntry entry, CatcherTrail drawable)

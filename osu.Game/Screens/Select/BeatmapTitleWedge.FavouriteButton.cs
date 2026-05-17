@@ -24,7 +24,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Select
 {
@@ -74,7 +73,7 @@ namespace osu.Game.Screens.Select
                     background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black.Opacity(0.2f),
+                        Colour = Colour4.Black.Opacity(0.2f),
                     },
                     new FillFlowContainer
                     {
@@ -209,7 +208,7 @@ namespace osu.Game.Screens.Select
 
                 isFavourite.Value = onlineBeatmapSet?.HasFavourited == true;
 
-                background.FadeColour(isFavourite.Value ? colours.Pink4.Darken(1f).Opacity(0.5f) : Color4.Black.Opacity(0.2f), 500, Easing.OutQuint);
+                background.FadeColour(isFavourite.Value ? colours.Pink4.Darken(1f).Opacity(0.5f) : Colour4.Black.Opacity(0.2f), 500, Easing.OutQuint);
                 valueText.FadeColour(isFavourite.Value ? colours.Pink1 : colourProvider.Content2, 500, Easing.OutQuint);
                 icon.SetActive(isFavourite.Value, withAnimation);
             }
@@ -304,7 +303,7 @@ namespace osu.Game.Screens.Select
                 }
             }
 
-            private void transitionIcon(IconUsage newIcon, Color4 colour, bool emphasised = false)
+            private void transitionIcon(IconUsage newIcon, Colour4 colour, bool emphasised = false)
             {
                 icon.ScaleTo(emphasised ? 0.5f : 0.8f, pop_out_duration, Easing.OutQuad)
                     .Then()

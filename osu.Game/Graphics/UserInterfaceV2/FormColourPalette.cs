@@ -20,7 +20,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -123,7 +122,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         private void addNewColour()
         {
-            Color4 startingColour = Colours.Count > 0
+            Colour4 startingColour = Colours.Count > 0
                 ? Colours.Last()
                 : Colour4.White;
 

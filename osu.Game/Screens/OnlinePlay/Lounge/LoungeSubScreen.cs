@@ -29,7 +29,6 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Users;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge
 {
@@ -95,7 +94,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             if (idleTracker != null)
                 isIdle.BindTo(idleTracker.IsIdle);
 
-            Color4 bg = Color4Extensions.FromHex("#070405");
+            Colour4 bg = Color4Extensions.FromHex("#070405");
 
             InternalChildren = new Drawable[]
             {

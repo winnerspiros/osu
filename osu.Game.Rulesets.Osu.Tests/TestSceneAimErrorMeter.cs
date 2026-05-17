@@ -16,8 +16,6 @@ using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -82,10 +80,10 @@ namespace osu.Game.Rulesets.Osu.Tests
                 {
                     Size = new Vector2(2 * OsuHitObject.OBJECT_RADIUS),
                     Position = new Vector2(256, 192),
-                    Colour = Color4.Yellow,
+                    Colour = Colour4.Yellow,
                     Masking = true,
                     BorderThickness = 2,
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     Children = new Drawable[]
                     {
                         new Box

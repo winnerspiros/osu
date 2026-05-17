@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {
@@ -24,7 +23,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         {
             AutoSizeAxes = Axes.Both;
 
-            Color4 colour = GetRepresentingColour(colours);
+            Colour4 colour = GetRepresentingColour(colours);
 
             InternalChildren = new Drawable[]
             {
@@ -56,7 +55,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             };
         }
 
-        protected virtual Color4 GetRepresentingColour(OsuColour colours)
+        protected virtual Colour4 GetRepresentingColour(OsuColour colours)
         {
             return colours.Yellow;
         }

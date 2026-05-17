@@ -23,7 +23,6 @@ using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -533,7 +532,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                                 particle.FadeOut(600)
                                         .ScaleTo(0, 600)
                                         .RotateTo(particle.Rotation + RNG.NextSingle(-20, 20), 600)
-                                        .FadeColour(Color4.Red, 600)
+                                        .FadeColour(Colour4.Red, 600)
                                         .Expire();
                             }
                         }, text_movement_duration);

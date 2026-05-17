@@ -19,7 +19,6 @@ using osu.Game.Screens.Ranking.Contracted;
 using osu.Game.Screens.Ranking.Expanded;
 using osu.Game.Users;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking
 {
@@ -77,8 +76,8 @@ namespace osu.Game.Screens.Ranking
 
         private static readonly ColourInfo expanded_top_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#444"), Color4Extensions.FromHex("#333"));
         private static readonly ColourInfo expanded_middle_layer_colour = ColourInfo.GradientVertical(Color4Extensions.FromHex("#555"), Color4Extensions.FromHex("#333"));
-        private static readonly Color4 contracted_top_layer_colour = Color4Extensions.FromHex("#353535");
-        private static readonly Color4 contracted_middle_layer_colour = Color4Extensions.FromHex("#353535");
+        private static readonly Colour4 contracted_top_layer_colour = Color4Extensions.FromHex("#353535");
+        private static readonly Colour4 contracted_middle_layer_colour = Color4Extensions.FromHex("#353535");
 
         public event Action<PanelState>? StateChanged;
 
@@ -176,7 +175,7 @@ namespace osu.Game.Screens.Ranking
                                     {
                                         RelativeSizeAxes = Axes.Both,
                                         User = Score.User,
-                                        Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
+                                        Colour = ColourInfo.GradientVertical(Colour4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
                                     }
                                 }
                             },

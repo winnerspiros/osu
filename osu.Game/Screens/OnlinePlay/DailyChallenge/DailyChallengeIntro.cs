@@ -26,7 +26,6 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Match;
 using osu.Game.Screens.Play.HUD;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 {
@@ -220,7 +219,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                         },
                                         flash = new Box
                                         {
-                                            Colour = Color4.White,
+                                            Colour = Colour4.White,
                                             Blending = BlendingParameters.Additive,
                                             RelativeSizeAxes = Axes.Both,
                                             Depth = float.MinValue,

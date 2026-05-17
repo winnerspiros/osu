@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

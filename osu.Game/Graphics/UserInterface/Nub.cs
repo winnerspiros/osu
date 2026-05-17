@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -35,7 +34,7 @@ namespace osu.Game.Graphics.UserInterface
             {
                 main = new CircularContainer
                 {
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     BorderThickness = border_width,
                     Masking = true,
                     RelativeSizeAxes = Axes.Both,
@@ -90,7 +89,7 @@ namespace osu.Game.Graphics.UserInterface
                         .Then()
                         .FadeColour(GlowingAccentColour, 800, Easing.OutQuint);
 
-                    main.FadeEdgeEffectTo(Color4.White.Opacity(0.1f), 40, Easing.OutQuint)
+                    main.FadeEdgeEffectTo(Colour4.White.Opacity(0.1f), 40, Easing.OutQuint)
                         .Then()
                         .FadeEdgeEffectTo(GlowColour.Opacity(0.1f), 800, Easing.OutQuint);
                 }
@@ -114,9 +113,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         } = new Bindable<bool>();
 
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => accentColour;
             set
@@ -127,9 +126,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 glowingAccentColour;
+        private Colour4 glowingAccentColour;
 
-        public Color4 GlowingAccentColour
+        public Colour4 GlowingAccentColour
         {
             get => glowingAccentColour;
             set
@@ -140,9 +139,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 glowColour;
+        private Colour4 glowColour;
 
-        public Color4 GlowColour
+        public Colour4 GlowColour
         {
             get => glowColour;
             set

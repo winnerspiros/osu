@@ -17,7 +17,6 @@ using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -169,7 +168,7 @@ namespace osu.Game.Tests.Visual.Online
             AddAssert("approach rate bar is red", () => barIsRed(advancedStats.GetStatistic(SongSelectStrings.ApproachRate)));
         }
 
-        private bool barIsWhite(AdvancedStats.StatisticRow row) => row.ModBar.AccentColour == Color4.White;
+        private bool barIsWhite(AdvancedStats.StatisticRow row) => row.ModBar.AccentColour == Colour4.White;
         private bool barIsBlue(AdvancedStats.StatisticRow row) => row.ModBar.AccentColour == colours.BlueDark;
         private bool barIsRed(AdvancedStats.StatisticRow row) => row.ModBar.AccentColour == colours.Red;
 

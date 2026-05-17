@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics
 {
@@ -40,7 +39,7 @@ namespace osu.Game.Graphics
             A = a;
         }
 
-        public HSPAColour(Color4 colour)
+        public HSPAColour(Colour4 colour)
         {
             H = 0;
             S = 0;
@@ -91,11 +90,11 @@ namespace osu.Game.Graphics
             }
         }
 
-        public Color4 ToColor4()
+        public Colour4 ToColor4()
         {
             float minOverMax = 1f - S;
 
-            Color4 result = new Color4 { A = A };
+            Colour4 result = new Colour4 { A = A };
             float h = H;
 
             if (minOverMax > 0f)

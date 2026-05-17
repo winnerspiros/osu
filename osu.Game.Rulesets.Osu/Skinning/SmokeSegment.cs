@@ -15,8 +15,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning
 {
@@ -269,13 +267,13 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 renderer.PopLocalMatrix();
             }
 
-            protected Color4 ColourAtPosition(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+            protected Colour4 ColourAtPosition(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
                 ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(Vector2.Divide(localPos, drawSize)).Linear;
 
-            protected virtual Color4 PointColour(SmokePoint point)
+            protected virtual Colour4 PointColour(SmokePoint point)
             {
-                var color = Color4.White;
+                var color = Colour4.White;
 
                 double timeDoingFinalFadeOut = finalFadeOutTime - point.Time / final_fade_out_speed;
 

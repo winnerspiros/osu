@@ -14,7 +14,6 @@ using osu.Game.Overlays;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Visual.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {

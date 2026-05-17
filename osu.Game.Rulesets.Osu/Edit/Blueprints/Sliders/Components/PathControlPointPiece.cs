@@ -17,10 +17,8 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
@@ -189,7 +187,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
             markerRing.Alpha = IsSelected.Value ? 1 : 0;
 
-            Color4 colour = getColourFromNodeType();
+            Colour4 colour = getColourFromNodeType();
 
             if (IsHovered || IsSelected.Value)
                 colour = colour.Lighten(1);
@@ -198,7 +196,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
             Scale = new Vector2(hitObject.Scale);
         }
 
-        private Color4 getColourFromNodeType()
+        private Colour4 getColourFromNodeType()
         {
             if (ControlPoint.Type is not PathType pathType)
                 return colours.Yellow;

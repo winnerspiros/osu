@@ -41,7 +41,6 @@ using osu.Game.Skinning;
 using osu.Game.Users;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play
 {
@@ -575,7 +574,7 @@ namespace osu.Game.Screens.Play
                 // A quick restart starts by triggering a fade to black
                 AddInternal(quickRestartBlackLayer = new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both,
                     Depth = float.MaxValue
                 });
@@ -623,7 +622,7 @@ namespace osu.Game.Screens.Play
             lowPassFilter.CutoffTo(1000, 650, Easing.OutQuint);
             highPassFilter.CutoffTo(300).Then().CutoffTo(0, 1250); // 1250 is to line up with the appearance of MetadataInfo (750 delay + 500 fade-in)
 
-            ApplyToBackground(b => b.FadeColour(Color4.White, 800, Easing.OutQuint));
+            ApplyToBackground(b => b.FadeColour(Colour4.White, 800, Easing.OutQuint));
         }
 
         protected virtual void ContentOut()

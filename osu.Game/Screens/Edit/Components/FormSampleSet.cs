@@ -29,7 +29,6 @@ using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Components
 {
@@ -205,7 +204,7 @@ namespace osu.Game.Screens.Edit.Components
 
             protected override float HoverLayerFinalAlpha => 0;
 
-            private Color4? triangleGradientSecondColour;
+            private Colour4? triangleGradientSecondColour;
             private SpriteIcon icon = null!;
 
             [Resolved]

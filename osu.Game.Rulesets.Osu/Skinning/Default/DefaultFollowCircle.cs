@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -19,11 +18,11 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
                 RelativeSizeAxes = Axes.Both,
                 Masking = true,
                 BorderThickness = 5,
-                BorderColour = Color4.Orange,
+                BorderColour = Colour4.Orange,
                 Blending = BlendingParameters.Additive,
                 Child = new Box
                 {
-                    Colour = Color4.Orange,
+                    Colour = Colour4.Orange,
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.2f,
                 }

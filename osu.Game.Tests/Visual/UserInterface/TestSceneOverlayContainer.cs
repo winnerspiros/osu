@@ -10,9 +10,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays.Volume;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 using Box = osu.Framework.Graphics.Shapes.Box;
 
 namespace osu.Game.Tests.Visual.UserInterface
@@ -108,7 +106,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Text = "Overlay content",
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     },
                 };
             }

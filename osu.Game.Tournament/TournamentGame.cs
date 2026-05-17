@@ -16,7 +16,6 @@ using osu.Game.Graphics.Cursor;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Tournament.Models;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament
 {
@@ -25,13 +24,13 @@ namespace osu.Game.Tournament
     {
         public static ColourInfo GetTeamColour(TeamColour teamColour) => teamColour == TeamColour.Red ? COLOUR_RED : COLOUR_BLUE;
 
-        public static readonly Color4 COLOUR_RED = new OsuColour().TeamColourRed;
-        public static readonly Color4 COLOUR_BLUE = new OsuColour().TeamColourBlue;
+        public static readonly Colour4 COLOUR_RED = new OsuColour().TeamColourRed;
+        public static readonly Colour4 COLOUR_BLUE = new OsuColour().TeamColourBlue;
 
-        public static readonly Color4 ELEMENT_BACKGROUND_COLOUR = Color4Extensions.FromHex("#fff");
-        public static readonly Color4 ELEMENT_FOREGROUND_COLOUR = Color4Extensions.FromHex("#000");
+        public static readonly Colour4 ELEMENT_BACKGROUND_COLOUR = Color4Extensions.FromHex("#fff");
+        public static readonly Colour4 ELEMENT_FOREGROUND_COLOUR = Color4Extensions.FromHex("#000");
 
-        public static readonly Color4 TEXT_COLOUR = Color4Extensions.FromHex("#fff");
+        public static readonly Colour4 TEXT_COLOUR = Color4Extensions.FromHex("#fff");
         private Drawable heightWarning = null!;
 
         private Bindable<WindowMode> windowMode = null!;

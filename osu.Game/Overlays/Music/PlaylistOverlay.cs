@@ -14,7 +14,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using System.Numerics;
-using osuTK.Graphics;
 using Realms;
 
 namespace osu.Game.Overlays.Music
@@ -56,7 +55,7 @@ namespace osu.Game.Overlays.Music
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(40),
+                        Colour = Colour4.Black.Opacity(40),
                         Radius = 5,
                     },
                     Children = new Drawable[]

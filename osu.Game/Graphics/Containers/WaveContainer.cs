@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -41,25 +40,25 @@ namespace osu.Game.Graphics.Containers
         // required due to LoadAsyncComplete() in `VisibilityContainer` calling PopOut() during load - similar workaround to `OsuDropdownMenu`
         private bool wasShown;
 
-        public Color4 FirstWaveColour
+        public Colour4 FirstWaveColour
         {
             get => firstWave.Colour;
             set => firstWave.Colour = value;
         }
 
-        public Color4 SecondWaveColour
+        public Colour4 SecondWaveColour
         {
             get => secondWave.Colour;
             set => secondWave.Colour = value;
         }
 
-        public Color4 ThirdWaveColour
+        public Colour4 ThirdWaveColour
         {
             get => thirdWave.Colour;
             set => thirdWave.Colour = value;
         }
 
-        public Color4 FourthWaveColour
+        public Colour4 FourthWaveColour
         {
             get => fourthWave.Colour;
             set => fourthWave.Colour = value;
@@ -165,7 +164,7 @@ namespace osu.Game.Graphics.Containers
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Shadow,
-                    Colour = Color4.Black.Opacity(50),
+                    Colour = Colour4.Black.Opacity(50),
                     Radius = 20f,
                 };
 

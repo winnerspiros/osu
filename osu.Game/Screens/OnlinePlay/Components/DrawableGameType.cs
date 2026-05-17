@@ -13,7 +13,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Online.Rooms;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Components
 {
@@ -132,7 +131,7 @@ namespace osu.Game.Screens.OnlinePlay.Components
 
         private partial class VersusRow : FillFlowContainer
         {
-            public VersusRow(Color4 first, Color4 second, float size)
+            public VersusRow(Colour4 first, Colour4 second, float size)
             {
                 var triangleSize = new Vector2(size);
                 AutoSizeAxes = Axes.Both;

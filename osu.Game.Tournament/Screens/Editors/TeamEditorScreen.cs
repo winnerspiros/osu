@@ -17,7 +17,6 @@ using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Drawings.Components;
 using osu.Game.Tournament.Screens.Editors.Components;
 using osu.Game.Users;
-using osuTK;
 
 namespace osu.Game.Tournament.Screens.Editors
 {

@@ -22,7 +22,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play
 {
@@ -92,7 +91,7 @@ namespace osu.Game.Screens.Play
                 Content,
                 redFlashLayer = new Box
                 {
-                    Colour = Color4.Red.Opacity(0.6f),
+                    Colour = Colour4.Red.Opacity(0.6f),
                     RelativeSizeAxes = Axes.Both,
                     Blending = BlendingParameters.Additive,
                     Depth = float.MinValue,
@@ -139,14 +138,14 @@ namespace osu.Game.Screens.Play
 
             Content.Add(new Box
             {
-                Colour = Color4.Black,
+                Colour = Colour4.Black,
                 RelativeSizeAxes = Axes.Both,
                 Depth = float.MaxValue
             });
 
             Content.ScaleTo(0.85f, duration, Easing.OutQuart);
             Content.RotateTo(1, duration, Easing.OutQuart);
-            Content.FadeColour(Color4.Gray, duration);
+            Content.FadeColour(Colour4.Gray, duration);
 
             // Will be restored by `ApplyToBackground` logic in `SongSelect`.
             Background?.FadeColour(OsuColour.Gray(0.3f), 60);

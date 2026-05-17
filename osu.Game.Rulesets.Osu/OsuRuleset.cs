@@ -45,7 +45,6 @@ using osu.Game.Screens.Edit.Setup;
 using osu.Game.Screens.Ranking.Statistics;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu
 {

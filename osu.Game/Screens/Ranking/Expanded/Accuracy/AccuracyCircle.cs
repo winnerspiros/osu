@@ -19,7 +19,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking.Expanded.Accuracy
 {
@@ -345,7 +344,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
                         using (BeginDelayedSequence(adjust_duration))
                         {
                             failedSRankText
-                                .FadeColour(Color4.Red, 800, Easing.Out)
+                                .FadeColour(Colour4.Red, 800, Easing.Out)
                                 .RotateTo(10, 1000, Easing.Out)
                                 .MoveToY(100, 1000, Easing.In)
                                 .FadeOut(800, Easing.Out);

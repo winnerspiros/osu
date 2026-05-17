@@ -25,8 +25,6 @@ using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Taiko;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {
@@ -387,15 +385,15 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 Debug.Assert(comboColors != null);
 
-                Color4[] expectedColors =
+                Colour4[] expectedColors =
                 {
-                    new Color4(142, 199, 255, 255),
-                    new Color4(255, 128, 128, 255),
-                    new Color4(128, 255, 255, 255),
-                    new Color4(128, 255, 128, 255),
-                    new Color4(255, 187, 255, 255),
-                    new Color4(255, 177, 140, 255),
-                    new Color4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
+                    new Colour4(142, 199, 255, 255),
+                    new Colour4(255, 128, 128, 255),
+                    new Colour4(128, 255, 255, 255),
+                    new Colour4(128, 255, 128, 255),
+                    new Colour4(255, 187, 255, 255),
+                    new Colour4(255, 177, 140, 255),
+                    new Colour4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
                 };
                 ClassicAssert.AreEqual(expectedColors.Length, comboColors.Count);
                 for (int i = 0; i < expectedColors.Length; i++)
@@ -415,16 +413,16 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 Debug.Assert(comboColors != null);
 
-                Color4[] expectedColors =
+                Colour4[] expectedColors =
                 {
-                    new Color4(142, 199, 255, 255),
-                    new Color4(255, 128, 128, 255),
-                    new Color4(128, 255, 255, 255),
-                    new Color4(128, 255, 128, 255),
-                    new Color4(255, 187, 255, 255),
-                    new Color4(255, 177, 140, 255),
-                    new Color4(100, 100, 100, 255),
-                    new Color4(142, 199, 255, 255),
+                    new Colour4(142, 199, 255, 255),
+                    new Colour4(255, 128, 128, 255),
+                    new Colour4(128, 255, 255, 255),
+                    new Colour4(128, 255, 128, 255),
+                    new Colour4(255, 187, 255, 255),
+                    new Colour4(255, 177, 140, 255),
+                    new Colour4(100, 100, 100, 255),
+                    new Colour4(142, 199, 255, 255),
                 };
                 ClassicAssert.AreEqual(expectedColors.Length, comboColors.Count);
                 for (int i = 0; i < expectedColors.Length; i++)

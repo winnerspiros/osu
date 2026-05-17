@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -19,7 +18,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both
                 },
                 loading = new LoadingSpinner()
@@ -31,7 +30,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     RelativeSizeAxes = Axes.Both
                 },
                 loading = new LoadingSpinner(true)
@@ -43,7 +42,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.Gray,
+                    Colour = Colour4.Gray,
                     RelativeSizeAxes = Axes.Both
                 },
                 loading = new LoadingSpinner()
@@ -55,7 +54,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     RelativeSizeAxes = Axes.Both
                 },
                 loading = new LoadingSpinner(false, true)
@@ -67,7 +66,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both
                 },
                 loading = new LoadingSpinner(true, true)

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -12,30 +11,30 @@ namespace osu.Game.Skinning
     public static class LegacyColourCompatibility
     {
         /// <summary>
-        /// Forces an alpha of 1 if a given <see cref="Color4"/> is fully transparent.
+        /// Forces an alpha of 1 if a given <see cref="Colour4"/> is fully transparent.
         /// </summary>
         /// <remarks>
         /// This is equivalent to setting colour post-constructor in osu!stable.
         /// </remarks>
-        /// <param name="colour">The <see cref="Color4"/> to disallow zero alpha on.</param>
-        /// <returns>The resultant <see cref="Color4"/>.</returns>
-        public static Color4 DisallowZeroAlpha(Color4 colour)
+        /// <param name="colour">The <see cref="Colour4"/> to disallow zero alpha on.</param>
+        /// <returns>The resultant <see cref="Colour4"/>.</returns>
+        public static Colour4 DisallowZeroAlpha(Colour4 colour)
         {
             if (colour.A == 0)
-                colour.A = 1;
+                colour = new Colour4(colour.R, colour.G, colour.B, 1f);
             return colour;
         }
 
         /// <summary>
-        /// Applies a <see cref="Color4"/> to a <see cref="Drawable"/>, doubling the alpha value into the <see cref="Drawable.Alpha"/> property.
+        /// Applies a <see cref="Colour4"/> to a <see cref="Drawable"/>, doubling the alpha value into the <see cref="Drawable.Alpha"/> property.
         /// </summary>
         /// <remarks>
         /// This is equivalent to setting colour in the constructor in osu!stable.
         /// </remarks>
         /// <param name="drawable">The <see cref="Drawable"/> to apply the colour to.</param>
-        /// <param name="colour">The <see cref="Color4"/> to apply.</param>
+        /// <param name="colour">The <see cref="Colour4"/> to apply.</param>
         /// <returns>The given <paramref name="drawable"/>.</returns>
-        public static T ApplyWithDoubledAlpha<T>(T drawable, Color4 colour)
+        public static T ApplyWithDoubledAlpha<T>(T drawable, Colour4 colour)
             where T : Drawable
         {
             drawable.Alpha = colour.A;

@@ -29,8 +29,6 @@ using osu.Game.Rulesets.Taiko.Mods;
 using osu.Game.Screens;
 using osu.Game.Screens.Footer;
 using osu.Game.Tests.Mods;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

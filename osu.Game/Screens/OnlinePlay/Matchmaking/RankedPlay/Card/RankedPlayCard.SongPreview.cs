@@ -21,7 +21,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -175,10 +174,10 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
                 public readonly IBindable<bool> TrackRunning = new Bindable<bool>();
 
-                private readonly Color4 accentColour;
+                private readonly Colour4 accentColour;
                 private readonly Container rippleContainer;
 
-                public RippleVisualization(Color4 accentColour)
+                public RippleVisualization(Colour4 accentColour)
                 {
                     this.accentColour = accentColour;
 

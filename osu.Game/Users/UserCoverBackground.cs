@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK.Graphics;
 
 namespace osu.Game.Users
 {
@@ -58,7 +57,7 @@ namespace osu.Game.Users
                     InternalChild = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = ColourInfo.GradientVertical(Color4.Black.Opacity(0.1f), Color4.Black.Opacity(0.75f))
+                        Colour = ColourInfo.GradientVertical(Colour4.Black.Opacity(0.1f), Colour4.Black.Opacity(0.75f))
                     };
                 }
                 else

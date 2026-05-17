@@ -13,7 +13,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Storyboards;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

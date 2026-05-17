@@ -8,7 +8,6 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Screens.Edit;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -32,7 +31,7 @@ namespace osu.Game.Rulesets.Osu.Mods
         {
             if (currentBeatmap == null) return;
 
-            Color4? timingBasedColour = null;
+            Colour4? timingBasedColour = null;
 
             d.HitObjectApplied += _ =>
             {

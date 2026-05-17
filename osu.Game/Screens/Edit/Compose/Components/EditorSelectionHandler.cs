@@ -17,7 +17,7 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {

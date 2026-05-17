@@ -11,9 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.UI;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Argon
 {
@@ -24,7 +22,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
         private Container tallExplosion = null!;
         private Container largeFaint = null!;
 
-        private readonly Bindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly Bindable<Colour4> accentColour = new Bindable<Colour4>();
 
         public ArgonHitExplosion()
         {
@@ -81,7 +79,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                 largeFaint.EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = Interpolation.ValueAt(0.2f, colour.NewValue, Color4.White, 0, 1),
+                    Colour = Interpolation.ValueAt(0.2f, colour.NewValue, Colour4.White, 0, 1),
                     Hollow = false,
                     Radius = 50,
                 };

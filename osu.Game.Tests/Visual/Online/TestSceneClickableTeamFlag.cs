@@ -9,7 +9,6 @@ using osu.Framework.Testing;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

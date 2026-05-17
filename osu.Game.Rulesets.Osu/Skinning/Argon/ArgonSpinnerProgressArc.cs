@@ -17,7 +17,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -45,7 +44,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Colour = Color4.White.Opacity(0.25f),
+                    Colour = Colour4.White.Opacity(0.25f),
                     RelativeSizeAxes = Axes.Both,
                     Progress = arc_fill,
                     Rotation = 90 - arc_fill * 180,
@@ -59,7 +58,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                     RelativeSizeAxes = Axes.Both,
                     InnerRadius = arc_radius,
                     RoundedCaps = true,
-                    GlowColour = new Color4(171, 255, 255, 180)
+                    GlowColour = new Colour4(171, 255, 255, 180)
                 }
             };
         }
@@ -78,9 +77,9 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
         private partial class ProgressFill : CircularProgress
         {
-            private Color4 glowColour = Color4.White;
+            private Colour4 glowColour = Colour4.White;
 
-            public Color4 GlowColour
+            public Colour4 GlowColour
             {
                 get => glowColour;
                 set
@@ -117,7 +116,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                 private IShader glowShader = null!;
                 private Quad glowQuad;
                 private float relativeGlowSize;
-                private Color4 glowColour;
+                private Colour4 glowColour;
 
                 public override void ApplyState()
                 {

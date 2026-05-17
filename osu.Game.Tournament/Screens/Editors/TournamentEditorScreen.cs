@@ -16,7 +16,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Screens.Editors.Components;
-using osuTK;
 
 namespace osu.Game.Tournament.Screens.Editors
 {

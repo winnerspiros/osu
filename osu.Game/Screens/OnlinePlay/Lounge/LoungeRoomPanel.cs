@@ -31,7 +31,6 @@ using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Screens.OnlinePlay.Playlists;
 using System.Numerics;
-using osuTK.Graphics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge
@@ -88,7 +87,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
                         Masking = true,
                         CornerRadius = CORNER_RADIUS,
                         BorderThickness = selection_border_width,
-                        BorderColour = Color4.White,
+                        BorderColour = Colour4.White,
                         Child = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -316,7 +315,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
                 errorText.Text = message;
                 errorText
                     .FadeIn()
-                    .FlashColour(Color4.White, 200)
+                    .FlashColour(Colour4.White, 200)
                     .Delay(1000)
                     .FadeOutFromOne(1000, Easing.In);
 

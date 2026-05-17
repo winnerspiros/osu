@@ -15,8 +15,7 @@ using osu.Game.Online.Matchmaking;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
@@ -156,7 +155,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                     },
                     flashLayer = new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Blending = BlendingParameters.Additive,
                         Alpha = 0,
                         RelativeSizeAxes = Axes.Both,
@@ -235,7 +234,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 if (IsSelected)
                 {
                     this.ScaleTo(1.2f, 200, Easing.OutQuint);
-                    iconSprite.FadeColour(Color4.Gold, 100, Easing.OutQuint);
+                    iconSprite.FadeColour(Colour4.Gold, 100, Easing.OutQuint);
                     flashLayer.FadeTo(0.1f, 200, Easing.OutQuint);
                 }
                 else

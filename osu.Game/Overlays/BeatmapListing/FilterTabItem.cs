@@ -16,7 +16,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapListing
 {
@@ -87,12 +86,12 @@ namespace osu.Game.Overlays.BeatmapListing
         /// </summary>
         protected virtual LocalisableString LabelFor(T value) => (value as Enum)?.GetLocalisableDescription() ?? value.ToString();
 
-        protected virtual Color4 ColourActive => ColourProvider.Content1;
-        protected virtual Color4 ColourNormal => ColourProvider.Light2;
+        protected virtual Colour4 ColourActive => ColourProvider.Content1;
+        protected virtual Colour4 ColourNormal => ColourProvider.Light2;
 
         protected virtual void UpdateState()
         {
-            Color4 colour = Active.Value ? ColourActive : ColourNormal;
+            Colour4 colour = Active.Value ? ColourActive : ColourNormal;
 
             if (IsHovered)
                 colour = colour.Lighten(0.2f);

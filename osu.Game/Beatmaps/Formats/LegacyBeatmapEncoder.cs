@@ -15,7 +15,6 @@ using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Formats
 {
@@ -356,7 +355,7 @@ namespace osu.Game.Beatmaps.Formats
 
         private void handleColours(TextWriter writer)
         {
-            var colours = skin?.GetConfig<GlobalSkinColours, IReadOnlyList<Color4>>(GlobalSkinColours.ComboColours)?.Value;
+            var colours = skin?.GetConfig<GlobalSkinColours, IReadOnlyList<Colour4>>(GlobalSkinColours.ComboColours)?.Value;
 
             if (colours == null || colours.Count == 0)
                 return;

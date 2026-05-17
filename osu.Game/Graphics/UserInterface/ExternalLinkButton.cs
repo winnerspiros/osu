@@ -12,7 +12,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Localisation;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -20,7 +19,7 @@ namespace osu.Game.Graphics.UserInterface
     {
         public string? Link { get; set; }
 
-        private Color4 hoverColour;
+        private Colour4 hoverColour;
 
         [Resolved]
         private OsuGame? game { get; set; }
@@ -56,7 +55,7 @@ namespace osu.Game.Graphics.UserInterface
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            linkIcon.FadeColour(Color4.White, 500, Easing.OutQuint);
+            linkIcon.FadeColour(Colour4.White, 500, Easing.OutQuint);
             base.OnHoverLost(e);
         }
 

@@ -13,7 +13,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.News.Sidebar
 {
@@ -109,8 +108,8 @@ namespace osu.Game.Overlays.News.Sidebar
             [BackgroundDependencyLoader]
             private void load(OverlayColourProvider colourProvider)
             {
-                IdleColour = isCurrent ? Color4.White : colourProvider.Light2;
-                HoverColour = isCurrent ? Color4.White : colourProvider.Light1;
+                IdleColour = isCurrent ? Colour4.White : colourProvider.Light2;
+                HoverColour = isCurrent ? Colour4.White : colourProvider.Light1;
                 Action = () =>
                 {
                     if (!isCurrent)

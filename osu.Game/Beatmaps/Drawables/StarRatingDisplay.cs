@@ -13,7 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables
 {
@@ -39,13 +38,13 @@ namespace osu.Game.Beatmaps.Drawables
         /// The difficulty colour currently displayed.
         /// Can be used to have other components match the spectrum animation.
         /// </summary>
-        public Color4 DisplayedDifficultyColour => background.Colour;
+        public Colour4 DisplayedDifficultyColour => background.Colour;
 
         /// <summary>
         /// The difficulty text colour currently displayed.
         /// Can be used to have other components match the spectrum animation.
         /// </summary>
-        public Color4 DisplayedDifficultyTextColour => starsText.Colour;
+        public Colour4 DisplayedDifficultyTextColour => starsText.Colour;
 
         private readonly Bindable<double> displayedStars = new BindableDouble();
 

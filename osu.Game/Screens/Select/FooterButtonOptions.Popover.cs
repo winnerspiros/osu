@@ -20,8 +20,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Select
 {
@@ -125,7 +124,7 @@ namespace osu.Game.Screens.Select
                 buttonFlow.Add(textFlow);
             }
 
-            private void addButton(LocalisableString text, IconUsage? icon, Action? action, Color4? colour = null)
+            private void addButton(LocalisableString text, IconUsage? icon, Action? action, Colour4? colour = null)
             {
                 var button = new OptionButton
                 {
@@ -167,7 +166,7 @@ namespace osu.Game.Screens.Select
             private partial class OptionButton : OsuButton
             {
                 public IconUsage Icon { get; init; }
-                public Color4? TextColour { get; init; }
+                public Colour4? TextColour { get; init; }
 
                 public OptionButton()
                 {
@@ -177,7 +176,7 @@ namespace osu.Game.Screens.Select
                 [BackgroundDependencyLoader]
                 private void load()
                 {
-                    SpriteText.Colour = TextColour ?? Color4.White;
+                    SpriteText.Colour = TextColour ?? Colour4.White;
                     Content.CornerRadius = 10;
 
                     Add(new SpriteIcon
@@ -187,7 +186,7 @@ namespace osu.Game.Screens.Select
                         Size = new Vector2(17),
                         X = 15,
                         Icon = Icon,
-                        Colour = TextColour ?? Color4.White,
+                        Colour = TextColour ?? Colour4.White,
                     });
                 }
 

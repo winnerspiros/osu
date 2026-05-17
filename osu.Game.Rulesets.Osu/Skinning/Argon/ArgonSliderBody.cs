@@ -4,7 +4,6 @@
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -30,14 +29,14 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
         protected override Default.DrawableSliderPath CreateSliderPath() => new DrawableSliderPath();
 
-        protected override Color4 GetBodyAccentColour(ISkinSource skin, Color4 hitObjectAccentColour)
+        protected override Colour4 GetBodyAccentColour(ISkinSource skin, Colour4 hitObjectAccentColour)
         {
             return base.GetBodyAccentColour(skin, hitObjectAccentColour).Opacity(BodyAlpha);
         }
 
         private partial class DrawableSliderPath : Default.DrawableSliderPath
         {
-            protected override Color4 ColourAt(float position)
+            protected override Colour4 ColourAt(float position)
             {
                 if (CalculatedBorderPortion != 0f && position <= CalculatedBorderPortion)
                     return BorderColour;

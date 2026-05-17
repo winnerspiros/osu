@@ -7,7 +7,6 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Audio;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Objects
 {
@@ -26,10 +25,10 @@ namespace osu.Game.Rulesets.Taiko.Objects
             set => type.Value = value;
         }
 
-        public Bindable<Color4> DisplayColour { get; } = new Bindable<Color4>(COLOUR_CENTRE);
+        public Bindable<Colour4> DisplayColour { get; } = new Bindable<Colour4>(COLOUR_CENTRE);
 
-        public static readonly Color4 COLOUR_CENTRE = Color4Extensions.FromHex(@"bb1177");
-        public static readonly Color4 COLOUR_RIM = Color4Extensions.FromHex(@"2299bb");
+        public static readonly Colour4 COLOUR_CENTRE = Color4Extensions.FromHex(@"bb1177");
+        public static readonly Colour4 COLOUR_RIM = Color4Extensions.FromHex(@"2299bb");
 
         public Hit()
         {

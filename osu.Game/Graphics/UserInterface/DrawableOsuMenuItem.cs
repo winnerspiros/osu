@@ -16,7 +16,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -41,7 +40,7 @@ namespace osu.Game.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load()
         {
-            BackgroundColour = Color4.Transparent;
+            BackgroundColour = Colour4.Transparent;
             BackgroundColourHover = Color4Extensions.FromHex(@"172023");
 
             AddInternal(hotkey = new HotkeyDisplay
@@ -88,11 +87,11 @@ namespace osu.Game.Graphics.UserInterface
             {
                 default:
                 case MenuItemType.Standard:
-                    text.Colour = Color4.White;
+                    text.Colour = Colour4.White;
                     break;
 
                 case MenuItemType.Destructive:
-                    text.Colour = Color4.Red;
+                    text.Colour = Colour4.Red;
                     break;
 
                 case MenuItemType.Highlighted:

@@ -11,7 +11,7 @@ using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Mania.Tests.Editor
 {

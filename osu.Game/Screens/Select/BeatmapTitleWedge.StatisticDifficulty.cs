@@ -17,7 +17,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
 using osu.Game.Rulesets.Difficulty;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Select
 {
@@ -46,7 +45,7 @@ namespace osu.Game.Screens.Select
             private readonly SpriteIcon valueIcon;
             private readonly Container bars;
 
-            public Color4 AccentColour
+            public Colour4 AccentColour
             {
                 get => bar.Colour;
                 set => bar.Colour = value;
@@ -76,7 +75,7 @@ namespace osu.Game.Screens.Select
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     Height = 2f,
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     Masking = true,
                                     CornerRadius = 1f,
                                     Depth = float.MaxValue,
@@ -157,10 +156,10 @@ namespace osu.Game.Screens.Select
 
                 if (Value.Value == Value.AdjustedValue)
                 {
-                    adjustedBar.FadeColour(Color4.Transparent, 300, Easing.OutQuint);
+                    adjustedBar.FadeColour(Colour4.Transparent, 300, Easing.OutQuint);
                     bar.FadeIn(300, Easing.OutQuint);
 
-                    valueText.FadeColour(Color4.White, 300, Easing.OutQuint);
+                    valueText.FadeColour(Colour4.White, 300, Easing.OutQuint);
                     valueIcon.Hide();
                 }
                 else
@@ -171,7 +170,7 @@ namespace osu.Game.Screens.Select
                     {
                         bars.ChangeChildDepth(adjustedBar, 1);
                         bar.FadeIn(300, Easing.OutQuint);
-                        adjustedBar.FadeColour(ColourInfo.GradientHorizontal(Color4.Black, colours.Red1), 300, Easing.OutQuint);
+                        adjustedBar.FadeColour(ColourInfo.GradientHorizontal(Colour4.Black, colours.Red1), 300, Easing.OutQuint);
 
                         valueText.FadeColour(colours.Red1, 300, Easing.OutQuint);
                         valueIcon.Show();

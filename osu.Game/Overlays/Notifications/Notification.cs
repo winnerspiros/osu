@@ -18,8 +18,7 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Notifications
 {
@@ -198,7 +197,7 @@ namespace osu.Game.Overlays.Notifications
                         },
                         initialFlash = new Box
                         {
-                            Colour = Color4.White.Opacity(0.8f),
+                            Colour = Colour4.White.Opacity(0.8f),
                             RelativeSizeAxes = Axes.Both,
                             Blending = BlendingParameters.Additive,
                         },
@@ -483,7 +482,7 @@ namespace osu.Game.Overlays.Notifications
                     base.Colour = value;
                     pulsateLayer.EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = ((Color4)value).Opacity(0.18f),
+                        Colour = ((Colour4)value).Opacity(0.18f),
                         Type = EdgeEffectType.Glow,
                         Radius = 14,
                     };

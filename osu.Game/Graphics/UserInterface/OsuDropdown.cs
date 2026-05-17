@@ -20,7 +20,6 @@ using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -76,7 +75,7 @@ namespace osu.Game.Graphics.UserInterface
             [BackgroundDependencyLoader(true)]
             private void load(OverlayColourProvider? colourProvider, OsuColour colours, AudioManager audio)
             {
-                BackgroundColour = colourProvider?.Background5 ?? Color4.Black;
+                BackgroundColour = colourProvider?.Background5 ?? Colour4.Black;
                 HoverColour = colourProvider?.Light4 ?? colours.PinkDarker;
                 SelectionColour = colourProvider?.Background3 ?? colours.PinkDarker.Opacity(0.5f);
 
@@ -127,9 +126,9 @@ namespace osu.Game.Graphics.UserInterface
                 }
             }
 
-            private Color4 hoverColour;
+            private Colour4 hoverColour;
 
-            public Color4 HoverColour
+            public Colour4 HoverColour
             {
                 get => hoverColour;
                 set
@@ -140,9 +139,9 @@ namespace osu.Game.Graphics.UserInterface
                 }
             }
 
-            private Color4 selectionColour;
+            private Colour4 selectionColour;
 
-            public Color4 SelectionColour
+            public Colour4 SelectionColour
             {
                 get => selectionColour;
                 set
@@ -199,7 +198,7 @@ namespace osu.Game.Graphics.UserInterface
                 // IsHovered is used
                 public override bool HandlePositionalInput => true;
 
-                public new Color4 BackgroundColourHover
+                public new Colour4 BackgroundColourHover
                 {
                     get => base.BackgroundColourHover;
                     set
@@ -209,7 +208,7 @@ namespace osu.Game.Graphics.UserInterface
                     }
                 }
 
-                public new Color4 BackgroundColourSelected
+                public new Colour4 BackgroundColourSelected
                 {
                     get => base.BackgroundColourSelected;
                     set
@@ -308,7 +307,7 @@ namespace osu.Game.Graphics.UserInterface
                     [BackgroundDependencyLoader(true)]
                     private void load(OverlayColourProvider? colourProvider)
                     {
-                        Chevron.Colour = colourProvider?.Background5 ?? Color4.Black;
+                        Chevron.Colour = colourProvider?.Background5 ?? Colour4.Black;
                     }
 
                     public bool Hovering
@@ -434,9 +433,9 @@ namespace osu.Game.Graphics.UserInterface
             {
                 bool hovered = Enabled.Value && IsHovered;
                 var hoveredColour = colourProvider?.Light4 ?? colours.PinkDarker;
-                var unhoveredColour = colourProvider?.Background5 ?? Color4.Black;
+                var unhoveredColour = colourProvider?.Background5 ?? Colour4.Black;
 
-                Colour = Color4.White;
+                Colour = Colour4.White;
                 Alpha = Enabled.Value ? 1 : 0.3f;
 
                 if (SearchBar.State.Value == Visibility.Visible)
@@ -446,7 +445,7 @@ namespace osu.Game.Graphics.UserInterface
                 }
                 else
                 {
-                    Chevron.Colour = Color4.White;
+                    Chevron.Colour = Colour4.White;
                     Background.Colour = hovered ? hoveredColour : unhoveredColour;
                 }
             }
@@ -484,8 +483,8 @@ namespace osu.Game.Graphics.UserInterface
                     [BackgroundDependencyLoader]
                     private void load(OverlayColourProvider? colourProvider)
                     {
-                        BackgroundUnfocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
-                        BackgroundFocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
+                        BackgroundUnfocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
+                        BackgroundFocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
                     }
 
                     protected override void OnFocus(FocusEvent e)

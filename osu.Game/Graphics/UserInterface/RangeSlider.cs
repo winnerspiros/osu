@@ -10,7 +10,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -137,7 +136,7 @@ namespace osu.Game.Graphics.UserInterface
                 LeftBox.Height = 6; // hide any colour bleeding from overlap
 
                 AccentColour = BackgroundColour;
-                BackgroundColour = Color4.Transparent;
+                BackgroundColour = Colour4.Transparent;
             }
 
             public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
@@ -192,7 +191,7 @@ namespace osu.Game.Graphics.UserInterface
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Y = -0.5f,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Font = OsuFont.Torus.With(size: 10),
                 });
 

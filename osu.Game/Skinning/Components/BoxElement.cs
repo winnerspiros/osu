@@ -10,7 +10,6 @@ using osu.Game.Configuration;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Overlays.Settings;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning.Components
 {
@@ -38,7 +37,7 @@ namespace osu.Game.Skinning.Components
             {
                 new Box
                 {
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     RelativeSizeAxes = Axes.Both,
                 },
             };

@@ -12,8 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Timing;
 using osu.Game.Configuration;
 using osu.Game.Overlays.Toolbar;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Menus
 {
@@ -39,7 +37,7 @@ namespace osu.Game.Tests.Visual.Menus
                     {
                         new Box
                         {
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                         },
                         new FillFlowContainer
@@ -53,14 +51,14 @@ namespace osu.Game.Tests.Visual.Menus
                             {
                                 new Box
                                 {
-                                    Colour = Color4.DarkRed,
+                                    Colour = Colour4.DarkRed,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 2,
                                 },
                                 toolbarClock = new ToolbarClock(),
                                 new Box
                                 {
-                                    Colour = Color4.DarkRed,
+                                    Colour = Colour4.DarkRed,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 2,
                                 },

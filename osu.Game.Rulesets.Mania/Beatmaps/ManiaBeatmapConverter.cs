@@ -16,7 +16,6 @@ using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Scoring.Legacy;
 using osu.Game.Utils;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.Beatmaps

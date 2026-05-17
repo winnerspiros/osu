@@ -24,7 +24,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 {
@@ -195,7 +194,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
                 BackgroundFocused = Colour4.FromHex("222228");
                 BackgroundUnfocused = BackgroundFocused.Opacity(0.7f);
-                Placeholder.Colour = Color4.White;
+                Placeholder.Colour = Colour4.White;
             }
         }
 

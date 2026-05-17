@@ -16,8 +16,6 @@ using osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

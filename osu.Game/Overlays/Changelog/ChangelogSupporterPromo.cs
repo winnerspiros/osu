@@ -16,7 +16,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Chat;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Changelog
 {
@@ -52,7 +51,7 @@ namespace osu.Game.Overlays.Changelog
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Offset = new Vector2(0, 1),
                         Radius = 3,
                     },
@@ -178,7 +177,7 @@ namespace osu.Game.Overlays.Changelog
                 private void load(OsuColour colour)
                 {
                     IdleColour = colour.PinkDark;
-                    HoverColour = Color4.White;
+                    HoverColour = Colour4.White;
                 }
             }
         }

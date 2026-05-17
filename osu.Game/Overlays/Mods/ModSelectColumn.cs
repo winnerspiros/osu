@@ -15,7 +15,6 @@ using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -28,7 +27,7 @@ namespace osu.Game.Overlays.Mods
             set => createHeaderText(value);
         }
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => headerBackground.Colour;
             set

@@ -18,7 +18,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -120,12 +119,12 @@ namespace osu.Game.Screens.Menu
              .FadeOut(beatLength, Easing.In);
         }
 
-        protected virtual Color4 GetBaseColour()
+        protected virtual Colour4 GetBaseColour()
         {
-            Color4 baseColour = colours.Blue;
+            Colour4 baseColour = colours.Blue;
 
             if (user.Value?.IsSupporter ?? false)
-                baseColour = skin.Value.GetConfig<GlobalSkinColours, Color4>(GlobalSkinColours.MenuGlow)?.Value ?? baseColour;
+                baseColour = skin.Value.GetConfig<GlobalSkinColours, Colour4>(GlobalSkinColours.MenuGlow)?.Value ?? baseColour;
 
             return baseColour;
         }
@@ -134,8 +133,8 @@ namespace osu.Game.Screens.Menu
         {
             var baseColour = GetBaseColour();
             // linear colour looks better in this case, so let's use it for now.
-            Color4 gradientDark = baseColour.Opacity(0).ToLinear();
-            Color4 gradientLight = baseColour.Opacity(0.6f).ToLinear();
+            Colour4 gradientDark = baseColour.Opacity(0).ToLinear();
+            Colour4 gradientLight = baseColour.Opacity(0.6f).ToLinear();
 
             leftBox.Colour = ColourInfo.GradientHorizontal(gradientLight, gradientDark);
             rightBox.Colour = ColourInfo.GradientHorizontal(gradientDark, gradientLight);

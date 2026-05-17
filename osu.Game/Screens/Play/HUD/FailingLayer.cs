@@ -15,7 +15,6 @@ using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Scoring;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -59,14 +58,14 @@ namespace osu.Game.Screens.Play.HUD
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.White.Opacity(0)),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0)),
                             Width = gradient_size,
                         },
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
                             Width = gradient_size,
-                            Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0), Colour4.White),
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                         },

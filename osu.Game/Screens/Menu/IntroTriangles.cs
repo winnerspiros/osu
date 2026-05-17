@@ -20,7 +20,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -267,7 +266,7 @@ namespace osu.Game.Screens.Menu
 
                 public GameWideFlash()
                 {
-                    Colour = Color4.White;
+                    Colour = Colour4.White;
                     RelativeSizeAxes = Axes.Both;
                     Blending = BlendingParameters.Additive;
                 }
@@ -307,7 +306,7 @@ namespace osu.Game.Screens.Menu
                         {
                             RelativeSizeAxes = Axes.Both,
                             Texture = textures.Get(@"Intro/Triangles/logo-highlight"),
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
                         background = new LogoAnimation
                         {
@@ -401,7 +400,7 @@ namespace osu.Game.Screens.Menu
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Colour = Color4.Black,
+                                Colour = Colour4.Black,
                                 Size = new Vector2(size - 5),
                                 Blending = BlendingParameters.None,
                             });

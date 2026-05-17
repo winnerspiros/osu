@@ -6,7 +6,6 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Settings
 {
@@ -14,8 +13,8 @@ namespace osu.Game.Overlays.Settings
     {
         private const float border_thickness = 3;
 
-        private Color4 borderColourFocused;
-        private Color4 borderColourUnfocused;
+        private Colour4 borderColourFocused;
+        private Colour4 borderColourUnfocused;
 
         [BackgroundDependencyLoader]
         private void load(OsuColour colour)

@@ -9,9 +9,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -36,8 +34,8 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
             float lightPosition = GetColumnSkinConfig<float>(skin, LegacyManiaSkinConfigurationLookups.LightPosition)?.Value
                                   ?? 0;
 
-            Color4 lightColour = GetColumnSkinConfig<Color4>(skin, LegacyManiaSkinConfigurationLookups.ColumnLightColour)?.Value
-                                 ?? Color4.White;
+            Colour4 lightColour = GetColumnSkinConfig<Colour4>(skin, LegacyManiaSkinConfigurationLookups.ColumnLightColour)?.Value
+                                 ?? Colour4.White;
 
             int lightFramePerSecond = skin.GetManiaSkinConfig<int>(LegacyManiaSkinConfigurationLookups.LightFramePerSecond)?.Value ?? 60;
 

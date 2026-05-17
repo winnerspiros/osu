@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Game.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {
@@ -33,7 +32,7 @@ namespace osu.Game.Beatmaps.ControlPoints
         /// </summary>
         public bool GenerateTicks { get; set; } = true;
 
-        public override Color4 GetRepresentingColour(OsuColour colours) => colours.Lime1;
+        public override Colour4 GetRepresentingColour(OsuColour colours) => colours.Lime1;
 
         /// <summary>
         /// The slider velocity at this control point.

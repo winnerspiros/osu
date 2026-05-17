@@ -13,7 +13,6 @@ using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Edit

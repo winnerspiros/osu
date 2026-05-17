@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -26,12 +25,12 @@ namespace osu.Game.Graphics.UserInterface
             set => SpriteText.Text = value;
         }
 
-        private Color4? backgroundColour;
+        private Colour4? backgroundColour;
 
         /// <summary>
         /// Sets a custom background colour to this button, replacing the provided default.
         /// </summary>
-        public virtual Color4 BackgroundColour
+        public virtual Colour4 BackgroundColour
         {
             get => backgroundColour ?? defaultBackgroundColour;
             set
@@ -41,12 +40,12 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 defaultBackgroundColour;
+        private Colour4 defaultBackgroundColour;
 
         /// <summary>
         /// Sets a default background colour to this button.
         /// </summary>
-        protected Color4 DefaultBackgroundColour
+        protected Colour4 DefaultBackgroundColour
         {
             get => defaultBackgroundColour;
             set
@@ -98,7 +97,7 @@ namespace osu.Game.Graphics.UserInterface
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Blending = BlendingParameters.Additive,
                         Depth = float.MinValue
                     },
@@ -108,7 +107,7 @@ namespace osu.Game.Graphics.UserInterface
                         RelativeSizeAxes = Axes.Both,
                         Blending = BlendingParameters.Additive,
                         Depth = float.MinValue,
-                        Colour = Color4.White.Opacity(0.5f),
+                        Colour = Colour4.White.Opacity(0.5f),
                         Alpha = 0,
                     },
                 }
@@ -132,7 +131,7 @@ namespace osu.Game.Graphics.UserInterface
             Enabled.BindValueChanged(_ => this.FadeColour(dimColour, 200, Easing.OutQuint));
         }
 
-        private Color4 dimColour => Enabled.Value ? Color4.White : Color4.Gray;
+        private Colour4 dimColour => Enabled.Value ? Colour4.White : Colour4.Gray;
 
         protected override bool OnClick(ClickEvent e)
         {

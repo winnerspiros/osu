@@ -12,7 +12,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Lounge;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
 using osu.Game.Tests.Visual.OnlinePlay;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

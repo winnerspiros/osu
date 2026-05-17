@@ -6,7 +6,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Expanded.Accuracy;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Ranking
 {

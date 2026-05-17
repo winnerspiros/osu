@@ -10,7 +10,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Types;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -130,9 +129,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
             private readonly double startTime;
             private readonly IHasSliderVelocity? sliderVelocitySource;
 
-            private readonly Color4 baseColour;
+            private readonly Colour4 baseColour;
 
-            public Ring(double startTime, Color4 baseColour, IHasSliderVelocity? sliderVelocitySource)
+            public Ring(double startTime, Colour4 baseColour, IHasSliderVelocity? sliderVelocitySource)
             {
                 this.startTime = startTime;
                 this.sliderVelocitySource = sliderVelocitySource;

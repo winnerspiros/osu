@@ -14,8 +14,6 @@ using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Drawings.Components
 {
@@ -69,7 +67,7 @@ namespace osu.Game.Tournament.Screens.Drawings.Components
                             Origin = Anchor.BottomCentre,
                             Size = new Vector2(2, 55),
 
-                            Colour = ColourInfo.GradientVertical(Color4.Transparent, Color4.White)
+                            Colour = ColourInfo.GradientVertical(Colour4.Transparent, Colour4.White)
                         },
                         new Box
                         {
@@ -77,7 +75,7 @@ namespace osu.Game.Tournament.Screens.Drawings.Components
                             Origin = Anchor.TopCentre,
                             Size = new Vector2(2, 55),
 
-                            Colour = ColourInfo.GradientVertical(Color4.White, Color4.Transparent)
+                            Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.Transparent)
                         }
                     }
                 }

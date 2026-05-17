@@ -6,7 +6,6 @@ using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Default
 {
@@ -20,9 +19,9 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
             this.beatmap = (ManiaBeatmap)beatmap;
         }
 
-        private readonly Color4 colourEven = new Color4(6, 84, 0, 255);
-        private readonly Color4 colourOdd = new Color4(94, 0, 57, 255);
-        private readonly Color4 colourSpecial = new Color4(0, 48, 63, 255);
+        private readonly Colour4 colourEven = new Colour4(6, 84, 0, 255);
+        private readonly Colour4 colourOdd = new Colour4(94, 0, 57, 255);
+        private readonly Colour4 colourSpecial = new Colour4(0, 48, 63, 255);
 
         public override IBindable<TValue>? GetConfig<TLookup, TValue>(TLookup lookup)
         {
@@ -38,10 +37,10 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
                         int columnInStage = column % stage.Columns;
 
                         if (stage.IsSpecialColumn(columnInStage))
-                            return SkinUtils.As<TValue>(new Bindable<Color4>(colourSpecial));
+                            return SkinUtils.As<TValue>(new Bindable<Colour4>(colourSpecial));
 
                         int distanceToEdge = Math.Min(columnInStage, (stage.Columns - 1) - columnInStage);
-                        return SkinUtils.As<TValue>(new Bindable<Color4>(distanceToEdge % 2 == 0 ? colourOdd : colourEven));
+                        return SkinUtils.As<TValue>(new Bindable<Colour4>(distanceToEdge % 2 == 0 ? colourOdd : colourEven));
                 }
             }
 

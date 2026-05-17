@@ -27,9 +27,7 @@ using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {
@@ -113,7 +111,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Colour = Color4.Cyan,
+                                    Colour = Colour4.Cyan,
                                     RelativeSizeAxes = Axes.Both,
                                     Alpha = 0.4f,
                                 },
@@ -150,7 +148,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                                 {
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Colour = Color4.Cyan,
+                                    Colour = Colour4.Cyan,
                                     RelativeSizeAxes = Axes.Both,
                                     Alpha = 0.4f,
                                 },

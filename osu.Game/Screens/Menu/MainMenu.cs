@@ -43,7 +43,6 @@ using osu.Game.Screens.OnlinePlay.Playlists;
 using osu.Game.Screens.Select;
 using osu.Game.Seasonal;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -284,7 +283,7 @@ namespace osu.Game.Screens.Menu
 
             Buttons.SetOsuLogo(logo);
 
-            logo.FadeColour(Color4.White, 100, Easing.OutQuint);
+            logo.FadeColour(Colour4.White, 100, Easing.OutQuint);
             logo.FadeIn(100, Easing.OutQuint);
 
             logoProxy = logo.ProxyToContainer(logoTarget);

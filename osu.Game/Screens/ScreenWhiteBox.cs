@@ -16,7 +16,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.Backgrounds;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens
 {
@@ -86,13 +85,13 @@ namespace osu.Game.Screens
             }
         }
 
-        private static Color4 getColourFor(object type)
+        private static Colour4 getColourFor(object type)
         {
             int hash = type.GetHashCode();
             byte r = (byte)Math.Clamp(((hash & 0xFF0000) >> 16) * 2, 128, 255);
             byte g = (byte)Math.Clamp(((hash & 0x00FF00) >> 8) * 2, 128, 255);
             byte b = (byte)Math.Clamp((hash & 0x0000FF) * 2, 128, 255);
-            return new Color4(r, g, b, 255);
+            return new Colour4(r, g, b, 255);
         }
 
         private partial class ChildModeButton : TwoLayerButton

@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dashboard.Home.News;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

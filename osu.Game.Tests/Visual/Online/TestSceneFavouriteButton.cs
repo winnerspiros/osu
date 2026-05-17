@@ -9,7 +9,6 @@ using osu.Framework.Testing;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.BeatmapSet.Buttons;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

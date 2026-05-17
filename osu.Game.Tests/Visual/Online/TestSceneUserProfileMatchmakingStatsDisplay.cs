@@ -11,7 +11,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Profile;
 using osu.Game.Overlays.Profile.Header.Components;
 using osu.Game.Rulesets.Osu;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

@@ -29,7 +29,6 @@ using osu.Game.Screens.Menu;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
 using osu.Game.Tests.Resources;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Navigation
 {

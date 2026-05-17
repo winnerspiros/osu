@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Mania.Skinning.Default;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.UI.Components
 {
@@ -25,7 +24,7 @@ namespace osu.Game.Rulesets.Mania.UI.Components
         private Container hitTargetLine;
         private Drawable hitTargetBar;
 
-        private Bindable<Color4> accentColour;
+        private Bindable<Colour4> accentColour;
 
         [Resolved]
         private Column column { get; set; }
@@ -45,7 +44,7 @@ namespace osu.Game.Rulesets.Mania.UI.Components
                     RelativeSizeAxes = Axes.X,
                     Height = DefaultNotePiece.NOTE_HEIGHT,
                     Alpha = 0.6f,
-                    Colour = Color4.Black
+                    Colour = Colour4.Black
                 },
                 hitTargetLine = new Container
                 {

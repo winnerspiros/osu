@@ -5,9 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Taiko.Objects;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -40,7 +38,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Blending = BlendingParameters.Additive,
                     Alpha = 0.1f,
                     Size = new Vector2(TaikoHitObject.DEFAULT_SIZE),
@@ -52,7 +50,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Blending = BlendingParameters.Additive,
                     Alpha = 0.1f,
                     Size = new Vector2(TaikoHitObject.DEFAULT_SIZE * 0.85f),

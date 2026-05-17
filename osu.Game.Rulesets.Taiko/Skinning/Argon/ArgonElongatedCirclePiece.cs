@@ -4,7 +4,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -19,8 +18,8 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
         private void load()
         {
             AccentColour = ColourInfo.GradientVertical(
-                new Color4(241, 161, 0, 255),
-                new Color4(167, 111, 0, 255)
+                new Colour4(241, 161, 0, 255),
+                new Colour4(167, 111, 0, 255)
             );
         }
 

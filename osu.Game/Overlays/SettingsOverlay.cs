@@ -19,7 +19,6 @@ using osu.Game.Localisation;
 using osu.Game.Overlays.Settings;
 using osu.Game.Overlays.Settings.Sections;
 using osu.Game.Overlays.Settings.Sections.Input;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -110,7 +109,7 @@ namespace osu.Game.Overlays
             {
                 case Visibility.Visible:
                     Sidebar.Expanded.Value = false;
-                    Sidebar.FadeColour(Color4.DarkGray, 300, Easing.OutQuint);
+                    Sidebar.FadeColour(Colour4.DarkGray, 300, Easing.OutQuint);
 
                     SectionsContainer.FadeOut(300, Easing.OutQuint);
                     ContentContainer.MoveToX(-PANEL_WIDTH, 500, Easing.OutQuint);
@@ -121,7 +120,7 @@ namespace osu.Game.Overlays
 
                 case Visibility.Hidden:
                     Sidebar.Expanded.Value = true;
-                    Sidebar.FadeColour(Color4.White, 300, Easing.OutQuint);
+                    Sidebar.FadeColour(Colour4.White, 300, Easing.OutQuint);
 
                     SectionsContainer.FadeIn(500, Easing.OutQuint);
                     ContentContainer.MoveToX(0, 500, Easing.OutQuint);

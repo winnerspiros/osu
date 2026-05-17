@@ -10,9 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -71,7 +69,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                             BypassAutoSizeAxes = Axes.Both,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Colour = skin.GetManiaSkinConfig<Color4>(LegacyManiaSkinConfigurationLookups.ComboBreakColour)?.Value ?? Color4.Red,
+                            Colour = skin.GetManiaSkinConfig<Colour4>(LegacyManiaSkinConfigurationLookups.ComboBreakColour)?.Value ?? Colour4.Red,
                         },
                         displayedCountText = new LegacySpriteText(LegacyFont.Combo)
                         {

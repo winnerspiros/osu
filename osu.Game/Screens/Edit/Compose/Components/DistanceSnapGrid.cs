@@ -16,7 +16,6 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Types;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -145,7 +144,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// </summary>
         /// <param name="placementIndex">The 0-based beat index from the point of placement.</param>
         /// <returns>The applicable colour.</returns>
-        protected Color4 GetColourForIndexFromPlacement(int placementIndex)
+        protected Colour4 GetColourForIndexFromPlacement(int placementIndex)
         {
             var timingPoint = Beatmap.ControlPointInfo.TimingPointAt(StartTime);
             double beatLength = timingPoint.BeatLength / beatDivisor.Value;

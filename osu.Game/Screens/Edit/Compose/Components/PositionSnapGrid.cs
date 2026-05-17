@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -24,7 +23,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected PositionSnapGrid()
             : base(cachedFrameBuffer: true)
         {
-            BackgroundColour = Color4.White.Opacity(0);
+            BackgroundColour = Colour4.White.Opacity(0);
 
             StartPosition.BindValueChanged(_ => GridCache.Invalidate());
 

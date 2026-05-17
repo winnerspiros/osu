@@ -11,7 +11,6 @@ using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Rulesets.UI.Scrolling.Algorithms;
 using osu.Game.Tests.Visual;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
@@ -35,7 +34,7 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
             Add(new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.SlateGray.Opacity(0.2f),
+                Colour = Colour4.SlateGray.Opacity(0.2f),
                 Depth = 1
             });
         }

@@ -24,7 +24,6 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mods
 {
@@ -81,7 +80,7 @@ namespace osu.Game.Rulesets.Mods
             var flashlight = CreateFlashlight();
 
             flashlight.RelativeSizeAxes = Axes.Both;
-            flashlight.Colour = Color4.Black;
+            flashlight.Colour = Colour4.Black;
 
             flashlight.Combo.BindTo(Combo);
 

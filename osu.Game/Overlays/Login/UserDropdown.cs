@@ -6,7 +6,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Login
 {
@@ -16,7 +15,7 @@ namespace osu.Game.Overlays.Login
 
         protected override DropdownMenu CreateMenu() => new UserDropdownMenu();
 
-        public Color4 StatusColour
+        public Colour4 StatusColour
         {
             set
             {
@@ -43,7 +42,7 @@ namespace osu.Game.Overlays.Login
         {
             private readonly StatusIcon statusIcon;
 
-            public Color4 StatusColour
+            public Colour4 StatusColour
             {
                 set => statusIcon.FadeColour(value, 500, Easing.OutQuint);
             }

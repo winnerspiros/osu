@@ -15,8 +15,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -31,7 +29,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             {
                 new Box
                 {
-                    Colour = Color4.Teal,
+                    Colour = Colour4.Teal,
                     RelativeSizeAxes = Axes.Both,
                 },
                 new OsuScrollContainer

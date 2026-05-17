@@ -14,7 +14,6 @@ using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Editors;
 using osu.Game.Tournament.Screens.Ladder.Components;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Ladder
 {
@@ -116,8 +115,8 @@ namespace osu.Game.Tournament.Screens.Ladder
                 UpdateLayout();
         }
 
-        private Color4 normalPathColour;
-        private Color4 losersPathColour;
+        private Colour4 normalPathColour;
+        private Colour4 losersPathColour;
 
         protected virtual bool DrawLoserPaths => false;
 

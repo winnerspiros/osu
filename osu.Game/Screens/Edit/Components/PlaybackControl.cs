@@ -20,8 +20,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Components
 {
@@ -202,8 +201,8 @@ namespace osu.Game.Screens.Edit.Components
                     };
                 }
 
-                private Color4 hoveredColour;
-                private Color4 normalColour;
+                private Colour4 hoveredColour;
+                private Colour4 normalColour;
 
                 [BackgroundDependencyLoader]
                 private void load(OverlayColourProvider colourProvider)

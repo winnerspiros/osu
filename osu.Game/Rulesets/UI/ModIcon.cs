@@ -17,7 +17,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Mods;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -73,7 +72,7 @@ namespace osu.Game.Rulesets.UI
         [Resolved]
         private OverlayColourProvider? colourProvider { get; set; }
 
-        private Color4 backgroundColour;
+        private Colour4 backgroundColour;
 
         private Sprite extendedBackground = null!;
 

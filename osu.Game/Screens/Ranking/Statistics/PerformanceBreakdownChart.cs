@@ -19,7 +19,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Scoring;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking.Statistics
 {
@@ -244,7 +243,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                         CornerRadius = 2.5f,
                         Masking = true,
                         Height = 5,
-                        BackgroundColour = Color4.White.Opacity(0.5f),
+                        BackgroundColour = Colour4.White.Opacity(0.5f),
                         AccentColour = Color4Extensions.FromHex("#66FFCC"),
                         Length = percentage
                     }

@@ -11,8 +11,6 @@ using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Android.Input
 {

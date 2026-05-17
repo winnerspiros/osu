@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Screens.OnlinePlay.Matchmaking;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {
@@ -27,7 +26,7 @@ namespace osu.Game.Tests.Visual.RankedPlay
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Gray,
+                        Colour = Colour4.Gray,
                     },
                     ornament = new TestOrnament(),
                 }

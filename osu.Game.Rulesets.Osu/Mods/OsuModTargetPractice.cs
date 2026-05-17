@@ -26,8 +26,6 @@ using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.Osu.Utils;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -151,7 +149,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             }
 
             using (circle.BeginAbsoluteSequence(startTime - controlPointInfo.TimingPointAt(startTime).BeatLength - undim_duration))
-                circle.FadeColour(Color4.White, undim_duration);
+                circle.FadeColour(Colour4.White, undim_duration);
         }
 
         #endregion

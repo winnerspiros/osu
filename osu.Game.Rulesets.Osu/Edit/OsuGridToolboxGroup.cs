@@ -18,8 +18,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.RadioButtons;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
@@ -107,7 +105,7 @@ namespace osu.Game.Rulesets.Osu.Edit
             if (!GridLinesRotation.Disabled)
             {
                 float period = GridLinesRotation.MaxValue - GridLinesRotation.MinValue;
-                GridLinesRotation.Value = normalizeRotation(MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X)), period);
+                GridLinesRotation.Value = normalizeRotation(float.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X)), period);
             }
 
             // Divide the distance so that there is a good density of grid lines.
@@ -311,7 +309,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                         Origin = Anchor.Centre,
                         RelativePositionAxes = Axes.Y,
                         Y = 0.48f,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Size = new Vector2(size - 7),
                         Blending = BlendingParameters.None,
                     });

@@ -33,7 +33,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens;
 using osu.Game.Screens.Play;
-using osuTK;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Threading;

@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Comments.Buttons;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

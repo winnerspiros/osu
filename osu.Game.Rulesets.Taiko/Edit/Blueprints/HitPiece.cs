@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
 {
@@ -18,7 +17,7 @@ namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
             {
                 Masking = true,
                 BorderThickness = 10,
-                BorderColour = Color4.Yellow,
+                BorderColour = Colour4.Yellow,
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {

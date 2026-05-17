@@ -22,7 +22,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.MatchTypes.TeamVersus;
 using osu.Game.Online.Spectator;
 using osu.Game.Rulesets.Scoring;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.Leaderboards
 {
@@ -167,7 +166,7 @@ namespace osu.Game.Screens.Play.Leaderboards
             }
         }
 
-        private Color4 getTeamColour(int team)
+        private Colour4 getTeamColour(int team)
         {
             switch (team)
             {

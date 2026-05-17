@@ -13,8 +13,6 @@ using osu.Game.Online.API;
 using osu.Game.Overlays.Toolbar;
 using osu.Game.Scoring;
 using osu.Game.Users;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Menus
 {
@@ -39,7 +37,7 @@ namespace osu.Game.Tests.Visual.Menus
                     {
                         new Box
                         {
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                         },
                         new FillFlowContainer
@@ -53,14 +51,14 @@ namespace osu.Game.Tests.Visual.Menus
                             {
                                 new Box
                                 {
-                                    Colour = Color4.DarkRed,
+                                    Colour = Colour4.DarkRed,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 2,
                                 },
                                 new ToolbarUserButton(),
                                 new Box
                                 {
-                                    Colour = Color4.DarkRed,
+                                    Colour = Colour4.DarkRed,
                                     RelativeSizeAxes = Axes.Y,
                                     Width = 2,
                                 },

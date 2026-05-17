@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -31,7 +30,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.3f,
                     Blending = BlendingParameters.Additive,
-                    Colour = Color4.White
+                    Colour = Colour4.White
                 },
             };
 

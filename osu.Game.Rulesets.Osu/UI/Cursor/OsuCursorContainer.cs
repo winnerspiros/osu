@@ -14,7 +14,6 @@ using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.UI;
 using osu.Game.Skinning;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.UI.Cursor
 {

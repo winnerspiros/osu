@@ -5,8 +5,6 @@ using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Rendering.Vertices;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
 
 namespace osu.Game.Graphics.OpenGL.Vertices
 {
@@ -17,7 +15,7 @@ namespace osu.Game.Graphics.OpenGL.Vertices
         public Vector2 Position;
 
         [VertexMember(4, VertexAttribPointerType.Float)]
-        public Color4 Colour;
+        public Colour4 Colour;
 
         public bool Equals(PositionAndColourVertex other)
             => Position.Equals(other.Position)

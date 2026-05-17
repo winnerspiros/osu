@@ -9,7 +9,6 @@ using osu.Game.Beatmaps.Formats;
 using osu.Game.IO;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {

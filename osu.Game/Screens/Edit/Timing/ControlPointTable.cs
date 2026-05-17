@@ -22,7 +22,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Timing.RowAttributes;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Timing
 {
@@ -229,7 +228,7 @@ namespace osu.Game.Screens.Edit.Timing
                                 Blending = BlendingParameters.Additive,
                                 X = 5,
                                 Width = 150,
-                                Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.1f), Color4.White.Opacity(0))
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.1f), Colour4.White.Opacity(0))
                             },
                         }
                     },

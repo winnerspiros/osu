@@ -20,7 +20,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Comments
 {
@@ -28,7 +27,7 @@ namespace osu.Game.Overlays.Comments
     {
         private const int duration = 200;
 
-        public Color4 AccentColour { get; set; }
+        public Colour4 AccentColour { get; set; }
 
         protected override IEnumerable<Drawable> EffectTargets => [];
 
@@ -67,7 +66,7 @@ namespace osu.Game.Overlays.Comments
         private void load(OsuColour colours)
         {
             AccentColour = borderContainer.BorderColour = sideNumber.Colour = colours.GreenLight;
-            hoverLayer.Colour = Color4.Black.Opacity(0.5f);
+            hoverLayer.Colour = Colour4.Black.Opacity(0.5f);
 
             bool ownComment = api.LocalUser.Value.Id == comment.UserId;
 

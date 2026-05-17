@@ -20,7 +20,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
 using NotificationsStrings = osu.Game.Localisation.NotificationsStrings;
 
 namespace osu.Game.Overlays
@@ -88,7 +87,7 @@ namespace osu.Game.Overlays
                     Masking = true,
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0),
+                        Colour = Colour4.Black.Opacity(0),
                         Type = EdgeEffectType.Shadow,
                         Radius = 10,
                         Hollow = true,

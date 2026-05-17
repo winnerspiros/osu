@@ -13,7 +13,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Components;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Match.Components
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Screens.OnlinePlay.Match.Components
                     hover = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Alpha = 0,
                     },
                     new OsuSpriteText

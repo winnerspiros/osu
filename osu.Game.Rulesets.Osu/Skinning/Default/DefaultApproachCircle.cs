@@ -8,8 +8,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -18,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
         [Resolved]
         private DrawableHitObject drawableObject { get; set; } = null!;
 
-        private IBindable<Color4> accentColour = null!;
+        private IBindable<Colour4> accentColour = null!;
 
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)

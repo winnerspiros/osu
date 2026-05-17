@@ -30,9 +30,7 @@ using osu.Game.Scoring;
 using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Mods;
 using osu.Game.Tests.Visual.Spectator;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -96,7 +94,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                                             {
                                                 new Box
                                                 {
-                                                    Colour = Color4.Brown,
+                                                    Colour = Colour4.Brown,
                                                     RelativeSizeAxes = Axes.Both,
                                                 },
                                                 new OsuSpriteText
@@ -127,7 +125,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                                             {
                                                 new Box
                                                 {
-                                                    Colour = Color4.DarkBlue,
+                                                    Colour = Colour4.DarkBlue,
                                                     RelativeSizeAxes = Axes.Both,
                                                 },
                                                 new OsuSpriteText
@@ -274,7 +272,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     box = new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                     },
                 };
@@ -291,13 +289,13 @@ namespace osu.Game.Tests.Visual.Gameplay
                 if (e.Repeat)
                     return false;
 
-                box.Colour = Color4.White;
+                box.Colour = Colour4.White;
                 return true;
             }
 
             public void OnReleased(KeyBindingReleaseEvent<TestAction> e)
             {
-                box.Colour = Color4.Black;
+                box.Colour = Colour4.Black;
             }
         }
 

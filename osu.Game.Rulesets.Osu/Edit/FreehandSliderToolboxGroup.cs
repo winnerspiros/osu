@@ -8,7 +8,6 @@ using osu.Framework.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Edit;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {

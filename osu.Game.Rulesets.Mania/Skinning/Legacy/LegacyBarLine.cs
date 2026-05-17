@@ -6,9 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Skinning;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -21,7 +19,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 
             RelativeSizeAxes = Axes.X;
             Height = 1.2f * skinHeight;
-            Colour = skin.GetManiaSkinConfig<Color4>(LegacyManiaSkinConfigurationLookups.BarLineColour)?.Value ?? Color4.White;
+            Colour = skin.GetManiaSkinConfig<Colour4>(LegacyManiaSkinConfigurationLookups.BarLineColour)?.Value ?? Colour4.White;
 
             // Avoid flickering due to no anti-aliasing of boxes by default.
             var edgeSmoothness = new Vector2(0.3f);

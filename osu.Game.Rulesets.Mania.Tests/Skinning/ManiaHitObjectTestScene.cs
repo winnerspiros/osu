@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {
@@ -41,7 +40,7 @@ namespace osu.Game.Rulesets.Mania.Tests.Skinning
                             c.Add(CreateHitObject().With(h =>
                             {
                                 h.HitObject.StartTime = Time.Current + 5000;
-                                h.AccentColour.Value = Color4.Orange;
+                                h.AccentColour.Value = Colour4.Orange;
                             }));
                         })
                     },

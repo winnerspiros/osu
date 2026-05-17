@@ -24,7 +24,6 @@ using osu.Game.Online.Chat;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Select
 {
@@ -62,7 +61,7 @@ namespace osu.Game.Screens.Select
             private CancellationTokenSource? cancellationSource;
 
             private float lastDifficultyTextMaxWidth = float.NaN;
-            private Color4 lastAccentColour;
+            private Colour4 lastAccentColour;
 
             public DifficultyDisplay()
             {
@@ -315,7 +314,7 @@ namespace osu.Game.Screens.Select
                 }
 
                 // Use difficulty colour until it gets too dark to be visible against dark backgrounds.
-                Color4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? starRatingDisplay.DisplayedDifficultyTextColour : starRatingDisplay.DisplayedDifficultyColour;
+                Colour4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? starRatingDisplay.DisplayedDifficultyTextColour : starRatingDisplay.DisplayedDifficultyColour;
 
                 if (col != lastAccentColour)
                 {

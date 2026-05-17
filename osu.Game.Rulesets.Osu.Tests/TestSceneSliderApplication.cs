@@ -17,8 +17,6 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Legacy;
 using osu.Game.Skinning;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -90,11 +88,11 @@ namespace osu.Game.Rulesets.Osu.Tests
                 };
             });
 
-            AddStep("set accent white", () => dho.AccentColour.Value = Color4.White);
-            AddAssert("ball is white", () => dho.ChildrenOfType<LegacySliderBall>().Single().BallColour == Color4.White);
+            AddStep("set accent white", () => dho.AccentColour.Value = Colour4.White);
+            AddAssert("ball is white", () => dho.ChildrenOfType<LegacySliderBall>().Single().BallColour == Colour4.White);
 
-            AddStep("set accent red", () => dho.AccentColour.Value = Color4.Red);
-            AddAssert("ball is red", () => dho.ChildrenOfType<LegacySliderBall>().Single().BallColour == Color4.Red);
+            AddStep("set accent red", () => dho.AccentColour.Value = Colour4.Red);
+            AddAssert("ball is red", () => dho.ChildrenOfType<LegacySliderBall>().Single().BallColour == Colour4.Red);
         }
 
         [Test]

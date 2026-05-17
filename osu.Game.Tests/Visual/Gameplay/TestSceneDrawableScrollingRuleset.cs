@@ -28,8 +28,6 @@ using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -377,7 +375,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                                     Origin = Anchor.Centre,
                                     RelativeSizeAxes = Axes.X,
                                     Height = 2,
-                                    Colour = Color4.Green
+                                    Colour = Colour4.Green
                                 },
                                 HitObjectContainer
                             }
@@ -451,14 +449,14 @@ namespace osu.Game.Tests.Visual.Gameplay
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.LightPink
+                        Colour = Colour4.LightPink
                     },
                     new Box
                     {
                         Origin = Anchor.CentreLeft,
                         RelativeSizeAxes = Axes.X,
                         Height = 2,
-                        Colour = Color4.Red
+                        Colour = Colour4.Red
                     }
                 });
             }
@@ -471,8 +469,8 @@ namespace osu.Game.Tests.Visual.Gameplay
             public DrawableTestPooledHitObject()
                 : base(null)
             {
-                InternalChildren[0].Colour = Color4.LightSkyBlue;
-                InternalChildren[1].Colour = Color4.Blue;
+                InternalChildren[0].Colour = Colour4.LightSkyBlue;
+                InternalChildren[1].Colour = Colour4.Blue;
             }
         }
 
@@ -483,8 +481,8 @@ namespace osu.Game.Tests.Visual.Gameplay
             public DrawableTestParentHitObject([CanBeNull] TestHitObject hitObject)
                 : base(hitObject)
             {
-                InternalChildren[0].Colour = Color4.LightYellow;
-                InternalChildren[1].Colour = Color4.Yellow;
+                InternalChildren[0].Colour = Colour4.LightYellow;
+                InternalChildren[1].Colour = Colour4.Yellow;
 
                 AddInternal(container = new Container<DrawableHitObject>
                 {
@@ -505,8 +503,8 @@ namespace osu.Game.Tests.Visual.Gameplay
             public DrawableTestPooledParentHitObject()
                 : base(null)
             {
-                InternalChildren[0].Colour = Color4.LightSeaGreen;
-                InternalChildren[1].Colour = Color4.Green;
+                InternalChildren[0].Colour = Colour4.LightSeaGreen;
+                InternalChildren[1].Colour = Colour4.Green;
             }
         }
 

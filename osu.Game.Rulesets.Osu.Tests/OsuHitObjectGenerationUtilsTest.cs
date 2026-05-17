@@ -10,7 +10,6 @@ using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.Osu.Utils;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

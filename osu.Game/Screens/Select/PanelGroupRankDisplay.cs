@@ -19,7 +19,6 @@ using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
 using System.Numerics;
-using osuTK.Graphics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -115,7 +114,7 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black.Opacity(0.7f),
+                            Colour = Colour4.Black.Opacity(0.7f),
                         },
                         countText = new OsuSpriteText
                         {
@@ -136,7 +135,7 @@ namespace osu.Game.Screens.Select
             Expanded.BindValueChanged(_ => onExpanded(), true);
         }
 
-        private Color4 rankColour;
+        private Colour4 rankColour;
 
         protected override void PrepareForUse()
         {
@@ -174,7 +173,7 @@ namespace osu.Game.Screens.Select
                     break;
 
                 default:
-                    starRatingText.Colour = Color4.White;
+                    starRatingText.Colour = Colour4.White;
                     iconContainer.Colour = colourProvider.Background5;
                     break;
             }

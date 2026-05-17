@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.Cursor
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Graphics.Cursor
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Shadow,
-                    Colour = Color4.Black.Opacity(40),
+                    Colour = Colour4.Black.Opacity(40),
                     Radius = 5,
                 };
                 Children = new Drawable[]

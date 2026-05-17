@@ -13,7 +13,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using Vector2 = System.Numerics.Vector2;
 using Vector4 = System.Numerics.Vector4;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
 {
@@ -71,7 +70,7 @@ namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
                 field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        } = Color4.White;
+        } = Colour4.White;
 
         public Colour4 GlowColour
         {
@@ -84,7 +83,7 @@ namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
                 field = value;
                 Invalidate(Invalidation.DrawNode);
             }
-        } = Color4.White.Opacity(0);
+        } = Colour4.White.Opacity(0);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -109,8 +108,8 @@ namespace osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts
             private Vector2 progressRange;
             private float pathRadius;
             private float glowPortion;
-            private Color4 barColour;
-            private Color4 glowColour;
+            private Colour4 barColour;
+            private Colour4 glowColour;
 
             public override void ApplyState()
             {

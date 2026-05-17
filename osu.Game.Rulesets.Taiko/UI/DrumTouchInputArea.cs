@@ -14,9 +14,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Taiko.Configuration;
-using osuTK;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.UI
 {
@@ -303,7 +301,7 @@ namespace osu.Game.Rulesets.Taiko.UI
                 overlay.Colour = colour;
             }
 
-            private Color4 getColourFromTaikoAction(TaikoAction handledAction)
+            private Colour4 getColourFromTaikoAction(TaikoAction handledAction)
             {
                 switch (handledAction)
                 {

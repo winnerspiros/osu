@@ -24,7 +24,7 @@ using osu.Game.Screens.Edit.GameplayTest;
 using osu.Game.Screens.Play;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Beatmaps.IO;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Editing
 {

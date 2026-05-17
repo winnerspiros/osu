@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Bindables;
 using osu.Game.Audio;
 using osu.Game.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {
@@ -22,7 +21,7 @@ namespace osu.Game.Beatmaps.ControlPoints
             SampleVolumeBindable = { Disabled = true }
         };
 
-        public override Color4 GetRepresentingColour(OsuColour colours) => colours.Pink;
+        public override Colour4 GetRepresentingColour(OsuColour colours) => colours.Pink;
 
         /// <summary>
         /// The default sample bank at this control point.

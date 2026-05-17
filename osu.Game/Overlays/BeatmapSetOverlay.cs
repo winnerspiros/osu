@@ -15,7 +15,6 @@ using osu.Game.Overlays.BeatmapSet;
 using osu.Game.Overlays.BeatmapSet.Scores;
 using osu.Game.Overlays.Comments;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -79,7 +78,7 @@ namespace osu.Game.Overlays
 
         protected override BeatmapSetHeader CreateHeader() => new BeatmapSetHeader();
 
-        protected override Color4 BackgroundColour => ColourProvider.Background6;
+        protected override Colour4 BackgroundColour => ColourProvider.Background6;
 
         protected override void PopOutComplete()
         {

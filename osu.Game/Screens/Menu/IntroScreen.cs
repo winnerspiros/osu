@@ -30,7 +30,6 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.Backgrounds;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 using Realms;
 
 namespace osu.Game.Screens.Menu
@@ -94,7 +93,7 @@ namespace osu.Game.Screens.Menu
 
         protected override BackgroundScreen CreateBackground() => new BackgroundScreenDefault
         {
-            Colour = Color4.Black
+            Colour = Colour4.Black
         };
 
         public override bool? AllowGlobalTrackControl => false;
@@ -239,7 +238,7 @@ namespace osu.Game.Screens.Menu
         {
             this.FadeIn(300);
 
-            ApplyToBackground(b => b.FadeColour(Color4.Black, 100));
+            ApplyToBackground(b => b.FadeColour(Colour4.Black, 100));
 
             double fadeOutTime = exit_delay;
 
@@ -287,7 +286,7 @@ namespace osu.Game.Screens.Menu
 
         protected void FadeInBackground(float duration = 0)
         {
-            ApplyToBackground(b => b.FadeColour(Color4.White, duration));
+            ApplyToBackground(b => b.FadeColour(Colour4.White, duration));
             backgroundFaded = true;
         }
 
@@ -322,7 +321,7 @@ namespace osu.Game.Screens.Menu
         {
             base.LogoArriving(logo, resuming);
 
-            logo.Colour = Color4.White;
+            logo.Colour = Colour4.White;
             logo.Triangles = false;
             logo.Ripple = false;
 

@@ -15,7 +15,6 @@ using osu.Game.Overlays.Mods;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

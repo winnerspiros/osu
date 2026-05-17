@@ -26,7 +26,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Drawables
 {
@@ -57,7 +56,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// <summary>
         /// The colour used for various elements of this DrawableHitObject.
         /// </summary>
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>(Color4.Gray);
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>(Colour4.Gray);
 
         protected PausableSkinnableSound Samples { get; private set; }
 
@@ -590,7 +589,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         {
             if (!(HitObject is IHasComboInformation combo)) return;
 
-            Color4 colour = combo.GetComboColour(CurrentSkin);
+            Colour4 colour = combo.GetComboColour(CurrentSkin);
 
             // Normalise the combo colour to the given brightness level.
             if (comboColourBrightness.Value != 0)

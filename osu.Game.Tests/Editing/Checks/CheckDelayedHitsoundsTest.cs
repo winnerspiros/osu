@@ -14,7 +14,6 @@ using osu.Game.Rulesets.Edit.Checks;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Resources;
-using osuTK.Audio;
 
 namespace osu.Game.Tests.Editing.Checks
 {
@@ -43,7 +42,7 @@ namespace osu.Game.Tests.Editing.Checks
             };
 
             if (!Bass.Init(0) && Bass.LastError != Errors.Already)
-                throw new AudioException("Could not initialize Bass.");
+                throw new InvalidOperationException("Could not initialize Bass.");
         }
 
         [Test]

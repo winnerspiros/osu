@@ -20,7 +20,6 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -203,8 +202,8 @@ namespace osu.Game.Screens.Play.HUD
             for (int i = 0; i < spectatorsFlow.Count; i++)
             {
                 spectatorsFlow[i].Colour = i < max_spectators_displayed - 1
-                    ? Color4.White
-                    : ColourInfo.GradientVertical(Color4.White, Color4.White.Opacity(0));
+                    ? Colour4.White
+                    : ColourInfo.GradientVertical(Colour4.White, Colour4.White.Opacity(0));
             }
         }
 

@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Transforms;
 using osu.Game.Graphics.Backgrounds;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 {
@@ -44,7 +43,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
                                 RelativeSizeAxes = Axes.Both,
                                 RelativePositionAxes = Axes.X,
                                 ClampAxes = Axes.None,
-                                Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.White.Opacity(0)),
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0)),
                             },
                             bottomLayer = new Box
                             {

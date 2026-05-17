@@ -13,7 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Overlays.Chat;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -21,7 +20,7 @@ namespace osu.Game.Tests.Visual.Online
     public partial class TestSceneChatLink : OsuTestScene
     {
         private readonly TestChatLineContainer textContainer;
-        private Color4 linkColour;
+        private Colour4 linkColour;
 
         public TestSceneChatLink()
         {
@@ -118,7 +117,7 @@ namespace osu.Game.Tests.Visual.Online
             {
                 bool hasBackground = !string.IsNullOrEmpty(newLine.Message.Sender.Colour);
 
-                Color4 textColour = isAction && hasBackground ? Color4Extensions.FromHex(newLine.Message.Sender.Colour) : Color4.White;
+                Colour4 textColour = isAction && hasBackground ? Color4Extensions.FromHex(newLine.Message.Sender.Colour) : Colour4.White;
 
                 var linkCompilers = newLine.DrawableContentFlow.Where(d => d is DrawableLinkCompiler).ToList();
                 var linkSprites = linkCompilers.SelectMany(comp => ((DrawableLinkCompiler)comp).Parts);

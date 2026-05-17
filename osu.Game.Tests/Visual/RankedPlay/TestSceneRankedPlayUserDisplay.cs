@@ -10,7 +10,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Tests.Visual.Multiplayer;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

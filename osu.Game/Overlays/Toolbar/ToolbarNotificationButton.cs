@@ -10,7 +10,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Input.Bindings;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -70,7 +69,7 @@ namespace osu.Game.Overlays.Toolbar
 
                     if (value > field)
                     {
-                        circle.FlashColour(Color4.White, 600, Easing.OutQuint);
+                        circle.FlashColour(Colour4.White, 600, Easing.OutQuint);
                         this.ScaleTo(1.1f).Then().ScaleTo(1, 600, Easing.OutElastic);
                     }
 
@@ -88,7 +87,7 @@ namespace osu.Game.Overlays.Toolbar
                     circle = new Circle
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Red
+                        Colour = Colour4.Red
                     },
                     countText = new OsuSpriteText
                     {
@@ -97,7 +96,7 @@ namespace osu.Game.Overlays.Toolbar
                         Y = -1,
                         Font = OsuFont.GetFont(size: 14, weight: FontWeight.Bold),
                         Padding = new MarginPadding(5),
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         UseFullGlyphHeight = true,
                     }
                 };

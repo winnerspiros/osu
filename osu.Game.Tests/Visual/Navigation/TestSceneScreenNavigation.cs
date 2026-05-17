@@ -55,8 +55,6 @@ using osu.Game.Screens.Select;
 using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Tests.Resources;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Input;
 using CollectionDropdown = osu.Game.Screens.Select.CollectionDropdown;
 
 namespace osu.Game.Tests.Visual.Navigation

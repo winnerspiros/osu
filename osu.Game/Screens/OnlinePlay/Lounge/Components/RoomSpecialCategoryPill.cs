@@ -7,7 +7,6 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Online.Rooms;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 {
@@ -30,7 +29,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
             base.LoadComplete();
 
             Pill.Background.Alpha = 1;
-            TextFlow.Colour = Color4.Black;
+            TextFlow.Colour = Colour4.Black;
 
             room.PropertyChanged += onRoomPropertyChanged;
             updateRoomCategory();

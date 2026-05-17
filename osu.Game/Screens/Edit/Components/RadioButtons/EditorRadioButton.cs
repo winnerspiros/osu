@@ -13,7 +13,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Components.RadioButtons
 {
@@ -26,10 +25,10 @@ namespace osu.Game.Screens.Edit.Components.RadioButtons
 
         public readonly RadioButton Button;
 
-        private Color4 defaultBackgroundColour;
-        private Color4 defaultIconColour;
-        private Color4 selectedBackgroundColour;
-        private Color4 selectedIconColour;
+        private Colour4 defaultBackgroundColour;
+        private Colour4 defaultIconColour;
+        private Colour4 selectedBackgroundColour;
+        private Colour4 selectedIconColour;
 
         private Drawable icon = null!;
 

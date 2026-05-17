@@ -17,7 +17,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Skinning;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.SkinEditor
 {
@@ -170,8 +169,8 @@ namespace osu.Game.Overlays.SkinEditor
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
-            Color4 anchorColour = colours.Red1;
-            Color4 originColour = colours.Red3;
+            Colour4 anchorColour = colours.Red1;
+            Colour4 originColour = colours.Red3;
 
             InternalChildren = new[]
             {

@@ -17,7 +17,7 @@ using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Edit;
 using Vector2 = System.Numerics.Vector2;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {

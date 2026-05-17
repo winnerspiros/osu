@@ -24,7 +24,6 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit.Components.Timelines.Summary.Parts;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         {
             AddInternal(new SelectableAreaBackground
             {
-                Colour = Color4.Black,
+                Colour = Colour4.Black,
                 Depth = float.MaxValue,
                 Blending = BlendingParameters.Additive,
             });
@@ -358,11 +357,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                         RelativeSizeAxes = Axes.Y,
                         Width = 200,
                         Origin = Anchor.TopRight,
-                        Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White),
+                        Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0), Colour4.White),
                     },
                     new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         RelativeSizeAxes = Axes.Both,
                     }
                 });
@@ -376,7 +375,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                this.FadeColour(Color4.Black, 600, Easing.OutQuint);
+                this.FadeColour(Colour4.Black, 600, Easing.OutQuint);
                 base.OnHoverLost(e);
             }
         }

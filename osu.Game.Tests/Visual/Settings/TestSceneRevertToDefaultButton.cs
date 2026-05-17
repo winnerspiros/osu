@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Game.Overlays;
 using osu.Game.Tests.Visual.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Settings
 {

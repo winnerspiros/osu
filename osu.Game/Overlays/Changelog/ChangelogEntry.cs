@@ -15,7 +15,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests.Responses;
 using System.Numerics;
-using osuTK.Graphics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 
 namespace osu.Game.Overlays.Changelog
@@ -60,7 +59,7 @@ namespace osu.Game.Overlays.Changelog
 
         private Drawable createTitle()
         {
-            var entryColour = entry.Major ? colours.YellowLight : Color4.White;
+            var entryColour = entry.Major ? colours.YellowLight : Colour4.White;
 
             LinkFlowContainer title;
 
@@ -114,7 +113,7 @@ namespace osu.Game.Overlays.Changelog
             return titleContainer;
         }
 
-        private void addRepositoryReference(LinkFlowContainer title, Color4 entryColour)
+        private void addRepositoryReference(LinkFlowContainer title, Colour4 entryColour)
         {
             Debug.Assert(!string.IsNullOrEmpty(entry.Repository));
             Debug.Assert(!string.IsNullOrEmpty(entry.GithubUrl));
@@ -139,7 +138,7 @@ namespace osu.Game.Overlays.Changelog
             });
         }
 
-        private void addGithubAuthorReference(LinkFlowContainer title, Color4 entryColour)
+        private void addGithubAuthorReference(LinkFlowContainer title, Colour4 entryColour)
         {
             title.AddText("by ", t =>
             {

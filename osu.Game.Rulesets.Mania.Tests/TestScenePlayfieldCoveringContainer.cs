@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
@@ -27,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Tests
                 Child = cover = new PlayfieldCoveringWrapper(new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Orange
+                    Colour = Colour4.Orange
                 })
                 {
                     RelativeSizeAxes = Axes.Both,

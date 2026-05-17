@@ -17,7 +17,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Comments
 {
@@ -228,7 +227,7 @@ namespace osu.Game.Overlays.Comments
         {
             protected override float LeftRightPadding => side_padding;
 
-            protected override Color4 SelectionColour => Color4.Gray;
+            protected override Colour4 SelectionColour => Colour4.Gray;
 
             private OsuSpriteText placeholder = null!;
 

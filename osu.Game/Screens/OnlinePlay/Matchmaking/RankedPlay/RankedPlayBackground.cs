@@ -9,14 +9,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.Backgrounds;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public partial class RankedPlayBackground : CompositeDrawable
     {
-        public Color4 GradientBottom = Color4Extensions.FromHex("#15061e");
-        public Color4 GradientTop = Color4Extensions.FromHex("#240d36");
+        public Colour4 GradientBottom = Color4Extensions.FromHex("#15061e");
+        public Colour4 GradientTop = Color4Extensions.FromHex("#240d36");
 
         private BufferedContainer triangles1Buffered = null!;
         private Box bgBox = null!;
@@ -45,8 +44,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             ClampAxes = Axes.Y,
                             Velocity = 0.5f,
                             TriangleScale = 4,
-                            ColourLight = Color4.White,
-                            ColourDark = Color4.White,
+                            ColourLight = Colour4.White,
+                            ColourDark = Colour4.White,
                             RelativeSizeAxes = Axes.Both,
                         },
                     }
@@ -63,7 +62,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             ];
         }
 
-        public void FadeColours(Color4 top, Color4 bottom)
+        public void FadeColours(Colour4 top, Colour4 bottom)
         {
             this.TransformTo(nameof(GradientTop), top, 1500, Easing.OutQuint);
             this.TransformTo(nameof(GradientBottom), bottom, 1500, Easing.OutQuint);

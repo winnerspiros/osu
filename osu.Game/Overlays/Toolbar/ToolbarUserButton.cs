@@ -17,7 +17,6 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -62,7 +61,7 @@ namespace osu.Game.Overlays.Toolbar
                     {
                         Type = EdgeEffectType.Shadow,
                         Radius = 4,
-                        Colour = Color4.Black.Opacity(0.1f),
+                        Colour = Colour4.Black.Opacity(0.1f),
                     },
                     Children = new Drawable[]
                     {

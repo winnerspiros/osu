@@ -15,8 +15,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using System.Numerics;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
 {
@@ -96,7 +95,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
                                 {
                                     AlwaysPresent = true,
                                     Alpha = 0,
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     RelativeSizeAxes = Axes.Both,
                                 },
                             }

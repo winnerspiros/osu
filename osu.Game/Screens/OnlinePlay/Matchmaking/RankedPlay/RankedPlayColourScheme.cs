@@ -2,17 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.Color4Extensions;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
     public class RankedPlayColourScheme
     {
-        public required Color4 Primary;
-        public required Color4 PrimaryDarker;
-        public required Color4 PrimaryDarkest;
-        public required Color4 Surface;
-        public required Color4 SurfaceBorder;
+        public required Colour4 Primary;
+        public required Colour4 PrimaryDarker;
+        public required Colour4 PrimaryDarkest;
+        public required Colour4 Surface;
+        public required Colour4 SurfaceBorder;
 
         public static readonly RankedPlayColourScheme BLUE = new RankedPlayColourScheme
         {

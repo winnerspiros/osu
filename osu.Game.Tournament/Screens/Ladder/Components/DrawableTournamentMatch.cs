@@ -13,9 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Editors;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Screens.Ladder.Components
 {
@@ -65,7 +63,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
                         RelativeSizeAxes = Axes.Both,
                         Alpha = 0,
                         Masking = true,
-                        BorderColour = Color4.YellowGreen,
+                        BorderColour = Colour4.YellowGreen,
                         BorderThickness = border_thickness,
                         Child = new Box
                         {
@@ -85,7 +83,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
                     {
                         RelativeSizeAxes = Axes.Both,
                         Alpha = 0,
-                        BorderColour = Color4.White,
+                        BorderColour = Colour4.White,
                         BorderThickness = border_thickness,
                         Masking = true,
                         Child = new Box

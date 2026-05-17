@@ -7,8 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -108,7 +107,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             public GridContent()
             {
                 RelativeSizeAxes = Axes.Both;
-                Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1f);
+                Colour = new Colour4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1f);
             }
         }
     }

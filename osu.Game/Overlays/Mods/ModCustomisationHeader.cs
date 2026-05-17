@@ -14,7 +14,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using System.Numerics;
-using osuTK.Graphics;
 using static osu.Game.Overlays.Mods.ModCustomisationPanel;
 
 namespace osu.Game.Overlays.Mods
@@ -61,7 +60,7 @@ namespace osu.Game.Overlays.Mods
                 backgroundFlash = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White.Opacity(0.4f),
+                    Colour = Colour4.White.Opacity(0.4f),
                     Blending = BlendingParameters.Additive,
                     Alpha = 0,
                 },

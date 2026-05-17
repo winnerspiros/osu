@@ -12,7 +12,6 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -20,8 +19,8 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
-        private Color4 brightColour;
-        private Color4 dimColour;
+        private Colour4 brightColour;
+        private Colour4 dimColour;
 
         private Box background = null!;
         private Box backgroundOverlay = null!;
@@ -29,7 +28,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
         [Resolved]
         private Column column { get; set; } = null!;
 
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         public ArgonColumnBackground()
         {

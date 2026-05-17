@@ -9,8 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Overlays;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Visual.UserInterface;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {
@@ -49,7 +47,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black.Opacity(0.5f),
+                    Colour = Colour4.Black.Opacity(0.5f),
                 },
                 new FilterControl.DifficultyRangeSlider
                 {

@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 
 namespace osu.Game.Graphics.UserInterface
@@ -29,9 +28,9 @@ namespace osu.Game.Graphics.UserInterface
 
         private readonly Container mainContent;
 
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => accentColour;
             set
@@ -43,7 +42,7 @@ namespace osu.Game.Graphics.UserInterface
 
         private Colour4 backgroundColour;
 
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
             get => backgroundColour;
             set

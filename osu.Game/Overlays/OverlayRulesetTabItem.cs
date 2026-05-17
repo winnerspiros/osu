@@ -14,15 +14,14 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets;
 using System.Numerics;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
     public partial class OverlayRulesetTabItem : TabItem<RulesetInfo>, IHasTooltip
     {
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
-        protected virtual Color4 AccentColour
+        protected virtual Colour4 AccentColour
         {
             get => accentColour;
             set
@@ -107,6 +106,6 @@ namespace osu.Game.Overlays
             AccentColour = Enabled.Value ? getActiveColour() : colourProvider.Foreground1;
         }
 
-        private Color4 getActiveColour() => IsHovered || Active.Value ? Color4.White : colourProvider.Highlight1;
+        private Colour4 getActiveColour() => IsHovered || Active.Value ? Colour4.White : colourProvider.Highlight1;
     }
 }

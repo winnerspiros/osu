@@ -12,8 +12,6 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -57,7 +55,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = new Color4(255, 0, 0, 160),
+                                Colour = new Colour4(255, 0, 0, 160),
                             },
                             new OsuSpriteText
                             {
@@ -78,7 +76,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                                     new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = new Color4(0, 0, 255, 160),
+                                        Colour = new Colour4(0, 0, 255, 160),
                                     },
                                     new OsuSpriteText
                                     {
@@ -173,10 +171,12 @@ namespace osu.Game.Tests.Visual.UserInterface
 
         private bool uprightAspectMaintainingContainerStateIsValid(Container parent, UprightAspectMaintainingContainer child)
         {
-            Matrix3 parentMatrix = parent.DrawInfo.Matrix;
-            Matrix3 childMatrix = child.DrawInfo.Matrix;
-            Vector3 childScale = childMatrix.ExtractScale();
-            Vector3 parentScale = parentMatrix.ExtractScale();
+            System.Numerics.Matrix3x2 parentMatrix = parent.DrawInfo.Matrix;
+            System.Numerics.Matrix3x2 childMatrix = child.DrawInfo.Matrix;
+            float childScaleX = MathF.Sqrt(childMatrix.M11 * childMatrix.M11 + childMatrix.M12 * childMatrix.M12);
+            float childScaleY = MathF.Sqrt(childMatrix.M21 * childMatrix.M21 + childMatrix.M22 * childMatrix.M22);
+            float parentScaleX = MathF.Sqrt(parentMatrix.M11 * parentMatrix.M11 + parentMatrix.M12 * parentMatrix.M12);
+            float parentScaleY = MathF.Sqrt(parentMatrix.M21 * parentMatrix.M21 + parentMatrix.M22 * parentMatrix.M22);
 
             // Orientation check
             if (!(isNearlyZero(MathF.Abs(childMatrix.M21)) && isNearlyZero(MathF.Abs(childMatrix.M12))))
@@ -187,7 +187,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 return false;
 
             // Aspect ratio check
-            if (!isNearlyZero(childScale.X - childScale.Y))
+            if (!isNearlyZero(childScaleX - childScaleY))
                 return false;
 
             // ScalingMode check
@@ -200,13 +200,13 @@ namespace osu.Game.Tests.Visual.UserInterface
                     break;
 
                 case ScaleMode.Vertical:
-                    if (!(checkScaling(child.ScalingFactor, parentScale.Y, childScale.Y)))
+                    if (!(checkScaling(child.ScalingFactor, parentScaleY, childScaleY)))
                         return false;
 
                     break;
 
                 case ScaleMode.Horizontal:
-                    if (!(checkScaling(child.ScalingFactor, parentScale.X, childScale.X)))
+                    if (!(checkScaling(child.ScalingFactor, parentScaleX, childScaleX)))
                         return false;
 
                     break;
