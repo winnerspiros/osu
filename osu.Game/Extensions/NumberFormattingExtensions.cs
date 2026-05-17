@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Numerics;
 using osu.Game.Utils;
 
 namespace osu.Game.Extensions

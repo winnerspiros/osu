@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Numerics;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 

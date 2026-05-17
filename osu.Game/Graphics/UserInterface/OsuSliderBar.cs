@@ -9,6 +9,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Game.Extensions;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {

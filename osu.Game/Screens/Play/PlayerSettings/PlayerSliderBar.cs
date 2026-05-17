@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Settings;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.PlayerSettings
 {
