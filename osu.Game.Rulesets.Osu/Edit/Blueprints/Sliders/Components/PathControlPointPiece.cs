@@ -18,6 +18,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 using osuTK.Input;
 

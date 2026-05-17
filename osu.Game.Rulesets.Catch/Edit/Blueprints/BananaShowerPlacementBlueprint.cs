@@ -7,7 +7,7 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Catch.Edit.Blueprints.Components;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Edit;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints

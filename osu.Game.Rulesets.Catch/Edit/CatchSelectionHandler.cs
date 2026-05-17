@@ -12,7 +12,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 using Direction = osu.Framework.Graphics.Direction;
 

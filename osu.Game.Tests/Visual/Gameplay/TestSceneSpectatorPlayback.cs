@@ -31,6 +31,7 @@ using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Mods;
 using osu.Game.Tests.Visual.Spectator;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Graphics;
 using osu.Game.Skinning;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy

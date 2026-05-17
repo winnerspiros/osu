@@ -16,7 +16,7 @@ using osu.Game.Input.Bindings;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {

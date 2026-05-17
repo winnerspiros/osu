@@ -19,6 +19,7 @@ using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy

@@ -22,6 +22,7 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.UI

@@ -15,6 +15,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Taiko.Configuration;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.UI

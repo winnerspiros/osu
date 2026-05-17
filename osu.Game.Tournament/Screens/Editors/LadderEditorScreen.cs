@@ -20,6 +20,7 @@ using osu.Game.Tournament.Screens.Editors.Components;
 using osu.Game.Tournament.Screens.Ladder;
 using osu.Game.Tournament.Screens.Ladder.Components;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Editors

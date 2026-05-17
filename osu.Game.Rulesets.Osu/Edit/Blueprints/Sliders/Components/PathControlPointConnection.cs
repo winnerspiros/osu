@@ -7,7 +7,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics.Lines;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Objects;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {

@@ -27,6 +27,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Mods;
 using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using osuTK.Graphics;
 using osuTK.Input;
 

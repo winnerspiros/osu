@@ -22,7 +22,7 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Tests.Visual;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using osu.Game.Rulesets.Mania.Edit.Blueprints;
 using osu.Game.Rulesets.Mania.Objects;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mania.Edit
 {

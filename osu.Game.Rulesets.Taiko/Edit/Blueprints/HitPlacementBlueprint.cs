@@ -6,7 +6,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.UI;
-using osuTK;
+using System.Numerics;
 using osuTK.Input;
 
 namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
