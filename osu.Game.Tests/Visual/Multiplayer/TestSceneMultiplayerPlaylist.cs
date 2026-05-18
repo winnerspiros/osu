@@ -239,7 +239,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                        && this.ChildrenOfType<MultiplayerQueueList>()
                               .Single()
                               .ChildrenOfType<DrawableRoomPlaylistItem>()
-                              .OrderBy(drawable => drawable.Item.PlaylistOrder)
+                              .OrderBy(drawable => drawable.Position.Y)
                               .TakeWhile(drawable => drawable.Item.ID != playlistItemId)
                               .Count() == visualIndex;
             });
