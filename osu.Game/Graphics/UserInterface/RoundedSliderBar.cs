@@ -12,7 +12,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
 
-
 namespace osu.Game.Graphics.UserInterface
 {
     public partial class RoundedSliderBar<T> : OsuSliderBar<T>

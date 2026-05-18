@@ -246,7 +246,7 @@ namespace osu.Game.Graphics.UserInterface
                     NubText.Text = value.ToLocalisableString(@"N1");
             }
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
             {
                 if (isUpper)
                     return base.ReceivePositionalInputAt(screenSpacePos) && screenSpacePos.X > rangeSlider.ScreenSpaceHalfwayPoint.X;

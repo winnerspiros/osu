@@ -136,7 +136,7 @@ namespace osu.Game.Beatmaps.Drawables
             bpm.Text = " BPM: " + Math.Round(bpmAdjusted, 0);
         }
 
-        public void Move(System.Numerics.Vector2 pos) => Position = pos;
+        public void Move(Vector2 pos) => Position = pos;
 
         protected override void PopIn() => this.FadeIn(200, Easing.OutQuint);
 

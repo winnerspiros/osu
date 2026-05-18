@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
 
-
 namespace osu.Game.Graphics.UserInterface
 {
     public partial class ShearedSliderBar<T> : OsuSliderBar<T>

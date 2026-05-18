@@ -46,10 +46,9 @@ namespace osu.Game.Graphics.Carousel
             /// <summary>
             /// Allow handling right click scroll outside of the carousel's display area.
             /// </summary>
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
             public ScrollContainer()
-            {
                 // Managing our own custom layout within ScrollContent causes feedback with public ScrollContainer calculations,
                 // so we must maintain one level of separation from ScrollContent.
                 base.Add(Panels = new Container
@@ -81,7 +80,7 @@ namespace osu.Game.Graphics.Carousel
                 Panels.Add(drawable);
             }
 
-            public override double GetChildPosInContent(Drawable d, System.Numerics.Vector2 offset)
+            public override double GetChildPosInContent(Drawable d, Vector2 offset)
             {
                 if (d is not ICarouselPanel panel)
                     return base.GetChildPosInContent(d, offset);

@@ -40,7 +40,7 @@ namespace osu.Game.Graphics.Containers
         private readonly Container content;
         protected override Container<Drawable> Content => content;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
         private readonly Container sizableContainer;
 
@@ -94,7 +94,7 @@ namespace osu.Game.Graphics.Containers
 
             protected float CurrentScale { get; private set; } = 1;
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
             public ScalingDrawSizePreservingFillContainer(bool applyUIScale)
             {
@@ -260,7 +260,7 @@ namespace osu.Game.Graphics.Containers
             private readonly bool confineHostCursor;
             private readonly LayoutValue cursorRectCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
             /// <summary>
             /// Container used for sizing/positioning purposes in <see cref="ScalingContainer"/>. Always receives mouse input.

@@ -236,7 +236,7 @@ namespace osu.Game.Collections
                 };
             }
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => base.ReceivePositionalInputAt(screenSpacePos) && !IsTextBoxHovered(screenSpacePos);
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => base.ReceivePositionalInputAt(screenSpacePos) && !IsTextBoxHovered(screenSpacePos);
 
             protected override bool OnHover(HoverEvent e)
             {

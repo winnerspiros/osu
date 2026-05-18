@@ -172,8 +172,8 @@ namespace osu.Game.Tests.Visual.UserInterface
 
         private bool uprightAspectMaintainingContainerStateIsValid(Container parent, UprightAspectMaintainingContainer child)
         {
-            System.Numerics.Matrix3x2 parentMatrix = parent.DrawInfo.Matrix;
-            System.Numerics.Matrix3x2 childMatrix = child.DrawInfo.Matrix;
+            Matrix3x2 parentMatrix = parent.DrawInfo.Matrix;
+            Matrix3x2 childMatrix = child.DrawInfo.Matrix;
             float childScaleX = MathF.Sqrt(childMatrix.M11 * childMatrix.M11 + childMatrix.M12 * childMatrix.M12);
             float childScaleY = MathF.Sqrt(childMatrix.M21 * childMatrix.M21 + childMatrix.M22 * childMatrix.M22);
             float parentScaleX = MathF.Sqrt(parentMatrix.M11 * parentMatrix.M11 + parentMatrix.M12 * parentMatrix.M12);
