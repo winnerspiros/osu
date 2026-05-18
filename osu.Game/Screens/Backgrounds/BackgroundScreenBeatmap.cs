@@ -197,12 +197,14 @@ namespace osu.Game.Screens.Backgrounds
 
                 Background?.BlurTo(blurTarget, BACKGROUND_FADE_DURATION, Easing.OutQuint);
 
-                // When the background is fully dimmed to black there is no visual contribution,
-                // so fade the content to alpha=0. This makes the framework skip the entire
-                // background draw subtree (IsPresent=false), saving GPU fill rate every frame.
+                // When the background is fully dimmed to black (and not replaced by a storyboard)
+                // there is no visual contribution, so fade the content to alpha=0. This makes the
+                // framework skip the entire background draw subtree (IsPresent=false), saving GPU
+                // fill rate every frame. Do not apply when StoryboardReplacesBackground is active
+                // because tests (and the UI) rely on Content.Alpha==1 to detect background visibility.
                 // base.UpdateVisuals() already fades content back to 1 whenever DimLevel drops
                 // below 1 (e.g. during break lightening), so the background reappears correctly.
-                if (ContentDisplayed && DimLevel >= 1f)
+                if (ContentDisplayed && DimLevel >= 1f && !StoryboardReplacesBackground.Value)
                     Content.FadeTo(0, BACKGROUND_FADE_DURATION, Easing.OutQuint);
             }
         }
