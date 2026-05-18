@@ -749,15 +749,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestFallbackDecoderForCorruptedHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("corrupted-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                beatmap = decoder.Decode(stream);
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Beatmap with corrupted header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Evil Hacker", beatmap.Metadata.Author.Username);
@@ -767,15 +764,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestFallbackDecoderForMissingHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("missing-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                beatmap = decoder.Decode(stream);
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Beatmap with no header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Incredibly Evil Hacker", beatmap.Metadata.Author.Username);
@@ -785,15 +779,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithEmptyLinesAtStart()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("empty-lines-at-start.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                beatmap = decoder.Decode(stream);
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Empty lines at start", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Edge Case Hunter", beatmap.Metadata.Author.Username);
@@ -803,15 +794,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithEmptyLinesAndNoHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("empty-line-instead-of-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                beatmap = decoder.Decode(stream);
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("The dog ate the file header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Why does this keep happening", beatmap.Metadata.Author.Username);
@@ -821,15 +809,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithContentImmediatelyAfterHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("no-empty-line-after-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                decoder = Decoder.GetDecoder<Beatmap>(stream);
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                beatmap = decoder.Decode(stream);
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("No empty line delimiting header from contents", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Edge Case Hunter", beatmap.Metadata.Author.Username);
@@ -847,7 +832,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestAllowFallbackDecoderOverwrite()
         {
-            Decoder<Beatmap> decoder = null!;
+            Decoder<Beatmap> decoder;
 
             using (var resStream = TestResources.OpenResource("corrupted-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
