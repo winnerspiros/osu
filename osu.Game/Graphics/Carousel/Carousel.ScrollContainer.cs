@@ -49,6 +49,7 @@ namespace osu.Game.Graphics.Carousel
             public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
             public ScrollContainer()
+            {
                 // Managing our own custom layout within ScrollContent causes feedback with public ScrollContainer calculations,
                 // so we must maintain one level of separation from ScrollContent.
                 base.Add(Panels = new Container
