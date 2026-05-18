@@ -77,11 +77,16 @@ namespace osu.Game.Tests.Skins
 
             AddAssert("sample lookups were in correct order", () =>
             {
+                // OptimizedResourceStore.AudioFallbackRules redirects .wav/.mp3 to try .ogg first (better compression).
+                // The actual lookup order is: no-ext, ogg (wav fallback), wav, ogg (mp3 fallback), mp3, ogg (direct).
                 string[] lookups = lookedUpFileNames.Where(f => f.StartsWith(TestSkin.SAMPLE_NAME, StringComparison.Ordinal)).ToArray();
-                return Path.GetExtension(lookups[0]) == string.Empty
-                       && Path.GetExtension(lookups[1]) == ".wav"
-                       && Path.GetExtension(lookups[2]) == ".mp3"
-                       && Path.GetExtension(lookups[3]) == ".ogg";
+                return lookups.Length >= 6
+                       && Path.GetExtension(lookups[0]) == string.Empty
+                       && Path.GetExtension(lookups[1]) == ".ogg"
+                       && Path.GetExtension(lookups[2]) == ".wav"
+                       && Path.GetExtension(lookups[3]) == ".ogg"
+                       && Path.GetExtension(lookups[4]) == ".mp3"
+                       && Path.GetExtension(lookups[5]) == ".ogg";
             });
         }
 

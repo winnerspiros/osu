@@ -187,7 +187,7 @@ namespace osu.Game.Rulesets.Catch.Tests
 
         private bool checkLegacyFruitHyperDashColour(DrawableFruit fruit, Colour4 expectedColour) =>
             fruit.ChildrenOfType<SkinnableDrawable>().FirstOrDefault()?.Drawable.ChildrenOfType<Sprite>()
-                 .Any(c => c.Colour.TopLeft.SRGB.R == expectedColour.R && c.Colour.TopLeft.SRGB.G == expectedColour.G && c.Colour.TopLeft.SRGB.B == expectedColour.B) == true;
+                 .Any(c => c.Colour == expectedColour) == true;
 
         private class TestSkin : LegacySkin
         {

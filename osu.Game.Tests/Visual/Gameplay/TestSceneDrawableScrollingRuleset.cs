@@ -235,8 +235,8 @@ namespace osu.Game.Tests.Visual.Gameplay
                 yScale * (float)((TestParentHitObject)d.HitObject).ChildTimeOffset / time_range, 0.1f);
         });
 
-        private void assertPosition(int index, float relativeY) => AddAssert($"hitobject {index} at {relativeY}",
-            () => getDrawableHitObject(index)?.DrawPosition.Y / yScale ?? -1, () => Is.EqualTo(relativeY).Within(Precision.FLOAT_EPSILON));
+        private void assertPosition(int index, float relativeY) => AddUntilStep($"hitobject {index} at {relativeY}",
+            () => Precision.AlmostEquals(getDrawableHitObject(index)?.DrawPosition.Y / yScale ?? -1, relativeY, Precision.FLOAT_EPSILON));
 
         private void setTime(double time)
         {
