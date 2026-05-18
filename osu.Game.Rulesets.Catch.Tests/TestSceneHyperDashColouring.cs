@@ -170,7 +170,7 @@ namespace osu.Game.Rulesets.Catch.Tests
                 }, skin);
             });
 
-            AddAssert("hyper-dash colour is correct", () => checkLegacyFruitHyperDashColour(drawableFruit, expectedColour));
+            AddUntilStep("hyper-dash colour is correct", () => checkLegacyFruitHyperDashColour(drawableFruit, expectedColour));
         }
 
         private Drawable setupSkinHierarchy(Drawable child, ISkin skin)
@@ -186,7 +186,8 @@ namespace osu.Game.Rulesets.Catch.Tests
         }
 
         private bool checkLegacyFruitHyperDashColour(DrawableFruit fruit, Colour4 expectedColour) =>
-            fruit.ChildrenOfType<SkinnableDrawable>().FirstOrDefault()?.Drawable.ChildrenOfType<Sprite>().Any(c => c.Colour == expectedColour) == true;
+            fruit.ChildrenOfType<SkinnableDrawable>().FirstOrDefault()?.Drawable.ChildrenOfType<Sprite>()
+                 .Any(c => c.Colour.R == expectedColour.R && c.Colour.G == expectedColour.G && c.Colour.B == expectedColour.B) == true;
 
         private class TestSkin : LegacySkin
         {
