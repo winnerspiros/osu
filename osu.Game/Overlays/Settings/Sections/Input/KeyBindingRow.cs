@@ -58,7 +58,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
         #region IFilterable
 
-
         public bool MatchingFilter
         {
             get;
@@ -103,7 +102,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         private const float height = 20;
         private const float padding = 5;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
             content.ReceivePositionalInputAt(screenSpacePos);
 
         public override bool AcceptsFocus => bindTarget == null;

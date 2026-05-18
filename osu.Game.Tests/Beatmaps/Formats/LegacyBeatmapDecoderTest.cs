@@ -825,8 +825,11 @@ namespace osu.Game.Tests.Beatmaps.Formats
         public void TestDecodeEmptyFile()
         {
             using var resStream = new MemoryStream();
-            using var stream = new LineBufferedReader(resStream);
-            Assert.Throws<IOException>(() => Decoder.GetDecoder<Beatmap>(stream));
+            Assert.Throws<IOException>(() =>
+            {
+                using var stream = new LineBufferedReader(resStream);
+                Decoder.GetDecoder<Beatmap>(stream);
+            });
         }
 
         [Test]

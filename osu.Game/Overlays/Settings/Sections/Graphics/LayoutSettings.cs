@@ -301,9 +301,9 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 if (size.NewValue == sizeWindowed.Value || windowModeDropdown.Current.Value != WindowMode.Windowed)
                     return;
 
-                if (window?.WindowState == Framework.Platform.WindowState.Maximised)
+                if (window?.WindowState == WindowState.Maximised)
                 {
-                    window.WindowState = Framework.Platform.WindowState.Normal;
+                    window.WindowState = WindowState.Normal;
                 }
 
                 // Adjust only for top decorations (assuming system titlebar).
@@ -380,6 +380,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
         private void updateRefreshRates()
         {
             var display = currentDisplay.Value;
+
             if (display == null)
             {
                 refreshRates.ReplaceRange(1, refreshRates.Count - 1, Array.Empty<double>());

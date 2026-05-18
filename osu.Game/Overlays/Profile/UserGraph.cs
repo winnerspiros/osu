@@ -275,7 +275,7 @@ namespace osu.Game.Overlays.Profile
 
             private bool instantMove = true;
 
-            public void Move(System.Numerics.Vector2 pos)
+            public void Move(Vector2 pos)
             {
                 if (instantMove)
                 {
