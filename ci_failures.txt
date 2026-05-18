@@ -1,0 +1,292 @@
+CI FAILURES SUMMARY - Run 26004210605
+Total failures: 56
+
+=== Linux-Game (25 failures) ===
+
+Test: TestDeleteButtonOnlyVisibleForItemOwnerIfNotHost
+Type: timeout
+Msg:  "delete button 2 is not visible" timed out
+
+Test: TestMigrationTriangles
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Syste
+
+Test: TestNextItemSelectedAfterGameplayFinish
+Type: timeout
+Msg:  "next item selected" timed out
+
+Test: TestClientMessageTooLong
+Type: assertion failure
+Msg:  Assert.That(clientClosed.Wait(10_000), Is.True)
+  Expected: True
+  But was:  False
+
+Test: TestExpiredItemsMoveToQueueList
+Type: timeout
+Msg:  "2 in queue at pos = 0" timed out
+
+Test: TestLifetimeRecomputedWhenTimeRangeChanges("non-pooled")
+Type: assertion failure
+Msg:  hitobject 3 at 1: Expected: 1.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   2.0d
+
+Test: TestUndoEditHistory
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Syste
+
+Test: TestMania
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestSendToBack(True)
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Syste
+
+Test: TestTaiko
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestBasic
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  Inn
+
+Test: TestSendToBack(False)
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Syste
+
+Test: TestOsu
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestRelativeBeatLengthScaleFromSecondTimingPoint
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestSampleRetrievalOrder
+Type: assertion failure
+Msg:  sample lookups were in correct order
+
+Test: TestNonRelativeScale
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestNestedHitObject("non-pooled")
+Type: assertion failure
+Msg:  hitobject 5 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestHitObjectLifetime("non-pooled")
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestStoryboardBackgroundVisibility
+Type: timeout
+Msg:  "Background is black, storyboard is visible" timed out
+
+Test: TestToggleEditor
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Syste
+
+Test: TestNonExpiredItemsAddedToQueueList
+Type: timeout
+Msg:  "3 in queue at pos = 2" timed out
+
+Test: TestConstructor
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  Inn
+
+Test: TestItemsNotClearedWhenSwitchToHostOnlyMode
+Type: timeout
+Msg:  "current item is the other beatmap" timed out
+
+Test: TestDelayedRoomScreenPushDoesNotRunIfRoomIsLeftPrematurely
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  Inn
+
+Test: TestStoryboardIgnoreUserSettings
+Type: timeout
+Msg:  "Background is dimmed" timed out
+
+=== Linux-Rulesets (3 failures) ===
+
+Test: TestCustomFruitColourPriority
+Type: timeout
+Msg:  "hyper-dash colour is correct" timed out
+
+Test: TestFruitColourFallback
+Type: timeout
+Msg:  "hyper-dash colour is correct" timed out
+
+Test: TestCustomFruitColour
+Type: timeout
+Msg:  "hyper-dash colour is correct" timed out
+
+=== Windows-Game (27 failures) ===
+
+Test: TestRelativeBeatLengthScaleFromSecondTimingPoint
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestMania
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestSampleRetrievalOrder
+Type: assertion failure
+Msg:  sample lookups were in correct order
+
+Test: TestToggleEditor
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Sys
+
+Test: TestNonExpiredItemsAddedToQueueList
+Type: timeout
+Msg:  "3 in queue at pos = 2" timed out
+
+Test: TestOsu
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestHitObjectLifetime("non-pooled")
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestUndoEditHistory
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Sys
+
+Test: TestDelayedRoomScreenPushDoesNotRunIfRoomIsLeftPrematurely
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  In
+
+Test: TestNextItemSelectedAfterGameplayFinish
+Type: timeout
+Msg:  "next item selected" timed out
+
+Test: TestNestedHitObject("non-pooled")
+Type: assertion failure
+Msg:  hitobject 5 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestExpiredItemsMoveToQueueList
+Type: timeout
+Msg:  "2 in queue at pos = 0" timed out
+
+Test: TestItemsNotClearedWhenSwitchToHostOnlyMode
+Type: timeout
+Msg:  "current item is the other beatmap" timed out
+
+Test: TestClientMessageTooLong
+Type: assertion failure
+Msg:  Assert.That(clientClosed.Wait(10_000), Is.True)
+  Expected: True
+  But was:  False
+
+Test: TestLifetimeRecomputedWhenTimeRangeChanges("non-pooled")
+Type: assertion failure
+Msg:  hitobject 3 at 1: Expected: 1.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   2.0d
+
+Test: TestEditBeatmap
+Type: timeout
+Msg:  Multiple failures or warnings in test:
+  1)   Temporary file still exists after standard import
+Assert.That(condition, Is.True)
+  Expected: True
+  But was:  False
+
+     at osu.Game.Tests.Beatmap
+
+Test: TestStoryboardIgnoreUserSettings
+Type: timeout
+Msg:  "Background is dimmed" timed out
+
+Test: TestTaiko
+Type: timeout
+Msg:  "no leaked beatmaps" timed out
+
+Test: TestSendToBack(True)
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Sys
+
+Test: TestNonRelativeScale
+Type: assertion failure
+Msg:  hitobject 3 at 0: Expected: 0.0f +/- 0.00100000005f
+  But was:  -1.0f
+  Off by:   1.0d
+
+Test: TestMigrationTriangles
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Sys
+
+Test: TestSendToBack(False)
+Type: exception
+Msg:  System.AggregateException : One or more errors occurred. (Vertex shader part could not be found.)
+  InnerExceptions: System.Collections.ObjectModel.ReadOnlyCollection`1[System.Exception]
+  ----> Sys
+
+Test: TestMigrationBetweenTwoTargets
+Type: ArgumentException
+Msg:  Assert.That(code, new ThrowsNothingConstraint())
+  Expected: No Exception to be thrown
+  But was:  <System.ArgumentException: Destination provided already has files or directories present (Parameter
+
+Test: TestConstructor
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  In
+
+Test: TestStoryboardBackgroundVisibility
+Type: timeout
+Msg:  "Background is black, storyboard is visible" timed out
+
+Test: TestBasic
+Type: InvalidOperationException
+Msg:  System.AggregateException : One or more errors occurred. (Tried to load long-running drawable type RankedPlayMatchPanel in a non-direct async context. See https://git.io/Je1YF for more details.)
+  In
+
+Test: TestDeleteButtonOnlyVisibleForItemOwnerIfNotHost
+Type: timeout
+Msg:  "delete button 2 is not visible" timed out
+
+=== Windows-Rulesets (1 failures) ===
+
+Test: TestFruitColourFallback
+Type: timeout
+Msg:  "hyper-dash colour is correct" timed out
