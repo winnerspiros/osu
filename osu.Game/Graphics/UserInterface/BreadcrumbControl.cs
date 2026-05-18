@@ -55,7 +55,7 @@ namespace osu.Game.Graphics.UserInterface
             public readonly SpriteIcon Chevron;
 
             //don't allow clicking between transitions
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => Alpha == 1f && base.ReceivePositionalInputAt(screenSpacePos);
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Alpha == 1f && base.ReceivePositionalInputAt(screenSpacePos);
 
             public override bool HandleNonPositionalInput => State == Visibility.Visible;
             public override bool HandlePositionalInput => State == Visibility.Visible;

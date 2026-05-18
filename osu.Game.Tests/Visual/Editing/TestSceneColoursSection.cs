@@ -45,7 +45,7 @@ namespace osu.Game.Tests.Visual.Editing
             AddAssert("beatmap skin has no colours", () => skin.Configuration.CustomComboColours, () => Is.Empty);
             AddAssert("section displays default combo colours",
                 () => coloursSection.ChildrenOfType<FormColourPalette>().Single().Colours,
-                () => Is.EquivalentTo(new Colour4[]
+                () => Is.EquivalentTo(new[]
                 {
                     SkinConfiguration.DefaultComboColours[1],
                     SkinConfiguration.DefaultComboColours[2],

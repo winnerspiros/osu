@@ -345,7 +345,7 @@ namespace osu.Game.Online.Leaderboards
             private const float icon_size = 16;
             private readonly FillFlowContainer content;
 
-            public override bool Contains(System.Numerics.Vector2 screenSpacePos) => content.Contains(screenSpacePos);
+            public override bool Contains(Vector2 screenSpacePos) => content.Contains(screenSpacePos);
 
             public LocalisableString TooltipText { get; }
 

@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                                      ?? true;
 
             Colour4 lineColour = skin.GetManiaSkinConfig<Colour4>(LegacyManiaSkinConfigurationLookups.JudgementLineColour)?.Value
-                                ?? Colour4.White;
+                                 ?? Colour4.White;
 
             InternalChild = directionContainer = new Container
             {

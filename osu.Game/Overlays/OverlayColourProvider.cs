@@ -67,6 +67,6 @@ namespace osu.Game.Overlays
         /// <param name="hue">The proposed hue degree.</param>
         public void ChangeColourScheme(int hue) => Hue = hue;
 
-        private Colour4 getColour(float saturation, float lightness) => Framework.Graphics.Colour4.FromHSL(Hue / 360f, saturation, lightness);
+        private Colour4 getColour(float saturation, float lightness) => Colour4.FromHSL(Hue / 360f, saturation, lightness);
     }
 }

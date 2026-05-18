@@ -152,6 +152,6 @@ namespace osu.Game.Overlays.Mods
         protected override void PopIn() => this.FadeIn(200, Easing.OutQuint);
         protected override void PopOut() => this.FadeOut(200, Easing.OutQuint);
 
-        public void Move(System.Numerics.Vector2 pos) => Position = pos;
+        public void Move(Vector2 pos) => Position = pos;
     }
 }

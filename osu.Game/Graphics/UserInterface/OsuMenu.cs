@@ -83,7 +83,7 @@ namespace osu.Game.Graphics.UserInterface
             WasOpened = false;
         }
 
-        protected override void UpdateSize(System.Numerics.Vector2 newSize)
+        protected override void UpdateSize(Vector2 newSize)
         {
             if (Direction == Direction.Vertical)
             {

@@ -145,7 +145,7 @@ namespace osu.Game.Online.Leaderboards
         protected override void PopIn() => this.FadeIn(20, Easing.OutQuint);
         protected override void PopOut() => this.FadeOut(80, Easing.OutQuint);
 
-        public void Move(System.Numerics.Vector2 pos) => Position = pos;
+        public void Move(Vector2 pos) => Position = pos;
 
         private partial class HitResultCell : CompositeDrawable
         {

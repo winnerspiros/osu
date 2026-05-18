@@ -125,7 +125,7 @@ namespace osu.Game.Overlays
             private Sample scrollToTopSample;
             private Sample scrollToPreviousSample;
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => content.ReceivePositionalInputAt(screenSpacePos);
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => content.ReceivePositionalInputAt(screenSpacePos);
 
             public ScrollBackButton()
             {

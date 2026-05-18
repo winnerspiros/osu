@@ -29,7 +29,7 @@ namespace osu.Game.Overlays.Chat
     {
         public Message Message
         {
-            get;
+            get => field!;
             set
             {
                 if (field == value) return;
@@ -41,7 +41,7 @@ namespace osu.Game.Overlays.Chat
 
                 updateMessageContent();
             }
-        } = null!;
+        }
 
         public IEnumerable<Drawable> DrawableContentFlow => drawableContentFlow.Children;
 

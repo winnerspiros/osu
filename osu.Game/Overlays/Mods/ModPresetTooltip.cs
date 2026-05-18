@@ -88,6 +88,6 @@ namespace osu.Game.Overlays.Mods
         protected override void PopIn() => this.FadeIn(transition_duration, Easing.OutQuint);
         protected override void PopOut() => this.FadeOut(transition_duration, Easing.OutQuint);
 
-        public void Move(System.Numerics.Vector2 pos) => Position = pos;
+        public void Move(Vector2 pos) => Position = pos;
     }
 }

@@ -25,7 +25,7 @@ namespace osu.Game.Overlays
     {
         public override bool IsPresent => toastContentBackground.Height > 0 || toastFlow.Count > 0;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => toastFlow.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => toastFlow.ReceivePositionalInputAt(screenSpacePos);
 
         /// <summary>
         /// All notifications currently being displayed by the toast tray.

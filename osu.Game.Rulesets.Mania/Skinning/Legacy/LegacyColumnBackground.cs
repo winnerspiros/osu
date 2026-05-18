@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                                   ?? 0;
 
             Colour4 lightColour = GetColumnSkinConfig<Colour4>(skin, LegacyManiaSkinConfigurationLookups.ColumnLightColour)?.Value
-                                 ?? Colour4.White;
+                                  ?? Colour4.White;
 
             int lightFramePerSecond = skin.GetManiaSkinConfig<int>(LegacyManiaSkinConfigurationLookups.LightFramePerSecond)?.Value ?? 60;
 

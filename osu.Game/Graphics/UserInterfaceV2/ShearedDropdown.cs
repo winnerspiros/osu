@@ -79,14 +79,12 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         public partial class ShearedDropdownHeader : DropdownHeader
         {
-            private LocalisableString label;
-
             protected override LocalisableString Label
             {
-                get => label;
+                get;
                 set
                 {
-                    label = value;
+                    field = value;
                     valueText.Text = value;
                 }
             }

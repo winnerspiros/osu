@@ -48,7 +48,7 @@ namespace osu.Game.Overlays.Chat
         /// </summary>
         public bool Inverted { get; init; }
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
             colouredDrawable.ReceivePositionalInputAt(screenSpacePos);
 
         public float FontSize

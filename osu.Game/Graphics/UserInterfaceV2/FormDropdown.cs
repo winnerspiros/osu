@@ -98,8 +98,6 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
             protected override DropdownSearchBar CreateSearchBar() => SearchBar = new FormDropdownSearchBar();
 
-            private LocalisableString labelText;
-
             public LocalisableString Caption
             {
                 get;
@@ -126,13 +124,13 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
             protected override LocalisableString Label
             {
-                get => labelText;
+                get;
                 set
                 {
-                    labelText = value;
+                    field = value;
 
                     if (label.IsNotNull())
-                        label.Text = labelText;
+                        label.Text = value;
                 }
             }
 

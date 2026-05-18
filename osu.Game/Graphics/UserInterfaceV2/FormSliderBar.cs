@@ -22,7 +22,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 
-
 namespace osu.Game.Graphics.UserInterfaceV2
 {
     public partial class FormSliderBar<T> : CompositeDrawable, IHasCurrentValue<T>, IFormControl

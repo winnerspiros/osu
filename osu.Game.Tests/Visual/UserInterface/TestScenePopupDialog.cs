@@ -36,7 +36,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 AddStep("move mouse to button edge", () =>
                 {
                     var dangerousButtonQuad = dialog.DangerousButton.ScreenSpaceDrawQuad;
-                    InputManager.MoveMouseTo(new Vector2(dangerousButtonQuad.TopLeft.X + 5, dangerousButtonQuad.Centre.Y));
+                    InputManager.MoveMouseTo(dangerousButtonQuad.Centre with { X = dangerousButtonQuad.TopLeft.X + 5 });
                 });
             }
             else

@@ -132,7 +132,7 @@ namespace osu.Game.Rulesets.Osu.Utils
             if (osuObject is not Slider slider)
                 return;
 
-            static void reflectControlPoint(PathControlPoint point) => point.Position = new Vector2(point.Position.X, -point.Position.Y);
+            static void reflectControlPoint(PathControlPoint point) => point.Position = point.Position with { Y = -point.Position.Y };
 
             modifySlider(slider, reflectControlPoint);
         }
@@ -143,7 +143,7 @@ namespace osu.Game.Rulesets.Osu.Utils
         /// <param name="slider">The slider to be flipped.</param>
         public static void FlipSliderInPlaceHorizontally(Slider slider)
         {
-            static void flipControlPoint(PathControlPoint point) => point.Position = new Vector2(-point.Position.X, point.Position.Y);
+            static void flipControlPoint(PathControlPoint point) => point.Position = point.Position with { X = -point.Position.X };
 
             modifySlider(slider, flipControlPoint);
         }
