@@ -30,8 +30,8 @@ namespace osu.Game.Screens.Select
             private readonly LayoutValue drawSizeLayout = new LayoutValue(Invalidation.DrawSize);
 
             private static readonly (float, Colour4)[] spectrum = OsuColour.STAR_DIFFICULTY_SPECTRUM
-                                                                          .Skip(1)
-                                                                          .Prepend((0.0f, OsuColour.STAR_DIFFICULTY_SPECTRUM.ElementAt(1).Item2)).ToArray();
+                                                               .Skip(1)
+                                                               .Prepend((0.0f, OsuColour.STAR_DIFFICULTY_SPECTRUM.ElementAt(1).Item2)).ToArray();
 
             public DifficultyRangeSlider()
                 : base(BeatmapsetsStrings.ShowStatsStars)

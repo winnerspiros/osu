@@ -65,8 +65,8 @@ namespace osu.Game.Storyboards.Drawables
 
         public override bool RemoveWhenNotAlive => false;
 
-        protected override System.Numerics.Vector2 DrawScale
-            => new System.Numerics.Vector2(
+        protected override Vector2 DrawScale
+            => new Vector2(
                 (FlipH ? -base.DrawScale.X : base.DrawScale.X) * VectorScale.X,
                 (FlipV ? -base.DrawScale.Y : base.DrawScale.Y) * VectorScale.Y);
 

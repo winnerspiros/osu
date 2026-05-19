@@ -125,7 +125,7 @@ namespace osu.Game.Screens.Utility
             private const float size = 100;
             private const float duration = 200;
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
                 => circle.ReceivePositionalInputAt(screenSpacePos);
 
             public SampleHitCircle(double hitTime)

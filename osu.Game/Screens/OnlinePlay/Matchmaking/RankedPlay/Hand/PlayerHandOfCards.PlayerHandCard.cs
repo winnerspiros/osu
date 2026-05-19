@@ -99,7 +99,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
                 PlayButton.Alpha = PlayButton.Action != null && Selected ? 1 : 0;
             }
 
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
             {
                 if (PlayButton.Alpha > 0)
                     return fullInputArea.ReceivePositionalInputAt(screenSpacePos);

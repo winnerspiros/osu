@@ -298,7 +298,7 @@ namespace osu.Game.Screens.Ranking
             }
         }
 
-        public override System.Numerics.Vector2 Size
+        public override Vector2 Size
         {
             get => base.Size;
             set
@@ -323,7 +323,7 @@ namespace osu.Game.Screens.Ranking
             return true;
         }
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
             => base.ReceivePositionalInputAt(screenSpacePos)
                || topLayerContainer.ReceivePositionalInputAt(screenSpacePos)
                || middleLayerContainer.ReceivePositionalInputAt(screenSpacePos);

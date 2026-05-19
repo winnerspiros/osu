@@ -140,7 +140,7 @@ namespace osu.Game.Screens.Select
                     personalPlaysText.Text = content.User < 0 ? "-" : content.User.ToLocalisableString("N0");
                 }
 
-                public void Move(System.Numerics.Vector2 pos) => Position = pos;
+                public void Move(Vector2 pos) => Position = pos;
 
                 protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
                 protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);

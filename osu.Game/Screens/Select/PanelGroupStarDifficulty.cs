@@ -34,7 +34,6 @@ namespace osu.Game.Screens.Select
         private Box backgroundBorder = null!;
         private Box contentBackground = null!;
         private OsuSpriteText starRatingText = null!;
-        private CircularContainer countPill = null!;
         private OsuSpriteText countText = null!;
         private TrianglesV2 triangles = null!;
         private Box glow = null!;
@@ -102,7 +101,7 @@ namespace osu.Game.Screens.Select
                         }
                     }
                 },
-                countPill = new CircularContainer
+                new CircularContainer
                 {
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,

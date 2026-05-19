@@ -725,9 +725,9 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 valueText.Text = content.Value;
             }
 
-            public void Move(System.Numerics.Vector2 pos)
+            public void Move(Vector2 pos)
             {
-                pos = Parent!.ToLocalSpace(content.Position) - new System.Numerics.Vector2(DrawWidth + 10, 0);
+                pos = Parent!.ToLocalSpace(content.Position) - new Vector2(DrawWidth + 10, 0);
 
                 if (instantMove)
                 {

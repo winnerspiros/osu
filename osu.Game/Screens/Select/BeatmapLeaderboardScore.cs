@@ -118,7 +118,7 @@ namespace osu.Game.Screens.Select
 
         private readonly bool sheared;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var inputRectangle = DrawRectangle;
 
@@ -676,7 +676,7 @@ namespace osu.Game.Screens.Select
             private readonly float minWidth;
 
             private FillFlowContainer content = null!;
-            public override bool Contains(System.Numerics.Vector2 screenSpacePos) => content.Contains(screenSpacePos);
+            public override bool Contains(Vector2 screenSpacePos) => content.Contains(screenSpacePos);
 
             public ScoreComponentLabel(LocalisableString name, LocalisableString value, bool perfect, float minWidth)
             {

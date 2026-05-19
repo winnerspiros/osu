@@ -19,7 +19,7 @@ namespace osu.Game.Screens.Play.HUD
     public partial class ArgonSongProgressBar : SongProgressBar, IHasTooltip
     {
         // Parent will handle restricting the area of valid input.
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
         private readonly float barHeight;
 
@@ -139,6 +139,7 @@ namespace osu.Game.Screens.Play.HUD
             audioBar.Length = (float)Interpolation.Lerp(audioBar.Length, AudioProgress, Math.Clamp(Time.Elapsed / 40, 0, 1));
 
             bool shouldBeBehind = trackTime > AudioTime;
+
             if (shouldBeBehind != audioBarBehindPlayfieldBar)
             {
                 audioBarBehindPlayfieldBar = shouldBeBehind;

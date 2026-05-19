@@ -197,7 +197,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             };
         }
 
-
         protected override void LoadComplete()
         {
             base.LoadComplete();

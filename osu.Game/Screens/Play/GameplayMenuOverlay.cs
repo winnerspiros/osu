@@ -39,7 +39,7 @@ namespace osu.Game.Screens.Play
 
         protected override bool BlockScrollInput => false;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
         public Action? OnResume { get; init; }
         public Action? OnRetry { get; init; }

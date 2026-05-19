@@ -75,7 +75,7 @@ namespace osu.Game.Screens.Select
             }
         }
 
-        public sealed override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+        public sealed override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             if (item == null)
                 return TopLevelContent.ReceivePositionalInputAt(screenSpacePos);
