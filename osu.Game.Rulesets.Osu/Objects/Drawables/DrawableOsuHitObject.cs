@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -16,8 +17,6 @@ using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
@@ -116,9 +115,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
         private void applyDim(Drawable piece)
         {
-            piece.FadeColour(new Color4(195, 195, 195, 255));
+            piece.FadeColour(new Colour4(195, 195, 195, 255));
             using (piece.BeginDelayedSequence(InitialLifetimeOffset - OsuHitWindows.MISS_WINDOW))
-                piece.FadeColour(Color4.White, 100);
+                piece.FadeColour(Colour4.White, 100);
         }
 
         private void applyDimToDrawableHitObject(DrawableHitObject dho, ArmedState _) => applyDim(dho);

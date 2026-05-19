@@ -13,7 +13,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {

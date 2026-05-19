@@ -14,7 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Notifications
 {

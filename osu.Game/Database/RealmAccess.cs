@@ -34,7 +34,7 @@ using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK.Input;
+using osu.Framework.Input;
 using Realms;
 using Realms.Exceptions;
 

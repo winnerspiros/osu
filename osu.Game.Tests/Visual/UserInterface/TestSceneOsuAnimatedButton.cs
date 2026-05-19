@@ -3,11 +3,11 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

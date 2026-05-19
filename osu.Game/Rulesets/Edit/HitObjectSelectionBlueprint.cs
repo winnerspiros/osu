@@ -10,7 +10,7 @@ using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Edit
 {

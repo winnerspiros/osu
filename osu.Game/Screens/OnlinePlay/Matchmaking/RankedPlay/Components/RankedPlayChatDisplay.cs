@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -23,8 +22,7 @@ using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 {
@@ -195,7 +193,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 
                 BackgroundFocused = Colour4.FromHex("222228");
                 BackgroundUnfocused = BackgroundFocused.Opacity(0.7f);
-                Placeholder.Colour = Color4.White;
+                Placeholder.Colour = Colour4.White;
             }
         }
 

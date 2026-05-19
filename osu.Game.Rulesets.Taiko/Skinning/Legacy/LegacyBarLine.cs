@@ -5,7 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 {

@@ -9,7 +9,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Submission
 {

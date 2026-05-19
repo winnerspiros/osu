@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Humanizer;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -20,8 +19,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Mods.Input;
 using osu.Game.Rulesets.Mods;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -257,9 +255,9 @@ namespace osu.Game.Overlays.Mods
 
         private partial class ToggleAllCheckbox : OsuCheckbox
         {
-            private Color4 accentColour;
+            private Colour4 accentColour;
 
-            public Color4 AccentColour
+            public Colour4 AccentColour
             {
                 get => accentColour;
                 set
@@ -269,9 +267,9 @@ namespace osu.Game.Overlays.Mods
                 }
             }
 
-            private Color4 accentHoverColour;
+            private Colour4 accentHoverColour;
 
-            public Color4 AccentHoverColour
+            public Colour4 AccentHoverColour
             {
                 get => accentHoverColour;
                 set

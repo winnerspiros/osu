@@ -5,7 +5,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament
 {
@@ -24,14 +23,14 @@ namespace osu.Game.Tournament
             {
                 new Box
                 {
-                    Colour = Color4.Red,
+                    Colour = Colour4.Red,
                     RelativeSizeAxes = Axes.Both,
                 },
                 new TournamentSpriteText
                 {
                     Text = text,
                     Font = OsuFont.Torus.With(weight: FontWeight.Bold),
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Padding = new MarginPadding(20)
                 }
             };

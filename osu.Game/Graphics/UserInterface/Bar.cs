@@ -5,8 +5,7 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -32,13 +31,13 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
             get => background.Colour;
             set => background.Colour = value;
         }
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => bar.Colour;
             set => bar.Colour = value;
@@ -61,7 +60,7 @@ namespace osu.Game.Graphics.UserInterface
                 background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(0, 0, 0, 0)
+                    Colour = new Colour4(0, 0, 0, 0)
                 },
                 bar = new Box
                 {

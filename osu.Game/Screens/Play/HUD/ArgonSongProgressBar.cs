@@ -12,7 +12,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Game.Graphics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -30,6 +30,9 @@ namespace osu.Game.Screens.Play.HUD
 
         private readonly ColourInfo mainColour;
         private ColourInfo catchUpColour;
+
+        // Cached state to avoid calling ChangeInternalChildDepth every frame.
+        private bool audioBarBehindPlayfieldBar;
 
         public double Progress { get; set; }
 
@@ -135,10 +138,13 @@ namespace osu.Game.Screens.Play.HUD
             playfieldBar.Length = (float)Interpolation.Lerp(playfieldBar.Length, Progress, Math.Clamp(Time.Elapsed / 40, 0, 1));
             audioBar.Length = (float)Interpolation.Lerp(audioBar.Length, AudioProgress, Math.Clamp(Time.Elapsed / 40, 0, 1));
 
-            if (trackTime > AudioTime)
-                ChangeInternalChildDepth(audioBar, -1);
-            else
-                ChangeInternalChildDepth(audioBar, 1);
+            bool shouldBeBehind = trackTime > AudioTime;
+
+            if (shouldBeBehind != audioBarBehindPlayfieldBar)
+            {
+                audioBarBehindPlayfieldBar = shouldBeBehind;
+                ChangeInternalChildDepth(audioBar, shouldBeBehind ? -1 : 1);
+            }
 
             float timeDelta = (float)Math.Abs(AudioTime - trackTime);
 

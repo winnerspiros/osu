@@ -10,8 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -40,7 +39,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
             }
         }
 
-        public void AddParticles(Drawable source, Color4 seedColour)
+        public void AddParticles(Drawable source, Colour4 seedColour)
         {
             var drawQuad = ToLocalSpace(source.ScreenSpaceDrawQuad);
 

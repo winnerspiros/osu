@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterfaceV2;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.SkinEditor
 {

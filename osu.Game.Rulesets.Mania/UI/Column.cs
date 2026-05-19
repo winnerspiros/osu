@@ -21,8 +21,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.UI
 {
@@ -56,7 +55,7 @@ namespace osu.Game.Rulesets.Mania.UI
         /// </summary>
         public readonly bool IsSpecial;
 
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>(Color4.Black);
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>(Colour4.Black);
 
         private IBindable<bool> touchOverlay = null!;
 
@@ -128,7 +127,7 @@ namespace osu.Game.Rulesets.Mania.UI
 
         private void onSourceChanged()
         {
-            AccentColour.Value = skin.GetManiaSkinConfig<Color4>(LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour, Index)?.Value ?? Color4.Black;
+            AccentColour.Value = skin.GetManiaSkinConfig<Colour4>(LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour, Index)?.Value ?? Colour4.Black;
 
             leftColumnSpacing = skin.GetConfig<ManiaSkinConfigurationLookup, float>(
                                         new ManiaSkinConfigurationLookup(LegacyManiaSkinConfigurationLookups.LeftColumnSpacing, Index))

@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface.PageSelector
 {

@@ -10,7 +10,7 @@ using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Screens.Play.HUD.HitErrorMeters
 {
@@ -56,7 +56,7 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
         /// <param name="judgement">The new judgement.</param>
         protected abstract void OnNewJudgement(JudgementResult judgement);
 
-        protected Color4 GetColourForHitResult(HitResult result)
+        protected Colour4 GetColourForHitResult(HitResult result)
         {
             return colours.ForHitResult(result);
         }

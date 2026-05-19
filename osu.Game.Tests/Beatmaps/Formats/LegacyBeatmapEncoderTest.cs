@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Numerics;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Framework.Audio.Track;
@@ -29,8 +30,7 @@ using osu.Game.Rulesets.Taiko;
 using osu.Game.Skinning;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {
@@ -198,15 +198,15 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 {
                     CustomComboColours =
                     {
-                        new Color4(1, 1, 1, 255),
-                        new Color4(2, 2, 2, 255),
-                        new Color4(3, 3, 3, 255),
-                        new Color4(4, 4, 4, 255),
-                        new Color4(5, 5, 5, 255),
-                        new Color4(6, 6, 6, 255),
-                        new Color4(7, 7, 7, 255),
-                        new Color4(8, 8, 8, 255),
-                        new Color4(9, 9, 9, 255),
+                        new Colour4(1, 1, 1, 255),
+                        new Colour4(2, 2, 2, 255),
+                        new Colour4(3, 3, 3, 255),
+                        new Colour4(4, 4, 4, 255),
+                        new Colour4(5, 5, 5, 255),
+                        new Colour4(6, 6, 6, 255),
+                        new Colour4(7, 7, 7, 255),
+                        new Colour4(8, 8, 8, 255),
+                        new Colour4(9, 9, 9, 255),
                     }
                 }
             };

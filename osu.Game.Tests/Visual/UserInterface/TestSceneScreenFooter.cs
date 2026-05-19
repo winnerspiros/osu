@@ -19,7 +19,7 @@ using osu.Game.Overlays.Mods;
 using osu.Game.Screens;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.Select;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Legacy
 {

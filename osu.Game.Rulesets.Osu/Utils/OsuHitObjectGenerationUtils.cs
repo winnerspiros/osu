@@ -3,11 +3,11 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.UI;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Utils
 {
@@ -100,8 +100,8 @@ namespace osu.Game.Rulesets.Osu.Utils
             float finalAngleRad = initialAngleRad + rotationRatio * diff;
 
             return new Vector2(
-                initial.Length * MathF.Cos(finalAngleRad),
-                initial.Length * MathF.Sin(finalAngleRad)
+                initial.Length() * MathF.Cos(finalAngleRad),
+                initial.Length() * MathF.Sin(finalAngleRad)
             );
         }
 
@@ -132,7 +132,7 @@ namespace osu.Game.Rulesets.Osu.Utils
             if (osuObject is not Slider slider)
                 return;
 
-            static void reflectControlPoint(PathControlPoint point) => point.Position = new Vector2(point.Position.X, -point.Position.Y);
+            static void reflectControlPoint(PathControlPoint point) => point.Position = point.Position with { Y = -point.Position.Y };
 
             modifySlider(slider, reflectControlPoint);
         }
@@ -143,7 +143,7 @@ namespace osu.Game.Rulesets.Osu.Utils
         /// <param name="slider">The slider to be flipped.</param>
         public static void FlipSliderInPlaceHorizontally(Slider slider)
         {
-            static void flipControlPoint(PathControlPoint point) => point.Position = new Vector2(-point.Position.X, point.Position.Y);
+            static void flipControlPoint(PathControlPoint point) => point.Position = point.Position with { X = -point.Position.X };
 
             modifySlider(slider, flipControlPoint);
         }
@@ -178,7 +178,7 @@ namespace osu.Game.Rulesets.Osu.Utils
         private static Vector2 rotateVector(Vector2 vector, float rotation)
         {
             float angle = MathF.Atan2(vector.Y, vector.X) + rotation;
-            float length = vector.Length;
+            float length = vector.Length();
             return new Vector2(
                 length * MathF.Cos(angle),
                 length * MathF.Sin(angle)

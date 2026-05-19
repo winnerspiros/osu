@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -16,9 +17,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Editors;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Screens.Ladder.Components
 {
@@ -33,7 +32,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
         private readonly Bindable<int?> score = new Bindable<int?>();
         private readonly BindableBool completed = new BindableBool();
 
-        private Color4 colourWinner;
+        private Colour4 colourWinner;
 
         private readonly Func<bool>? isWinner;
         private LadderEditorScreen ladderEditor = null!;
@@ -177,10 +176,10 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
         {
             bool winner = completed.Value && isWinner?.Invoke() == true;
 
-            background.FadeColour(winner ? Color4.White : Color4Extensions.FromHex("#444"), winner ? 500 : 0, Easing.OutQuint);
+            background.FadeColour(winner ? Colour4.White : Color4Extensions.FromHex("#444"), winner ? 500 : 0, Easing.OutQuint);
             backgroundRight.FadeColour(winner ? colourWinner : Color4Extensions.FromHex("#333"), winner ? 500 : 0, Easing.OutQuint);
 
-            AcronymText.Colour = winner ? Color4.Black : Color4.White;
+            AcronymText.Colour = winner ? Colour4.Black : Colour4.White;
 
             scoreText.Font = scoreText.Font.With(weight: winner ? FontWeight.Bold : FontWeight.Regular);
         }

@@ -15,8 +15,8 @@ using osu.Game.Graphics;
 using osu.Game.Localisation;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 using Realms;
 
 namespace osu.Game.Overlays.Mods

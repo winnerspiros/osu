@@ -23,8 +23,7 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mods
 {
@@ -81,7 +80,7 @@ namespace osu.Game.Rulesets.Mods
             var flashlight = CreateFlashlight();
 
             flashlight.RelativeSizeAxes = Axes.Both;
-            flashlight.Colour = Color4.Black;
+            flashlight.Colour = Colour4.Black;
 
             flashlight.Combo.BindTo(Combo);
 
@@ -181,30 +180,26 @@ namespace osu.Game.Rulesets.Mods
                 return 1.0f;
             }
 
-            private Vector2 flashlightPosition;
-
             protected Vector2 FlashlightPosition
             {
-                get => flashlightPosition;
+                get;
                 set
                 {
-                    if (flashlightPosition == value) return;
+                    if (field == value) return;
 
-                    flashlightPosition = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
             }
 
-            private Vector2 flashlightSize;
-
             protected Vector2 FlashlightSize
             {
-                get => flashlightSize;
+                get;
                 set
                 {
-                    if (flashlightSize == value) return;
+                    if (field == value) return;
 
-                    flashlightSize = value;
+                    field = value;
                     Invalidate(Invalidation.DrawNode);
                 }
             }
@@ -261,7 +256,8 @@ namespace osu.Game.Rulesets.Mods
                     flashlightPosition = Vector2Extensions.Transform(Source.FlashlightPosition, DrawInfo.Matrix);
 
                     // scale the flashlight based on the playfield to match gameplay components scale.
-                    Vector2 drawInfoScale = Source.playfieldDrawInfo.Matrix.ExtractScale().Xy;
+                    var drawInfoM = Source.playfieldDrawInfo.Matrix;
+                    Vector2 drawInfoScale = new Vector2(MathF.Sqrt(drawInfoM.M11 * drawInfoM.M11 + drawInfoM.M21 * drawInfoM.M21), MathF.Sqrt(drawInfoM.M12 * drawInfoM.M12 + drawInfoM.M22 * drawInfoM.M22));
                     flashlightSize = Source.FlashlightSize * drawInfoScale;
 
                     flashlightDim = Source.FlashlightDim;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +14,6 @@ using osu.Game.Overlays;
 using osu.Game.Scoring;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Visual.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {

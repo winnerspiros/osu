@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Objects
 {
@@ -15,9 +15,9 @@ namespace osu.Game.Rulesets.Objects
         private struct CircleBezierPreset
         {
             public readonly double ArcLength;
-            public readonly Vector2d[] ControlPoints;
+            public readonly Vector2[] ControlPoints;
 
-            public CircleBezierPreset(double arcLength, Vector2d[] controlPoints)
+            public CircleBezierPreset(double arcLength, Vector2[] controlPoints)
             {
                 ArcLength = arcLength;
                 ControlPoints = controlPoints;
@@ -28,15 +28,15 @@ namespace osu.Game.Rulesets.Objects
         private static readonly CircleBezierPreset[] circle_presets =
         {
             new CircleBezierPreset(0.4993379862754501,
-                new[] { new Vector2d(1, 0), new Vector2d(1, 0.2549893626632736f), new Vector2d(0.8778997558480327f, 0.47884446188920726f) }),
+                new[] { new Vector2(1, 0), new Vector2(1, 0.2549893626632736f), new Vector2(0.8778997558480327f, 0.47884446188920726f) }),
             new CircleBezierPreset(1.7579419829169447,
-                new[] { new Vector2d(1, 0), new Vector2d(1, 0.6263026f), new Vector2d(0.42931178f, 1.0990661f), new Vector2d(-0.18605515f, 0.9825393f) }),
+                new[] { new Vector2(1, 0), new Vector2(1, 0.6263026f), new Vector2(0.42931178f, 1.0990661f), new Vector2(-0.18605515f, 0.9825393f) }),
             new CircleBezierPreset(3.1385246920140215,
-                new[] { new Vector2d(1, 0), new Vector2d(1, 0.87084764f), new Vector2d(0.002304826f, 1.5033062f), new Vector2d(-0.9973236f, 0.8739115f), new Vector2d(-0.9999953f, 0.0030679568f) }),
+                new[] { new Vector2(1, 0), new Vector2(1, 0.87084764f), new Vector2(0.002304826f, 1.5033062f), new Vector2(-0.9973236f, 0.8739115f), new Vector2(-0.9999953f, 0.0030679568f) }),
             new CircleBezierPreset(5.69720464620727,
-                new[] { new Vector2d(1, 0), new Vector2d(1, 1.4137783f), new Vector2d(-1.4305235f, 2.0779421f), new Vector2d(-2.3410065f, -0.94017583f), new Vector2d(0.05132711f, -1.7309346f), new Vector2d(0.8331702f, -0.5530167f) }),
+                new[] { new Vector2(1, 0), new Vector2(1, 1.4137783f), new Vector2(-1.4305235f, 2.0779421f), new Vector2(-2.3410065f, -0.94017583f), new Vector2(0.05132711f, -1.7309346f), new Vector2(0.8331702f, -0.5530167f) }),
             new CircleBezierPreset(2 * Math.PI,
-                new[] { new Vector2d(1, 0), new Vector2d(1, 1.2447058f), new Vector2d(-0.8526471f, 2.118367f), new Vector2d(-2.6211002f, 7.854936e-06f), new Vector2d(-0.8526448f, -2.118357f), new Vector2d(1, -1.2447058f), new Vector2d(1, 0) })
+                new[] { new Vector2(1, 0), new Vector2(1, 1.2447058f), new Vector2(-0.8526471f, 2.118367f), new Vector2(-2.6211002f, 7.854936e-06f), new Vector2(-0.8526448f, -2.118357f), new Vector2(1, -1.2447058f), new Vector2(1, 0) })
         };
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace osu.Game.Rulesets.Objects
             }
 
             double arcLength = preset.ArcLength;
-            var arc = new Vector2d[preset.ControlPoints.Length];
+            var arc = new Vector2[preset.ControlPoints.Length];
             preset.ControlPoints.CopyTo(arc, 0);
 
             // Converge on arcLength of thetaRange
@@ -225,7 +225,7 @@ namespace osu.Game.Rulesets.Objects
                 {
                     for (int i = n; i > j; i--)
                     {
-                        arc[i] = arc[i] * tf + arc[i - 1] * (1 - tf);
+                        arc[i] = arc[i] * (float)tf + arc[i - 1] * (float)(1 - tf);
                     }
                 }
 

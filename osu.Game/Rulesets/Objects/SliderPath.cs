@@ -11,7 +11,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Objects
 {
@@ -426,7 +426,7 @@ namespace osu.Game.Rulesets.Objects
             for (int i = 0; i < calculatedPath.Count - 1; i++)
             {
                 Vector2 diff = calculatedPath[i + 1] - calculatedPath[i];
-                calculatedLength += diff.Length;
+                calculatedLength += diff.Length();
                 cumulativeLength.Add(calculatedLength);
             }
 
@@ -471,7 +471,7 @@ namespace osu.Game.Rulesets.Objects
                 }
 
                 // The direction of the segment to shorten or lengthen
-                Vector2 dir = (calculatedPath[pathEndIndex] - calculatedPath[pathEndIndex - 1]).Normalized();
+                Vector2 dir = Vector2.Normalize(calculatedPath[pathEndIndex] - calculatedPath[pathEndIndex - 1]);
 
                 calculatedPath[pathEndIndex] = calculatedPath[pathEndIndex - 1] + dir * (float)(expectedDistance - cumulativeLength[^1]);
                 cumulativeLength.Add(expectedDistance);

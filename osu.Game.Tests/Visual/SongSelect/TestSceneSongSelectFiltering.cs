@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics.Containers;
@@ -18,7 +17,6 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
-using osuTK.Input;
 using FilterControl = osu.Game.Screens.Select.FilterControl;
 using NoResultsPlaceholder = osu.Game.Screens.Select.NoResultsPlaceholder;
 

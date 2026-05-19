@@ -15,7 +15,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Edit
 {

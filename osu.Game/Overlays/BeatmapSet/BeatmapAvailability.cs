@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -11,7 +10,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -33,7 +31,7 @@ namespace osu.Game.Overlays.BeatmapSet
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black.Opacity(0.6f),
+                    Colour = Colour4.Black.Opacity(0.6f),
                 },
                 textContainer = new LinkFlowContainer(t => t.Font = OsuFont.GetFont(size: 14))
                 {
@@ -70,7 +68,7 @@ namespace osu.Game.Overlays.BeatmapSet
             textContainer.Clear();
             textContainer.AddParagraph(downloadDisabled
                 ? BeatmapsetsStrings.AvailabilityDisabled
-                : BeatmapsetsStrings.AvailabilityPartsRemoved, t => t.Colour = Color4.Orange);
+                : BeatmapsetsStrings.AvailabilityPartsRemoved, t => t.Colour = Colour4.Orange);
 
             if (hasExternalLink)
             {

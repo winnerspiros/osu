@@ -20,7 +20,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Settings.Sections.Input
 {
@@ -124,12 +123,12 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 if (IsBinding)
                 {
                     box.FadeColour(colourProvider.Light2, transition_time, Easing.OutQuint);
-                    Text.FadeColour(Color4.Black, transition_time, Easing.OutQuint);
+                    Text.FadeColour(Colour4.Black, transition_time, Easing.OutQuint);
                 }
                 else
                 {
                     box.FadeColour(IsHovered ? colourProvider.Light4 : colourProvider.Background6, transition_time, Easing.OutQuint);
-                    Text.FadeColour(IsHovered ? Color4.Black : Color4.White, transition_time, Easing.OutQuint);
+                    Text.FadeColour(IsHovered ? Colour4.Black : Colour4.White, transition_time, Easing.OutQuint);
                 }
             }
 

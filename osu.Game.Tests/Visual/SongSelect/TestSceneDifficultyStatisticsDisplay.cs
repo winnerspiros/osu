@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
 using osu.Game.Overlays;
 using osu.Game.Screens.Select;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {
@@ -39,7 +38,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                         },
                         display = new BeatmapTitleWedge.DifficultyStatisticsDisplay
                         {

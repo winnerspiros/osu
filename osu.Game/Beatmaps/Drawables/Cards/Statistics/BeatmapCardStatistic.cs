@@ -12,7 +12,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards.Statistics
 {

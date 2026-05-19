@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -12,8 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -96,9 +95,9 @@ namespace osu.Game.Tests.Visual.UserInterface
         public partial class ShearedBox : Container
         {
             private readonly string text;
-            private readonly Color4 boxColour;
+            private readonly Colour4 boxColour;
 
-            public ShearedBox(string text, Color4 boxColour)
+            public ShearedBox(string text, Colour4 boxColour)
             {
                 this.text = text;
                 this.boxColour = boxColour;
@@ -120,7 +119,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     new OsuSpriteText
                     {
                         Text = text,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Shear = -OsuGame.SHEAR,
                         Font = OsuFont.Torus.With(size: 24),
                         Margin = new MarginPadding { Left = 50 },

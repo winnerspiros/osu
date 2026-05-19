@@ -11,7 +11,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.BeatmapSet.Buttons;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {

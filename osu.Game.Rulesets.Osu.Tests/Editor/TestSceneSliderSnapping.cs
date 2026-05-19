@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
@@ -21,8 +22,7 @@ using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

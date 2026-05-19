@@ -11,7 +11,6 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -26,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
 
         private Container largeFaint = null!;
 
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         public ArgonHitExplosion()
         {
@@ -50,7 +49,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                     Blending = BlendingParameters.Additive,
                     Child = new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         RelativeSizeAxes = Axes.Both,
                     },
                 },
@@ -62,7 +61,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             accentColour = column.AccentColour.GetBoundCopy();
             accentColour.BindValueChanged(colour =>
             {
-                largeFaint.Colour = Interpolation.ValueAt(0.8f, colour.NewValue, Color4.White, 0, 1);
+                largeFaint.Colour = Interpolation.ValueAt(0.8f, colour.NewValue, Colour4.White, 0, 1);
 
                 largeFaint.EdgeEffect = new EdgeEffectParameters
                 {

@@ -3,14 +3,12 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -48,7 +46,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             float dx = Math.Max(StartPosition.X, DrawWidth - StartPosition.X);
             float dy = Math.Max(StartPosition.Y, DrawHeight - StartPosition.Y);
-            float maxDistance = new Vector2(dx, dy).Length;
+            float maxDistance = new Vector2(dx, dy).Length();
             int requiredCircles = Math.Min(MaxIntervals, (int)(maxDistance / DistanceBetweenTicks));
 
             // We need to offset the drawn lines to the next valid snap for the currently selected divisor.
@@ -88,7 +86,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             if (travelVector == Vector2.Zero)
                 travelVector = new Vector2(0, -1);
 
-            float travelLength = travelVector.Length;
+            float travelLength = travelVector.Length();
 
             // FindSnappedDistance will always round down, but we want to potentially round upwards.
             travelLength += DistanceBetweenTicks / 2;
@@ -130,9 +128,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
             private readonly double startTime;
             private readonly IHasSliderVelocity? sliderVelocitySource;
 
-            private readonly Color4 baseColour;
+            private readonly Colour4 baseColour;
 
-            public Ring(double startTime, Color4 baseColour, IHasSliderVelocity? sliderVelocitySource)
+            public Ring(double startTime, Colour4 baseColour, IHasSliderVelocity? sliderVelocitySource)
             {
                 this.startTime = startTime;
                 this.sliderVelocitySource = sliderVelocitySource;

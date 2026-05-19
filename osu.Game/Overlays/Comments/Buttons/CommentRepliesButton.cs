@@ -10,7 +10,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
+using System.Numerics;
 using static osu.Game.Graphics.UserInterface.ShowMoreButton;
 
 namespace osu.Game.Overlays.Comments.Buttons

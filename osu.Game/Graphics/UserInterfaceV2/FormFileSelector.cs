@@ -22,8 +22,7 @@ using osu.Framework.Platform;
 using osu.Game.Database;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -290,7 +289,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
                     {
                         new Box
                         {
-                            Colour = Color4.Transparent,
+                            Colour = Colour4.Transparent,
                             RelativeSizeAxes = Axes.Both,
                         },
                     }

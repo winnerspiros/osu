@@ -3,7 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 {
@@ -21,8 +21,8 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
         {
             AccentColour = LegacyColourCompatibility.DisallowZeroAlpha(
                 component == TaikoSkinComponents.CentreHit
-                    ? new Color4(235, 69, 44, 255)
-                    : new Color4(67, 142, 172, 255));
+                    ? new Colour4(235, 69, 44, 255)
+                    : new Colour4(67, 142, 172, 255));
         }
     }
 }

@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,7 +12,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Mods;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -30,11 +28,11 @@ namespace osu.Game.Rulesets.UI
         private readonly Box background;
         private readonly OsuSpriteText acronymText;
 
-        private Color4 activeForegroundColour;
-        private Color4 inactiveForegroundColour;
+        private Colour4 activeForegroundColour;
+        private Colour4 inactiveForegroundColour;
 
-        private Color4 activeBackgroundColour;
-        private Color4 inactiveBackgroundColour;
+        private Colour4 activeBackgroundColour;
+        private Colour4 inactiveBackgroundColour;
 
         private readonly CircularContainer extendedContent;
         private readonly Box extendedBackground;

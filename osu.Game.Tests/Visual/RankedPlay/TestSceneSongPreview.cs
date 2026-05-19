@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -10,7 +11,6 @@ using osu.Game.Online.API;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

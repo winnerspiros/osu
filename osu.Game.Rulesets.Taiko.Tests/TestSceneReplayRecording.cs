@@ -11,7 +11,7 @@ using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.Replays;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Visual;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Taiko.Tests
 {

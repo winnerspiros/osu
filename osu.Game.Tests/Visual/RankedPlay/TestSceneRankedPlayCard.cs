@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -18,7 +19,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Taiko;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {
@@ -108,7 +108,9 @@ namespace osu.Game.Tests.Visual.RankedPlay
                         Retries = Enumerable.Range(-2, 100).Select(x => x % 12 - 6).ToArray(),
                     };
 
-                    beatmap.StarRating = i + 1;
+                    // the .009 part exercises behaviour of truncating star rating to 2dp
+                    // it should be discarded completely on display
+                    beatmap.StarRating = i + 1.009;
 
                     flow.Add(new RankedPlayCardContent(beatmap)
                     {

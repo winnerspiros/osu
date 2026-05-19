@@ -22,7 +22,7 @@ using osu.Game.Overlays.Settings;
 using osu.Game.Tests.Visual.Online;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Menus
 {

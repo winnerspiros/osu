@@ -18,8 +18,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -75,7 +74,7 @@ namespace osu.Game.Screens.Select
             {
                 progressFill = new Box
                 {
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Alpha = 0.2f,
                     Blending = BlendingParameters.Additive,
                     RelativeSizeAxes = Axes.Both,

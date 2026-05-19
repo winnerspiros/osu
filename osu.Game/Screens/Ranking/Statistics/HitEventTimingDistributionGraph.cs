@@ -12,7 +12,6 @@ using osu.Framework.Layout;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Scoring;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Ranking.Statistics
 {
@@ -247,7 +246,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.BottomCentre,
-                        Colour = isCentre && i == 0 ? Color4.White : colours.ForHitResult(v.Key),
+                        Colour = isCentre && i == 0 ? Colour4.White : colours.ForHitResult(v.Key),
                         Height = 0,
                     }).ToArray();
                     // The bars of the stacked bar graph will be processed (stacked) from the bottom, which is the base position,
@@ -265,7 +264,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                             RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.BottomCentre,
                             Origin = Anchor.BottomCentre,
-                            Colour = isCentre ? Color4.White : Color4.Gray,
+                            Colour = isCentre ? Colour4.White : Colour4.Gray,
                             Height = 0,
                         }
                     };
@@ -304,7 +303,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.BottomCentre,
-                        Colour = Color4.Yellow,
+                        Colour = Colour4.Yellow,
                         Blending = BlendingParameters.Additive,
                         Alpha = 0.6f,
                         Height = 0,

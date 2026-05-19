@@ -11,7 +11,6 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Objects;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -59,7 +58,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
                 new Circle
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(0, 0, 0, 190)
+                    Colour = new Colour4(0, 0, 0, 190)
                 },
                 ring = new RingPiece(20 / 70f),
                 ring2 = new RingPiece(5 / 70f),

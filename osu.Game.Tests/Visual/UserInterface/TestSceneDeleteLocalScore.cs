@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -24,8 +25,7 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Scoring;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

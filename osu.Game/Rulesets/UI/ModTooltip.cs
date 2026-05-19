@@ -3,7 +3,6 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -14,8 +13,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Mods;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -42,7 +40,7 @@ namespace osu.Game.Rulesets.UI
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Shadow,
-                Colour = Color4.Black.Opacity(0.2f),
+                Colour = Colour4.Black.Opacity(0.2f),
                 Radius = 10f,
             };
 

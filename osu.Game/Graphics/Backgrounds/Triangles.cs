@@ -15,8 +15,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Backgrounds
 {
@@ -30,9 +29,9 @@ namespace osu.Game.Graphics.Backgrounds
         /// </summary>
         private const float equilateral_triangle_ratio = 0.866f;
 
-        private Color4 colourLight = Color4.White;
+        private Colour4 colourLight = Colour4.White;
 
-        public Color4 ColourLight
+        public Colour4 ColourLight
         {
             get => colourLight;
             set
@@ -44,9 +43,9 @@ namespace osu.Game.Graphics.Backgrounds
             }
         }
 
-        private Color4 colourDark = Color4.Black;
+        private Colour4 colourDark = Colour4.Black;
 
-        public Color4 ColourDark
+        public Colour4 ColourDark
         {
             get => colourDark;
             set
@@ -165,7 +164,7 @@ namespace osu.Game.Graphics.Backgrounds
                     particle.Position.Y = newY;
                 }
 
-                particle.Colour.A = adjustedAlpha;
+                particle.Colour = new Colour4(particle.Colour.R, particle.Colour.G, particle.Colour.B, adjustedAlpha);
                 parts[i] = particle;
             }
 
@@ -254,7 +253,7 @@ namespace osu.Game.Graphics.Backgrounds
         /// Creates a shade of colour for the triangles.
         /// </summary>
         /// <returns>The colour.</returns>
-        protected virtual Color4 CreateTriangleShade(float shade) => Interpolation.ValueAt(shade, colourDark, colourLight, 0, 1);
+        protected virtual Colour4 CreateTriangleShade(float shade) => Interpolation.ValueAt(shade, colourDark, colourLight, 0, 1);
 
         private void updateColours()
         {
@@ -395,7 +394,7 @@ namespace osu.Game.Graphics.Backgrounds
             /// <summary>
             /// The colour of the triangle.
             /// </summary>
-            public Color4 Colour;
+            public Colour4 Colour;
 
             /// <summary>
             /// The scale of the triangle.

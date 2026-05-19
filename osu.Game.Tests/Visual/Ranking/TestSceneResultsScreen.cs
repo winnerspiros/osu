@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -29,8 +30,7 @@ using osu.Game.Screens.Ranking.Expanded.Statistics;
 using osu.Game.Screens.Ranking.Statistics;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 using Realms;
 
 namespace osu.Game.Tests.Visual.Ranking

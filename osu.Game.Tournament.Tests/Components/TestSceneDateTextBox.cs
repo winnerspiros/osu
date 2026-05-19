@@ -1,11 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Game.Tests.Visual;
 using osu.Game.Tournament.Components;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Tests.Components
 {

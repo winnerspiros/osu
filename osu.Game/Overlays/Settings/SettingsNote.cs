@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Settings
 {
@@ -48,7 +47,7 @@ namespace osu.Game.Overlays.Settings
                     {
                         background = new Box
                         {
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                         },
                         text = new OsuTextFlowContainer(s => s.Font = OsuFont.Style.Caption1.With(weight: FontWeight.SemiBold))

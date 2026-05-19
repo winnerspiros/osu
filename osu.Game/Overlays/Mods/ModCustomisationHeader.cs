@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,8 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using static osu.Game.Overlays.Mods.ModCustomisationPanel;
 
 namespace osu.Game.Overlays.Mods
@@ -61,7 +59,7 @@ namespace osu.Game.Overlays.Mods
                 backgroundFlash = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White.Opacity(0.4f),
+                    Colour = Colour4.White.Opacity(0.4f),
                     Blending = BlendingParameters.Additive,
                     Alpha = 0,
                 },

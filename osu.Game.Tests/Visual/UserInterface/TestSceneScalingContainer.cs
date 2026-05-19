@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -11,8 +12,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Configuration;
 using osu.Game.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -55,14 +54,14 @@ namespace osu.Game.Tests.Visual.UserInterface
                                     {
                                         new Box
                                         {
-                                            Colour = Color4.Purple,
+                                            Colour = Colour4.Purple,
                                             RelativeSizeAxes = Axes.Both,
                                         },
                                         scaleTarget = new Box
                                         {
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
-                                            Colour = Color4.White,
+                                            Colour = Colour4.White,
                                             Size = new Vector2(100),
                                         },
                                     }

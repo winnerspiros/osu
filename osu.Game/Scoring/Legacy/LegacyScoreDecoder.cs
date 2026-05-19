@@ -22,7 +22,7 @@ using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
+using System.Numerics;
 using SharpCompress.Compressors.LZMA;
 
 namespace osu.Game.Scoring.Legacy

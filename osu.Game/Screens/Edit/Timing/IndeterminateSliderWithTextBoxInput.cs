@@ -12,7 +12,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays.Settings;
 using osu.Game.Utils;
-using Vector2 = osuTK.Vector2;
 
 namespace osu.Game.Screens.Edit.Timing
 {

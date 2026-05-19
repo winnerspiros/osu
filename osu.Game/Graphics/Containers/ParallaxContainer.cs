@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers
 {

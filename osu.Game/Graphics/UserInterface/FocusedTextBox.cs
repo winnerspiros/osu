@@ -7,8 +7,8 @@ using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -51,8 +51,8 @@ namespace osu.Game.Graphics.UserInterface
         [BackgroundDependencyLoader(true)]
         private void load(OverlayColourProvider? colourProvider)
         {
-            BackgroundUnfocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
-            BackgroundFocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
+            BackgroundUnfocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
+            BackgroundFocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
         }
 
         // We may not be focused yet, but we need to handle keyboard input to be able to request focus

@@ -16,9 +16,7 @@ using osu.Framework.Utils;
 using osu.Game.Graphics.Containers;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Carousel
 {
@@ -236,9 +234,9 @@ namespace osu.Game.Graphics.Carousel
 
             private partial class ScrollBar : ScrollbarContainer
             {
-                private Color4 hoverColour;
-                private Color4 defaultColour;
-                private Color4 highlightColour;
+                private Colour4 hoverColour;
+                private Colour4 defaultColour;
+                private Colour4 highlightColour;
 
                 private readonly Drawable box;
 

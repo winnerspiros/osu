@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -13,7 +14,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Storyboards;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

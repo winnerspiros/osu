@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -11,7 +12,6 @@ using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles.Components;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

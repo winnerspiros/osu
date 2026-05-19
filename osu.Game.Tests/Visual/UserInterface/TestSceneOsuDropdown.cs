@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

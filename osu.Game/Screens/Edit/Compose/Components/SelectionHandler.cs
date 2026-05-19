@@ -20,8 +20,6 @@ using osu.Game.Input.Bindings;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -124,7 +122,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// </remarks>
         /// <seealso cref="ComposeBlueprintContainer.ReceivePositionalInputAt"/>
         /// <seealso cref="TimelineBlueprintContainer.ReceivePositionalInputAt"/>
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         /// <summary>
         /// Handles the selected items being moved.

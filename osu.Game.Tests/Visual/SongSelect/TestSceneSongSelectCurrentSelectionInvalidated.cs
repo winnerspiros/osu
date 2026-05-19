@@ -10,7 +10,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Screens.Select;
 using osu.Game.Screens.Select.Filter;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {

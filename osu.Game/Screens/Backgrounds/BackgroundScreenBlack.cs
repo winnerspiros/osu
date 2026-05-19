@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Backgrounds
 {
@@ -19,7 +18,7 @@ namespace osu.Game.Screens.Backgrounds
 
             InternalChild = box = new Box
             {
-                Colour = Color4.Black,
+                Colour = Colour4.Black,
                 RelativeSizeAxes = Axes.Both,
             };
 

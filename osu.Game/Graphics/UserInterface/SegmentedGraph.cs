@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {

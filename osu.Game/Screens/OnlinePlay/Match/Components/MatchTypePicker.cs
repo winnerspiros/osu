@@ -13,7 +13,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Match.Components
 {

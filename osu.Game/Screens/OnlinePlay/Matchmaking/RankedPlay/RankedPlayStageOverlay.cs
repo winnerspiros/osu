@@ -9,13 +9,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
-using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Users.Drawables;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -25,7 +24,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
         private readonly RankedPlayColourScheme colourScheme;
 
         public APIUser? PickingUser { get; init; }
-        public double? Multiplier { get; init; }
 
         private FillFlowContainer displayContainer = null!;
         private FillFlowContainer detailsContainer = null!;
@@ -148,18 +146,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                             Colour = colourScheme.Primary,
                         },
                     },
-                });
-            }
-
-            if (Multiplier != null)
-            {
-                detailsContainer.Add(new OsuSpriteText
-                {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    UseFullGlyphHeight = false,
-                    Font = OsuFont.Torus.With(size: 32),
-                    Text = $"{Multiplier.Value.ToStandardFormattedString(maxDecimalDigits: 1)}x damage",
                 });
             }
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
@@ -15,7 +16,6 @@ using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Scoring;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Replays
 {
@@ -161,7 +161,7 @@ namespace osu.Game.Rulesets.Osu.Replays
 
                 Vector2 spinCentreOffset = SPINNER_CENTRE - ((OsuReplayFrame)Frames[^1]).Position;
 
-                if (spinCentreOffset.Length > SPIN_RADIUS)
+                if (spinCentreOffset.Length() > SPIN_RADIUS)
                 {
                     // If moving in from the outside, don't ease out (default eases out). This means auto will "start" spinning immediately after moving into position.
                     easing = Easing.In;
@@ -185,7 +185,7 @@ namespace osu.Game.Rulesets.Osu.Replays
         private static void calcSpinnerStartPosAndDirection(Vector2 prevPos, out Vector2 startPosition, out float spinnerDirection)
         {
             Vector2 spinCentreOffset = SPINNER_CENTRE - prevPos;
-            float distFromCentre = spinCentreOffset.Length;
+            float distFromCentre = spinCentreOffset.Length();
             float distToTangentPoint = MathF.Sqrt(distFromCentre * distFromCentre - SPIN_RADIUS * SPIN_RADIUS);
 
             if (distFromCentre > SPIN_RADIUS)
@@ -209,16 +209,16 @@ namespace osu.Game.Rulesets.Osu.Replays
                 spinCentreOffset.Y = spinCentreOffset.X * MathF.Sin(angle) + spinCentreOffset.Y * MathF.Cos(angle);
 
                 // Set length to distToTangentPoint
-                spinCentreOffset.Normalize();
+                spinCentreOffset = Vector2.Normalize(spinCentreOffset);
                 spinCentreOffset *= distToTangentPoint;
 
                 // Move along the tangent line, now startPosition is at the tangent point.
                 startPosition = prevPos + spinCentreOffset;
             }
-            else if (spinCentreOffset.Length > 0)
+            else if (spinCentreOffset.Length() > 0)
             {
                 // Previous cursor position was inside spin circle, set startPosition to the nearest point on spin circle.
-                startPosition = SPINNER_CENTRE - spinCentreOffset * (SPIN_RADIUS / spinCentreOffset.Length);
+                startPosition = SPINNER_CENTRE - spinCentreOffset * (SPIN_RADIUS / spinCentreOffset.Length());
                 spinnerDirection = 1;
             }
             else
@@ -352,7 +352,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 case Spinner spinner:
                     Vector2 difference = startPosition - SPINNER_CENTRE;
 
-                    float radius = difference.Length;
+                    float radius = difference.Length();
                     float angle = radius == 0 ? 0 : MathF.Atan2(difference.Y, difference.X);
 
                     double t;

@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -23,7 +22,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                 },
                 new BasicScrollContainer
                 {

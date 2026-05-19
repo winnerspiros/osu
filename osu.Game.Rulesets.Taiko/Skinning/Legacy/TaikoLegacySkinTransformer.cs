@@ -11,7 +11,7 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Taiko.UI;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 {

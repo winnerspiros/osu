@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps.Formats;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -25,7 +25,7 @@ namespace osu.Game.Skinning
 
         public readonly int Keys;
 
-        public Dictionary<string, Color4> CustomColours { get; } = new Dictionary<string, Color4>();
+        public Dictionary<string, Colour4> CustomColours { get; } = new Dictionary<string, Colour4>();
 
         public Dictionary<string, string> ImageLookups = new Dictionary<string, string>();
 

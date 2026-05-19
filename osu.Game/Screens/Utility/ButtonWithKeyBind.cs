@@ -7,7 +7,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Utility
 {

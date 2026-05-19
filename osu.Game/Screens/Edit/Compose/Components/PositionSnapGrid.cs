@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Layout;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -24,7 +22,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         protected PositionSnapGrid()
             : base(cachedFrameBuffer: true)
         {
-            BackgroundColour = Color4.White.Opacity(0);
+            BackgroundColour = Colour4.White.Opacity(0);
 
             StartPosition.BindValueChanged(_ => GridCache.Invalidate());
 

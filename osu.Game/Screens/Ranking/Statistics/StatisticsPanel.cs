@@ -24,7 +24,7 @@ using osu.Game.Online.Placeholders;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Statistics.User;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Ranking.Statistics
 {

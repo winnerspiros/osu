@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
@@ -16,8 +15,8 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Edit;
-using osuTK;
-using osuTK.Input;
+using Vector2 = System.Numerics.Vector2;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {

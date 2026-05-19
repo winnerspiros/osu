@@ -10,7 +10,7 @@ using osu.Framework.Threading;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Users.Drawables;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.OnlinePlay.Components
 {

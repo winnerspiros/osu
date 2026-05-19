@@ -8,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Game.Configuration;
-using osuTK;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -19,7 +18,7 @@ namespace osu.Game.Graphics.UserInterface
     {
         private Bindable<double?> lastPlaybackTime;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Parent?.ReceivePositionalInputAt(screenSpacePos) == true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => Parent?.ReceivePositionalInputAt(screenSpacePos) == true;
 
         [BackgroundDependencyLoader]
         private void load(SessionStatics statics)

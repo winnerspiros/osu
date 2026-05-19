@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online;
-using osuTK.Graphics;
 
 namespace osu.Game.Beatmaps.Drawables
 {
@@ -37,7 +35,7 @@ namespace osu.Game.Beatmaps.Drawables
         private void load(OsuColour colours)
         {
             progressBar.FillColour = colours.Blue;
-            progressBar.BackgroundColour = Color4.Black.Opacity(0.7f);
+            progressBar.BackgroundColour = Colour4.Black.Opacity(0.7f);
             progressBar.Current.BindTarget = downloadTracker.Progress;
 
             downloadTracker.State.BindValueChanged(state =>

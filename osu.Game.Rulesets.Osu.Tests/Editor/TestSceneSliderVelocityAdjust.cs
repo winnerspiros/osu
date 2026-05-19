@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Input;
 using osu.Framework.Testing;
@@ -14,8 +15,6 @@ using osu.Game.Screens.Edit.Compose.Components.Timeline;
 using osu.Game.Screens.Edit.Timing;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

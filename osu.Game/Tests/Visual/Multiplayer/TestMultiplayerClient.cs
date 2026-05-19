@@ -734,6 +734,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             item.ID = ++lastPlaylistItemId;
 
+            // Assign a PlaylistOrder that is beyond all existing non-expired items so that
+            // updatePlaylistOrder does not need to re-order items added earlier.
+            int maxOrder = ServerRoom.Playlist.Where(i => !i.Expired).Select(i => (int)i.PlaylistOrder).DefaultIfEmpty(-1).Max();
+            item.PlaylistOrder = (ushort)(maxOrder + 1);
+
             ServerRoom.Playlist.Add(item);
             ServerAPIRoom.Playlist = ServerAPIRoom.Playlist.Append(new PlaylistItem(item)).ToArray();
             await ((IMultiplayerClient)this).PlaylistItemAdded(clone(item)).ConfigureAwait(false);

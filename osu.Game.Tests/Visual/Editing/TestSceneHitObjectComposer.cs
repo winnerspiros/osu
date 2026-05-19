@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -24,8 +25,7 @@ using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -194,7 +194,7 @@ namespace osu.Game.Tests.Visual.Editing
                 // and the playfield/composer.
                 var scrollArea = hitObjectComposer.ChildrenOfType<ExpandingToolboxContainer>().First().ScreenSpaceDrawQuad;
                 var playfield = hitObjectComposer.Playfield.ScreenSpaceDrawQuad;
-                InputManager.MoveMouseTo(new Vector2(scrollArea.TopLeft.X + 1, playfield.Centre.Y));
+                InputManager.MoveMouseTo(playfield.Centre with { X = scrollArea.TopLeft.X + 1 });
             });
 
             AddAssert("no circles placed", () => editorBeatmap.HitObjects.Count == 0);

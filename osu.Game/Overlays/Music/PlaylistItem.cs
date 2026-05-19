@@ -14,7 +14,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Music
 {
@@ -104,7 +103,7 @@ namespace osu.Game.Overlays.Music
             if (wasSelected == this.selected)
                 return;
 
-            text.FadeColour(this.selected == true ? colours.Yellow : Color4.White, 100);
+            text.FadeColour(this.selected == true ? colours.Yellow : Colour4.White, 100);
         }
 
         protected override bool OnClick(ClickEvent e)

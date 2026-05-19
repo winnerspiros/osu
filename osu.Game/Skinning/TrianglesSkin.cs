@@ -16,8 +16,7 @@ using osu.Game.IO;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
 using osu.Game.Skinning.Triangles;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {
@@ -220,7 +219,7 @@ namespace osu.Game.Skinning
                         case GlobalSkinColours.ComboColours:
                         {
                             LogLookupDebug(this, lookup, LookupDebugType.Hit);
-                            return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Color4>?>(Configuration.ComboColours));
+                            return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Colour4>?>(Configuration.ComboColours));
                         }
                     }
 
@@ -228,14 +227,14 @@ namespace osu.Game.Skinning
 
                 case SkinComboColourLookup comboColour:
                     LogLookupDebug(this, lookup, LookupDebugType.Hit);
-                    return SkinUtils.As<TValue>(new Bindable<Color4>(getComboColour(Configuration, comboColour.ColourIndex)));
+                    return SkinUtils.As<TValue>(new Bindable<Colour4>(getComboColour(Configuration, comboColour.ColourIndex)));
             }
 
             LogLookupDebug(this, lookup, LookupDebugType.Miss);
             return null;
         }
 
-        private static Color4 getComboColour(IHasComboColours source, int colourIndex)
+        private static Colour4 getComboColour(IHasComboColours source, int colourIndex)
             => source.ComboColours![colourIndex % source.ComboColours.Count];
     }
 }

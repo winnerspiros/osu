@@ -19,7 +19,7 @@ using osu.Game.Online;
 using osu.Game.Online.API;
 using osu.Game.Online.Chat;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {

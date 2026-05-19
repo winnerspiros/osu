@@ -22,7 +22,6 @@ using osu.Game.Tournament.IO;
 using osu.Game.Tournament.IPC;
 using osu.Game.Tournament.Models;
 using osu.Game.Users;
-using osuTK.Input;
 
 namespace osu.Game.Tournament
 {

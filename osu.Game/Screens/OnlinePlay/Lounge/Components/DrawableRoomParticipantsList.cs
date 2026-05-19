@@ -16,7 +16,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge.Components

@@ -9,8 +9,8 @@ using osu.Framework.Testing;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.MapPool;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Tests.Screens
 {

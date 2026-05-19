@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -15,8 +16,6 @@ using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
@@ -90,7 +89,7 @@ namespace osu.Game.Rulesets.Mania.Tests
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Height = 0.85f,
-                AccentColour = { Value = Color4.OrangeRed },
+                AccentColour = { Value = Colour4.OrangeRed },
                 Action = { Value = action },
             };
 

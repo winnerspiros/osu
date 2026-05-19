@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
@@ -6,8 +6,7 @@ using osu.Framework.Graphics;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Skinning.Default;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 {
@@ -35,7 +34,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
             InternalChild = body = new ManualSliderBody
             {
-                AccentColour = Color4.Transparent
+                AccentColour = Colour4.Transparent
             };
         }
 

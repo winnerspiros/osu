@@ -6,7 +6,7 @@ using NUnit.Framework;
 using osu.Framework.Input.Bindings;
 using osu.Game.Input;
 using osu.Game.Input.Bindings;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Input
 {

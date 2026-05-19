@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -21,7 +22,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Storyboards;
 using osu.Game.Storyboards.Drawables;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

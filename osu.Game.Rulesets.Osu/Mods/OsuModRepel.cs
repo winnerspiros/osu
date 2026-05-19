@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Sprites;
@@ -17,7 +18,6 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.Osu.Utils;
 using osu.Game.Rulesets.UI;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {

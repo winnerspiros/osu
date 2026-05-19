@@ -11,7 +11,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Skinning;
 using osu.Game.Users.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {

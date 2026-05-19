@@ -4,8 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Catch.Objects;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
 {
@@ -16,7 +15,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             Size = new Vector2(CatchHitObject.OBJECT_RADIUS * 2);
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
             BorderThickness = 6f * FruitPiece.RADIUS_ADJUST;
 
             // Border is drawn only when there is a child drawable.

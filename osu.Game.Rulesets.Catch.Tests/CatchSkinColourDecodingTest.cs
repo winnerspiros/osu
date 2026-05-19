@@ -7,7 +7,7 @@ using osu.Framework.IO.Stores;
 using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Rulesets.Catch.Skinning.Legacy;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {
@@ -22,9 +22,9 @@ namespace osu.Game.Rulesets.Catch.Tests
             var skinSource = new SkinProvidingContainer(rawSkin);
             var skin = new CatchLegacySkinTransformer(skinSource);
 
-            ClassicAssert.AreEqual(new Color4(232, 185, 35, 255), skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDash)?.Value);
-            ClassicAssert.AreEqual(new Color4(232, 74, 35, 255), skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDashAfterImage)?.Value);
-            ClassicAssert.AreEqual(new Color4(0, 255, 255, 255), skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDashFruit)?.Value);
+            ClassicAssert.AreEqual(new Colour4(232, 185, 35, 255), skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDash)?.Value);
+            ClassicAssert.AreEqual(new Colour4(232, 74, 35, 255), skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDashAfterImage)?.Value);
+            ClassicAssert.AreEqual(new Colour4(0, 255, 255, 255), skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDashFruit)?.Value);
         }
 
         private class TestLegacySkin : LegacySkin

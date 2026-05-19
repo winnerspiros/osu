@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Backgrounds
 {
@@ -74,23 +74,22 @@ namespace osu.Game.Graphics.Backgrounds
         private void transformBlurSigma(Vector2 newBlurSigma, double duration, Easing easing)
             => this.TransformTo(nameof(blurSigma), newBlurSigma, duration, easing);
 
-        private Vector2 blurSigmaBacking = Vector2.Zero;
         private Vector2 blurScale = Vector2.One;
 
         private Vector2 blurSigma
         {
-            get => blurSigmaBacking;
+            get => field;
             set
             {
                 Debug.Assert(bufferedContainer != null);
 
-                blurSigmaBacking = value;
+                field = value;
                 blurScale = new Vector2(calculateBlurDownscale(value.X), calculateBlurDownscale(value.Y));
 
                 bufferedContainer.FrameBufferScale = blurScale;
                 bufferedContainer.BlurSigma = value * blurScale; // If the image is scaled down, the blur radius also needs to be reduced to cover the same pixel block.
             }
-        }
+        } = Vector2.Zero;
 
         /// <summary>
         /// Determines a factor to downscale the background based on a given blur sigma, in order to reduce the computational complexity of blurs.

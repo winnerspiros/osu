@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 #nullable disable
@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -18,9 +19,7 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Graphics.ES30;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Osu.UI.Cursor
 {
@@ -194,7 +193,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
 
                     Vector2 pos1 = lastPosition.Value;
                     Vector2 diff = pos2 - pos1;
-                    float distance = diff.Length;
+                    float distance = diff.Length();
                     Vector2 direction = diff / distance;
 
                     float interval = Texture.DisplayWidth * CursorScale.X / 2.5f * IntervalMultiplier;
@@ -408,7 +407,7 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
             public Vector2 Position;
 
             [VertexMember(4, VertexAttribPointerType.Float)]
-            public Color4 Colour;
+            public Colour4 Colour;
 
             [VertexMember(2, VertexAttribPointerType.Float)]
             public Vector2 TexturePosition;

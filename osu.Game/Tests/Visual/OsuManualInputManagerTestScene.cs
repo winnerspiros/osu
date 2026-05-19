@@ -13,9 +13,8 @@ using osu.Game.Graphics.Cursor;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual
 {
@@ -84,7 +83,7 @@ namespace osu.Game.Tests.Visual
                     {
                         new Box
                         {
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                             Alpha = 0.4f,
                         },

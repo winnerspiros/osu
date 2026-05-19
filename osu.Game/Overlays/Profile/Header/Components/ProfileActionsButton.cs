@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics.Containers;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {

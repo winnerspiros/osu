@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Screens;
@@ -15,7 +16,6 @@ using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.RoundResults;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Matchmaking
 {

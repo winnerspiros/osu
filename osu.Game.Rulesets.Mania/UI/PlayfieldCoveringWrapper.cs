@@ -1,19 +1,17 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.ComponentModel;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Rulesets.Mania.UI
@@ -81,8 +79,8 @@ namespace osu.Game.Rulesets.Mania.UI
                                 RelativePositionAxes = Axes.Both,
                                 Height = 0.25f,
                                 Colour = ColourInfo.GradientVertical(
-                                    Color4.White.Opacity(0f),
-                                    Color4.White.Opacity(1f)
+                                    Colour4.White.Opacity(0f),
+                                    Colour4.White.Opacity(1f)
                                 )
                             },
                             filled = new Box

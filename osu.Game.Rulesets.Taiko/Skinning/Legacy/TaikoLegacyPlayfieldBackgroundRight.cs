@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
 {

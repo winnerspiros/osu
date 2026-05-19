@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Numerics;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -28,8 +29,6 @@ using osu.Game.Screens.Play.HUD.HitErrorMeters;
 using osu.Game.Skinning;
 using osu.Game.Skinning.Components;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

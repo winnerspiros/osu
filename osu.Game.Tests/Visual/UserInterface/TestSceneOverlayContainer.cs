@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -10,9 +11,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays.Volume;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 using Box = osu.Framework.Graphics.Shapes.Box;
 
 namespace osu.Game.Tests.Visual.UserInterface
@@ -108,7 +107,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Text = "Overlay content",
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     },
                 };
             }

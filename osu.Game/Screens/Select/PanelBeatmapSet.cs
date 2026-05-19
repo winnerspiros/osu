@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,8 +27,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -108,7 +106,7 @@ namespace osu.Game.Screens.Select
             Background = chevronBackground = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.White,
+                Colour = Colour4.White,
                 Alpha = 0f,
             };
 

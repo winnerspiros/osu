@@ -15,8 +15,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -130,7 +129,7 @@ namespace osu.Game.Overlays.BeatmapSet
                     if (Selected.Value)
                         return;
 
-                    this.FadeColour(highlighted.NewValue ? Color4.White : Color4.DimGray, duration, Easing.OutQuint);
+                    this.FadeColour(highlighted.NewValue ? Colour4.White : Colour4.DimGray, duration, Easing.OutQuint);
                 }, true);
 
                 Selected.BindValueChanged(selected =>

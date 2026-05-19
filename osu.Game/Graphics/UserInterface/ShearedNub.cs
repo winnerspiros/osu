@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -12,8 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -109,9 +107,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 shadowColour = Color4.Black.Opacity(0f);
+        private Colour4 shadowColour = Colour4.Black.Opacity(0f);
 
-        public Color4 ShadowColour
+        public Colour4 ShadowColour
         {
             get => shadowColour;
             set
@@ -136,9 +134,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         } = new Bindable<bool>();
 
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => accentColour;
             set
@@ -148,9 +146,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 glowingAccentColour;
+        private Colour4 glowingAccentColour;
 
-        public Color4 GlowingAccentColour
+        public Colour4 GlowingAccentColour
         {
             get => glowingAccentColour;
             set
@@ -160,9 +158,9 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 glowColour;
+        private Colour4 glowColour;
 
-        public Color4 GlowColour
+        public Colour4 GlowColour
         {
             get => glowColour;
             set
@@ -198,7 +196,7 @@ namespace osu.Game.Graphics.UserInterface
                     .Then()
                     .FadeColour(GlowingAccentColour, 800, Easing.OutQuint);
 
-                main.FadeEdgeEffectTo(Color4.White.Opacity(0.1f), 40, Easing.OutQuint)
+                main.FadeEdgeEffectTo(Colour4.White.Opacity(0.1f), 40, Easing.OutQuint)
                     .Then()
                     .FadeEdgeEffectTo(GlowColour.Opacity(0.1f), 800, Easing.OutQuint);
             }

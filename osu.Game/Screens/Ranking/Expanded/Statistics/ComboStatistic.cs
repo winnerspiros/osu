@@ -9,7 +9,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens.Ranking.Expanded.Accuracy;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Screens.Ranking.Expanded.Statistics
 {

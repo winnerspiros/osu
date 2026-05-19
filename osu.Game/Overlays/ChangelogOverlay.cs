@@ -18,7 +18,6 @@ using osu.Game.Input.Bindings;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Changelog;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -54,7 +53,7 @@ namespace osu.Game.Overlays
             ListingSelected = ShowListing,
         };
 
-        protected override Color4 BackgroundColour => ColourProvider.Background4;
+        protected override Colour4 BackgroundColour => ColourProvider.Background4;
 
         public void ShowListing()
         {

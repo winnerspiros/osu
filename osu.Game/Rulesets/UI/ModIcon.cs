@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -16,8 +15,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Mods;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -73,7 +71,7 @@ namespace osu.Game.Rulesets.UI
         [Resolved]
         private OverlayColourProvider? colourProvider { get; set; }
 
-        private Color4 backgroundColour;
+        private Colour4 backgroundColour;
 
         private Sprite extendedBackground = null!;
 
@@ -115,7 +113,7 @@ namespace osu.Game.Rulesets.UI
                     Name = "extended content",
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Size = new Vector2(116, MOD_ICON_SIZE.Y),
+                    Size = MOD_ICON_SIZE with { X = 116 },
                     X = MOD_ICON_SIZE.X - 22,
                     Children = new Drawable[]
                     {

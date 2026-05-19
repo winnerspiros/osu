@@ -14,7 +14,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Screens.Play.Leaderboards;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {

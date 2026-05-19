@@ -30,7 +30,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Statistics;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.PlayerSettings
 {

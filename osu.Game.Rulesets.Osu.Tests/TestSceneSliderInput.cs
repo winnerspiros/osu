@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
@@ -18,7 +19,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

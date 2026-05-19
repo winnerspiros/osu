@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Edit;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {

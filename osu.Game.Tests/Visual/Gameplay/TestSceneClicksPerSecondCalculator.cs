@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -11,7 +12,6 @@ using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD.ClicksPerSecond;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

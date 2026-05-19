@@ -12,8 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Screens.Select
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Alpha = background ? 0.2f : 0f,
                     },
                     new FillFlowContainer

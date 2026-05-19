@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -20,7 +21,6 @@ using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Match.Playlist;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

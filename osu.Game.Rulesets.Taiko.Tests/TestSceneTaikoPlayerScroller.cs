@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
@@ -9,7 +10,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Taiko.Skinning.Legacy;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Taiko.Tests
 {

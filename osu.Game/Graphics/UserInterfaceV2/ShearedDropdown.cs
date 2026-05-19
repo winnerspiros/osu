@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -16,8 +15,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -81,14 +79,12 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         public partial class ShearedDropdownHeader : DropdownHeader
         {
-            private LocalisableString label;
-
             protected override LocalisableString Label
             {
-                get => label;
+                get;
                 set
                 {
-                    label = value;
+                    field = value;
                     valueText.Text = value;
                 }
             }
@@ -236,7 +232,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 var hoveredColour = colourProvider.Light4;
                 var unhoveredColour = colourProvider.Background5;
 
-                Colour = Enabled.Value ? Color4.White : OsuColour.Gray(0.6f);
+                Colour = Enabled.Value ? Colour4.White : OsuColour.Gray(0.6f);
 
                 if (SearchBar.State.Value == Visibility.Visible)
                 {
@@ -245,7 +241,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 }
                 else
                 {
-                    chevron.Colour = Color4.White;
+                    chevron.Colour = Colour4.White;
                     Background.Colour = hovered ? hoveredColour : unhoveredColour;
                 }
             }
@@ -276,8 +272,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
                     private void load(OverlayColourProvider? colourProvider)
                     {
                         TextContainer.Shear = -OsuGame.SHEAR;
-                        BackgroundUnfocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
-                        BackgroundFocused = colourProvider?.Background5 ?? new Color4(10, 10, 10, 255);
+                        BackgroundUnfocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
+                        BackgroundFocused = colourProvider?.Background5 ?? new Colour4(10, 10, 10, 255);
                     }
 
                     protected override void OnFocus(FocusEvent e)

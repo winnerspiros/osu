@@ -8,7 +8,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Screens.Edit;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Mods
 {
@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Catch.Mods
         {
             if (currentBeatmap == null) return;
 
-            Color4? timingBasedColour = null;
+            Colour4? timingBasedColour = null;
 
             d.HitObjectApplied += _ =>
             {
@@ -45,7 +45,7 @@ namespace osu.Game.Rulesets.Catch.Mods
                 // Colour droplets into a solid colour, as droplets aren't generated snapped to timeline ticks.
                 if (d.HitObject is Droplet)
                 {
-                    timingBasedColour = Color4.LightGreen;
+                    timingBasedColour = Colour4.LightGreen;
                 }
             };
 

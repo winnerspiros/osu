@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -11,7 +12,6 @@ using osu.Game.Beatmaps.Drawables;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

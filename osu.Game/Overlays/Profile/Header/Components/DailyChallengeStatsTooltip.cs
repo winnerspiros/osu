@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -18,8 +17,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {
@@ -46,7 +44,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Shadow,
-                Colour = Color4.Black.Opacity(0.25f),
+                Colour = Colour4.Black.Opacity(0.25f),
                 Radius = 30f,
             };
 

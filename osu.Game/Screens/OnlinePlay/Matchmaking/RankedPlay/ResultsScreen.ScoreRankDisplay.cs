@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {

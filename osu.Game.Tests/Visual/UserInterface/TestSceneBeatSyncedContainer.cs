@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -20,7 +19,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Play;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -216,7 +214,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Black.Opacity(150),
+                                Colour = Colour4.Black.Opacity(150),
                             },
                             new FillFlowContainer
                             {
@@ -251,12 +249,12 @@ namespace osu.Game.Tests.Visual.UserInterface
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Black,
+                                Colour = Colour4.Black,
                             },
                             flashLayer = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 Alpha = 0,
                             }
                         }

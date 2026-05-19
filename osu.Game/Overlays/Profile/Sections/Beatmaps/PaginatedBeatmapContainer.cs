@@ -10,7 +10,7 @@ using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK;
+using System.Numerics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 
 namespace osu.Game.Overlays.Profile.Sections.Beatmaps

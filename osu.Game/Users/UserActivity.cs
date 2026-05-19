@@ -10,7 +10,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Users
 {
@@ -42,7 +42,7 @@ namespace osu.Game.Users
         public abstract string GetStatus(bool hideIdentifiableInformation = false);
         public virtual string? GetDetails(bool hideIdentifiableInformation = false) => null;
 
-        public virtual Color4 GetAppropriateColour(OsuColour colours) => colours.GreenDarker;
+        public virtual Colour4 GetAppropriateColour(OsuColour colours) => colours.GreenDarker;
 
         /// <summary>
         /// Returns the ID of the beatmap involved in this activity, if applicable and/or available.
@@ -190,7 +190,7 @@ namespace osu.Game.Users
             public ModdingBeatmap() { }
 
             public override string GetStatus(bool hideIdentifiableInformation = false) => "Modding a beatmap";
-            public override Color4 GetAppropriateColour(OsuColour colours) => colours.PurpleDark;
+            public override Colour4 GetAppropriateColour(OsuColour colours) => colours.PurpleDark;
         }
 
         [MessagePackObject]

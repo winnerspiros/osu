@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Objects.Drawables
 {
@@ -13,7 +13,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
     public interface IHasCatchObjectState
     {
         PalpableCatchHitObject HitObject { get; }
-        Bindable<Color4> AccentColour { get; }
+        Bindable<Colour4> AccentColour { get; }
         Bindable<bool> HyperDash { get; }
         Bindable<int> IndexInBeatmap { get; }
         double DisplayStartTime { get; }
@@ -38,7 +38,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
 
     public readonly record struct CatchObjectState(
         PalpableCatchHitObject HitObject,
-        Color4 AccentColour,
+        Colour4 AccentColour,
         bool HyperDash,
         int IndexInBeatmap,
         Vector2 DisplayPosition,

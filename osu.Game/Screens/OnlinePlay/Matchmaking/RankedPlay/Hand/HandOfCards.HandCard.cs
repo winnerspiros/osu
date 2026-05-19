@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 using osu.Game.Online.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {

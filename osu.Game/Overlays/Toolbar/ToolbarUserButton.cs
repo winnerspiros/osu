@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -16,8 +15,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -62,7 +60,7 @@ namespace osu.Game.Overlays.Toolbar
                     {
                         Type = EdgeEffectType.Shadow,
                         Radius = 4,
-                        Colour = Color4.Black.Opacity(0.1f),
+                        Colour = Colour4.Black.Opacity(0.1f),
                     },
                     Children = new Drawable[]
                     {

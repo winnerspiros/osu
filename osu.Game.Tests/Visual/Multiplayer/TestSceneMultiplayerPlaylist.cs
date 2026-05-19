@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -22,7 +23,6 @@ using osu.Game.Screens.OnlinePlay;
 using osu.Game.Screens.OnlinePlay.Multiplayer.Match.Playlist;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Resources;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -239,7 +239,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                        && this.ChildrenOfType<MultiplayerQueueList>()
                               .Single()
                               .ChildrenOfType<DrawableRoomPlaylistItem>()
-                              .OrderBy(drawable => drawable.Position.Y)
+                              .OrderBy(drawable => drawable.Item.PlaylistOrder)
                               .TakeWhile(drawable => drawable.Item.ID != playlistItemId)
                               .Count() == visualIndex;
             });
@@ -260,7 +260,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                        && this.ChildrenOfType<MultiplayerHistoryList>()
                               .Single()
                               .ChildrenOfType<DrawableRoomPlaylistItem>()
-                              .OrderBy(drawable => drawable.Position.Y)
+                              .OrderByDescending(drawable => drawable.Item.PlayedAt)
                               .TakeWhile(drawable => drawable.Item.ID != playlistItemId)
                               .Count() == visualIndex;
             });

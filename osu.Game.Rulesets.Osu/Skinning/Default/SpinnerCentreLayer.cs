@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -10,8 +11,6 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -54,9 +53,9 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             symbol.Rotation = (float)Interpolation.Lerp(symbol.Rotation, spinner.RotationTracker.Rotation / 2, Math.Clamp(Math.Abs(Time.Elapsed) / 40, 0, 1));
         }
 
-        private Color4 accentColour;
+        private Colour4 accentColour;
 
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
             get => accentColour;
             set

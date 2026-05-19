@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,7 +13,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Profile.Sections.Ranks;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Scoring;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

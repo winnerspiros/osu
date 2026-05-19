@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -11,8 +10,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -27,12 +24,12 @@ namespace osu.Game.Graphics.UserInterface
             set => SpriteText.Text = value;
         }
 
-        private Color4? backgroundColour;
+        private Colour4? backgroundColour;
 
         /// <summary>
         /// Sets a custom background colour to this button, replacing the provided default.
         /// </summary>
-        public virtual Color4 BackgroundColour
+        public virtual Colour4 BackgroundColour
         {
             get => backgroundColour ?? defaultBackgroundColour;
             set
@@ -42,12 +39,12 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Color4 defaultBackgroundColour;
+        private Colour4 defaultBackgroundColour;
 
         /// <summary>
         /// Sets a default background colour to this button.
         /// </summary>
-        protected Color4 DefaultBackgroundColour
+        protected Colour4 DefaultBackgroundColour
         {
             get => defaultBackgroundColour;
             set
@@ -61,7 +58,7 @@ namespace osu.Game.Graphics.UserInterface
 
         protected override Container<Drawable> Content { get; }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) =>
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) =>
             // base call is checked for cases when `OsuClickableContainer` has masking applied to it directly (ie. externally in object initialisation).
             base.ReceivePositionalInputAt(screenSpacePos)
             // Implementations often apply masking / edge rounding at a content level, so it's imperative to check that as well.
@@ -99,7 +96,7 @@ namespace osu.Game.Graphics.UserInterface
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Blending = BlendingParameters.Additive,
                         Depth = float.MinValue
                     },
@@ -109,7 +106,7 @@ namespace osu.Game.Graphics.UserInterface
                         RelativeSizeAxes = Axes.Both,
                         Blending = BlendingParameters.Additive,
                         Depth = float.MinValue,
-                        Colour = Color4.White.Opacity(0.5f),
+                        Colour = Colour4.White.Opacity(0.5f),
                         Alpha = 0,
                     },
                 }
@@ -133,7 +130,7 @@ namespace osu.Game.Graphics.UserInterface
             Enabled.BindValueChanged(_ => this.FadeColour(dimColour, 200, Easing.OutQuint));
         }
 
-        private Color4 dimColour => Enabled.Value ? Color4.White : Color4.Gray;
+        private Colour4 dimColour => Enabled.Value ? Colour4.White : Colour4.Gray;
 
         protected override bool OnClick(ClickEvent e)
         {

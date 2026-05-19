@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -10,8 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
@@ -63,7 +61,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
                         RelativeSizeAxes = Axes.Both,
                         CornerRadius = BeatmapCard.CORNER_RADIUS,
                         Masking = true,
-                        Colour = Color4.White.Opacity(0.1f),
+                        Colour = Colour4.White.Opacity(0.1f),
                         Blending = BlendingParameters.Additive,
                         Child = new Box { RelativeSizeAxes = Axes.Both, }
                     },

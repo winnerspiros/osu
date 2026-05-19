@@ -16,7 +16,7 @@ using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.Menus;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Beatmaps.IO;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Editing
 {

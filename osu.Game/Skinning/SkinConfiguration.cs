@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Game.Beatmaps.Formats;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -41,17 +41,17 @@ namespace osu.Game.Skinning
             InputOverlayText,
         }
 
-        public static List<Color4> DefaultComboColours { get; } = new List<Color4>
+        public static List<Colour4> DefaultComboColours { get; } = new List<Colour4>
         {
-            new Color4(255, 192, 0, 255),
-            new Color4(0, 202, 0, 255),
-            new Color4(18, 124, 255, 255),
-            new Color4(242, 24, 57, 255),
+            new Colour4(255, 192, 0, 255),
+            new Colour4(0, 202, 0, 255),
+            new Colour4(18, 124, 255, 255),
+            new Colour4(242, 24, 57, 255),
         };
 
-        public List<Color4> CustomComboColours { get; set; } = new List<Color4>();
+        public List<Colour4> CustomComboColours { get; set; } = new List<Colour4>();
 
-        public IReadOnlyList<Color4>? ComboColours
+        public IReadOnlyList<Colour4>? ComboColours
         {
             get
             {
@@ -65,7 +65,7 @@ namespace osu.Game.Skinning
             }
         }
 
-        public Dictionary<string, Color4> CustomColours { get; } = new Dictionary<string, Color4>();
+        public Dictionary<string, Colour4> CustomColours { get; } = new Dictionary<string, Colour4>();
 
         public readonly Dictionary<string, string> ConfigDictionary = new Dictionary<string, string>();
     }

@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -18,8 +17,7 @@ using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -35,7 +33,6 @@ namespace osu.Game.Screens.Select
         private Box backgroundBorder = null!;
         private Box contentBackground = null!;
         private OsuSpriteText starRatingText = null!;
-        private CircularContainer countPill = null!;
         private OsuSpriteText countText = null!;
         private TrianglesV2 triangles = null!;
         private Box glow = null!;
@@ -106,7 +103,7 @@ namespace osu.Game.Screens.Select
                         }
                     }
                 },
-                countPill = new CircularContainer
+                new CircularContainer
                 {
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
@@ -118,7 +115,7 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black.Opacity(0.7f),
+                            Colour = Colour4.Black.Opacity(0.7f),
                         },
                         countText = new OsuSpriteText
                         {
@@ -139,7 +136,7 @@ namespace osu.Game.Screens.Select
             Expanded.BindValueChanged(_ => onExpanded(), true);
         }
 
-        private Color4 statusColour;
+        private Colour4 statusColour;
 
         protected override void PrepareForUse()
         {
@@ -157,7 +154,7 @@ namespace osu.Game.Screens.Select
                 case BeatmapOnlineStatus.Graveyard:
                     // special override - the colour returned by `ForBeatmapSetOnlineStatus()` for graveyard is pitch black and doesn't allow for any contrast
                     statusColour = colours.Gray5;
-                    iconContainer.Colour = Color4.White;
+                    iconContainer.Colour = Colour4.White;
                     break;
 
                 default:

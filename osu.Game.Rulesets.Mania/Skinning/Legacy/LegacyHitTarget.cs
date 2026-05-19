@@ -9,8 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -29,8 +28,8 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
             bool showJudgementLine = skin.GetManiaSkinConfig<bool>(LegacyManiaSkinConfigurationLookups.ShowJudgementLine)?.Value
                                      ?? true;
 
-            Color4 lineColour = skin.GetManiaSkinConfig<Color4>(LegacyManiaSkinConfigurationLookups.JudgementLineColour)?.Value
-                                ?? Color4.White;
+            Colour4 lineColour = skin.GetManiaSkinConfig<Colour4>(LegacyManiaSkinConfigurationLookups.JudgementLineColour)?.Value
+                                 ?? Colour4.White;
 
             InternalChild = directionContainer = new Container
             {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -17,7 +18,6 @@ using osu.Game.Scoring;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual.Metadata;
 using osu.Game.Users;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

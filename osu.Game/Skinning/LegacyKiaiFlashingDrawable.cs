@@ -6,13 +6,12 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
 
 namespace osu.Game.Skinning
 {
     public partial class LegacyKiaiFlashingDrawable : BeatSyncedContainer
     {
-        public Color4 KiaiGlowColour
+        public Colour4 KiaiGlowColour
         {
             get => flashingDrawable.Colour;
             set => flashingDrawable.Colour = value;

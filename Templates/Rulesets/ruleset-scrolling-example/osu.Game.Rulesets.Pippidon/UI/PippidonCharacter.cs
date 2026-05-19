@@ -11,7 +11,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Pippidon.UI
 {

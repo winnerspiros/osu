@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Mods;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Mods.Input
 {

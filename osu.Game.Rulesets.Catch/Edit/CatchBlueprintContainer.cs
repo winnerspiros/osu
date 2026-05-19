@@ -9,7 +9,7 @@ using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {

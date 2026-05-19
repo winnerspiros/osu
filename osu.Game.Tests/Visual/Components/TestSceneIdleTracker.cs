@@ -3,13 +3,12 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Input;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Components
 {
@@ -34,7 +33,7 @@ namespace osu.Game.Tests.Visual.Components
                 {
                     Name = "TopLeft",
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Red,
+                    Colour = Colour4.Red,
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
                 },
@@ -42,7 +41,7 @@ namespace osu.Game.Tests.Visual.Components
                 {
                     Name = "TopRight",
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Green,
+                    Colour = Colour4.Green,
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                 },
@@ -50,7 +49,7 @@ namespace osu.Game.Tests.Visual.Components
                 {
                     Name = "BottomLeft",
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Blue,
+                    Colour = Colour4.Blue,
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft,
                 },
@@ -58,7 +57,7 @@ namespace osu.Game.Tests.Visual.Components
                 {
                     Name = "BottomRight",
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Orange,
+                    Colour = Colour4.Orange,
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                 },
@@ -172,12 +171,12 @@ namespace osu.Game.Tests.Visual.Components
                     idleTracker = new GameIdleTracker(timeToIdle),
                     box = new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         RelativeSizeAxes = Axes.Both,
                     },
                 };
 
-                idleTracker.IsIdle.BindValueChanged(idle => box.Colour = idle.NewValue ? Color4.White : Color4.Black, true);
+                idleTracker.IsIdle.BindValueChanged(idle => box.Colour = idle.NewValue ? Colour4.White : Colour4.Black, true);
             }
         }
     }

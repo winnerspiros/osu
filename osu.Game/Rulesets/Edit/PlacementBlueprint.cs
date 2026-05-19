@@ -7,8 +7,8 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Input.Bindings;
 using osu.Game.Rulesets.Objects;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Edit
 {

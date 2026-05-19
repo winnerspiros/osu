@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -20,8 +19,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
-using osuTK.Graphics;
 using NotificationsStrings = osu.Game.Localisation.NotificationsStrings;
 
 namespace osu.Game.Overlays
@@ -52,7 +49,7 @@ namespace osu.Game.Overlays
         [Cached]
         private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
         {
             if (State.Value == Visibility.Visible)
                 return base.ReceivePositionalInputAt(screenSpacePos);
@@ -89,7 +86,7 @@ namespace osu.Game.Overlays
                     Masking = true,
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0),
+                        Colour = Colour4.Black.Opacity(0),
                         Type = EdgeEffectType.Shadow,
                         Radius = 10,
                         Hollow = true,

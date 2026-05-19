@@ -17,7 +17,7 @@ using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Rankings.Tables;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Rankings
 {

@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Components.Timelines.Summary.Parts
 {

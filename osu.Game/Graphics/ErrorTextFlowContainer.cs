@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics
 {
@@ -30,7 +30,7 @@ namespace osu.Game.Graphics
             if (errors == null) return;
 
             foreach (string error in errors)
-                errorTextParts.Add(AddParagraph(error, cp => cp.Colour = Color4.Red));
+                errorTextParts.Add(AddParagraph(error, cp => cp.Colour = Colour4.Red));
         }
     }
 }

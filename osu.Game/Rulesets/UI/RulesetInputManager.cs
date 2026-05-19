@@ -20,7 +20,7 @@ using osu.Game.Input.Handlers;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.ClicksPerSecond;
-using osuTK;
+using System.Numerics;
 using static osu.Game.Input.Handlers.ReplayInputHandler;
 
 namespace osu.Game.Rulesets.UI
@@ -101,7 +101,6 @@ namespace osu.Game.Rulesets.UI
         #endregion
 
         #region IHasReplayHandler
-
 
         public ReplayInputHandler? ReplayInputHandler
         {
@@ -235,7 +234,7 @@ namespace osu.Game.Rulesets.UI
             public void Apply(InputState state, IInputStateChangeHandler handler)
             {
                 if (!(state is RulesetInputManagerInputState<T> inputState))
-                    throw new InvalidOperationException($"{nameof(ReplayState<T>)} should only be applied to a {nameof(RulesetInputManagerInputState<T>)}");
+                    throw new InvalidOperationException($"{nameof(ReplayState<>)} should only be applied to a {nameof(RulesetInputManagerInputState<>)}");
 
                 new MouseButtonInput([], state.Mouse.Buttons).Apply(state, handler);
                 new KeyboardKeyInput([], state.Keyboard.Keys).Apply(state, handler);

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

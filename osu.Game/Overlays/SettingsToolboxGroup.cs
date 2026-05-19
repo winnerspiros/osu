@@ -15,8 +15,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
@@ -90,7 +89,7 @@ namespace osu.Game.Overlays
                 {
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.1f,
-                    Colour = colourProvider?.Background4 ?? Color4.Black,
+                    Colour = colourProvider?.Background4 ?? Colour4.Black,
                 },
                 new FillFlowContainer
                 {
@@ -191,7 +190,7 @@ namespace osu.Game.Overlays
                 content.ResizeHeightTo(0, animate ? transition_duration : 0, Easing.OutQuint);
             }
 
-            headerContent.FadeColour(Expanded.Value ? Color4.White : OsuColour.Gray(0.7f), 200, Easing.OutQuint);
+            headerContent.FadeColour(Expanded.Value ? Colour4.White : OsuColour.Gray(0.7f), 200, Easing.OutQuint);
         }
 
         private void updateFadeState()

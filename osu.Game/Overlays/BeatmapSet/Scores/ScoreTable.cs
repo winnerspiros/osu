@@ -23,8 +23,7 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
 {
@@ -197,7 +196,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     }
                 }
 
-                content.Add(new StatisticText(count, maxCount, @"N0") { Colour = count == 0 ? Color4.Gray : Color4.White });
+                content.Add(new StatisticText(count, maxCount, @"N0") { Colour = count == 0 ? Colour4.Gray : Colour4.White });
             }
 
             // TODO: all this should be using the same sort of logic as `DrawableProfileScore` is, but that's not easily done

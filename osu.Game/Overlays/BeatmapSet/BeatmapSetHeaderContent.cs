@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -25,8 +24,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Overlays.BeatmapSet.Buttons;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -384,7 +382,7 @@ namespace osu.Game.Overlays.BeatmapSet
                 [BackgroundDependencyLoader]
                 private void load()
                 {
-                    IdleColour = Color4.White;
+                    IdleColour = Colour4.White;
                 }
             }
         }

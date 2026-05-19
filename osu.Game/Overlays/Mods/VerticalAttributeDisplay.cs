@@ -15,7 +15,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -99,12 +98,12 @@ namespace osu.Game.Overlays.Mods
 
         private void updateTextColor(ModEffect effect)
         {
-            Color4 newColor;
+            Colour4 newColor;
 
             switch (effect)
             {
                 case ModEffect.NotChanged:
-                    newColor = Color4.White;
+                    newColor = Colour4.White;
                     break;
 
                 case ModEffect.DifficultyReduction:

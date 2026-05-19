@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
@@ -18,8 +19,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
 using osu.Game.Tournament.Screens.Drawings.Components;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Screens.Drawings
 {
@@ -59,7 +58,7 @@ namespace osu.Game.Tournament.Screens.Drawings
                 {
                     new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -75,7 +74,7 @@ namespace osu.Game.Tournament.Screens.Drawings
                     }
                 };
 
-                links.AddLink("Click for details on the file format", "https://osu.ppy.sh/wiki/en/Tournament_Drawings", t => t.Colour = Color4.White);
+                links.AddLink("Click for details on the file format", "https://osu.ppy.sh/wiki/en/Tournament_Drawings", t => t.Colour = Colour4.White);
                 return;
             }
 
@@ -103,7 +102,7 @@ namespace osu.Game.Tournament.Screens.Drawings
                             RelativeSizeAxes = Axes.X,
                             Size = new Vector2(1, 10),
 
-                            Colour = new Color4(255, 204, 34, 255),
+                            Colour = new Colour4(255, 204, 34, 255),
 
                             Lines = 6
                         },

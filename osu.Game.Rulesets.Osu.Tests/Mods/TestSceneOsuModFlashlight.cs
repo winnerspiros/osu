@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Game.Rulesets.Mods;
@@ -12,7 +13,6 @@ using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Replays;
 using osu.Game.Rulesets.Replays;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests.Mods
 {

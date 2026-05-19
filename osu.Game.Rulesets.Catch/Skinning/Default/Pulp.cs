@@ -2,17 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
 {
     public partial class Pulp : Circle
     {
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
 
         public Pulp()
         {
@@ -21,7 +19,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             Origin = Anchor.Centre;
 
             Blending = BlendingParameters.Additive;
-            Colour = Color4.White.Opacity(0.9f);
+            Colour = Colour4.White.Opacity(0.9f);
         }
 
         protected override void LoadComplete()
@@ -31,7 +29,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             AccentColour.BindValueChanged(updateAccentColour, true);
         }
 
-        private void updateAccentColour(ValueChangedEvent<Color4> colour)
+        private void updateAccentColour(ValueChangedEvent<Colour4> colour)
         {
             EdgeEffect = new EdgeEffectParameters
             {

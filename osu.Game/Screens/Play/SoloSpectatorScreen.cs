@@ -26,7 +26,7 @@ using osu.Game.Overlays.Settings;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.Spectate;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {

@@ -16,8 +16,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Audio;
 using osu.Game.Online.API;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -130,7 +129,7 @@ namespace osu.Game.Screens.Menu
                                 RelativeSizeAxes = Axes.Both,
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Colour = Color4.DarkBlue,
+                                Colour = Colour4.DarkBlue,
                                 Size = OsuLogo.SCALE_ADJUST,
                             },
                             new Circle
@@ -138,7 +137,7 @@ namespace osu.Game.Screens.Menu
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Size = new Vector2(480),
-                                Colour = Color4.Black
+                                Colour = Colour4.Black
                             },
                         }
                     },

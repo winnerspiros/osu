@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -27,8 +26,7 @@ using osu.Game.Localisation;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {
@@ -93,7 +91,7 @@ namespace osu.Game.Screens.Play
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = background_alpha,
                 },
                 new FillFlowContainer
@@ -125,7 +123,7 @@ namespace osu.Game.Screens.Play
                             EdgeEffect = new EdgeEffectParameters
                             {
                                 Type = EdgeEffectType.Shadow,
-                                Colour = Color4.Black.Opacity(0.6f),
+                                Colour = Colour4.Black.Opacity(0.6f),
                                 Radius = 50
                             },
                         },
@@ -147,7 +145,7 @@ namespace osu.Game.Screens.Play
                 AddButton(GameplayMenuOverlayStrings.Retry, colours.YellowDark, () => OnRetry.Invoke());
 
             if (OnQuit != null)
-                AddButton(GameplayMenuOverlayStrings.Quit, new Color4(170, 27, 39, 255), () => OnQuit.Invoke());
+                AddButton(GameplayMenuOverlayStrings.Quit, new Colour4(170, 27, 39, 255), () => OnQuit.Invoke());
 
             State.ValueChanged += _ => InternalButtons.Deselect();
 
@@ -187,7 +185,7 @@ namespace osu.Game.Screens.Play
             stopPauseLoop();
         }
 
-        protected void AddButton(LocalisableString text, Color4 colour, Action? action)
+        protected void AddButton(LocalisableString text, Colour4 colour, Action? action)
         {
             var button = new Button
             {

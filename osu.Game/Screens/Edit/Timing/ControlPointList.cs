@@ -14,7 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Timing
 {

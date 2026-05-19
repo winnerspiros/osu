@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -13,8 +13,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Tests.Resources;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -76,7 +74,7 @@ namespace osu.Game.Tests.Visual.Online
                 {
                     Type = EdgeEffectType.Shadow,
                     Radius = 1,
-                    Colour = Color4.Black.Opacity(0.2f),
+                    Colour = Colour4.Black.Opacity(0.2f),
                 },
             };
         }

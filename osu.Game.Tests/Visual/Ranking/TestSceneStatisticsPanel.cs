@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -42,7 +43,6 @@ using osu.Game.Screens.Ranking.Statistics;
 using osu.Game.Screens.Ranking.Statistics.User;
 using osu.Game.Tests.Resources;
 using osu.Game.Users;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Ranking
 {

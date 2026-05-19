@@ -3,7 +3,6 @@
 
 using System.ComponentModel;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -15,7 +14,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Screens.OnlinePlay.Playlists

@@ -13,7 +13,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {

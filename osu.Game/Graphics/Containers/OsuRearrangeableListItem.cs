@@ -10,8 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -24,24 +23,22 @@ namespace osu.Game.Graphics.Containers
         /// </summary>
         public readonly BindableBool DragActive = new BindableBool();
 
-        private Color4 handleColour = Color4.White;
-
         /// <summary>
         /// The colour of the drag handle.
         /// </summary>
-        protected Color4 HandleColour
+        protected Colour4 HandleColour
         {
-            get => handleColour;
+            get => field;
             set
             {
-                if (handleColour == value)
+                if (field == value)
                     return;
 
-                handleColour = value;
+                field = value;
 
                 handle?.Colour = value;
             }
-        }
+        } = Colour4.White;
 
         /// <summary>
         /// Whether the drag handle should be shown.

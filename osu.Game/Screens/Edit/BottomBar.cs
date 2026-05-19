@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -12,8 +11,7 @@ using osu.Framework.Testing;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Components;
 using osu.Game.Screens.Edit.Components.Timelines.Summary;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit
 {
@@ -37,7 +35,7 @@ namespace osu.Game.Screens.Edit
             Masking = true;
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black.Opacity(0.2f),
+                Colour = Colour4.Black.Opacity(0.2f),
                 Type = EdgeEffectType.Shadow,
                 Radius = 10f,
             };

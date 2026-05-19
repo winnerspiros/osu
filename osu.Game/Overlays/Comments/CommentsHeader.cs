@@ -16,7 +16,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Comments
 {

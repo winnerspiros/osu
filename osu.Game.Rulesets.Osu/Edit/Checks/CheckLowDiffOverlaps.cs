@@ -52,7 +52,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Checks
                     // The objects are not visible at the same time (without mods), hence skipping.
                     continue;
 
-                float distanceSq = (hitObject.StackedEndPosition - nextHitObject.StackedPosition).LengthSquared;
+                float distanceSq = (hitObject.StackedEndPosition - nextHitObject.StackedPosition).LengthSquared();
                 double diameter = (hitObject.Radius - overlap_leniency) * 2;
                 double diameterSq = diameter * diameter;
 

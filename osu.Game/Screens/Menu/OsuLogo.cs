@@ -22,9 +22,8 @@ using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Menu
 {
@@ -206,7 +205,7 @@ namespace osu.Game.Screens.Menu
                                                                 {
                                                                     RelativeSizeAxes = Axes.Both,
                                                                     Blending = BlendingParameters.Additive,
-                                                                    Colour = Color4.White,
+                                                                    Colour = Colour4.White,
                                                                     Alpha = 0,
                                                                 },
                                                             },
@@ -223,7 +222,7 @@ namespace osu.Game.Screens.Menu
                                                     Anchor = Anchor.Centre,
                                                     Origin = Anchor.Centre,
                                                     Alpha = 0,
-                                                    BorderColour = Color4.White,
+                                                    BorderColour = Colour4.White,
                                                     RelativeSizeAxes = Axes.Both,
                                                     BorderThickness = 10,
                                                     Masking = true,
@@ -442,7 +441,7 @@ namespace osu.Game.Screens.Menu
             Vector2 change = e.MousePosition - e.MouseDownPosition;
 
             // Diminish the drag distance as we go further to simulate "rubber band" feeling.
-            change *= change.Length <= 0 ? 0 : MathF.Pow(change.Length, 0.6f) / change.Length;
+            change *= change.Length() <= 0 ? 0 : MathF.Pow(change.Length(), 0.6f) / change.Length();
 
             logoBounceContainer.MoveTo(change);
         }

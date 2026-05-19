@@ -10,8 +10,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.UI;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {
@@ -34,7 +33,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
         {
             RelativeSizeAxes = Axes.Both;
 
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
             BorderThickness = 1;
 
             Blending = BlendingParameters.Additive;

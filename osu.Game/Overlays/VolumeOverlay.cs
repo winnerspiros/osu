@@ -5,7 +5,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -18,8 +17,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
 using osu.Game.Overlays.Volume;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
@@ -48,7 +46,7 @@ namespace osu.Game.Overlays
                 {
                     RelativeSizeAxes = Axes.Y,
                     Width = 300,
-                    Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.75f), Color4.Black.Opacity(0))
+                    Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0.75f), Colour4.Black.Opacity(0))
                 },
                 new FillFlowContainer
                 {

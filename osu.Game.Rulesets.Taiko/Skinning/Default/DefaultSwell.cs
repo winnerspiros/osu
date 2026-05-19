@@ -1,9 +1,8 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,8 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {
@@ -90,7 +88,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
                                 RelativeSizeAxes = Axes.Both,
                                 Masking = true,
                                 BorderThickness = target_ring_thin_border,
-                                BorderColour = Color4.White,
+                                BorderColour = Colour4.White,
                                 Children = new[]
                                 {
                                     new Box

@@ -4,7 +4,6 @@
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Input;
 
 namespace osu.Game.Graphics.UserInterface
 {

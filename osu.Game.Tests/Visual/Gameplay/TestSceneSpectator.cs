@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
@@ -24,7 +25,6 @@ using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Visual.Multiplayer;
 using osu.Game.Tests.Visual.Spectator;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

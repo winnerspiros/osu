@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -18,8 +17,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Seasonal
 {
@@ -136,7 +134,7 @@ namespace osu.Game.Seasonal
             else
             {
                 // default are green
-                Color4 col = SeasonalUIConfig.PRIMARY_COLOUR_2;
+                Colour4 col = SeasonalUIConfig.PRIMARY_COLOUR_2;
 
                 // whistles are red
                 if (h.Samples.Any(s => s.Name == HitSampleInfo.HIT_WHISTLE))
@@ -164,7 +162,7 @@ namespace osu.Game.Seasonal
         {
             private readonly Circle circle;
 
-            public new Color4 Colour
+            public new Colour4 Colour
             {
                 set
                 {

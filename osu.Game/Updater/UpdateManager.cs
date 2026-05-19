@@ -19,7 +19,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Updater
 {

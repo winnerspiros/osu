@@ -2,15 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics.Backgrounds;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -62,14 +60,14 @@ namespace osu.Game.Graphics.UserInterface
                     {
                         new Box
                         {
-                            Colour = inverted ? Color4.White : Color4.Black,
+                            Colour = inverted ? Colour4.White : Colour4.Black,
                             RelativeSizeAxes = Axes.Both,
                             Alpha = 0.7f,
                         },
                         triangles = new TrianglesV2
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = inverted ? Color4.White : Color4.Black,
+                            Colour = inverted ? Colour4.White : Colour4.Black,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Alpha = 0.2f,
@@ -81,7 +79,7 @@ namespace osu.Game.Graphics.UserInterface
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Custom,
-                            Colour = inverted ? Color4.Black : Color4.White,
+                            Colour = inverted ? Colour4.Black : Colour4.White,
                             Scale = new Vector2(0.6f),
                             RelativeSizeAxes = Axes.Both,
                             Icon = FontAwesome.Solid.CircleNotch
@@ -104,7 +102,7 @@ namespace osu.Game.Graphics.UserInterface
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Custom,
-                                Colour = inverted ? Color4.Black : Color4.White,
+                                Colour = inverted ? Colour4.Black : Colour4.White,
                                 RelativeSizeAxes = Axes.Both,
                                 Icon = FontAwesome.Solid.CircleNotch
                             }
@@ -126,8 +124,8 @@ namespace osu.Game.Graphics.UserInterface
                                 Origin = Anchor.Centre,
                                 Alpha = 0.4f,
                                 Colour = ColourInfo.GradientVertical(
-                                    inverted ? Color4.Black.Opacity(0) : Color4.White.Opacity(0),
-                                    inverted ? Color4.Black : Color4.White),
+                                    inverted ? Colour4.Black.Opacity(0) : Colour4.White.Opacity(0),
+                                    inverted ? Colour4.Black : Colour4.White),
                                 RelativeSizeAxes = Axes.Both,
                                 ScaleAdjust = 0.4f,
                                 SpawnRatio = 4,

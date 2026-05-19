@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -13,7 +14,6 @@ using osu.Game.Rulesets.Taiko.Beatmaps;
 using osu.Game.Rulesets.Taiko.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Taiko.Tests.Skinning
 {

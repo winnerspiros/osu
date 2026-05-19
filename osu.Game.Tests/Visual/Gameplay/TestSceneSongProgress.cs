@@ -16,7 +16,6 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -40,7 +39,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             {
                 background = new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     RelativeSizeAxes = Axes.Both,
                     Depth = float.MaxValue
                 },
@@ -95,7 +94,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 applyToArgonProgress(s => s.ShowGraph.Value = b);
             });
 
-            AddStep("set white background", () => background.FadeColour(Color4.White, 200, Easing.OutQuint));
+            AddStep("set white background", () => background.FadeColour(Colour4.White, 200, Easing.OutQuint));
             AddStep("randomise background colour", () => background.FadeColour(new Colour4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1), 200, Easing.OutQuint));
 
             AddStep("stop", gameplayClockContainer.Stop);

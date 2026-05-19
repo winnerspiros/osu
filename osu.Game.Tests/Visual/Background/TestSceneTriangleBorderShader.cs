@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
@@ -8,8 +9,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics.Backgrounds;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Background
 {
@@ -24,7 +23,7 @@ namespace osu.Game.Tests.Visual.Background
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.DarkGreen
+                    Colour = Colour4.DarkGreen
                 },
                 triangle = new TestTriangle
                 {

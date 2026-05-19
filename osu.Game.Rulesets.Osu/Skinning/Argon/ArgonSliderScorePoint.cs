@@ -7,14 +7,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
     public partial class ArgonSliderScorePoint : CircularContainer
     {
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         public const float SIZE = 12;
 
@@ -25,7 +24,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
             Origin = Anchor.Centre;
             Size = new Vector2(SIZE);
             BorderThickness = 3;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
             Child = new Box
             {
                 RelativeSizeAxes = Axes.Both,

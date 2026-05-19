@@ -26,7 +26,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Drawables
 {
@@ -57,7 +56,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// <summary>
         /// The colour used for various elements of this DrawableHitObject.
         /// </summary>
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>(Color4.Gray);
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>(Colour4.Gray);
 
         protected PausableSkinnableSound Samples { get; private set; }
 
@@ -389,12 +388,29 @@ namespace osu.Game.Rulesets.Objects.Drawables
         /// </summary>
         protected virtual void LoadSamples()
         {
-            var samples = GetSamples().Cast<ISampleInfo>().ToArray();
+            var source = GetSamples();
 
-            if (samples.Length <= 0)
+            if (source is IList<HitSampleInfo> list)
+            {
+                if (list.Count == 0)
+                    return;
+
+                var samples = new ISampleInfo[list.Count];
+
+                for (int i = 0; i < list.Count; i++)
+                    samples[i] = list[i];
+
+                Samples.Samples = samples;
+                return;
+            }
+
+            // Fallback for custom GetSamples() implementations that don't return IList<HitSampleInfo>.
+            ISampleInfo[] fallbackSamples = source.Cast<ISampleInfo>().ToArray();
+
+            if (fallbackSamples.Length == 0)
                 return;
 
-            Samples.Samples = samples;
+            Samples.Samples = fallbackSamples;
         }
 
         private void onNewResult(DrawableHitObject drawableHitObject, JudgementResult result) => OnNewResult?.Invoke(drawableHitObject, result);
@@ -571,7 +587,7 @@ namespace osu.Game.Rulesets.Objects.Drawables
         {
             if (!(HitObject is IHasComboInformation combo)) return;
 
-            Color4 colour = combo.GetComboColour(CurrentSkin);
+            Colour4 colour = combo.GetComboColour(CurrentSkin);
 
             // Normalise the combo colour to the given brightness level.
             if (comboColourBrightness.Value != 0)

@@ -11,7 +11,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Tests.Beatmaps;
-using osu.Game.Tests.Visual;
 
 namespace osu.Game.Tests.Visual.OnlinePlay
 {

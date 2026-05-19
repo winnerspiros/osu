@@ -5,7 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Timing;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

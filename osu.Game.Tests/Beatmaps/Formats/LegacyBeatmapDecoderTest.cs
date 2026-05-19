@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Game.Audio;
@@ -25,8 +26,7 @@ using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Taiko;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {
@@ -387,15 +387,15 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 Debug.Assert(comboColors != null);
 
-                Color4[] expectedColors =
+                Colour4[] expectedColors =
                 {
-                    new Color4(142, 199, 255, 255),
-                    new Color4(255, 128, 128, 255),
-                    new Color4(128, 255, 255, 255),
-                    new Color4(128, 255, 128, 255),
-                    new Color4(255, 187, 255, 255),
-                    new Color4(255, 177, 140, 255),
-                    new Color4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
+                    new Colour4(142, 199, 255, 255),
+                    new Colour4(255, 128, 128, 255),
+                    new Colour4(128, 255, 255, 255),
+                    new Colour4(128, 255, 128, 255),
+                    new Colour4(255, 187, 255, 255),
+                    new Colour4(255, 177, 140, 255),
+                    new Colour4(100, 100, 100, 255), // alpha is specified as 100, but should be ignored.
                 };
                 ClassicAssert.AreEqual(expectedColors.Length, comboColors.Count);
                 for (int i = 0; i < expectedColors.Length; i++)
@@ -415,16 +415,16 @@ namespace osu.Game.Tests.Beatmaps.Formats
 
                 Debug.Assert(comboColors != null);
 
-                Color4[] expectedColors =
+                Colour4[] expectedColors =
                 {
-                    new Color4(142, 199, 255, 255),
-                    new Color4(255, 128, 128, 255),
-                    new Color4(128, 255, 255, 255),
-                    new Color4(128, 255, 128, 255),
-                    new Color4(255, 187, 255, 255),
-                    new Color4(255, 177, 140, 255),
-                    new Color4(100, 100, 100, 255),
-                    new Color4(142, 199, 255, 255),
+                    new Colour4(142, 199, 255, 255),
+                    new Colour4(255, 128, 128, 255),
+                    new Colour4(128, 255, 255, 255),
+                    new Colour4(128, 255, 128, 255),
+                    new Colour4(255, 187, 255, 255),
+                    new Colour4(255, 177, 140, 255),
+                    new Colour4(100, 100, 100, 255),
+                    new Colour4(142, 199, 255, 255),
                 };
                 ClassicAssert.AreEqual(expectedColors.Length, comboColors.Count);
                 for (int i = 0; i < expectedColors.Length; i++)
@@ -710,7 +710,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             using (var badResStream = TestResources.OpenResource("invalid-events.osu"))
             using (var badStream = new LineBufferedReader(badResStream))
             {
-                Assert.DoesNotThrow(() => decoder.Decode(badStream));
+                decoder.Decode(badStream);
             }
         }
 
@@ -749,15 +749,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestFallbackDecoderForCorruptedHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("corrupted-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                Assert.DoesNotThrow(() => beatmap = decoder.Decode(stream));
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Beatmap with corrupted header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Evil Hacker", beatmap.Metadata.Author.Username);
@@ -767,15 +764,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestFallbackDecoderForMissingHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("missing-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                Assert.DoesNotThrow(() => beatmap = decoder.Decode(stream));
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Beatmap with no header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Incredibly Evil Hacker", beatmap.Metadata.Author.Username);
@@ -785,15 +779,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithEmptyLinesAtStart()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("empty-lines-at-start.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                Assert.DoesNotThrow(() => beatmap = decoder.Decode(stream));
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("Empty lines at start", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Edge Case Hunter", beatmap.Metadata.Author.Username);
@@ -803,15 +794,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithEmptyLinesAndNoHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("empty-line-instead-of-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                Assert.DoesNotThrow(() => beatmap = decoder.Decode(stream));
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("The dog ate the file header", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Why does this keep happening", beatmap.Metadata.Author.Username);
@@ -821,15 +809,12 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeFileWithContentImmediatelyAfterHeader()
         {
-            Decoder<Beatmap> decoder = null!;
-            Beatmap beatmap = null!;
-
             using (var resStream = TestResources.OpenResource("no-empty-line-after-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                var decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
-                Assert.DoesNotThrow(() => beatmap = decoder.Decode(stream));
+                var beatmap = decoder.Decode(stream);
                 ClassicAssert.NotNull(beatmap);
                 ClassicAssert.AreEqual("No empty line delimiting header from contents", beatmap.Metadata.Title);
                 ClassicAssert.AreEqual("Edge Case Hunter", beatmap.Metadata.Author.Username);
@@ -839,22 +824,23 @@ namespace osu.Game.Tests.Beatmaps.Formats
         [Test]
         public void TestDecodeEmptyFile()
         {
-            using (var resStream = new MemoryStream())
-            using (var stream = new LineBufferedReader(resStream))
+            Assert.Throws<IOException>(() =>
             {
-                Assert.Throws<IOException>(() => Decoder.GetDecoder<Beatmap>(stream));
-            }
+                using var resStream = new MemoryStream();
+                using var stream = new LineBufferedReader(resStream);
+                Decoder.GetDecoder<Beatmap>(stream);
+            });
         }
 
         [Test]
         public void TestAllowFallbackDecoderOverwrite()
         {
-            Decoder<Beatmap> decoder = null!;
+            Decoder<Beatmap> decoder;
 
             using (var resStream = TestResources.OpenResource("corrupted-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyBeatmapDecoder>(decoder);
             }
 
@@ -863,7 +849,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             using (var resStream = TestResources.OpenResource("corrupted-header.osu"))
             using (var stream = new LineBufferedReader(resStream))
             {
-                Assert.DoesNotThrow(() => decoder = Decoder.GetDecoder<Beatmap>(stream));
+                decoder = Decoder.GetDecoder<Beatmap>(stream);
                 ClassicAssert.IsInstanceOf<LegacyDifficultyCalculatorBeatmapDecoder>(decoder);
             }
         }

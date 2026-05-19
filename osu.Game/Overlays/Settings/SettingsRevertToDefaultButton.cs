@@ -9,7 +9,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Containers;
 using osu.Game.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Settings
 {

@@ -7,8 +7,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -100,7 +99,7 @@ namespace osu.Game.Overlays.Mods
 
             MainBackground.Colour = ColourProvider.Background4;
             FrontBackground.Colour = ColourProvider.Background3;
-            Color4 glowColour = ColourProvider.Background1;
+            Colour4 glowColour = ColourProvider.Background1;
 
             Content.BorderColour = ColourInfo.GradientVertical(MainBackground.Colour, glowColour);
             innerContent.BorderColour = ColourInfo.GradientVertical(FrontBackground.Colour, glowColour);

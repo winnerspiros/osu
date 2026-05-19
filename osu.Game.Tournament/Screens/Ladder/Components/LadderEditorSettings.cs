@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -15,7 +16,6 @@ using osu.Game.Overlays.Settings;
 using osu.Game.Screens.Play.PlayerSettings;
 using osu.Game.Tournament.Components;
 using osu.Game.Tournament.Models;
-using osuTK;
 
 namespace osu.Game.Tournament.Screens.Ladder.Components
 {

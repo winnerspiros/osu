@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {

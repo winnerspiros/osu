@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,8 +16,6 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Tests.Beatmaps;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

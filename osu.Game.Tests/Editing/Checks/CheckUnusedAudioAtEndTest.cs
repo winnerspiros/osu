@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using Moq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -12,7 +13,6 @@ using osu.Game.Rulesets.Edit.Checks;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Storyboards;
-using osuTK;
 using static osu.Game.Tests.Visual.OsuTestScene.ClockBackedTestWorkingBeatmap;
 
 namespace osu.Game.Tests.Editing.Checks

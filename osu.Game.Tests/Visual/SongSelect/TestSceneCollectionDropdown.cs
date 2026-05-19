@@ -22,7 +22,7 @@ using osu.Game.Localisation;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Tests.Resources;
-using osuTK.Input;
+using osu.Framework.Input;
 using Realms;
 using CollectionDropdown = osu.Game.Screens.Select.CollectionDropdown;
 

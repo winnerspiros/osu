@@ -32,7 +32,6 @@ using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.ClicksPerSecond;
-using osuTK;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -102,17 +101,15 @@ namespace osu.Game.Rulesets.UI
         private FrameStabilityContainer frameStabilityContainer;
         private DrawableRulesetDependencies dependencies;
 
-        private bool frameStablePlayback = true;
-
         internal override bool FrameStablePlayback
         {
-            get => frameStablePlayback;
+            get;
             set
             {
-                frameStablePlayback = value;
+                field = value;
                 frameStabilityContainer?.FrameStablePlayback = value;
             }
-        }
+        } = true;
 
         /// <summary>
         /// Creates a ruleset visualisation for the provided ruleset and beatmap.
@@ -379,7 +376,7 @@ namespace osu.Game.Rulesets.UI
         protected override bool OnHover(HoverEvent e) => true; // required for IProvideCursor
 
         // only show the cursor when within the playfield, by default.
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Playfield.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => Playfield.ReceivePositionalInputAt(screenSpacePos);
 
         CursorContainer IProvideCursor.Cursor => Playfield.Cursor;
 

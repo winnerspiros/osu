@@ -23,7 +23,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.RoundResults
 {

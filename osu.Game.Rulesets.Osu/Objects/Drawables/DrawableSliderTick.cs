@@ -9,8 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
@@ -46,7 +45,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
                 Origin = Anchor.Centre,
                 Size = new Vector2(DEFAULT_TICK_SIZE),
                 BorderThickness = DEFAULT_TICK_SIZE / 4,
-                BorderColour = Color4.White,
+                BorderColour = Colour4.White,
                 Child = new Box
                 {
                     RelativeSizeAxes = Axes.Both,

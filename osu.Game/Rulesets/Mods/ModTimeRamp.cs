@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Localisation;
@@ -83,8 +82,8 @@ namespace osu.Game.Rulesets.Mods
         {
             SpeedChange.SetDefault();
 
-            double firstObjectStart = beatmap.HitObjects.FirstOrDefault()?.StartTime ?? 0;
-            double lastObjectEnd = beatmap.HitObjects.Any() ? beatmap.GetLastObjectTime() : 0;
+            double firstObjectStart = beatmap.HitObjects.Count > 0 ? beatmap.HitObjects[0].StartTime : 0;
+            double lastObjectEnd = beatmap.HitObjects.Count > 0 ? beatmap.GetLastObjectTime() : 0;
 
             beginRampTime = firstObjectStart;
             finalRateTime = firstObjectStart + FINAL_RATE_PROGRESS * (lastObjectEnd - firstObjectStart);

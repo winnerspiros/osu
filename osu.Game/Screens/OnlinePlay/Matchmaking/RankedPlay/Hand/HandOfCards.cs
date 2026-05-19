@@ -14,7 +14,7 @@ using osu.Framework.Layout;
 using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {
@@ -344,7 +344,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 
         protected static Vector2 GetCardUpwardsDirection(float rotation)
         {
-            float angle = MathHelper.DegreesToRadians(rotation - 90);
+            float angle = float.DegreesToRadians(rotation - 90);
 
             return new Vector2(MathF.Cos(angle), MathF.Sin(angle));
         }

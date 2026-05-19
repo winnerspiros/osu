@@ -95,7 +95,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Checks
                     continue;
 
                 // Relying on FastInvSqrt is probably good enough here. We'll be taking the difference between distances later, hence square not being sufficient.
-                float distance = (hitObject.StackedEndPosition - nextHitObject.StackedPosition).LengthFast;
+                float distance = (hitObject.StackedEndPosition - nextHitObject.StackedPosition).Length();
 
                 // Ignore stacks and half-stacks, as these are close enough to where they can't be confused for being time-distanced.
                 if (distance < stack_leniency)
@@ -111,7 +111,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Checks
                     continue;
                 }
 
-                if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_problem) / distance > distance_leniency_percent_problem)
+                if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_problem) / distance >= distance_leniency_percent_problem)
                     yield return new IssueTemplateIrregularSpacingProblem(this).Create(expectedDistance, distance, hitObject, nextHitObject);
                 else if ((Math.Abs(expectedDistance - distance) - distance_leniency_absolute_warning) / distance > distance_leniency_percent_warning)
                     yield return new IssueTemplateIrregularSpacingWarning(this).Create(expectedDistance, distance, hitObject, nextHitObject);

@@ -6,7 +6,7 @@ using System.ComponentModel;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Resources.Localisation.Web;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Users
 {
@@ -24,12 +24,12 @@ namespace osu.Game.Users
 
     public static class UserStatusExtensions
     {
-        public static Color4 GetAppropriateColour(this UserStatus userStatus, OsuColour colours)
+        public static Colour4 GetAppropriateColour(this UserStatus userStatus, OsuColour colours)
         {
             switch (userStatus)
             {
                 case UserStatus.Offline:
-                    return Color4.Black;
+                    return Colour4.Black;
 
                 case UserStatus.DoNotDisturb:
                     return colours.RedDark;

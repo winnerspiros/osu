@@ -17,8 +17,8 @@ using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit;
-using osuTK;
-using osuTK.Input;
+using Vector2 = System.Numerics.Vector2;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints
 {

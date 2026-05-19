@@ -13,7 +13,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.Notifications.WebSocket;
 using osu.Game.Online.Notifications.WebSocket.Events;
 using osu.Game.Overlays;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

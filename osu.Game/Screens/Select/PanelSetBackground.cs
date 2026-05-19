@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -14,8 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -107,19 +105,19 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black.Opacity(0.5f),
+                            Colour = Colour4.Black.Opacity(0.5f),
                             Width = 0.4f,
                         },
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.5f), Color4.Black.Opacity(0.3f)),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0.5f), Colour4.Black.Opacity(0.3f)),
                             Width = 0.2f,
                         },
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.3f), Color4.Black.Opacity(0.2f)),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0.3f), Colour4.Black.Opacity(0.2f)),
                             // Slightly more than 1.0 in total to account for shear.
                             Width = 0.45f,
                         },

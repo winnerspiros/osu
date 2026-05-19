@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Humanizer;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -23,7 +24,6 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Storyboards;
 using osu.Game.Tests;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

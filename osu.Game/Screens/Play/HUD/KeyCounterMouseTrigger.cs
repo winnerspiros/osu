@@ -2,8 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Input.Events;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -17,7 +16,7 @@ namespace osu.Game.Screens.Play.HUD
             Button = button;
         }
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
 
         private static string getStringRepresentation(MouseButton button)
         {

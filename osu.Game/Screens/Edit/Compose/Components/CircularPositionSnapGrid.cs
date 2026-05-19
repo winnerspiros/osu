@@ -9,7 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -35,7 +35,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             // Calculate the required number of circles based on the maximum distance from the origin to the edge of the grid.
             float dx = Math.Max(StartPosition.Value.X, DrawWidth - StartPosition.Value.X);
             float dy = Math.Max(StartPosition.Value.Y, DrawHeight - StartPosition.Value.Y);
-            float maxDistance = new Vector2(dx, dy).Length;
+            float maxDistance = new Vector2(dx, dy).Length();
             // We need to add one because the first circle starts at zero radius.
             int requiredCircles = (int)(maxDistance / Spacing.Value) + 1;
 
@@ -86,10 +86,10 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             Vector2 relativeToStart = original - StartPosition.Value;
 
-            if (relativeToStart.LengthSquared < Precision.FLOAT_EPSILON)
+            if (relativeToStart.LengthSquared() < Precision.FLOAT_EPSILON)
                 return StartPosition.Value;
 
-            float length = relativeToStart.Length;
+            float length = relativeToStart.Length();
             float wantedLength = MathF.Round(length / Spacing.Value) * Spacing.Value;
 
             return StartPosition.Value + Vector2.Multiply(relativeToStart, wantedLength / length);

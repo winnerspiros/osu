@@ -21,7 +21,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Select;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay
 {

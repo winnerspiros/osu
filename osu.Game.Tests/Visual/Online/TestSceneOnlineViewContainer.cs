@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using NUnit.Framework;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -11,7 +10,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online;
 using osu.Game.Online.API;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -81,7 +79,7 @@ namespace osu.Game.Tests.Visual.Online
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Blue.Opacity(0.8f),
+                        Colour = Colour4.Blue.Opacity(0.8f),
                     },
                     new OsuSpriteText
                     {

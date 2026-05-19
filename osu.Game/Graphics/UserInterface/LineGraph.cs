@@ -10,8 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Layout;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -66,7 +65,7 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        public Color4 LineColour
+        public Colour4 LineColour
         {
             get => maskingContainer.Colour;
             set => maskingContainer.Colour = value;

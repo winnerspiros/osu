@@ -17,7 +17,7 @@ using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {

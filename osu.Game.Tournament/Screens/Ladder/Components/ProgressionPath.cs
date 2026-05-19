@@ -1,10 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Tournament.Screens.Ladder.Components
 {
@@ -26,7 +26,7 @@ namespace osu.Game.Tournament.Screens.Ladder.Components
         {
             base.LoadComplete();
 
-            static Vector2 getCenteredVector(Vector2 top, Vector2 bottom) => new Vector2(top.X, top.Y + (bottom.Y - top.Y) / 2);
+            static Vector2 getCenteredVector(Vector2 top, Vector2 bottom) => top with { Y = top.Y + (bottom.Y - top.Y) / 2 };
 
             var q1 = Source.ScreenSpaceDrawQuad;
             var q2 = Destination.ScreenSpaceDrawQuad;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -19,7 +20,6 @@ using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Ranking.Expanded.Accuracy;
 using osu.Game.Tests.Beatmaps;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Ranking
 {

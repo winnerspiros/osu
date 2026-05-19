@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -14,8 +13,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.Play.PlayerSettings;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -80,7 +78,7 @@ namespace osu.Game.Screens.Play.HUD
             {
                 new Box
                 {
-                    Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0), Color4.Black.Opacity(0.8f)),
+                    Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0), Colour4.Black.Opacity(0.8f)),
                     Depth = float.MaxValue,
                     RelativeSizeAxes = Axes.Both,
                 },

@@ -13,7 +13,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Settings.Sections
 {
@@ -173,7 +172,7 @@ namespace osu.Game.Overlays.Settings.Sections
             private void updateDisplay()
             {
                 // default, toggled on (or not toggleable)
-                Color4 col = colourProvider.Content1;
+                Colour4 col = colourProvider.Content1;
 
                 if (toggleable && !Current.Value)
                     col = IsHovered ? colourProvider.Light1 : colourProvider.Foreground1;

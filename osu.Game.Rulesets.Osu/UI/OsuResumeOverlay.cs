@@ -13,7 +13,6 @@ using osu.Framework.Localisation;
 using osu.Game.Rulesets.Osu.UI.Cursor;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.UI
 {
@@ -162,7 +161,7 @@ namespace osu.Game.Rulesets.Osu.UI
 
             private void updateColour()
             {
-                this.FadeColour(IsHovered ? Color4.White : Color4.Orange, 400, Easing.OutQuint);
+                this.FadeColour(IsHovered ? Colour4.White : Colour4.Orange, 400, Easing.OutQuint);
             }
         }
 

@@ -5,8 +5,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Game.Overlays.Dialog;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -36,7 +35,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 AddStep("move mouse to button edge", () =>
                 {
                     var dangerousButtonQuad = dialog.DangerousButton.ScreenSpaceDrawQuad;
-                    InputManager.MoveMouseTo(new Vector2(dangerousButtonQuad.TopLeft.X + 5, dangerousButtonQuad.Centre.Y));
+                    InputManager.MoveMouseTo(dangerousButtonQuad.Centre with { X = dangerousButtonQuad.TopLeft.X + 5 });
                 });
             }
             else

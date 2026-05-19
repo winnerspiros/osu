@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -13,8 +14,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Dialog;
 using osu.Game.Tournament.Screens.Editors;
 using osu.Game.Tournament.Screens.Editors.Components;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tournament.Tests.Screens
 {

@@ -26,7 +26,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
-using osuTK;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -50,7 +49,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// Positional input must be received outside the container's bounds,
         /// in order to handle composer blueprints which are partially offscreen.
         /// </remarks>
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => editorScreen?.MainContent.ReceivePositionalInputAt(screenSpacePos) ?? base.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => editorScreen?.MainContent.ReceivePositionalInputAt(screenSpacePos) ?? base.ReceivePositionalInputAt(screenSpacePos);
 
         protected override IEnumerable<SelectionBlueprint<HitObject>> ApplySelectionOrder(IEnumerable<SelectionBlueprint<HitObject>> blueprints) =>
             base.ApplySelectionOrder(blueprints)

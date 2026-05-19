@@ -12,8 +12,8 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit.Compose.Components;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 using Direction = osu.Framework.Graphics.Direction;
 
 namespace osu.Game.Rulesets.Catch.Edit

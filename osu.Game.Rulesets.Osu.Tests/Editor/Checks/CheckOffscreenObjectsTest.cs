@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Edit;
@@ -12,7 +13,6 @@ using osu.Game.Rulesets.Osu.Edit.Checks;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Tests.Beatmaps;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor.Checks
 {

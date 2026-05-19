@@ -19,8 +19,8 @@ using osu.Game.Overlays.Dialog;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Utils;
-using osuTK.Graphics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Overlays.BeatmapListing
 {
@@ -156,8 +156,8 @@ namespace osu.Game.Overlays.BeatmapListing
                 }
             }
 
-            protected override Color4 ColourNormal => colours.Orange1;
-            protected override Color4 ColourActive => colours.Orange2;
+            protected override Colour4 ColourNormal => colours.Orange1;
+            protected override Colour4 ColourActive => colours.Orange2;
 
             protected override bool OnClick(ClickEvent e)
             {

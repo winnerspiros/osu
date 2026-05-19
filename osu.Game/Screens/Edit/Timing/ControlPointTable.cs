@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -21,8 +20,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Timing.RowAttributes;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Timing
 {
@@ -229,7 +227,7 @@ namespace osu.Game.Screens.Edit.Timing
                                 Blending = BlendingParameters.Additive,
                                 X = 5,
                                 Width = 150,
-                                Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.1f), Color4.White.Opacity(0))
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.1f), Colour4.White.Opacity(0))
                             },
                         }
                     },

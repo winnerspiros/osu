@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Numerics;
 using Android.Views;
 using osu.Framework.Bindables;
 using osu.Framework.Input;
@@ -11,8 +12,6 @@ using osu.Framework.Input.Handlers.Tablet;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Android.Input
 {

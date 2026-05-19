@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {

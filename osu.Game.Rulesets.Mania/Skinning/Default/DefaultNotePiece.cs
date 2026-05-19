@@ -3,14 +3,12 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Default
 {
@@ -22,7 +20,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
         public const float NOTE_HEIGHT = 12;
 
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
 
         private readonly Box colouredBox;
 
@@ -69,7 +67,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Default
                 : Anchor.BottomCentre;
         }
 
-        private void onAccentChanged(ValueChangedEvent<Color4> accent)
+        private void onAccentChanged(ValueChangedEvent<Colour4> accent)
         {
             colouredBox.Colour = accent.NewValue.Lighten(0.9f);
 

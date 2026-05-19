@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics
 {
@@ -64,7 +64,8 @@ namespace osu.Game.Graphics
         {
             base.Update();
 
-            Invalidate(Invalidation.DrawNode);
+            if (hasActiveParticles)
+                Invalidate(Invalidation.DrawNode);
 
             if (!Active.Value || !CanSpawnParticles)
                 return;

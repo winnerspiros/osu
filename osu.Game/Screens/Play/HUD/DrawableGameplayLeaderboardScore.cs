@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -20,8 +19,7 @@ using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -67,7 +65,7 @@ namespace osu.Game.Screens.Play.HUD
             set => getDisplayScoreFunction = value;
         }
 
-        public Color4? BackgroundColour { get; }
+        public Colour4? BackgroundColour { get; }
 
         public IUser? User { get; }
 
@@ -341,12 +339,12 @@ namespace osu.Game.Screens.Play.HUD
         {
             positionText.Text = ScorePosition.Value.HasValue ? $"#{ScorePosition.Value.Value.FormatRank()}" : "-";
 
-            Color4 usernameColour = Color4.White;
+            Colour4 usernameColour = Colour4.White;
             bool widthExtension = false;
 
             if (HasQuit.Value)
             {
-                setPanelColour(Color4.Gray);
+                setPanelColour(Colour4.Gray);
                 usernameColour = colours.Red2;
             }
             else if (ScorePosition.Value == 1)
@@ -373,7 +371,7 @@ namespace osu.Game.Screens.Play.HUD
             leftLayer.ResizeWidthTo(widthExtension ? extended_left_panel_width : regular_left_panel_width, panel_transition_duration, Easing.OutElastic);
         }
 
-        private void setPanelColour(Color4 baseColour)
+        private void setPanelColour(Colour4 baseColour)
         {
             leftLayerGradient.Colour = ColourInfo.GradientVertical(baseColour.Opacity(0.2f), baseColour.Opacity(0.5f));
             rightLayerGradient.Colour = ColourInfo.GradientVertical(baseColour.Opacity(0.1f), baseColour.Opacity(0.3f));

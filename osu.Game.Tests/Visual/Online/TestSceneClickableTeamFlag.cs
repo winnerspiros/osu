@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -9,7 +10,6 @@ using osu.Framework.Testing;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

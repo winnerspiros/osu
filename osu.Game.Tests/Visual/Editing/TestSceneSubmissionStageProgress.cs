@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -13,7 +14,6 @@ using osu.Framework.Utils;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Overlays;
 using osu.Game.Screens.Edit.Submission;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Editing
 {

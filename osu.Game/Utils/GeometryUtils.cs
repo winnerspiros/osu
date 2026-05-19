@@ -8,7 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Utils
 {
@@ -131,8 +131,8 @@ namespace osu.Game.Utils
             // Go through all hitobjects to make sure they would remain in the bounds of the editor after movement, before any movement is attempted
             foreach (var p in points)
             {
-                minPosition = Vector2.ComponentMin(minPosition, p);
-                maxPosition = Vector2.ComponentMax(maxPosition, p);
+                minPosition = Vector2.Min(minPosition, p);
+                maxPosition = Vector2.Max(maxPosition, p);
             }
 
             Vector2 size = maxPosition - minPosition;
@@ -248,9 +248,9 @@ namespace osu.Game.Utils
 
             // See: https://en.wikipedia.org/wiki/Circumcircle#Cartesian_coordinates
             float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
-            float aSq = a.LengthSquared;
-            float bSq = b.LengthSquared;
-            float cSq = c.LengthSquared;
+            float aSq = a.LengthSquared();
+            float bSq = b.LengthSquared();
+            float cSq = c.LengthSquared();
 
             var centre = new Vector2(
                 aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,

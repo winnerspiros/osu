@@ -17,7 +17,6 @@ using osu.Game.Screens;
 using osu.Game.Screens.Footer;
 using osu.Game.Screens.OnlinePlay;
 using osu.Game.Utils;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

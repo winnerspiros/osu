@@ -14,16 +14,17 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
+using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Online.Rooms;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
 {
@@ -36,13 +37,16 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             Value = 1_000_000,
         };
 
+        public HealthBar HealthDisplay { get; private set; } = null!;
+
         private readonly APIUser user;
         private readonly Anchor contentAnchor;
         private readonly RankedPlayColourScheme colourScheme;
 
         private BufferedContainer grayScaleContainer = null!;
-
         private OsuSpriteText beatmapState = null!;
+        private OsuSpriteText damageMultiplierText = null!;
+        private OsuSpriteText lastStandText = null!;
 
         private BeatmapAvailability availability = BeatmapAvailability.Unknown();
 
@@ -67,6 +71,14 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                 : OsuGame.SHEAR;
 
             var beatmapStateAnchor = (contentAnchor & Anchor.x0) != 0
+                ? Anchor.CentreLeft
+                : Anchor.CentreRight;
+
+            var damageMultiplierAnchor = (contentAnchor & Anchor.x0) != 0
+                ? Anchor.CentreRight
+                : Anchor.CentreLeft;
+
+            var lastStandAnchor = (contentAnchor & Anchor.x0) != 0
                 ? Anchor.CentreLeft
                 : Anchor.CentreRight;
 
@@ -104,6 +116,32 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                     Direction = FillDirection.Vertical,
                     Children =
                     [
+                        new Container
+                        {
+                            Anchor = contentAnchor,
+                            Origin = contentAnchor,
+                            RelativeSizeAxes = Axes.X,
+                            Height = 16,
+                            Padding = new MarginPadding { Horizontal = 4, Vertical = 6 },
+                            Children =
+                            [
+                                damageMultiplierText = new OsuSpriteText
+                                {
+                                    Anchor = damageMultiplierAnchor,
+                                    Origin = damageMultiplierAnchor,
+                                    Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold),
+                                    UseFullGlyphHeight = false,
+                                },
+                                lastStandText = new OsuSpriteText
+                                {
+                                    Anchor = lastStandAnchor,
+                                    Origin = lastStandAnchor,
+                                    Text = "Last Stand!",
+                                    Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold),
+                                    Alpha = 0,
+                                }
+                            ]
+                        },
                         HealthDisplay = new HealthBar(colourScheme, (contentAnchor & Anchor.x0) != 0, shear)
                         {
                             Health = { BindTarget = Health },
@@ -145,8 +183,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             ];
         }
 
-        public HealthBar HealthDisplay { get; private set; } = null!;
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -155,12 +191,22 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
             {
                 grayScaleContainer.GrayscaleTo(e.NewValue <= 0 ? 1 : 0, 300);
                 cornerPiece?.OnHealthChanged(e.NewValue);
+
+                if (e.NewValue == 1)
+                    lastStandText.FadeIn(100).Delay(3000).FadeOut(400);
             });
 
             client.RoomUpdated += onRoomUpdated;
+            onRoomUpdated();
         }
 
         private void onRoomUpdated()
+        {
+            updateBeatmapState();
+            updateDamageMultiplier();
+        }
+
+        private void updateBeatmapState()
         {
             var multiplayerUser = client.Room?.Users.SingleOrDefault(u => u.UserID == user.Id);
 
@@ -189,6 +235,18 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                     beatmapState.Text = "Importing...";
                     break;
             }
+        }
+
+        private void updateDamageMultiplier()
+        {
+            if (client.Room?.MatchState is not RankedPlayRoomState roomState)
+                return;
+
+            if (!roomState.Users.TryGetValue(user.Id, out var userInfo))
+                return;
+
+            double totalMultiplier = roomState.DamageMultiplier + userInfo.DamageMultiplier;
+            damageMultiplierText.Text = $"{totalMultiplier.ToStandardFormattedString(maxDecimalDigits: 1)}x damage";
         }
 
         protected override void Dispose(bool isDisposing)
@@ -299,8 +357,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                         Alpha = 0.1f,
                                         Blending = BlendingParameters.Additive,
                                         Colour = leftToRight
-                                            ? ColourInfo.GradientHorizontal(Color4.Transparent, Color4.White)
-                                            : ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent),
+                                            ? ColourInfo.GradientHorizontal(Colour4.Transparent, Colour4.White)
+                                            : ColourInfo.GradientHorizontal(Colour4.White, Colour4.Transparent),
                                     },
                                 ],
                             },
@@ -310,7 +368,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                     {
                         RelativeSizeAxes = Axes.Both,
                         Shear = -shear,
-                        BackgroundColour = Color4.White.Opacity(0), // workaround for non-premultiplied alpha blending of white content on transparent background
+                        BackgroundColour = Colour4.White.Opacity(0), // workaround for non-premultiplied alpha blending of white content on transparent background
                         Child = new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -380,7 +438,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                     content.CreateView().With(d =>
                                     {
                                         d.SynchronisedDrawQuad = true;
-                                        d.Colour = Color4.Red;
+                                        d.Colour = Colour4.Red;
                                     })
                                 ],
                             },
@@ -419,7 +477,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                                    .Then(delay: 1100)
                                    .FadeOut(200);
 
-                    healthBarBackground.FadeColour(Color4.Red, 100)
+                    healthBarBackground.FadeColour(Colour4.Red, 100)
                                        .Then()
                                        .FadeColour(healthBarColour, 1000);
 
@@ -456,7 +514,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components
                 if (Health.NormalizedValue > HealthFlashThreshold)
                     return;
 
-                var almostRed = Interpolation.ValueAt(0.75, healthBarColour, ColourInfo.SingleColour(Color4.Red), 0.0, 1.0);
+                var almostRed = Interpolation.ValueAt(0.75, healthBarColour, ColourInfo.SingleColour(Colour4.Red), 0.0, 1.0);
 
                 healthBarBackground.FadeColour(almostRed, 150)
                                    .Then()

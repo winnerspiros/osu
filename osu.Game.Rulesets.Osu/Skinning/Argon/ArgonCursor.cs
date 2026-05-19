@@ -1,15 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Osu.UI.Cursor;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -47,7 +45,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,
                             BorderThickness = 2,
-                            BorderColour = Color4.White.Opacity(0.8f),
+                            BorderColour = Colour4.White.Opacity(0.8f),
                             Children = new Drawable[]
                             {
                                 new Box
@@ -66,12 +64,12 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
                     Anchor = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                     Scale = new Vector2(0.2f),
-                    Colour = new Color4(255, 255, 255, 255),
+                    Colour = new Colour4(255, 255, 255, 255),
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Glow,
                         Radius = 20,
-                        Colour = new Color4(171, 255, 255, 100),
+                        Colour = new Colour4(171, 255, 255, 100),
                     },
                 },
             };

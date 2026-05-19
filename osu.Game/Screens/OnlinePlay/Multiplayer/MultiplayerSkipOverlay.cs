@@ -7,7 +7,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -22,8 +21,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Ranking;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
@@ -105,7 +103,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
             private const float chevron_y = 0.4f;
             private const float secondary_y = 0.7f;
 
-            public static readonly Color4 COLOUR_GRAY = OsuColour.Gray(0.4f);
+            public static readonly Colour4 COLOUR_GRAY = OsuColour.Gray(0.4f);
 
             private Box background = null!;
             private Box box = null!;
@@ -142,7 +140,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                     background = new Box
                     {
                         Alpha = 0.2f,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                     },
                     aspect = new AspectContainer
@@ -305,7 +303,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
 
                 sampleConfirm.Play();
 
-                box.FlashColour(Color4.White, 500, Easing.OutQuint);
+                box.FlashColour(Colour4.White, 500, Easing.OutQuint);
                 aspect.ScaleTo(1.2f, 2000, Easing.OutQuint);
 
                 base.OnClick(e);

@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.Color4Extensions;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Seasonal
 {
@@ -13,12 +13,12 @@ namespace osu.Game.Seasonal
     {
         public static readonly bool ENABLED = false;
 
-        public static readonly Color4 PRIMARY_COLOUR_1 = Color4Extensions.FromHex(@"D32F2F");
+        public static readonly Colour4 PRIMARY_COLOUR_1 = Color4Extensions.FromHex(@"D32F2F");
 
-        public static readonly Color4 PRIMARY_COLOUR_2 = Color4Extensions.FromHex(@"388E3C");
+        public static readonly Colour4 PRIMARY_COLOUR_2 = Color4Extensions.FromHex(@"388E3C");
 
-        public static readonly Color4 AMBIENT_COLOUR_1 = Color4Extensions.FromHex(@"FFFFCC");
+        public static readonly Colour4 AMBIENT_COLOUR_1 = Color4Extensions.FromHex(@"FFFFCC");
 
-        public static readonly Color4 AMBIENT_COLOUR_2 = Color4Extensions.FromHex(@"FFE4B5");
+        public static readonly Colour4 AMBIENT_COLOUR_2 = Color4Extensions.FromHex(@"FFE4B5");
     }
 }

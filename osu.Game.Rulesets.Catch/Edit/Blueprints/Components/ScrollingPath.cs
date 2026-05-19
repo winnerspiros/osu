@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Primitives;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
 {

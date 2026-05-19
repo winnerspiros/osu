@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
@@ -12,7 +13,6 @@ using osu.Framework.Logging;
 using osu.Framework.Testing.Input;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Skinning;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

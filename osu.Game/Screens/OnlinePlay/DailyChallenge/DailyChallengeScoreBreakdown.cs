@@ -19,7 +19,7 @@ using osu.Game.Online.Metadata;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.DailyChallenge.Events;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 {

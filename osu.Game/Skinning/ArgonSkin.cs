@@ -16,8 +16,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
 using osu.Game.Skinning.Components;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {
@@ -48,7 +47,7 @@ namespace osu.Game.Skinning
         {
             Resources = resources;
 
-            Configuration.CustomComboColours = new List<Color4>
+            Configuration.CustomComboColours = new List<Colour4>
             {
                 // Standard combo progression order is green - blue - red - yellow.
                 // But for whatever reason, this starts from index 1, not 0.
@@ -57,17 +56,17 @@ namespace osu.Game.Skinning
                 // this same progression is in slots 1 - 4.
 
                 // Orange
-                new Color4(241, 116, 0, 255),
+                new Colour4(241, 116, 0, 255),
                 // Green
-                new Color4(0, 241, 53, 255),
+                new Colour4(0, 241, 53, 255),
                 // Blue
-                new Color4(0, 82, 241, 255),
+                new Colour4(0, 82, 241, 255),
                 // Red
-                new Color4(241, 0, 0, 255),
+                new Colour4(241, 0, 0, 255),
                 // Yellow
-                new Color4(232, 235, 0, 255),
+                new Colour4(232, 235, 0, 255),
                 // Purple
-                new Color4(92, 0, 241, 255),
+                new Colour4(92, 0, 241, 255),
             };
         }
 
@@ -298,7 +297,7 @@ namespace osu.Game.Skinning
                         case GlobalSkinColours.ComboColours:
                         {
                             LogLookupDebug(this, lookup, LookupDebugType.Hit);
-                            return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Color4>?>(Configuration.ComboColours));
+                            return SkinUtils.As<TValue>(new Bindable<IReadOnlyList<Colour4>?>(Configuration.ComboColours));
                         }
                     }
 
@@ -306,14 +305,14 @@ namespace osu.Game.Skinning
 
                 case SkinComboColourLookup comboColour:
                     LogLookupDebug(this, lookup, LookupDebugType.Hit);
-                    return SkinUtils.As<TValue>(new Bindable<Color4>(getComboColour(Configuration, comboColour.ColourIndex)));
+                    return SkinUtils.As<TValue>(new Bindable<Colour4>(getComboColour(Configuration, comboColour.ColourIndex)));
             }
 
             LogLookupDebug(this, lookup, LookupDebugType.Miss);
             return null;
         }
 
-        private static Color4 getComboColour(IHasComboColours source, int colourIndex)
+        private static Colour4 getComboColour(IHasComboColours source, int colourIndex)
             => source.ComboColours![colourIndex % source.ComboColours.Count];
     }
 }

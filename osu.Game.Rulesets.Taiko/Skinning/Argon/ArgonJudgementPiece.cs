@@ -12,8 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -174,7 +173,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 
                     Masking = true;
                     BorderThickness = thickness;
-                    BorderColour = Color4.White;
+                    BorderColour = Colour4.White;
 
                     Child = new Box
                     {

@@ -23,7 +23,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Pooling;
 using osu.Game.Skinning;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -431,7 +431,6 @@ namespace osu.Game.Rulesets.UI
         private IDrawablePool prepareDrawableHitObjectPool(HitObject hitObject)
         {
             var lookupType = hitObject.GetType();
-
 
             // Tests may add derived hitobject instances for which pools don't exist. Try to find any applicable pool and dynamically assign the type if the pool exists.
             if (!pools.TryGetValue(lookupType, out var pool))

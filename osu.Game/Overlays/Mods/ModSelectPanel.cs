@@ -6,7 +6,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -20,8 +19,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -29,7 +27,7 @@ namespace osu.Game.Overlays.Mods
     {
         public abstract BindableBool Active { get; }
 
-        public Color4 AccentColour { get; set; }
+        public Colour4 AccentColour { get; set; }
 
         public LocalisableString Title
         {

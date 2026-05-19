@@ -17,8 +17,8 @@ using osu.Game.Screens.Menu;
 using osu.Game.Screens.OnlinePlay.DailyChallenge;
 using osu.Game.Tests.Visual.Metadata;
 using osu.Game.Tests.Visual.OnlinePlay;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Visual.DailyChallenge
 {
@@ -39,7 +39,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             Add(metadataClient);
 
             // add button to observe for daily challenge changes and perform its logic.
-            Add(new DailyChallengeButton(@"button-default-select", new Color4(102, 68, 204, 255), (_, _) => { }, 0, Key.D));
+            Add(new DailyChallengeButton(@"button-default-select", new Colour4(102, 68, 204, 255), (_, _) => { }, 0, Key.D));
         }
 
         [Test]

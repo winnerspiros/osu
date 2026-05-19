@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Profile.Header.Components;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header
 {

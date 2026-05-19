@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -19,9 +17,8 @@ using osu.Framework.Localisation;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Menu
 {
@@ -84,7 +81,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action<MainMenuButton, UIEvent>? clickAction = null, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Colour4 colour, Action<MainMenuButton, UIEvent>? clickAction = null, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -104,7 +101,7 @@ namespace osu.Game.Screens.Menu
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.2f),
+                        Colour = Colour4.Black.Opacity(0.2f),
                         Roundness = 5,
                         Radius = 8,
                     },
@@ -123,7 +120,7 @@ namespace osu.Game.Screens.Menu
                             EdgeSmoothness = new Vector2(1.5f, 0),
                             RelativeSizeAxes = Axes.Both,
                             Blending = BlendingParameters.Additive,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Depth = float.MinValue,
                             Alpha = 0,
                         },

@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -30,8 +31,6 @@ using osu.Game.Screens.Play.HUD.HitErrorMeters;
 using osu.Game.Screens.Select;
 using osu.Game.Skinning;
 using osu.Game.Tests.Beatmaps.IO;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Game.Tests.Visual.Navigation
 {

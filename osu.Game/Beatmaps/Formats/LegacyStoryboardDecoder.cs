@@ -11,8 +11,7 @@ using osu.Game.IO;
 using osu.Game.Storyboards;
 using osu.Game.Storyboards.Commands;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Beatmaps.Formats
 {
@@ -286,8 +285,8 @@ namespace osu.Game.Beatmaps.Formats
                                 float endGreen = split.Length > 8 ? Parsing.ParseFloat(split[8]) : startGreen;
                                 float endBlue = split.Length > 9 ? Parsing.ParseFloat(split[9]) : startBlue;
                                 currentCommandsGroup?.AddColour(easing, startTime, endTime,
-                                    new Color4(startRed / 255f, startGreen / 255f, startBlue / 255f, 1),
-                                    new Color4(endRed / 255f, endGreen / 255f, endBlue / 255f, 1));
+                                    new Colour4(startRed / 255f, startGreen / 255f, startBlue / 255f, 1),
+                                    new Colour4(endRed / 255f, endGreen / 255f, endBlue / 255f, 1));
                                 break;
                             }
 

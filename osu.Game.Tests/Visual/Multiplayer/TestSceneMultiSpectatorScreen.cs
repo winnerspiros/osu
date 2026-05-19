@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
@@ -27,9 +28,7 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.PlayerSettings;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Beatmaps.IO;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
@@ -458,7 +457,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 int id = PLAYER_1_ID + count;
 
                 end(id);
-                AddUntilStep($"{id} area grayed", () => getInstance(id).Colour != Color4.White);
+                AddUntilStep($"{id} area grayed", () => getInstance(id).Colour != Colour4.White);
                 AddUntilStep($"{id} score quit set", () => getLeaderboardScore(id).HasQuit.Value);
                 sendFrames(getPlayerIds(count), 300);
             }
@@ -471,7 +470,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
             sendFrames(PLAYER_1_ID, 300);
 
             AddAssert($"{PLAYER_1_ID} player instance still same", () => getInstance(PLAYER_1_ID).ChildrenOfType<Player>().Single() == player);
-            AddAssert($"{PLAYER_1_ID} area still grayed", () => getInstance(PLAYER_1_ID).Colour != Color4.White);
+            AddAssert($"{PLAYER_1_ID} area still grayed", () => getInstance(PLAYER_1_ID).Colour != Colour4.White);
             AddAssert($"{PLAYER_1_ID} score quit still set", () => getLeaderboardScore(PLAYER_1_ID).HasQuit.Value);
         }
 

@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -14,8 +15,6 @@ using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Graphics.Containers;
 using osu.Game.Screens.Menu;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -85,7 +84,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("Transfer facade to a new container", () =>
             {
                 transferContainer.Add(logoFacade);
-                transferContainerBox.Colour = Color4.Tomato;
+                transferContainerBox.Colour = Colour4.Tomato;
                 moveLogoFacade();
             });
 
@@ -122,7 +121,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     {
                         Origin = Anchor.TopCentre,
                         Anchor = Anchor.TopCentre,
-                        Colour = Color4.Azure,
+                        Colour = Colour4.Azure,
                         Size = new Vector2(visual_box_size)
                     },
                     new Container
@@ -136,7 +135,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                         {
                             visualBox = new Box
                             {
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 RelativeSizeAxes = Axes.Both,
                             },
                             trackingContainer.LogoFacade,
@@ -146,7 +145,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     {
                         Origin = Anchor.TopCentre,
                         Anchor = Anchor.TopCentre,
-                        Colour = Color4.Azure,
+                        Colour = Colour4.Azure,
                         Size = new Vector2(visual_box_size)
                     },
                 };
@@ -158,12 +157,12 @@ namespace osu.Game.Tests.Visual.UserInterface
 
                 logo.MoveTo(new Vector2(0.5f), 500, Easing.InOutExpo);
 
-                visualBox.Colour = Color4.White;
+                visualBox.Colour = Colour4.White;
 
                 Scheduler.AddDelayed(() =>
                 {
                     logoTracking = trackingContainer.StartTracking(logo, 1000, Easing.InOutExpo);
-                    visualBox.Colour = Color4.Tomato;
+                    visualBox.Colour = Colour4.Tomato;
                 }, 700);
             });
 
@@ -239,7 +238,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     Size = new Vector2(visual_box_size),
                     Child = visualBox = new Box
                     {
-                        Colour = Color4.Tomato,
+                        Colour = Colour4.Tomato,
                         RelativeSizeAxes = Axes.Both,
                     }
                 },
@@ -250,7 +249,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     Size = new Vector2(visual_box_size),
                     Child = transferContainerBox = new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         RelativeSizeAxes = Axes.Both,
                     }
                 },
@@ -265,7 +264,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         private void removeFacade()
         {
             trackingContainer.Remove(logoFacade, false);
-            visualBox.Colour = Color4.White;
+            visualBox.Colour = Colour4.White;
             moveLogoFacade();
         }
 

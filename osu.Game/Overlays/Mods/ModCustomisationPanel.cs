@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -19,8 +18,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Input.Bindings;
 using osu.Game.Rulesets.Mods;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -79,7 +77,7 @@ namespace osu.Game.Overlays.Mods
                         Offset = new Vector2(0f, 5f),
                         Radius = 20f,
                         Roundness = 5f,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                     },
                     ExpandedState = { BindTarget = ExpandedState },
                     Children = new Drawable[]

@@ -9,7 +9,7 @@ using osu.Game.Overlays;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Setup;
 using osu.Game.Tests.Visual;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Mania.Tests.Editor
 {

@@ -12,7 +12,7 @@ using osu.Game.Rulesets.Mania.Configuration;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Screens.Edit.Timing;
 using osu.Game.Tests.Visual;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Mania.Tests.Editor
 {

@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -15,8 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 {
@@ -44,7 +42,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                 },
                 new Container
                 {
@@ -61,7 +59,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
                             Height = 0.5f,
                             Anchor = Anchor.BottomCentre,
                             Origin = Anchor.BottomCentre,
-                            Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.5f), Color4.White.Opacity(0.85f)),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.5f), Colour4.White.Opacity(0.85f)),
                             Alpha = 0,
                             AlwaysPresent = true,
                         },
@@ -74,7 +72,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
                             Height = 0.5f,
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.85f), Color4.White.Opacity(0.5f)),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.85f), Colour4.White.Opacity(0.5f)),
                             Alpha = 0,
                             AlwaysPresent = true,
                         },

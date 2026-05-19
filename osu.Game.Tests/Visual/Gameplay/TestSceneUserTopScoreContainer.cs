@@ -13,7 +13,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Scoring;
 using osu.Game.Users;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -42,7 +41,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                     },
                     topScoreContainer = new UserTopScoreContainer<ScoreInfo>(s => new LeaderboardScore(s, s.Position, false))
                     {

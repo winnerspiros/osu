@@ -5,13 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {

@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Overlays;
-using osuTK;
 
 namespace osu.Game.Graphics.Containers.Markdown.Footnotes
 {
@@ -45,7 +44,7 @@ namespace osu.Game.Graphics.Containers.Markdown.Footnotes
             };
         }
 
-        public void Move(Vector2 pos) => Position = pos;
+        public void Move(System.Numerics.Vector2 pos) => Position = pos;
 
         public void SetContent(object content) => markdownContainer.SetContent((string)content);
 

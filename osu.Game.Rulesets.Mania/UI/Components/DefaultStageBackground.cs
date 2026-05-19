@@ -5,7 +5,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.UI.Components
 {
@@ -23,7 +22,7 @@ namespace osu.Game.Rulesets.Mania.UI.Components
             {
                 Name = "Background",
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.Black
+                Colour = Colour4.Black
             };
         }
     }

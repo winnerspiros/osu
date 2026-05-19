@@ -13,7 +13,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.BeatmapSelect
 {

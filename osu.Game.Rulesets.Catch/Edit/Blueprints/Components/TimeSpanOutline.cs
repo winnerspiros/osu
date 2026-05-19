@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
 {
@@ -34,7 +33,7 @@ namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
             InternalChild = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.Transparent
+                Colour = Colour4.Transparent
             };
         }
 

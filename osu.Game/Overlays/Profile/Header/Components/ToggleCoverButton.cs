@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {

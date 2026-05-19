@@ -17,8 +17,7 @@ using osu.Game.Localisation.SkinComponents;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Screens.Play.HUD.ArgonHealthDisplayParts;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -97,10 +96,10 @@ namespace osu.Game.Screens.Play.HUD
                         Child = glowBar = new ArgonHealthDisplayBar
                         {
                             RelativeSizeAxes = Axes.Both,
-                            BarColour = Color4.White,
+                            BarColour = Colour4.White,
                             GlowColour = main_bar_glow_colour,
                             Blending = BlendingParameters.Additive,
-                            Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.8f), Color4.White),
+                            Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.8f), Colour4.White),
                             PathRadius = glow_path_radius,
                             GlowPortion = (glow_path_radius - MAIN_PATH_RADIUS * (1f - main_path_glow_portion)) / glow_path_radius,
                         }

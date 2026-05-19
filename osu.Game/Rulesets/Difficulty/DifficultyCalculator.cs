@@ -76,7 +76,7 @@ namespace osu.Game.Rulesets.Difficulty
 
             var skills = CreateSkills(Beatmap, playableMods, clockRate);
 
-            if (!Beatmap.HitObjects.Any())
+            if (Beatmap.HitObjects.Count == 0)
                 return CreateDifficultyAttributes(Beatmap, playableMods, skills, clockRate);
 
             foreach (var hitObject in getDifficultyHitObjects())
@@ -118,7 +118,7 @@ namespace osu.Game.Rulesets.Difficulty
 
             var attribs = new List<TimedDifficultyAttributes>();
 
-            if (!Beatmap.HitObjects.Any())
+            if (Beatmap.HitObjects.Count == 0)
                 return attribs;
 
             var skills = CreateSkills(Beatmap, playableMods, clockRate);

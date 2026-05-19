@@ -18,7 +18,7 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Settings
 {
@@ -212,7 +212,7 @@ namespace osu.Game.Overlays.Settings
             // IMPORTANT: all bindable logic is in constructor intentionally to support "CreateSettingsControls" being used in a context it is
             // never loaded, but requires bindable storage.
             if (controlWithCurrent == null)
-                throw new ArgumentException(@$"Control created via {nameof(CreateControl)} must implement {nameof(IHasCurrentValue<T>)}");
+                throw new ArgumentException(@$"Control created via {nameof(CreateControl)} must implement {nameof(IHasCurrentValue<>)}");
 
             controlWithCurrent.Current.ValueChanged += _ => SettingChanged?.Invoke();
             controlWithCurrent.Current.DisabledChanged += _ => updateDisabled();

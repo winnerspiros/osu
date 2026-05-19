@@ -2,15 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
 {
@@ -97,14 +95,14 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             this.FadeInFromZero(50).Then().FadeOut(duration, Easing.Out);
         }
 
-        private void setColour(Color4 objectColour)
+        private void setColour(Colour4 objectColour)
         {
             const float roundness = 100;
 
             largeFaint.EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Glow,
-                Colour = Interpolation.ValueAt(0.1f, objectColour, Color4.White, 0, 1).Opacity(0.3f),
+                Colour = Interpolation.ValueAt(0.1f, objectColour, Colour4.White, 0, 1).Opacity(0.3f),
                 Roundness = 160,
                 Radius = 200,
             };
@@ -112,7 +110,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             smallFaint.EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Glow,
-                Colour = Interpolation.ValueAt(0.6f, objectColour, Color4.White, 0, 1),
+                Colour = Interpolation.ValueAt(0.6f, objectColour, Colour4.White, 0, 1),
                 Roundness = 20,
                 Radius = 50,
             };
@@ -120,7 +118,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
             directionalGlow1.EdgeEffect = directionalGlow2.EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Glow,
-                Colour = Interpolation.ValueAt(0.4f, objectColour, Color4.White, 0, 1),
+                Colour = Interpolation.ValueAt(0.4f, objectColour, Colour4.White, 0, 1),
                 Roundness = roundness,
                 Radius = 40,
             };

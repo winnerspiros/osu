@@ -6,8 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapListing
 {
@@ -106,7 +105,7 @@ namespace osu.Game.Overlays.BeatmapListing
         {
             public readonly Bindable<SortDirection> SortDirection = new Bindable<SortDirection>();
 
-            protected override Color4 ContentColour
+            protected override Colour4 ContentColour
             {
                 set
                 {

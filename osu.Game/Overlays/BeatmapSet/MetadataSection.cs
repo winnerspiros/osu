@@ -3,14 +3,12 @@
 
 using System;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -100,7 +98,7 @@ namespace osu.Game.Overlays.BeatmapSet
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Colour = Color4.White.Opacity(0.75f),
+                Colour = Colour4.White.Opacity(0.75f),
             }, loaded =>
             {
                 textFlow?.Expire();

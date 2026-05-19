@@ -16,7 +16,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -122,7 +121,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                     timingPoint = nextTimingPoint;
                 }
 
-                Color4 colour = BindableBeatDivisor.GetColourFor(
+                Colour4 colour = BindableBeatDivisor.GetColourFor(
                     BindableBeatDivisor.GetDivisorForBeatIndex(beat, beatDivisor.Value), colours);
 
                 foreach (var grid in grids)

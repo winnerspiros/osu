@@ -18,7 +18,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Settings;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Login
 {

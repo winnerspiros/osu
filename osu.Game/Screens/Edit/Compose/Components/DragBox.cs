@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.Layout;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -47,8 +47,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
         /// <param name="e">The mouse event.</param>
         public virtual void HandleDrag(MouseButtonEvent e)
         {
-            Box.Position = Vector2.ComponentMin(e.MouseDownPosition, e.MousePosition);
-            Box.Size = Vector2.ComponentMax(e.MouseDownPosition, e.MousePosition) - Box.Position;
+            Box.Position = Vector2.Min(e.MouseDownPosition, e.MousePosition);
+            Box.Size = Vector2.Max(e.MouseDownPosition, e.MousePosition) - Box.Position;
         }
 
         public Visibility State

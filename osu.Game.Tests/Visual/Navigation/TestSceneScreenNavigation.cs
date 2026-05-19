@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -55,8 +56,6 @@ using osu.Game.Screens.Select;
 using osu.Game.Tests.Beatmaps.IO;
 using osu.Game.Tests.Resources;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Input;
 using CollectionDropdown = osu.Game.Screens.Select.CollectionDropdown;
 
 namespace osu.Game.Tests.Visual.Navigation

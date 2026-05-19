@@ -22,8 +22,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays.Settings;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
@@ -117,7 +116,7 @@ namespace osu.Game.Overlays
                 foreach (var t in tasks)
                     t.Cancel();
 
-                target.FadeColour(Color4.Black, 2000);
+                target.FadeColour(Colour4.Black, 2000);
                 target.ScaleTo(1)
                       .ScaleTo(10, 4000);
 
@@ -141,7 +140,7 @@ namespace osu.Game.Overlays
 
                     target.FinishTransforms();
                     target.ScaleTo(1)
-                          .FadeColour(Color4.White, 2000, Easing.OutQuint);
+                          .FadeColour(Colour4.White, 2000, Easing.OutQuint);
 
                     Schedule(() =>
                     {
@@ -220,14 +219,14 @@ namespace osu.Game.Overlays
                     {
                         if (val.NewValue)
                         {
-                            target.FadeColour(new Color4(
+                            target.FadeColour(new Colour4(
                                 (byte)RNG.Next(200, 255),
                                 (byte)RNG.Next(200, 255),
                                 (byte)RNG.Next(200, 255),
                                 255), 1500, Easing.OutQuint);
                         }
                         else
-                            target.FadeColour(Color4.White, 2000);
+                            target.FadeColour(Colour4.White, 2000);
                     },
                     val =>
                     {
@@ -248,11 +247,11 @@ namespace osu.Game.Overlays
                     {
                         if (val.NewValue)
                         {
-                            var colours = new[] { new Color4(255, 230, 230, 255), new Color4(230, 255, 230, 255), new Color4(230, 230, 255, 255) };
+                            var colours = new[] { new Colour4(255, 230, 230, 255), new Colour4(230, 255, 230, 255), new Colour4(230, 230, 255, 255) };
                             target.FadeColour(colours[RNG.Next(0, colours.Length)], 300).Loop();
                         }
                         else
-                            target.FadeColour(Color4.White, 3000);
+                            target.FadeColour(Colour4.White, 3000);
                     },
                     val =>
                     {

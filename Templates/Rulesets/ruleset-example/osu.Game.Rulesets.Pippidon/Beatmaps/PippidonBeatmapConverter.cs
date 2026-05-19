@@ -4,11 +4,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Numerics;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Pippidon.Objects;
-using osuTK;
 
 namespace osu.Game.Rulesets.Pippidon.Beatmaps
 {

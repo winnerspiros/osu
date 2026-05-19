@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Timing;
@@ -11,7 +12,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Play;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Beatmaps;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {

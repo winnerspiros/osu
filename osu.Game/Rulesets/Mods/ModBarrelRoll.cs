@@ -12,7 +12,7 @@ using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.UI;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mods
 {

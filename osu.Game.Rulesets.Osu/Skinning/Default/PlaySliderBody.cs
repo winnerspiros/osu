@@ -8,7 +8,7 @@ using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
     {
         protected IBindable<float> ScaleBindable { get; private set; } = null!;
 
-        protected IBindable<Color4> AccentColourBindable { get; private set; } = null!;
+        protected IBindable<Colour4> AccentColourBindable { get; private set; } = null!;
 
         private IBindable<int> pathVersion = null!;
 
@@ -47,8 +47,8 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             BorderColour = GetBorderColour(skin);
         }
 
-        protected virtual Color4 GetBorderColour(ISkinSource skin) => Color4.White;
+        protected virtual Colour4 GetBorderColour(ISkinSource skin) => Colour4.White;
 
-        protected virtual Color4 GetBodyAccentColour(ISkinSource skin, Color4 hitObjectAccentColour) => hitObjectAccentColour;
+        protected virtual Colour4 GetBodyAccentColour(ISkinSource skin, Colour4 hitObjectAccentColour) => hitObjectAccentColour;
     }
 }

@@ -16,9 +16,8 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -98,7 +97,7 @@ namespace osu.Game.Overlays.Toolbar
 
         private void currentDisabledChanged()
         {
-            this.FadeColour(Current.Disabled ? Color4.Gray : Color4.White, 300);
+            this.FadeColour(Current.Disabled ? Colour4.Gray : Colour4.White, 300);
         }
 
         private bool hasInitialPosition;

@@ -10,7 +10,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -28,8 +27,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Components
 {
@@ -205,7 +203,7 @@ namespace osu.Game.Screens.Edit.Components
 
             protected override float HoverLayerFinalAlpha => 0;
 
-            private Color4? triangleGradientSecondColour;
+            private Colour4? triangleGradientSecondColour;
             private SpriteIcon icon = null!;
 
             [Resolved]
@@ -276,10 +274,8 @@ namespace osu.Game.Screens.Edit.Components
 
                 recycleSamples();
 
-                if (triangles == null)
-                    return;
-
-                triangles.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour.Value, BackgroundColour);
+                if (triangles != null)
+                    triangles.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour ?? default, BackgroundColour);
             }
 
             private void recycleSamples() => Schedule(() =>

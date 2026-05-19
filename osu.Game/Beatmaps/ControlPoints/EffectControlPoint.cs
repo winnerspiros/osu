@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Game.Graphics;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {
@@ -34,7 +34,7 @@ namespace osu.Game.Beatmaps.ControlPoints
             set => ScrollSpeedBindable.Value = value;
         }
 
-        public override Color4 GetRepresentingColour(OsuColour colours) => colours.Orange1;
+        public override Colour4 GetRepresentingColour(OsuColour colours) => colours.Orange1;
 
         /// <summary>
         /// Whether this control point enables Kiai mode.

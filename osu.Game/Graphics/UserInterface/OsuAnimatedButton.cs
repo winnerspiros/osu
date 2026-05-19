@@ -2,14 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
-using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -21,24 +19,22 @@ namespace osu.Game.Graphics.UserInterface
         /// <summary>
         /// The colour that should be flashed when the <see cref="OsuAnimatedButton"/> is clicked.
         /// </summary>
-        protected Color4 FlashColour = Color4.White.Opacity(0.3f);
-
-        private Color4 hoverColour = Color4.White.Opacity(0.1f);
+        protected Colour4 FlashColour = Colour4.White.Opacity(0.3f);
 
         protected float ScaleOnMouseDown { get; init; } = 0.75f;
 
         /// <summary>
         /// The background colour of the <see cref="OsuAnimatedButton"/> while it is hovered.
         /// </summary>
-        protected Color4 HoverColour
+        protected Colour4 HoverColour
         {
-            get => hoverColour;
+            get => field;
             set
             {
-                hoverColour = value;
+                field = value;
                 hover.Colour = value;
             }
-        }
+        } = Colour4.White.Opacity(0.1f);
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;
@@ -61,7 +57,7 @@ namespace osu.Game.Graphics.UserInterface
                 Masking = true,
                 EdgeEffect = new EdgeEffectParameters
                 {
-                    Colour = Color4.Black.Opacity(0.04f),
+                    Colour = Colour4.Black.Opacity(0.04f),
                     Type = EdgeEffectType.Shadow,
                     Radius = 5,
                 },
@@ -96,7 +92,7 @@ namespace osu.Game.Graphics.UserInterface
             FinishTransforms(true);
         }
 
-        protected virtual Colour4 DimColour => Enabled.Value ? Color4.White : colours.Gray9;
+        protected virtual Colour4 DimColour => Enabled.Value ? Colour4.White : colours.Gray9;
 
         protected override bool OnHover(HoverEvent e)
         {

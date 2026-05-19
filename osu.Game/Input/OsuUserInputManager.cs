@@ -4,7 +4,6 @@
 using osu.Framework.Bindables;
 using osu.Framework.Input;
 using osu.Game.Screens.Play;
-using osuTK.Input;
 
 namespace osu.Game.Input
 {

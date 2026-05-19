@@ -20,7 +20,6 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
 using osu.Game.Storyboards;
 using osu.Game.Tests.Visual;
-using osuTK.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Mods
 {

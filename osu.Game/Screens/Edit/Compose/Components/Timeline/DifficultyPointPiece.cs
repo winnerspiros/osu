@@ -19,8 +19,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit.Timing;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 {
@@ -38,7 +37,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
             speedMultiplier = (hitObject as IHasSliderVelocity)?.SliderVelocityMultiplierBindable.GetBoundCopy();
         }
 
-        protected override Color4 GetRepresentingColour(OsuColour colours) => colours.Lime1;
+        protected override Colour4 GetRepresentingColour(OsuColour colours) => colours.Lime1;
 
         protected override void LoadComplete()
         {

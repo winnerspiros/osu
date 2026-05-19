@@ -4,7 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Timing;
 using osu.Game.Rulesets.Objects.Pooling;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {

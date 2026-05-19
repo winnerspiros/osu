@@ -9,7 +9,6 @@ using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -20,8 +19,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.Placeholders;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Online.Leaderboards
 {
@@ -393,22 +391,22 @@ namespace osu.Game.Online.Leaderboards
                 bool requireBottomFade = bottomY >= fadeBottom;
 
                 if (!requireBottomFade)
-                    c.Colour = Color4.White;
+                    c.Colour = Colour4.White;
                 else if (topY > fadeBottom + LeaderboardScore.HEIGHT || bottomY < fadeTop - LeaderboardScore.HEIGHT)
-                    c.Colour = Color4.Transparent;
+                    c.Colour = Colour4.Transparent;
                 else
                 {
                     if (bottomY - fadeBottom > 0)
                     {
                         c.Colour = ColourInfo.GradientVertical(
-                            Color4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / LeaderboardScore.HEIGHT, 1)),
-                            Color4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / LeaderboardScore.HEIGHT, 1)));
+                            Colour4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / LeaderboardScore.HEIGHT, 1)),
+                            Colour4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / LeaderboardScore.HEIGHT, 1)));
                     }
                     else
                     {
                         c.Colour = ColourInfo.GradientVertical(
-                            Color4.White.Opacity(Math.Min(1 - (fadeTop - topY) / LeaderboardScore.HEIGHT, 1)),
-                            Color4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / LeaderboardScore.HEIGHT, 1)));
+                            Colour4.White.Opacity(Math.Min(1 - (fadeTop - topY) / LeaderboardScore.HEIGHT, 1)),
+                            Colour4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / LeaderboardScore.HEIGHT, 1)));
                     }
                 }
             }

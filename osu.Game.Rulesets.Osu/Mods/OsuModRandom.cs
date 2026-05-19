@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             Precision = 0.1f
         };
 
-        private static readonly float playfield_diagonal = OsuPlayfield.BASE_SIZE.LengthFast;
+        private static readonly float playfield_diagonal = OsuPlayfield.BASE_SIZE.Length();
 
         private Random random = null!;
 

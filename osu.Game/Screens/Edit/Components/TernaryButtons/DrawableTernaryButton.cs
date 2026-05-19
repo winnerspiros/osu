@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
@@ -14,8 +13,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Components.TernaryButtons
 {
@@ -42,10 +40,10 @@ namespace osu.Game.Screens.Edit.Components.TernaryButtons
         /// </summary>
         public Func<Drawable>? CreateIcon { get; init; }
 
-        private Color4 defaultBackgroundColour;
-        private Color4 defaultIconColour;
-        private Color4 selectedBackgroundColour;
-        private Color4 selectedIconColour;
+        private Colour4 defaultBackgroundColour;
+        private Colour4 defaultIconColour;
+        private Colour4 selectedBackgroundColour;
+        private Colour4 selectedIconColour;
 
         public Drawable Icon { get; private set; } = null!;
 

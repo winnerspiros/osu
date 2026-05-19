@@ -20,7 +20,7 @@ using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Screens.Spectate;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Spectate
 {

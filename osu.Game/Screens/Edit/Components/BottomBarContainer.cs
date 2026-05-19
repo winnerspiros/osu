@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Components
 {
@@ -31,7 +30,7 @@ namespace osu.Game.Screens.Edit.Components
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Transparent,
+                    Colour = Colour4.Transparent,
                 },
                 content = new Container
                 {

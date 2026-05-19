@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Users
 {

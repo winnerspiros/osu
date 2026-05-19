@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Rankings.Tables
 {
@@ -16,8 +15,8 @@ namespace osu.Game.Overlays.Rankings.Tables
 
         private readonly Box background;
 
-        private Color4 idleColour;
-        private Color4 hoverColour;
+        private Colour4 idleColour;
+        private Colour4 hoverColour;
 
         public TableRowBackground()
         {

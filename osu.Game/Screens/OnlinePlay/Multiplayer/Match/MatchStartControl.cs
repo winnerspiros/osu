@@ -17,7 +17,7 @@ using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Multiplayer.Countdown;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Dialog;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 {

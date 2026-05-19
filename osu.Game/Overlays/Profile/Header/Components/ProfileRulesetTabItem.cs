@@ -7,8 +7,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Header.Components
 {
@@ -28,7 +27,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
             }
         }
 
-        protected override Color4 AccentColour
+        protected override Colour4 AccentColour
         {
             get => base.AccentColour;
             set

@@ -5,7 +5,7 @@ using NUnit.Framework;
 using osu.Game.IO;
 using osu.Game.Skinning;
 using osu.Game.Tests.Resources;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Tests.Skins
 {
@@ -96,7 +96,7 @@ namespace osu.Game.Tests.Skins
                 var configs = decoder.Decode(stream);
 
                 Assert.That(configs.Count, Is.EqualTo(1));
-                Assert.That(configs[0].CustomColours, Contains.Key("ColourBarline").And.ContainValue(new Color4(50, 50, 50, 50)));
+                Assert.That(configs[0].CustomColours, Contains.Key("ColourBarline").And.ContainValue(new Colour4(50, 50, 50, 50)));
             }
         }
 

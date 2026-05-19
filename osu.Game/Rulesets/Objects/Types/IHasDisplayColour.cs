@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Types
 {
@@ -14,6 +14,6 @@ namespace osu.Game.Rulesets.Objects.Types
         /// <summary>
         /// The current display colour of this hit object.
         /// </summary>
-        Bindable<Color4> DisplayColour { get; }
+        Bindable<Colour4> DisplayColour { get; }
     }
 }

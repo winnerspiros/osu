@@ -19,8 +19,7 @@ using osu.Game.Configuration;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Settings.Sections.Graphics
 {
@@ -302,9 +301,9 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 if (size.NewValue == sizeWindowed.Value || windowModeDropdown.Current.Value != WindowMode.Windowed)
                     return;
 
-                if (window?.WindowState == Framework.Platform.WindowState.Maximised)
+                if (window?.WindowState == WindowState.Maximised)
                 {
-                    window.WindowState = Framework.Platform.WindowState.Normal;
+                    window.WindowState = WindowState.Normal;
                 }
 
                 // Adjust only for top decorations (assuming system titlebar).
@@ -381,6 +380,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
         private void updateRefreshRates()
         {
             var display = currentDisplay.Value;
+
             if (display == null)
             {
                 refreshRates.ReplaceRange(1, refreshRates.Count - 1, Array.Empty<double>());
@@ -493,7 +493,7 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
             {
                 Child = new Box
                 {
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.5f,
                 };

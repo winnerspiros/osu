@@ -28,8 +28,7 @@ using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Lounge.Components;
 using osu.Game.Users;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Lounge
 {
@@ -95,7 +94,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             if (idleTracker != null)
                 isIdle.BindTo(idleTracker.IsIdle);
 
-            Color4 bg = Color4Extensions.FromHex("#070405");
+            Colour4 bg = Color4Extensions.FromHex("#070405");
 
             InternalChildren = new Drawable[]
             {
@@ -236,7 +235,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             foreach (var r in result)
             {
                 if (localRoomsById.TryGetValue(r.RoomID ?? -1, out Room? existingRoom))
-                    existingRoom?.CopyFrom(r);
+                    existingRoom.CopyFrom(r);
                 else
                     roomListing.Rooms.Add(r);
             }

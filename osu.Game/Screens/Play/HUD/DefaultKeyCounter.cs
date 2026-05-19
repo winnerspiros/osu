@@ -8,8 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -21,8 +20,8 @@ namespace osu.Game.Screens.Play.HUD
         private SpriteText countSpriteText = null!;
 
         //further: change default values here and in KeyCounterCollection if needed, instead of passing them in every constructor
-        public Color4 KeyDownTextColor { get; set; } = Color4.DarkGray;
-        public Color4 KeyUpTextColor { get; set; } = Color4.White;
+        public Colour4 KeyDownTextColor { get; set; } = Colour4.DarkGray;
+        public Colour4 KeyUpTextColor { get; set; } = Colour4.White;
         public double FadeTime { get; set; }
 
         public DefaultKeyCounter(InputTrigger trigger)

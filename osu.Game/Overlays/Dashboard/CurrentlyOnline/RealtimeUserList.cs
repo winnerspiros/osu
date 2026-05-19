@@ -17,7 +17,7 @@ using osu.Game.Online.Metadata;
 using osu.Game.Overlays.Dashboard.Friends;
 using osu.Game.Rulesets;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Dashboard.CurrentlyOnline
 {
@@ -178,6 +178,7 @@ namespace osu.Game.Overlays.Dashboard.CurrentlyOnline
                     break;
 
                 case UserActivity.InSoloGame:
+                case UserActivity.PlayingDailyChallenge:
                 case UserActivity.InMultiplayerGame:
                 case UserActivity.InPlaylistGame:
                     userPanel.CanSpectate.Value = true;

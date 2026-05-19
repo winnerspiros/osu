@@ -7,7 +7,6 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Overlays;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Online
 {
@@ -49,7 +48,7 @@ namespace osu.Game.Tests.Visual.Online
                 {
                     new Box
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Both,
                     },
                 };

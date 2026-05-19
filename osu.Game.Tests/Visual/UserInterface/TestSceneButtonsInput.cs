@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -12,8 +13,6 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -51,7 +50,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Red
+                                Colour = Colour4.Red
                             },
                             new OsuSpriteText
                             {

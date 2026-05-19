@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

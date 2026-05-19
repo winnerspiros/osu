@@ -6,7 +6,7 @@ using osu.Game.Rulesets.Catch.Replays;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {

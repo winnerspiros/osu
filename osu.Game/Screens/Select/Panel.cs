@@ -21,8 +21,7 @@ using osu.Game.Graphics.Carousel;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -61,9 +60,9 @@ namespace osu.Game.Screens.Select
             set => iconContainer.Child = value;
         }
 
-        private Color4? accentColour;
+        private Colour4? accentColour;
 
-        public Color4? AccentColour
+        public Colour4? AccentColour
         {
             get => accentColour;
             set
@@ -158,7 +157,7 @@ namespace osu.Game.Screens.Select
                     },
                     activationFlash = new Box
                     {
-                        Colour = Color4.White.Opacity(0.4f),
+                        Colour = Colour4.White.Opacity(0.4f),
                         Blending = BlendingParameters.Additive,
                         Alpha = 0f,
                         RelativeSizeAxes = Axes.Both,
@@ -276,7 +275,7 @@ namespace osu.Game.Screens.Select
 
         private void updateAccentColour()
         {
-            var backgroundColour = accentColour ?? Color4.White;
+            var backgroundColour = accentColour ?? Colour4.White;
 
             selectionLayer.Colour = ColourInfo.GradientHorizontal(backgroundColour.Opacity(0), backgroundColour.Opacity(0.5f));
 
@@ -309,7 +308,7 @@ namespace osu.Game.Screens.Select
                 };
             }
 
-            TopLevelContent.FadeEdgeEffectTo(selectedOrExpanded ? edgeEffectColour.Opacity(0.8f) : Color4.Black.Opacity(0.2f), animated ? DURATION : 0, Easing.OutQuint);
+            TopLevelContent.FadeEdgeEffectTo(selectedOrExpanded ? edgeEffectColour.Opacity(0.8f) : Colour4.Black.Opacity(0.2f), animated ? DURATION : 0, Easing.OutQuint);
 
             if (selectedOrExpanded)
                 selectionLayer.FadeIn(100, Easing.OutQuint);

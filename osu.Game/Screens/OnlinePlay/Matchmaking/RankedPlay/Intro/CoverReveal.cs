@@ -1,15 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Transforms;
 using osu.Game.Graphics.Backgrounds;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 {
@@ -44,7 +42,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
                                 RelativeSizeAxes = Axes.Both,
                                 RelativePositionAxes = Axes.X,
                                 ClampAxes = Axes.None,
-                                Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.White.Opacity(0)),
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0)),
                             },
                             bottomLayer = new Box
                             {

@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
 {
@@ -17,7 +16,7 @@ namespace osu.Game.Rulesets.Taiko.Edit.Blueprints
             InternalChild = new Container
             {
                 Masking = true,
-                Colour = Color4.Yellow,
+                Colour = Colour4.Yellow,
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {

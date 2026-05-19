@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -21,8 +20,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays.Settings;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
@@ -118,7 +116,7 @@ namespace osu.Game.Overlays
                     Masking = true,
                     EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = Color4.Black.Opacity(0),
+                        Colour = Colour4.Black.Opacity(0),
                         Type = EdgeEffectType.Shadow,
                         Hollow = true,
                         Radius = 10

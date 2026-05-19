@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,8 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -74,7 +72,7 @@ namespace osu.Game.Screens.Select
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Radius = 10f,
                     };
 

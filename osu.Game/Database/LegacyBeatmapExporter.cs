@@ -19,7 +19,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Database
 {

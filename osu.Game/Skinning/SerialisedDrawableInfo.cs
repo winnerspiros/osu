@@ -12,7 +12,7 @@ using osu.Framework.Logging;
 using osu.Game.Configuration;
 using osu.Game.Extensions;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {

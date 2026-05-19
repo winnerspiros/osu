@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,7 +15,6 @@ using osu.Game.Overlays;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Visual.UserInterface;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.SongSelect
 {

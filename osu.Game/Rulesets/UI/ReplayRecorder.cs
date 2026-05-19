@@ -14,7 +14,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Online.Spectator;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI
 {

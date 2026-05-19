@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Game.Rulesets.Replays;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Pippidon.Replays
 {

@@ -15,8 +15,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Tablet;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Settings.Sections.Input
 {
@@ -96,14 +95,14 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                                         },
                                         new Box
                                         {
-                                            Colour = Color4.White,
+                                            Colour = Colour4.White,
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
                                             Height = 5,
                                         },
                                         new Box
                                         {
-                                            Colour = Color4.White,
+                                            Colour = Colour4.White,
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
                                             Width = 5,
@@ -112,7 +111,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                                         {
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
-                                            Colour = Color4.White,
+                                            Colour = Colour4.White,
                                             Font = OsuFont.Default.With(size: 12),
                                             Y = 10
                                         }
@@ -205,12 +204,12 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             var usableAreaQuad = new Quad(
                 new Vector2(-halfUsableArea.X, -halfUsableArea.Y),
-                new Vector2(halfUsableArea.X, -halfUsableArea.Y),
-                new Vector2(-halfUsableArea.X, halfUsableArea.Y),
+                halfUsableArea with { Y = -halfUsableArea.Y },
+                halfUsableArea with { X = -halfUsableArea.X },
                 new Vector2(halfUsableArea.X, halfUsableArea.Y)
             );
 
-            var matrix = Matrix3.Identity;
+            Matrix3x2 matrix = Matrix3x2.Identity;
 
             MatrixExtensions.TranslateFromLeft(ref matrix, offset);
             MatrixExtensions.RotateFromLeft(ref matrix, float.DegreesToRadians(rotation.Value));
@@ -233,7 +232,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             if (!(tablet.Value?.Size is Vector2 size))
                 return;
 
-            float maxDimension = size.LengthFast;
+            float maxDimension = size.Length();
 
             float fitX = maxDimension / (DrawWidth - Padding.Left - Padding.Right);
             float fitY = maxDimension / DrawHeight;

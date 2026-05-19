@@ -16,8 +16,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Screens.Menu;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Seasonal
 {
@@ -224,7 +223,7 @@ namespace osu.Game.Seasonal
 
                 public GameWideFlash()
                 {
-                    Colour = Color4.White;
+                    Colour = Colour4.White;
                     RelativeSizeAxes = Axes.Both;
                     Blending = BlendingParameters.Additive;
                 }
@@ -273,7 +272,7 @@ namespace osu.Game.Seasonal
                         {
                             RelativeSizeAxes = Axes.Both,
                             Texture = textures.Get(@"Intro/Triangles/logo-highlight"),
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
                         background = new LogoAnimation
                         {
@@ -303,7 +302,7 @@ namespace osu.Game.Seasonal
                         float x = 0.5f + 0.5f * randomRadius * (float)Math.Cos(angle);
                         float y = 0.5f + 0.5f * randomRadius * (float)Math.Sin(angle);
 
-                        Color4 christmasColour = RNG.NextBool() ? SeasonalUIConfig.PRIMARY_COLOUR_1 : SeasonalUIConfig.PRIMARY_COLOUR_2;
+                        Colour4 christmasColour = RNG.NextBool() ? SeasonalUIConfig.PRIMARY_COLOUR_1 : SeasonalUIConfig.PRIMARY_COLOUR_2;
 
                         Drawable triangle = new Triangle
                         {

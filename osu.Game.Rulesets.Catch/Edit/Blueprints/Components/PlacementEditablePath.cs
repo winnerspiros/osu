@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Game.Rulesets.Catch.Objects;
-using osuTK;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
 {

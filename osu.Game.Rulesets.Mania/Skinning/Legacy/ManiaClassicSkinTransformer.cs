@@ -4,7 +4,7 @@
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Legacy
 {
@@ -28,7 +28,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Legacy
                 switch (maniaLookup.Lookup)
                 {
                     case LegacyManiaSkinConfigurationLookups.ColumnBackgroundColour:
-                        return SkinUtils.As<TValue>(new Bindable<Color4>(Color4.Black));
+                        return SkinUtils.As<TValue>(new Bindable<Colour4>(Colour4.Black));
                 }
             }
 

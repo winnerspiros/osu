@@ -4,15 +4,12 @@
 using System;
 using System.Numerics;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
-using osuTK.Graphics;
-using Vector2 = osuTK.Vector2;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -30,14 +27,12 @@ namespace osu.Game.Graphics.UserInterface
 
         protected virtual bool FocusIndicator => true;
 
-        private Color4 accentColour;
-
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
-            get => accentColour;
+            get;
             set
             {
-                accentColour = value;
+                field = value;
 
                 // We want to slightly darken the colour for the box because the sheared slider has the boxes at the same height as the nub,
                 // making the nub invisible when not hovered.
@@ -45,19 +40,17 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Colour4 backgroundColour;
-
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
-            get => backgroundColour;
+            get;
             set
             {
-                backgroundColour = value;
+                field = value;
                 RightBox.Colour = value;
             }
         }
 
-        public Color4 NubShadowColour
+        public Colour4 NubShadowColour
         {
             get => Nub.ShadowColour;
             set => Nub.ShadowColour = value;

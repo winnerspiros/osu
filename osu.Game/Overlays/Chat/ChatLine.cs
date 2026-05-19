@@ -21,8 +21,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Chat
 {
@@ -30,7 +29,7 @@ namespace osu.Game.Overlays.Chat
     {
         public Message Message
         {
-            get;
+            get => field!;
             set
             {
                 if (field == value) return;
@@ -42,7 +41,7 @@ namespace osu.Game.Overlays.Chat
 
                 updateMessageContent();
             }
-        } = null!;
+        }
 
         public IEnumerable<Drawable> DrawableContentFlow => drawableContentFlow.Children;
 
@@ -113,7 +112,7 @@ namespace osu.Game.Overlays.Chat
         /// <item>a random colour from <see cref="default_username_colours"/> if the above is empty.</item>
         /// </list>
         /// </remarks>
-        public Color4 UsernameColour { get; init; }
+        public Colour4 UsernameColour { get; init; }
 
         public ChatLine(Message message)
         {
@@ -255,10 +254,10 @@ namespace osu.Game.Overlays.Chat
             text.Shadow = false;
             text.Font = text.Font.With(size: font_size, italics: Message.IsAction, weight: isMention ? FontWeight.SemiBold : FontWeight.Medium);
 
-            Color4 messageColour = colourProvider?.Content1 ?? Colour4.White;
+            Colour4 messageColour = colourProvider?.Content1 ?? Colour4.White;
 
             if (isMention)
-                messageColour = colourProvider?.Highlight1 ?? Color4.Orange;
+                messageColour = colourProvider?.Highlight1 ?? Colour4.Orange;
             else if (Message.IsAction && !string.IsNullOrEmpty(Message.Sender.Colour))
                 messageColour = Color4Extensions.FromHex(Message.Sender.Colour);
 
@@ -298,7 +297,7 @@ namespace osu.Game.Overlays.Chat
             drawableTimestamp.Text = Message.Timestamp.LocalDateTime.ToLocalisableString(prefer24HourTime.Value ? @"HH:mm" : @"hh:mm tt");
         }
 
-        private static readonly Color4[] default_username_colours =
+        private static readonly Colour4[] default_username_colours =
         {
             Color4Extensions.FromHex("588c7e"),
             Color4Extensions.FromHex("b2a367"),

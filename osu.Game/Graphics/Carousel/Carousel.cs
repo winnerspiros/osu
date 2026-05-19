@@ -26,8 +26,8 @@ using osu.Framework.Logging;
 using osu.Framework.Utils;
 using osu.Game.Input.Bindings;
 using osu.Game.Online.Multiplayer;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Graphics.Carousel
 {

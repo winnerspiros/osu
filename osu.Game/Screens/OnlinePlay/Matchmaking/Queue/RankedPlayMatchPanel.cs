@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -21,8 +20,7 @@ using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Overlays;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
@@ -95,7 +93,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     RelativeSizeAxes = Axes.Both,
                                     Height = 0.5f,
                                     Masking = true,
-                                    Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.7f), colourProvider.Background4.Opacity(0)),
+                                    Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.7f), colourProvider.Background4.Opacity(0)),
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
@@ -109,7 +107,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     RelativeSizeAxes = Axes.Both,
                                     Height = 0.5f,
                                     Masking = true,
-                                    Colour = ColourInfo.GradientHorizontal(colourProvider.Background4.Opacity(0), Color4.White.Opacity(0.7f)),
+                                    Colour = ColourInfo.GradientHorizontal(colourProvider.Background4.Opacity(0), Colour4.White.Opacity(0.7f)),
                                     Child = new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
@@ -125,7 +123,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = ColourInfo.GradientHorizontal(Color4.White, Color4.White.Opacity(0))
+                                        Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0))
                                     }
                                 },
                                 rightResultLight = new Container
@@ -137,7 +135,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                     Child = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White)
+                                        Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0), Colour4.White)
                                     },
                                 },
                                 new OsuSpriteText
@@ -161,7 +159,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                             RelativeSizeAxes = Axes.X,
                                             AutoSizeAxes = Axes.Y,
                                             Direction = FillDirection.Horizontal,
-                                            Colour = Color4.White.Opacity(0.4f),
+                                            Colour = Colour4.White.Opacity(0.4f),
                                             Padding = new MarginPadding(5),
                                             Spacing = new Vector2(5),
                                             Children = new Drawable[]
@@ -192,7 +190,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                             RelativeSizeAxes = Axes.X,
                                             AutoSizeAxes = Axes.Y,
                                             Direction = FillDirection.Horizontal,
-                                            Colour = Color4.White.Opacity(0.4f),
+                                            Colour = Colour4.White.Opacity(0.4f),
                                             Padding = new MarginPadding(5),
                                             Spacing = new Vector2(5),
                                             Children = new Drawable[]
@@ -259,7 +257,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                         Origin = Anchor.Centre,
                                                         Size = new Vector2(12),
                                                         Icon = FontAwesome.Solid.Heart,
-                                                        Colour = Color4.Red,
+                                                        Colour = Colour4.Red,
                                                         TooltipText = "Remaining Life"
                                                     },
                                                     leftLifeText = new OsuSpriteText
@@ -370,7 +368,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 leftResultLight.Colour = colours.Green;
                 rightResultLight.Colour = colours.Red;
 
-                leftLifeText.Colour = userLeft.Colour = Color4.White;
+                leftLifeText.Colour = userLeft.Colour = Colour4.White;
                 leftLifeText.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
             }
             else if (rightWin)
@@ -378,7 +376,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 leftResultLight.Colour = colours.Red;
                 rightResultLight.Colour = colours.Green;
 
-                rightLifeText.Colour = userRight.Colour = Color4.White;
+                rightLifeText.Colour = userRight.Colour = Colour4.White;
                 rightLifeText.Font = OsuFont.GetFont(weight: FontWeight.SemiBold);
             }
         }

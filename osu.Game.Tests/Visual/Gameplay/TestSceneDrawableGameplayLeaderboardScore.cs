@@ -9,7 +9,6 @@ using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.Leaderboards;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -42,7 +41,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         };
 
         [TestCaseSource(nameof(leaderboard_variants))]
-        public void TestVariants(bool tracked, Color4? teamColour)
+        public void TestVariants(bool tracked, Colour4? teamColour)
         {
             AddStep("show", () =>
             {

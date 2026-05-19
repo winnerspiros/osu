@@ -13,7 +13,6 @@ using osu.Game.Rulesets.Osu;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Setup;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -46,7 +45,7 @@ namespace osu.Game.Tests.Visual.Editing
             AddAssert("beatmap skin has no colours", () => skin.Configuration.CustomComboColours, () => Is.Empty);
             AddAssert("section displays default combo colours",
                 () => coloursSection.ChildrenOfType<FormColourPalette>().Single().Colours,
-                () => Is.EquivalentTo(new Colour4[]
+                () => Is.EquivalentTo(new[]
                 {
                     SkinConfiguration.DefaultComboColours[1],
                     SkinConfiguration.DefaultComboColours[2],
@@ -62,7 +61,7 @@ namespace osu.Game.Tests.Visual.Editing
                     SkinConfiguration.DefaultComboColours[1],
                     SkinConfiguration.DefaultComboColours[2],
                     SkinConfiguration.DefaultComboColours[3],
-                    Color4.Aqua,
+                    Colour4.Aqua,
                     SkinConfiguration.DefaultComboColours[0],
                 }));
         }
@@ -76,11 +75,11 @@ namespace osu.Game.Tests.Visual.Editing
             AddStep("create beatmap skin", () =>
             {
                 skin = new LegacyBeatmapSkin(new BeatmapInfo(), null);
-                skin.Configuration.CustomComboColours = new List<Color4>
+                skin.Configuration.CustomComboColours = new List<Colour4>
                 {
-                    Color4.Azure,
-                    Color4.Beige,
-                    Color4.Chartreuse
+                    Colour4.Azure,
+                    Colour4.Beige,
+                    Colour4.Chartreuse
                 };
             });
             AddStep("create colours section", () => Child = new DependencyProvidingContainer
@@ -113,10 +112,10 @@ namespace osu.Game.Tests.Visual.Editing
                 () => skin.Configuration.CustomComboColours,
                 () => Is.EquivalentTo(new[]
                 {
-                    Color4.Azure,
-                    Color4.Beige,
-                    Color4.Aqua,
-                    Color4.Chartreuse
+                    Colour4.Azure,
+                    Colour4.Beige,
+                    Colour4.Aqua,
+                    Colour4.Chartreuse
                 }));
         }
     }

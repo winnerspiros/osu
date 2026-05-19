@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -14,8 +13,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Screens.Play.Leaderboards;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -186,22 +184,22 @@ namespace osu.Game.Screens.Play.HUD
                 bool requireBottomFade = requiresScroll && bottomY >= fadeBottom;
 
                 if (!requireTopFade && !requireBottomFade)
-                    c.Colour = Color4.White;
+                    c.Colour = Colour4.White;
                 else if (topY > fadeBottom + panel_height || bottomY < fadeTop - panel_height)
-                    c.Colour = Color4.Transparent;
+                    c.Colour = Colour4.Transparent;
                 else
                 {
                     if (requireBottomFade)
                     {
                         c.Colour = ColourInfo.GradientVertical(
-                            Color4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / panel_height, 1)),
-                            Color4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / panel_height, 1)));
+                            Colour4.White.Opacity(Math.Min(1 - (topY - fadeBottom) / panel_height, 1)),
+                            Colour4.White.Opacity(Math.Min(1 - (bottomY - fadeBottom) / panel_height, 1)));
                     }
                     else if (requiresScroll)
                     {
                         c.Colour = ColourInfo.GradientVertical(
-                            Color4.White.Opacity(Math.Min(1 - (fadeTop - topY) / panel_height, 1)),
-                            Color4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / panel_height, 1)));
+                            Colour4.White.Opacity(Math.Min(1 - (fadeTop - topY) / panel_height, 1)),
+                            Colour4.White.Opacity(Math.Min(1 - (fadeTop - bottomY) / panel_height, 1)));
                     }
                 }
             }

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -13,7 +14,6 @@ using osu.Game.Rulesets.Mania.Judgements;
 using osu.Game.Rulesets.Mania.Skinning.Default;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.Objects;
-using osuTK;
 
 namespace osu.Game.Rulesets.Mania.Tests.Skinning
 {

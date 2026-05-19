@@ -11,7 +11,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Audio;
 using osu.Game.Skinning;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit
 {
@@ -48,7 +47,7 @@ namespace osu.Game.Screens.Edit
             Skin = skin;
             ComboColours = new BindableList<Colour4>();
 
-            if (Skin.Configuration.ComboColours is IReadOnlyList<Color4> comboColours)
+            if (Skin.Configuration.ComboColours is IReadOnlyList<Colour4> comboColours)
             {
                 // due to the foibles of how `IHasComboInformation` / `ComboIndexWithOffsets` work,
                 // the actual effective first combo colour that will be used on the beatmap is the one with index 1, not 0.

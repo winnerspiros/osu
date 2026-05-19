@@ -13,8 +13,8 @@ using osu.Framework.Input.Events;
 using osu.Game.Audio;
 using osu.Game.Online.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand
 {

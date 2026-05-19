@@ -31,8 +31,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -149,7 +148,7 @@ namespace osu.Game.Screens.Select
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Radius = 4f,
                     };
 
@@ -233,9 +232,9 @@ namespace osu.Game.Screens.Select
                 private readonly OsuSpriteText labelText;
                 protected readonly OsuSpriteText ValueText;
 
-                private readonly Color4? colour;
+                private readonly Colour4? colour;
 
-                public StatisticRow(LocalisableString label, LocalisableString value, Color4? colour = null)
+                public StatisticRow(LocalisableString label, LocalisableString value, Colour4? colour = null)
                 {
                     this.colour = colour;
 
@@ -254,7 +253,7 @@ namespace osu.Game.Screens.Select
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             Text = value,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Font = OsuFont.Style.Caption2,
                         },
                     };
@@ -361,7 +360,7 @@ namespace osu.Game.Screens.Select
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Radius = 4f,
                     };
 
@@ -375,7 +374,7 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Transparent,
+                            Colour = Colour4.Transparent,
                         },
                         modsFlow = new FillFlowContainer
                         {
@@ -421,7 +420,7 @@ namespace osu.Game.Screens.Select
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(0.25f),
+                        Colour = Colour4.Black.Opacity(0.25f),
                         Radius = 4f,
                     };
 

@@ -3,7 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {

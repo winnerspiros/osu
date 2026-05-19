@@ -15,8 +15,7 @@ using osu.Framework.Logging;
 using osu.Game.Audio;
 using osu.Game.Database;
 using osu.Game.Online.Rooms;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -86,7 +85,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                         {
                             Type = EdgeEffectType.Shadow,
                             Radius = 5,
-                            Colour = Color4.Black.Opacity(0.1f),
+                            Colour = Colour4.Black.Opacity(0.1f),
                         },
                         Child = new Box
                         {

@@ -12,7 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Localisation.HUD;
 using osu.Game.Localisation.SkinComponents;
 using osu.Game.Rulesets.Objects;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {

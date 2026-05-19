@@ -8,8 +8,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Components.Menus
 {
@@ -44,8 +43,8 @@ namespace osu.Game.Screens.Edit.Components.Menus
         private partial class TabItem : OsuTabItem
         {
             private readonly Box background;
-            private Color4 backgroundIdleColour;
-            private Color4 backgroundHoverColour;
+            private Colour4 backgroundIdleColour;
+            private Colour4 backgroundHoverColour;
 
             public TabItem(EditorScreenMode value)
                 : base(value)

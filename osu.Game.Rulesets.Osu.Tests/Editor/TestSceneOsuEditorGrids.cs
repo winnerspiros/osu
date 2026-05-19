@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
@@ -14,8 +15,7 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Tests.Visual;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Editor
 {

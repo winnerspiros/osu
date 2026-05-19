@@ -27,7 +27,7 @@ using osu.Game.Screens.Footer;
 using osu.Game.Screens.Menu;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.Visual;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.FirstRunSetup
 {

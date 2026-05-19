@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -11,8 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Mania.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.Skinning.Argon
 {
@@ -22,7 +20,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
         private DrawableHitObject? drawableObject { get; set; }
 
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
 
         private readonly Box foreground;
         private readonly ArgonHoldNoteHittingLayer hittingLayer;
@@ -46,7 +44,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = ColourInfo.GradientVertical(Color4.Black.Opacity(0), Colour4.Black),
+                            Colour = ColourInfo.GradientVertical(Colour4.Black.Opacity(0), Colour4.Black),
                             // Avoid ugly single pixel overlap.
                             Height = 0.9f,
                         },
@@ -111,7 +109,7 @@ namespace osu.Game.Rulesets.Mania.Skinning.Argon
             Scale = new Vector2(1, direction.NewValue == ScrollingDirection.Up ? -1 : 1);
         }
 
-        private void onAccentChanged(ValueChangedEvent<Color4> accent)
+        private void onAccentChanged(ValueChangedEvent<Colour4> accent)
         {
             foreground.Colour = accent.NewValue.Darken(0.6f); // matches body
 

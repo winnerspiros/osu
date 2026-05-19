@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Performance;
 using osu.Game.Graphics;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.UI.ReplayAnalysis
 {

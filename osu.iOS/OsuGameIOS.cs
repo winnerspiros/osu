@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using Foundation;
 using Microsoft.Maui.Devices;
 using osu.Framework.Graphics;
@@ -11,7 +12,6 @@ using osu.Game;
 using osu.Game.Screens;
 using osu.Game.Updater;
 using osu.Game.Utils;
-using osuTK;
 using UIKit;
 
 namespace osu.iOS

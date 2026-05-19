@@ -28,7 +28,10 @@ namespace osu.Android
     // at runtime in OnCreate) so Android creates the activity in landscape from the very first
     // frame — the SurfaceView is sized correctly on creation and there is no orientation-change
     // event during startup.
-    [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.Landscape, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
+    // SensorLandscape (rather than plain Landscape) allows the device to rotate between both
+    // landscape sides (normal and reverse/upside-down landscape) based on the physical sensor,
+    // so the user can hold the phone with the home button on either side.
+    [Activity(ResizeableActivity = true, ScreenOrientation = ScreenOrientation.SensorLandscape, ConfigurationChanges =ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode | ConfigChanges.SmallestScreenSize | ConfigChanges.ScreenLayout | ConfigChanges.ColorMode | ConfigChanges.Density | ConfigChanges.Touchscreen | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation, Exported = true, LaunchMode = DEFAULT_LAUNCH_MODE, MainLauncher = true)]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osz", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osk", DataHost = "*", DataMimeType = "*/*")]
     [IntentFilter(new[] { Intent.ActionView }, Categories = new[] { Intent.CategoryDefault }, DataScheme = "content", DataPathPattern = ".*\\.osr", DataHost = "*", DataMimeType = "*/*")]
@@ -416,17 +419,7 @@ namespace osu.Android
                     // Setting it only on DecorView is not enough in DeX mode: Android
                     // uses the innermost view's pointer icon when the cursor is over
                     // that view, so the SurfaceView's default arrow would still show.
-                    try
-                    {
-                        var surface = GetSurface();
-
-                        if (surface != null)
-                            surface.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log($"[osu!] Failed to hide SurfaceView pointer icon: {e.Message}", LoggingTarget.Input);
-                    }
+                    applyNullPointerIconToSurfaceView();
                 }
                 catch (Exception e)
                 {
@@ -472,23 +465,13 @@ namespace osu.Android
                 catch { /* best-effort; will also be requested per-event in dispatch methods */ }
 
                 // Hide the system pointer icon to prevent double cursors in DeX or with mouse.
-                try
-                {
-                    var decorView = Window.DecorView;
-
-                    if (decorView != null)
-                        decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
-                }
-                catch (Exception e)
-                {
-                    Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
-                }
+                applyNullPointerIconToDecorView();
             }
 
             if (Resources?.Configuration != null)
                 IsTablet = Resources.Configuration.SmallestScreenWidthDp >= 600;
 
-            // Phones: manifest already requests Landscape; do not re-assign at runtime —
+            // Phones: manifest already requests SensorLandscape; do not re-assign at runtime —
             // a no-op assignment is harmless on most devices but a redundant RequestedOrientation
             // write can still nudge the SurfaceView into a recreate cycle on some OEMs while the
             // SDL draw thread is mid-Vulkan-init. Tablets and DeX get a more permissive policy:
@@ -500,7 +483,7 @@ namespace osu.Android
             if (IsTablet || IsDeX)
                 RequestedOrientation = DefaultOrientation = ScreenOrientation.FullUser;
             else
-                DefaultOrientation = ScreenOrientation.Landscape;
+                DefaultOrientation = ScreenOrientation.SensorLandscape;
 
             foreach (string asm in new[] { "osu.Game.Rulesets.Osu", "osu.Game.Rulesets.Taiko", "osu.Game.Rulesets.Catch", "osu.Game.Rulesets.Mania" })
             {
@@ -1000,6 +983,71 @@ namespace osu.Android
             if (!wasDeX && IsDeX)
             {
                 (game as OsuGameAndroid)?.OnDeXConnected();
+            }
+
+            // Re-apply the null pointer icon whenever the display configuration changes
+            // (DeX connect/disconnect, orientation, external monitor change). Android can
+            // reset the pointer icon to its default when the window context is updated for
+            // the new display, causing the system cursor to reappear alongside osu!'s
+            // in-game cursor.
+            applyNullPointerIcon();
+        }
+
+        public override void OnWindowFocusChanged(bool hasFocus)
+        {
+            base.OnWindowFocusChanged(hasFocus);
+
+            // Re-apply the null pointer icon every time the window regains focus.
+            // In DeX/freeform mode, Android can reset the pointer icon to its default
+            // arrow when the window transitions between focused and unfocused states
+            // (e.g. task-switching on the external display, lock/unlock, Game Booster
+            // overlay dismiss). Without this, the system cursor reappears on top of
+            // osu!'s in-game cursor after any focus-change event.
+            if (hasFocus)
+                applyNullPointerIcon();
+        }
+
+        /// <summary>
+        /// Hides the system pointer icon on both the DecorView and the SDL SurfaceView
+        /// to prevent a double-cursor situation in DeX mode and with hardware mice.
+        /// Must be called on the UI thread.
+        /// </summary>
+        private void applyNullPointerIcon()
+        {
+            applyNullPointerIconToDecorView();
+            applyNullPointerIconToSurfaceView();
+        }
+
+        private void applyNullPointerIconToDecorView()
+        {
+            try
+            {
+                var decorView = Window?.DecorView;
+
+                if (decorView != null)
+                    decorView.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"[osu!] Failed to hide system pointer icon: {e.Message}", LoggingTarget.Input);
+            }
+        }
+
+        private void applyNullPointerIconToSurfaceView()
+        {
+            // Setting it only on DecorView is not enough in DeX mode: Android
+            // uses the innermost view's pointer icon when the cursor is over
+            // that view, so the SurfaceView's default arrow would still show.
+            try
+            {
+                var surface = GetSurface();
+
+                if (surface != null)
+                    surface.PointerIcon = PointerIcon.GetSystemIcon(this, PointerIconType.Null);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"[osu!] Failed to hide SurfaceView pointer icon: {e.Message}", LoggingTarget.Input);
             }
         }
 

@@ -5,7 +5,7 @@ using Humanizer;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Overlays.Changelog
 {
@@ -22,6 +22,6 @@ namespace osu.Game.Overlays.Changelog
             InfoText = Value.UserCount > 0 ? $"{"user".ToQuantity(Value.UserCount, "N0")} online" : default(LocalisableString);
         }
 
-        protected override Color4 GetBarColour(OsuColour colours) => Value.Colour;
+        protected override Colour4 GetBarColour(OsuColour colours) => Value.Colour;
     }
 }

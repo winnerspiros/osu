@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -17,8 +18,6 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Statistics
 {
@@ -83,7 +82,7 @@ namespace osu.Game.Rulesets.Osu.Statistics
                                 Size = new Vector2(inner_portion),
                                 Masking = true,
                                 BorderThickness = line_thickness,
-                                BorderColour = Color4.White,
+                                BorderColour = Colour4.White,
                                 Child = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
@@ -198,14 +197,14 @@ namespace osu.Game.Rulesets.Osu.Statistics
                     {
                         points[r][c] = new HitPoint(this)
                         {
-                            BaseColour = new Color4(102, 255, 204, 255)
+                            BaseColour = new Colour4(102, 255, 204, 255)
                         };
                     }
                     else
                     {
                         points[r][c] = new MissPoint
                         {
-                            BaseColour = new Color4(255, 102, 102, 255)
+                            BaseColour = new Colour4(255, 102, 102, 255)
                         };
                     }
                 }
@@ -299,7 +298,7 @@ namespace osu.Game.Rulesets.Osu.Statistics
             /// <summary>
             /// The base colour which will be lightened/darkened depending on the value of this <see cref="HitPoint"/>.
             /// </summary>
-            public Color4 BaseColour;
+            public Colour4 BaseColour;
 
             public override bool IsPresent => Count > 0;
 

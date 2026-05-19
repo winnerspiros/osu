@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -16,8 +15,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -95,7 +93,7 @@ namespace osu.Game.Overlays.Toolbar
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Alpha = 0,
-                                    Colour = Color4.White.Opacity(100),
+                                    Colour = Colour4.White.Opacity(100),
                                     Blending = BlendingParameters.Additive,
                                 },
                             }

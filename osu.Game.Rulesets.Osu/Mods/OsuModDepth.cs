@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
@@ -14,7 +15,6 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Rulesets.UI;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -158,7 +158,8 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private static Vector2 toPlayfieldPosition(float scale, Vector2 positionAtZeroDepth)
         {
-            return (positionAtZeroDepth - camera_position.Xy) * scale + camera_position.Xy;
+            var camXy = new Vector2(camera_position.X, camera_position.Y);
+            return (positionAtZeroDepth - camXy) * scale + camXy;
         }
     }
 }

@@ -11,7 +11,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Mods;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {

@@ -5,7 +5,6 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osuTK;
 
 namespace osu.Game.Screens.Menu
 {
@@ -24,7 +23,7 @@ namespace osu.Game.Screens.Menu
 
         public override Anchor Origin => Anchor.Custom;
 
-        public override Vector2 OriginPosition
+        public override System.Numerics.Vector2 OriginPosition
         {
             get
             {

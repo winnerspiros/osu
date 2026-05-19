@@ -1,14 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Mania.UI;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Tests.Visual;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.Tests
 {
@@ -27,7 +26,7 @@ namespace osu.Game.Rulesets.Mania.Tests
                 Child = cover = new PlayfieldCoveringWrapper(new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Orange
+                    Colour = Colour4.Orange
                 })
                 {
                     RelativeSizeAxes = Axes.Both,

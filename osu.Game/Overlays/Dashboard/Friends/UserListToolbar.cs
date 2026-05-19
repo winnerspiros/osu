@@ -6,7 +6,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Configuration;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Dashboard.Friends
 {

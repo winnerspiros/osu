@@ -5,7 +5,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -24,7 +23,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 {
                     new Box
                     {
-                        Colour = Color4.Gray,
+                        Colour = Colour4.Gray,
                         Alpha = 0.5f,
                         RelativeSizeAxes = Axes.Both,
                     },
@@ -33,7 +32,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                         Anchor = Anchor.Centre,
                         ExpandedSize = 10,
                         CollapsedSize = 2,
-                        Colour = Color4.DeepSkyBlue,
+                        Colour = Colour4.DeepSkyBlue,
                     }
                 }
             });

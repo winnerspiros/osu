@@ -5,7 +5,6 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -15,8 +14,7 @@ using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -182,7 +180,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         }
 
         private static readonly ColourInfo selected_colour = ColourInfo.GradientVertical(new OsuColour().Orange2, new OsuColour().Orange3);
-        private static readonly ColourInfo default_colour = ColourInfo.GradientVertical(Color4.White, Color4.DarkGray);
+        private static readonly ColourInfo default_colour = ColourInfo.GradientVertical(Colour4.White, Colour4.DarkGray);
 
         private void append(float multiplier)
         {

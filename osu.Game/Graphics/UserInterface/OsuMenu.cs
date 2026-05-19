@@ -4,15 +4,13 @@
 #nullable disable
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -38,7 +36,7 @@ namespace osu.Game.Graphics.UserInterface
             : base(direction, topLevelMenu)
         {
             PlaySamples = playSamples;
-            BackgroundColour = Color4.Black.Opacity(0.5f);
+            BackgroundColour = Colour4.Black.Opacity(0.5f);
 
             MaskingContainer.CornerRadius = 4;
             ItemsContainer.Padding = new MarginPadding(5);

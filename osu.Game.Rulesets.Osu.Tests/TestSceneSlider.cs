@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -26,8 +27,6 @@ using osu.Game.Rulesets.Osu.Configuration;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -417,7 +416,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Text = result.IsHit ? "Hit!" : "Miss!",
-                Colour = result.IsHit ? Color4.Green : Color4.Red,
+                Colour = result.IsHit ? Colour4.Green : Colour4.Red,
                 Font = OsuFont.GetFont(size: 30),
                 Position = osuObject.HitObject.StackedEndPosition + judgementOffsetDirection * new Vector2(0, 45)
             });

@@ -9,7 +9,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Scoring;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.Break
 {

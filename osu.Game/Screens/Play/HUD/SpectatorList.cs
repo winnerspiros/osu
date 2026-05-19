@@ -6,7 +6,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -19,8 +18,7 @@ using osu.Game.Online.Chat;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Spectator;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -203,8 +201,8 @@ namespace osu.Game.Screens.Play.HUD
             for (int i = 0; i < spectatorsFlow.Count; i++)
             {
                 spectatorsFlow[i].Colour = i < max_spectators_displayed - 1
-                    ? Color4.White
-                    : ColourInfo.GradientVertical(Color4.White, Color4.White.Opacity(0));
+                    ? Colour4.White
+                    : ColourInfo.GradientVertical(Colour4.White, Colour4.White.Opacity(0));
             }
         }
 

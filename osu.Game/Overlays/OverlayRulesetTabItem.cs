@@ -13,21 +13,18 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
     public partial class OverlayRulesetTabItem : TabItem<RulesetInfo>, IHasTooltip
     {
-        private Color4 accentColour;
-
-        protected virtual Color4 AccentColour
+        protected virtual Colour4 AccentColour
         {
-            get => accentColour;
+            get;
             set
             {
-                accentColour = value;
+                field = value;
                 icon.FadeColour(value, 120, Easing.OutQuint);
             }
         }
@@ -107,6 +104,6 @@ namespace osu.Game.Overlays
             AccentColour = Enabled.Value ? getActiveColour() : colourProvider.Foreground1;
         }
 
-        private Color4 getActiveColour() => IsHovered || Active.Value ? Color4.White : colourProvider.Highlight1;
+        private Colour4 getActiveColour() => IsHovered || Active.Value ? Colour4.White : colourProvider.Highlight1;
     }
 }

@@ -40,7 +40,7 @@ using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.OnlinePlay.Playlists;
 using osu.Game.Screens.Play;
 using osu.Game.Users;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 {
@@ -166,13 +166,15 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                             {
                                 new Drawable[]
                                 {
-                                    playlistItem == null ? new Container() : new DrawableRoomPlaylistItem(playlistItem, true)
-                                    {
-                                        RelativeSizeAxes = Axes.X,
-                                        AllowReordering = false,
-                                        Scale = new Vector2(1.4f),
-                                        Width = 1 / 1.4f,
-                                    }
+                                    playlistItem == null
+                                        ? new Container()
+                                        : new DrawableRoomPlaylistItem(playlistItem, true)
+                                        {
+                                            RelativeSizeAxes = Axes.X,
+                                            AllowReordering = false,
+                                            Scale = new Vector2(1.4f),
+                                            Width = 1 / 1.4f,
+                                        }
                                 },
                                 null,
                                 [

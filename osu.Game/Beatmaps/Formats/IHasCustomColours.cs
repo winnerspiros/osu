@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.Formats
 {
     public interface IHasCustomColours
     {
-        Dictionary<string, Color4> CustomColours { get; }
+        Dictionary<string, Colour4> CustomColours { get; }
     }
 }

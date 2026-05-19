@@ -3,13 +3,12 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -183,8 +182,8 @@ namespace osu.Game.Tests.Visual.UserInterface
 
         private sealed partial class OsuHoverTestContainer : OsuHoverContainer
         {
-            public static readonly Color4 HOVER_COLOUR = Color4.Red;
-            public static readonly Color4 IDLE_COLOUR = Color4.Green;
+            public static readonly Colour4 HOVER_COLOUR = Colour4.Red;
+            public static readonly Colour4 IDLE_COLOUR = Colour4.Green;
 
             public OsuHoverTestContainer()
             {

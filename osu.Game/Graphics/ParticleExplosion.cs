@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics
 {
@@ -21,6 +21,7 @@ namespace osu.Game.Graphics
         private readonly int particleCount;
         private readonly double duration;
         private double startTime;
+        private double animationExpireTime;
 
         private readonly List<ParticlePart> parts = new List<ParticlePart>();
 
@@ -45,6 +46,7 @@ namespace osu.Game.Graphics
         public void Restart()
         {
             startTime = TransformStartTime;
+            animationExpireTime = startTime + duration;
             this.FadeOutFromOne(duration);
 
             parts.Clear();
@@ -55,7 +57,9 @@ namespace osu.Game.Graphics
         protected override void Update()
         {
             base.Update();
-            Invalidate(Invalidation.DrawNode);
+
+            if (Time.Current <= animationExpireTime)
+                Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new ParticleExplosionDrawNode(this);

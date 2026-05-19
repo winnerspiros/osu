@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -13,7 +14,6 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Ranking.Statistics;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Ranking
 {

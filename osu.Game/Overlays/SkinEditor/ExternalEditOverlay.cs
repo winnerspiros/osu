@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -27,8 +26,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.SkinEditor
 {
@@ -65,7 +63,7 @@ namespace osu.Game.Overlays.SkinEditor
                     // Since we're drawing this overlay on top of another overlay (SkinEditor), the dimming effect isn't applied. So we need to add a dimming effect manually.
                     new Box
                     {
-                        Colour = Color4.Black.Opacity(0.5f),
+                        Colour = Colour4.Black.Opacity(0.5f),
                         RelativeSizeAxes = Axes.Both,
                     },
                     new Container

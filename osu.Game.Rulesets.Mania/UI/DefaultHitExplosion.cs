@@ -5,7 +5,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -13,8 +12,7 @@ using osu.Framework.Utils;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Mania.Skinning.Default;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Mania.UI
 {
@@ -34,7 +32,7 @@ namespace osu.Game.Rulesets.Mania.UI
         private CircularContainer mainGlow2;
         private CircularContainer mainGlow3;
 
-        private Bindable<Color4> accentColour;
+        private Bindable<Colour4> accentColour;
 
         public DefaultHitExplosion()
         {
@@ -102,28 +100,28 @@ namespace osu.Game.Rulesets.Mania.UI
                 largeFaint.EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = Interpolation.ValueAt(0.1f, colour.NewValue, Color4.White, 0, 1).Opacity(0.3f),
+                    Colour = Interpolation.ValueAt(0.1f, colour.NewValue, Colour4.White, 0, 1).Opacity(0.3f),
                     Roundness = 160,
                     Radius = 200,
                 };
                 mainGlow1.EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = Interpolation.ValueAt(0.6f, colour.NewValue, Color4.White, 0, 1),
+                    Colour = Interpolation.ValueAt(0.6f, colour.NewValue, Colour4.White, 0, 1),
                     Roundness = 20,
                     Radius = 50,
                 };
                 mainGlow2.EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = Interpolation.ValueAt(0.4f, colour.NewValue, Color4.White, 0, 1),
+                    Colour = Interpolation.ValueAt(0.4f, colour.NewValue, Colour4.White, 0, 1),
                     Roundness = roundness,
                     Radius = 40,
                 };
                 mainGlow3.EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = Interpolation.ValueAt(0.4f, colour.NewValue, Color4.White, 0, 1),
+                    Colour = Interpolation.ValueAt(0.4f, colour.NewValue, Colour4.White, 0, 1),
                     Roundness = roundness,
                     Radius = 40,
                 };

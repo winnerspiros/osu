@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Game.Extensions;
 using osu.Game.IO;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Skinning
 {
@@ -49,10 +49,10 @@ namespace osu.Game.Skinning
 
             Configuration.CustomComboColours =
             [
-                new Color4(255, 150, 0, 255),
-                new Color4(5, 240, 5, 255),
-                new Color4(5, 5, 240, 255),
-                new Color4(240, 5, 5, 255)
+                new Colour4(255, 150, 0, 255),
+                new Colour4(5, 240, 5, 255),
+                new Colour4(5, 5, 240, 255),
+                new Colour4(240, 5, 5, 255)
             ];
 
             Configuration.ConfigDictionary[@"HitCircleOverlap"] = "3";

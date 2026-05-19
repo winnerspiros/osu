@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.UI
 {
@@ -25,7 +23,7 @@ namespace osu.Game.Rulesets.Taiko.UI
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Shadow,
-                Colour = Color4.Black.Opacity(0.2f),
+                Colour = Colour4.Black.Opacity(0.2f),
                 Radius = 5,
             };
 

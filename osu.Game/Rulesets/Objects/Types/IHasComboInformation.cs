@@ -3,7 +3,7 @@
 
 using osu.Framework.Bindables;
 using osu.Game.Skinning;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Objects.Types
 {
@@ -67,7 +67,7 @@ namespace osu.Game.Rulesets.Objects.Types
         /// Retrieves the colour of the combo described by this <see cref="IHasComboInformation"/> object.
         /// </summary>
         /// <param name="skin">The skin to retrieve the combo colour from, if wanted.</param>
-        Color4 GetComboColour(ISkin skin) => GetSkinComboColour(this, skin, ComboIndex);
+        Colour4 GetComboColour(ISkin skin) => GetSkinComboColour(this, skin, ComboIndex);
 
         /// <summary>
         /// Retrieves the colour of the combo described by a given <see cref="IHasComboInformation"/> object from a given skin.
@@ -76,9 +76,9 @@ namespace osu.Game.Rulesets.Objects.Types
         /// <param name="skin">The skin to retrieve the combo colour from.</param>
         /// <param name="comboIndex">The index to retrieve the combo colour with.</param>
         /// <returns></returns>
-        protected static Color4 GetSkinComboColour(IHasComboInformation combo, ISkin skin, int comboIndex)
+        protected static Colour4 GetSkinComboColour(IHasComboInformation combo, ISkin skin, int comboIndex)
         {
-            return skin.GetConfig<SkinComboColourLookup, Color4>(new SkinComboColourLookup(comboIndex, combo))?.Value ?? Color4.White;
+            return skin.GetConfig<SkinComboColourLookup, Colour4>(new SkinComboColourLookup(comboIndex, combo))?.Value ?? Colour4.White;
         }
 
         /// <summary>

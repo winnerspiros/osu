@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -16,8 +15,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.SkinEditor
 {
@@ -138,7 +136,8 @@ namespace osu.Game.Overlays.SkinEditor
         {
             base.Update();
 
-            Vector2 scale = drawable.DrawInfo.MatrixInverse.ExtractScale().Xy;
+            var scaleM = drawable.DrawInfo.MatrixInverse;
+            Vector2 scale = new Vector2(MathF.Sqrt(scaleM.M11 * scaleM.M11 + scaleM.M21 * scaleM.M21), MathF.Sqrt(scaleM.M12 * scaleM.M12 + scaleM.M22 * scaleM.M22));
             drawableQuad = drawable.ToScreenSpace(
                 drawable.DrawRectangle
                         .Inflate(SkinSelectionHandler.INFLATE_SIZE * scale));
@@ -169,8 +168,8 @@ namespace osu.Game.Overlays.SkinEditor
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
-            Color4 anchorColour = colours.Red1;
-            Color4 originColour = colours.Red3;
+            Colour4 anchorColour = colours.Red1;
+            Colour4 originColour = colours.Red3;
 
             InternalChildren = new[]
             {
@@ -217,8 +216,8 @@ namespace osu.Game.Overlays.SkinEditor
             var point2 = ToLocalSpace(originBox.ScreenSpaceDrawQuad.Centre);
 
             anchorLine.Position = point1;
-            anchorLine.Width = (point2 - point1).Length;
-            anchorLine.Rotation = MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X));
+            anchorLine.Width = (point2 - point1).Length();
+            anchorLine.Rotation = float.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X));
         }
 
         private Vector2 tweenPosition(Vector2 oldPosition, Vector2 newPosition)

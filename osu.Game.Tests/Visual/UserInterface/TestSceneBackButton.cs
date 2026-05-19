@@ -1,13 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.Footer;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -31,7 +30,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     button = new BackButton(receptor)
                     {

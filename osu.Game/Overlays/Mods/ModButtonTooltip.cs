@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Mods;
-using osuTK;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -68,6 +67,6 @@ namespace osu.Game.Overlays.Mods
             descriptionText.Text = mod.Description;
         }
 
-        public void Move(Vector2 pos) => Position = pos;
+        public void Move(System.Numerics.Vector2 pos) => Position = pos;
     }
 }

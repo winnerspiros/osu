@@ -9,8 +9,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Ranking.Expanded.Accuracy
 {
@@ -63,7 +62,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
                     {
                         new Box
                         {
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                             Size = new Vector2(150),
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,

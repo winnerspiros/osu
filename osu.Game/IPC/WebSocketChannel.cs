@@ -104,7 +104,7 @@ namespace osu.Game.IPC
                     return;
                 }
 
-                if (currentBufferPosition > max_message_size)
+                if (currentBufferPosition >= max_message_size && !result.EndOfMessage)
                 {
                     await webSocket.CloseOutputAsync(WebSocketCloseStatus.MessageTooBig, $@"Exceeded maximum message size of {max_message_size} bytes.", token).ConfigureAwait(false);
                     ClosedPrematurely?.Invoke();

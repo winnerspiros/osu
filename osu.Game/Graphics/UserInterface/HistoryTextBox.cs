@@ -3,7 +3,7 @@
 
 using osu.Framework.Input.Events;
 using osu.Game.Utils;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Graphics.UserInterface
 {

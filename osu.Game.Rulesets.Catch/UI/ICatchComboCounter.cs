@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.UI
 {
@@ -19,6 +18,6 @@ namespace osu.Game.Rulesets.Catch.UI
         /// </remarks>
         /// <param name="combo">The new combo value.</param>
         /// <param name="hitObjectColour">The colour of the object if hit, null on miss.</param>
-        void UpdateCombo(int combo, Color4? hitObjectColour = null);
+        void UpdateCombo(int combo, Colour4? hitObjectColour = null);
     }
 }

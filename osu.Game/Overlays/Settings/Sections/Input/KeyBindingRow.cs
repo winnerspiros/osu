@@ -10,7 +10,6 @@ using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
@@ -27,8 +26,7 @@ using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Input.Bindings;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Input;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Overlays.Settings.Sections.Input
 {
@@ -59,7 +57,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
         public IEnumerable<KeyCombination> Defaults { get; init; } = [];
 
         #region IFilterable
-
 
         public bool MatchingFilter
         {

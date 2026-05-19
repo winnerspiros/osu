@@ -4,13 +4,11 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Game.Graphics.UserInterface;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -46,7 +44,7 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddToggleStep("nub shadow", v =>
             {
                 if (slider.IsNotNull())
-                    slider.NubShadowColour = v ? Color4.Black.Opacity(0.2f) : Color4.Black.Opacity(0f);
+                    slider.NubShadowColour = v ? Colour4.Black.Opacity(0.2f) : Colour4.Black.Opacity(0f);
             });
         }
 

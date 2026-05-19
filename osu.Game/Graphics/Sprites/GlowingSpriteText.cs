@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Sprites
 {

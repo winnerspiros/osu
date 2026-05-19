@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -22,9 +21,8 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Edit.Timing
 {
@@ -107,7 +105,7 @@ namespace osu.Game.Screens.Edit.Timing
                         {
                             new Box
                             {
-                                Colour = Color4.Black,
+                                Colour = Colour4.Black,
                                 RelativeSizeAxes = Axes.Both,
                                 Alpha = 0,
                                 AlwaysPresent = true,
@@ -244,7 +242,7 @@ namespace osu.Game.Screens.Edit.Timing
 
             innerCircleHighlight
                 .FadeIn(50, Easing.OutQuint)
-                .FlashColour(Color4.White, 1000, Easing.OutQuint);
+                .FlashColour(Colour4.White, 1000, Easing.OutQuint);
 
             lights[currentLight % light_count].Hide();
             lights[(currentLight + light_count / 2) % light_count].Hide();
@@ -403,7 +401,7 @@ namespace osu.Game.Screens.Edit.Timing
             {
                 fillContent
                     .FadeIn(50, Easing.OutQuint)
-                    .FlashColour(Color4.White, 1000, Easing.OutQuint);
+                    .FlashColour(Colour4.White, 1000, Easing.OutQuint);
             }
 
             public override void Hide()

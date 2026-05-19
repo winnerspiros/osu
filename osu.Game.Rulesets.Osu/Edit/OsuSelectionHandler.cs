@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -19,8 +20,7 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
@@ -201,7 +201,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                 {
                     case PositionSnapGridType.Square:
                         flipAxis = GeometryUtils.RotateVector(Vector2.UnitX, -((gridToolbox.GridLinesRotation.Value + 360 + 45) % 90 - 45));
-                        flipAxis = direction == Direction.Vertical ? flipAxis.PerpendicularLeft : flipAxis;
+                        flipAxis = direction == Direction.Vertical ? flipAxis.PerpendicularLeft() : flipAxis;
                         break;
 
                     case PositionSnapGridType.Triangle:

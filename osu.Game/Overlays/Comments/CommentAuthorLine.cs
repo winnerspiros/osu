@@ -15,7 +15,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Comments
 {

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet
 {
@@ -19,7 +17,7 @@ namespace osu.Game.Overlays.BeatmapSet
             Masking = true;
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black.Opacity(0.25f),
+                Colour = Colour4.Black.Opacity(0.25f),
                 Type = EdgeEffectType.Shadow,
                 Radius = 3,
                 Offset = new Vector2(0f, 1f),

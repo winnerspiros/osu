@@ -5,14 +5,13 @@ using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
 {
     public abstract partial class PulpFormation : CompositeDrawable
     {
-        public readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
+        public readonly Bindable<Colour4> AccentColour = new Bindable<Colour4>();
 
         protected const float LARGE_PULP_3 = 16f * FruitPiece.RADIUS_ADJUST;
         protected const float DISTANCE_FROM_CENTRE_3 = 0.15f;

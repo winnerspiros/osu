@@ -7,7 +7,7 @@ using System;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens
 {

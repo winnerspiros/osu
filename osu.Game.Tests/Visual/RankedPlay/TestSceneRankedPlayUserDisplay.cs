@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -10,7 +11,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Tests.Visual.Multiplayer;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {
@@ -79,6 +79,16 @@ namespace osu.Game.Tests.Visual.RankedPlay
             });
             AddStep("set to importing", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.Importing()));
             AddStep("set to available", () => MultiplayerClient.ChangeBeatmapAvailability(BeatmapAvailability.LocallyAvailable()));
+        }
+
+        [Test]
+        public void TestLastStand()
+        {
+            AddStep("active last stand", () =>
+            {
+                health.Value = 1_000_000;
+                health.Value = 1;
+            });
         }
     }
 }

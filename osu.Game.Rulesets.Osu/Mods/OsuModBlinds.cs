@@ -17,7 +17,6 @@ using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -109,23 +108,23 @@ namespace osu.Game.Rulesets.Osu.Mods
                     {
                         Anchor = Anchor.TopLeft,
                         Origin = Anchor.TopLeft,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Y,
                     },
                     blackBoxRight = new Box
                     {
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         RelativeSizeAxes = Axes.Y,
                     },
                     bgPanelLeft = new ModBlindsPanel
                     {
                         Origin = Anchor.TopRight,
-                        Colour = Color4.Gray,
+                        Colour = Colour4.Gray,
                     },
                     panelLeft = new ModBlindsPanel { Origin = Anchor.TopRight, },
-                    bgPanelRight = new ModBlindsPanel { Colour = Color4.Gray },
+                    bgPanelRight = new ModBlindsPanel { Colour = Colour4.Gray },
                     panelRight = new ModBlindsPanel()
                 };
             }
@@ -147,7 +146,7 @@ namespace osu.Game.Rulesets.Osu.Mods
                 else
                 {
                     float center = restrictTo.ToSpaceOfOtherDrawable(restrictTo.OriginPosition, Parent!).X;
-                    float halfDiagonal = (restrictTo.DrawSize / 2).LengthFast;
+                    float halfDiagonal = (restrictTo.DrawSize / 2).Length();
 
                     start = center - halfDiagonal;
                     end = center + halfDiagonal;

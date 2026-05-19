@@ -14,7 +14,7 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.UI.Scrolling;
 using osu.Game.Screens.Edit;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
 {

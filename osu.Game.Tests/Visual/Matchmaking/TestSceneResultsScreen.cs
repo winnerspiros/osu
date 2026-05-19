@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
@@ -11,7 +12,6 @@ using osu.Game.Online.Multiplayer.MatchTypes.Matchmaking;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.Results;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Matchmaking
 {

@@ -11,7 +11,8 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
+using Vector4 = System.Numerics.Vector4;
 
 namespace osu.Game.Graphics
 {
@@ -37,7 +38,11 @@ namespace osu.Game.Graphics
         {
             base.Update();
 
-            Invalidate(Invalidation.DrawNode);
+            // Only push a DrawNode when the icon is actually visible; it is hidden most of the time
+            // (shown only in NoResultsPlaceholder) so skipping the per-frame invalidation while
+            // invisible saves CPU on every frame the search panel is open with results.
+            if (IsPresent)
+                Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new GhostIconDrawNode(this);

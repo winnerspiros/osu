@@ -12,8 +12,7 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.UI;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {
@@ -64,7 +63,7 @@ namespace osu.Game.Screens.Play
                     Anchor = Anchor.TopCentre,
                     Colour = colours.Yellow,
                     Shadow = true,
-                    ShadowColour = new Color4(0, 0, 0, 0.25f)
+                    ShadowColour = new Colour4(0, 0, 0, 0.25f)
                 }
             });
         }

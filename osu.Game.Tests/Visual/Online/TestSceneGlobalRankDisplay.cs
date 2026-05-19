@@ -3,13 +3,13 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Profile.Header.Components;
 using osu.Game.Tests.Visual.UserInterface;
 using osu.Game.Users;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Online
 {

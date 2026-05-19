@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
@@ -15,8 +14,7 @@ using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Beatmaps;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Menu
 {
@@ -132,6 +130,7 @@ namespace osu.Game.Screens.Menu
             base.Update();
 
             float decayFactor = (float)Time.Elapsed * decay_per_millisecond;
+            bool anyVisible = false;
 
             for (int i = 0; i < bars_per_visualiser; i++)
             {
@@ -139,9 +138,13 @@ namespace osu.Game.Screens.Menu
                 frequencyAmplitudes[i] -= decayFactor * (frequencyAmplitudes[i] + 0.03f);
                 if (frequencyAmplitudes[i] < 0)
                     frequencyAmplitudes[i] = 0;
+
+                if (frequencyAmplitudes[i] > amplitude_dead_zone)
+                    anyVisible = true;
             }
 
-            Invalidate(Invalidation.DrawNode);
+            if (anyVisible)
+                Invalidate(Invalidation.DrawNode);
         }
 
         protected override DrawNode CreateDrawNode() => new VisualisationDrawNode(this);
@@ -169,7 +172,7 @@ namespace osu.Game.Screens.Menu
             // Assuming the logo is a circle, we don't need a second dimension.
             private float size;
 
-            private static readonly Color4 transparent_white = Color4.White.Opacity(0.2f);
+            private static readonly Colour4 transparent_white = Colour4.White.Opacity(0.2f);
 
             private readonly float[] audioData = new float[256];
 
@@ -199,7 +202,8 @@ namespace osu.Game.Screens.Menu
 
                 shader.Bind();
 
-                Vector2 inflation = DrawInfo.MatrixInverse.ExtractScale().Xy;
+                var inflationM = DrawInfo.MatrixInverse;
+                Vector2 inflation = new Vector2(MathF.Sqrt(inflationM.M11 * inflationM.M11 + inflationM.M21 * inflationM.M21), MathF.Sqrt(inflationM.M12 * inflationM.M12 + inflationM.M22 * inflationM.M22));
 
                 ColourInfo colourInfo = DrawColourInfo.Colour;
                 colourInfo.ApplyChild(transparent_white);
@@ -237,7 +241,7 @@ namespace osu.Game.Screens.Menu
                             null,
                             vertexBatch.AddAction,
                             // barSize by itself will make it smooth more in the X axis than in the Y axis, this reverts that.
-                            Vector2.Divide(inflation, barSize.Yx));
+                            Vector2.Divide(inflation, new Vector2(barSize.Y, barSize.X)));
                     }
                 }
 

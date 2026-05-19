@@ -8,8 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Chat.ChannelList
 {
@@ -59,7 +58,7 @@ namespace osu.Game.Overlays.Chat.ChannelList
                 if (mentionCount > 0)
                 {
                     this.FadeIn(1000, Easing.OutQuint);
-                    box.FlashColour(Color4.White, 500, Easing.OutQuint);
+                    box.FlashColour(Colour4.White, 500, Easing.OutQuint);
                 }
                 else
                     this.FadeOut(100, Easing.OutQuint);

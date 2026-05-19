@@ -15,7 +15,7 @@ using osu.Game.Online.Multiplayer.MatchTypes.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -153,7 +153,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 
             Schedule(() =>
             {
-
                 if (opponentHand.RemoveCard(item, out var card, out var drawQuad))
                 {
                     card.MatchScreenSpaceDrawQuad(drawQuad, CenterRow);

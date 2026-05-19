@@ -8,9 +8,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -87,9 +86,9 @@ namespace osu.Game.Graphics.Containers
 
         protected partial class OsuScrollbar : ScrollbarContainer
         {
-            private Color4 hoverColour;
-            private Color4 defaultColour;
-            private Color4 highlightColour;
+            private Colour4 hoverColour;
+            private Colour4 defaultColour;
+            private Colour4 highlightColour;
 
             private readonly Box box;
 
@@ -159,7 +158,7 @@ namespace osu.Game.Graphics.Containers
             {
                 if (e.Button != MouseButton.Left) return;
 
-                box.FadeColour(Color4.White, 100);
+                box.FadeColour(Colour4.White, 100);
 
                 base.OnMouseUp(e);
             }

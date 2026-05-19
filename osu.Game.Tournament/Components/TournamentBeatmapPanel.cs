@@ -14,7 +14,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics;
 using osu.Game.Tournament.Models;
-using osuTK.Graphics;
 
 namespace osu.Game.Tournament.Components
 {
@@ -52,7 +51,7 @@ namespace osu.Game.Tournament.Components
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                 },
                 new NoUnloadBeatmapSetCover
                 {
@@ -110,7 +109,7 @@ namespace osu.Game.Tournament.Components
                 flash = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Gray,
+                    Colour = Colour4.Gray,
                     Blending = BlendingParameters.Additive,
                     Alpha = 0,
                 },
@@ -165,19 +164,19 @@ namespace osu.Game.Tournament.Components
                 switch (newChoice.Type)
                 {
                     case ChoiceType.Pick:
-                        Colour = Color4.White;
+                        Colour = Colour4.White;
                         Alpha = 1;
                         break;
 
                     case ChoiceType.Ban:
-                        Colour = Color4.Gray;
+                        Colour = Colour4.Gray;
                         Alpha = 0.5f;
                         break;
                 }
             }
             else
             {
-                Colour = Color4.White;
+                Colour = Colour4.White;
                 BorderThickness = 0;
                 Alpha = 1;
             }

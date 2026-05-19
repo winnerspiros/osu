@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Numerics;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
@@ -33,7 +34,6 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens;
 using osu.Game.Screens.Play;
-using osuTK;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Threading;
@@ -2623,13 +2623,15 @@ namespace osu.Android
         /// </para>
         ///
         /// <para>
-        /// As a final defensive guard on phones, the resolved bounds are normalised to landscape
-        /// (<c>max(W,H) × min(W,H)</c>) since the activity is landscape-locked there —
-        /// this neutralises the residual case where an OEM still hands back portrait
-        /// bounds for the current metrics on certain Android skins. Tablets and DeX are
-        /// excluded because they run in <see cref="ScreenOrientation.FullUser"/> / external
-        /// display orientation, where forcing landscape makes portrait tablet S Pen
-        /// coordinates divide by the wrong axis and pins the pointer near the origin.
+        /// As a final defensive guard, the resolved bounds are normalised to landscape
+        /// (<c>max(W,H) × min(W,H)</c>) for phones (SensorLandscape-locked) and for DeX mode.
+        /// In DeX mode the game window lives on a landscape external monitor, so any portrait
+        /// dimensions returned by <c>CurrentWindowMetrics</c> on certain Samsung firmware
+        /// builds are corrected here — otherwise the tablet-area panel shows a portrait
+        /// digitiser and S Pen coordinates map incorrectly. Tablets NOT in DeX are excluded:
+        /// they run in <see cref="ScreenOrientation.FullUser"/> and can genuinely be in
+        /// portrait orientation; forcing landscape there swaps the axes and pins the pointer
+        /// near the screen origin.
         /// </para>
         /// </summary>
         private void applyStylusDisplaySize(AndroidStylusHandler handler)
@@ -2699,14 +2701,22 @@ namespace osu.Android
                 if (width <= 0 || height <= 0)
                     return;
 
-                // Canonicalise to landscape only when the activity is actually landscape-locked
-                // (see [Activity(ScreenOrientation = ScreenOrientation.Landscape)] on
-                // OsuGameActivity). Tablets / DeX run in FullUser / external-display
-                // orientation, so preserve the current window metrics exactly there.
+                // Canonicalise to landscape:
+                //   • Phones (SensorLandscape-locked): always normalize to landscape so portrait
+                //     readings from MaximumWindowMetrics / certain OEM skins are corrected.
+                //   • DeX mode: the osu! window lives on a landscape external monitor; S Pen
+                //     MotionEvent coordinates are delivered in the window coordinate space of
+                //     that external display (landscape). If CurrentWindowMetrics returns portrait
+                //     dimensions for a DeX window on some Samsung firmware builds, forcing
+                //     max×min here corrects the digitiser orientation so the tablet-area panel
+                //     and coordinate mapping stay landscape-aligned.
+                //   • Tablets NOT in DeX: run in FullUser, can genuinely be portrait. Do NOT
+                //     normalize — forcing landscape on a portrait tablet swaps the axes and
+                //     pins the S Pen cursor near the screen origin.
                 int w = width;
                 int h = height;
 
-                if (!gameActivity.IsTablet && !gameActivity.IsDeX)
+                if (!gameActivity.IsTablet || gameActivity.IsDeX)
                 {
                     w = Math.Max(width, height);
                     h = Math.Min(width, height);
@@ -2915,6 +2925,9 @@ namespace osu.Android
         {
             if (handler is AndroidStylusHandler stylus)
                 return new AndroidStylusSettings(stylus);
+
+            if (handler is AndroidMouseHandler mouse)
+                return new AndroidMouseSettings(mouse);
 
             return base.CreateSettingsSubsectionFor(handler);
         }

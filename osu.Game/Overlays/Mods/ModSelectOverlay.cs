@@ -29,9 +29,7 @@ using osu.Game.Localisation;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Footer;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Mods
 {
@@ -427,8 +425,8 @@ namespace osu.Game.Overlays.Mods
             }
             else
             {
-                columnScroll.FadeColour(Color4.White, 400, Easing.OutQuint);
-                SearchTextBox.FadeColour(Color4.White, 400, Easing.OutQuint);
+                columnScroll.FadeColour(Colour4.White, 400, Easing.OutQuint);
+                SearchTextBox.FadeColour(Colour4.White, 400, Easing.OutQuint);
                 setTextBoxFocus(textSearchStartsActive.Value);
             }
         }

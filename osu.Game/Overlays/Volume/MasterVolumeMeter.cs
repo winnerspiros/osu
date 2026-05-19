@@ -6,7 +6,6 @@ using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays.Volume
 {
@@ -21,7 +20,7 @@ namespace osu.Game.Overlays.Volume
         [Resolved]
         private VolumeOverlay volumeOverlay { get; set; } = null!;
 
-        public MasterVolumeMeter(LocalisableString name, float circleSize, Color4 meterColour)
+        public MasterVolumeMeter(LocalisableString name, float circleSize, Colour4 meterColour)
             : base(name, circleSize, meterColour)
         {
         }

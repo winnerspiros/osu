@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -19,8 +18,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.Leaderboards;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Multiplayer
 {
@@ -78,8 +76,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                         new Circle
                         {
                             Colour = ColourInfo.GradientHorizontal(
-                                Color4.White.Opacity(max_alpha),
-                                Color4.White.Opacity(min_alpha)
+                                Colour4.White.Opacity(max_alpha),
+                                Colour4.White.Opacity(min_alpha)
                             ),
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,

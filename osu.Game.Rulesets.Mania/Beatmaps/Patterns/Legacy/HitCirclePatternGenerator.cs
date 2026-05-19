@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -12,7 +12,7 @@ using osu.Game.Rulesets.Mania.Objects;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
 {
@@ -36,7 +36,7 @@ namespace osu.Game.Rulesets.Mania.Beatmaps.Patterns.Legacy
 
             var positionData = hitObject as IHasPosition;
 
-            float positionSeparation = ((positionData?.Position ?? Vector2.Zero) - previousPosition).Length;
+            float positionSeparation = ((positionData?.Position ?? Vector2.Zero) - previousPosition).Length();
             double timeSeparation = hitObject.StartTime - previousTime;
 
             if (timeSeparation <= 80)

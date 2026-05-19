@@ -6,8 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using osu.Framework.Graphics;
 using osu.Framework.Lists;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Storyboards.Commands
 {
@@ -33,9 +32,9 @@ namespace osu.Game.Storyboards.Commands
 
         public IReadOnlyList<StoryboardCommand<float>> Rotation => rotation;
 
-        private readonly SortedList<StoryboardCommand<Color4>> colour = new SortedList<StoryboardCommand<Color4>>();
+        private readonly SortedList<StoryboardCommand<Colour4>> colour = new SortedList<StoryboardCommand<Colour4>>();
 
-        public IReadOnlyList<StoryboardCommand<Color4>> Colour => colour;
+        public IReadOnlyList<StoryboardCommand<Colour4>> Colour => colour;
 
         private readonly SortedList<StoryboardCommand<float>> alpha = new SortedList<StoryboardCommand<float>>();
 
@@ -95,7 +94,7 @@ namespace osu.Game.Storyboards.Commands
         public void AddRotation(Easing easing, double startTime, double endTime, float startValue, float endValue)
             => AddCommand(rotation, new StoryboardRotationCommand(easing, startTime, endTime, startValue, endValue));
 
-        public void AddColour(Easing easing, double startTime, double endTime, Color4 startValue, Color4 endValue)
+        public void AddColour(Easing easing, double startTime, double endTime, Colour4 startValue, Colour4 endValue)
             => AddCommand(colour, new StoryboardColourCommand(easing, startTime, endTime, startValue, endValue));
 
         public void AddAlpha(Easing easing, double startTime, double endTime, float startValue, float endValue)

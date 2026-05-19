@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using ManagedBass;
 using Moq;
@@ -13,7 +14,6 @@ using osu.Game.Rulesets.Edit.Checks;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Visual;
-using osuTK.Audio;
 
 namespace osu.Game.Tests.Editing.Checks
 {
@@ -37,7 +37,7 @@ namespace osu.Game.Tests.Editing.Checks
 
             // 0 = No output device. This still allows decoding.
             if (!Bass.Init(0) && Bass.LastError != Errors.Already)
-                throw new AudioException("Could not initialize Bass.");
+                throw new InvalidOperationException("Could not initialize Bass.");
         }
 
         [Test]

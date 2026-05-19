@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -19,7 +18,6 @@ using osu.Game.Localisation;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Select
 {
@@ -31,9 +29,9 @@ namespace osu.Game.Screens.Select
 
             private readonly LayoutValue drawSizeLayout = new LayoutValue(Invalidation.DrawSize);
 
-            private static readonly (float, Color4)[] spectrum = OsuColour.STAR_DIFFICULTY_SPECTRUM
-                                                                          .Skip(1)
-                                                                          .Prepend((0.0f, OsuColour.STAR_DIFFICULTY_SPECTRUM.ElementAt(1).Item2)).ToArray();
+            private static readonly (float, Colour4)[] spectrum = OsuColour.STAR_DIFFICULTY_SPECTRUM
+                                                               .Skip(1)
+                                                               .Prepend((0.0f, OsuColour.STAR_DIFFICULTY_SPECTRUM.ElementAt(1).Item2)).ToArray();
 
             public DifficultyRangeSlider()
                 : base(BeatmapsetsStrings.ShowStatsStars)
@@ -81,7 +79,7 @@ namespace osu.Game.Screens.Select
                             CornerRadius = 5f,
                             Child = new Box
                             {
-                                Colour = Color4.Transparent,
+                                Colour = Colour4.Transparent,
                                 RelativeSizeAxes = Axes.Both,
                             }
                         },
@@ -174,7 +172,7 @@ namespace osu.Game.Screens.Select
 
                     Nub.AccentColour = nubColour;
                     Nub.GlowingAccentColour = nubColour.Lighten(0.1f);
-                    Nub.ShadowColour = Color4.Black.Opacity(0.2f);
+                    Nub.ShadowColour = Colour4.Black.Opacity(0.2f);
                     NubText.Colour = colours.ForStarDifficultyText(value);
                     // Except for infinity, which should be white
                     if (Current.IsDefault && isUpper)

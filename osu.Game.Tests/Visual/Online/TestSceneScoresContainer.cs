@@ -23,7 +23,6 @@ using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Users;
-using osuTK.Graphics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 
 namespace osu.Game.Tests.Visual.Online
@@ -49,7 +48,7 @@ namespace osu.Game.Tests.Visual.Online
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                     },
                     scoresContainer = new TestScoresContainer
                     {

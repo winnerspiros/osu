@@ -2,7 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics;
+using System.Numerics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Graphics
 {
@@ -40,7 +41,7 @@ namespace osu.Game.Graphics
             A = a;
         }
 
-        public HSPAColour(Color4 colour)
+        public HSPAColour(Colour4 colour)
         {
             H = 0;
             S = 0;
@@ -91,11 +92,11 @@ namespace osu.Game.Graphics
             }
         }
 
-        public Color4 ToColor4()
+        public Colour4 ToColor4()
         {
             float minOverMax = 1f - S;
 
-            Color4 result = new Color4 { A = A };
+            Vector4 result = new Vector4(0f, 0f, 0f, A);
             float h = H;
 
             if (minOverMax > 0f)
@@ -104,49 +105,49 @@ namespace osu.Game.Graphics
                 {
                     h = 6f * (h - 0f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.B = P / MathF.Sqrt(p_r / minOverMax / minOverMax + p_g * part * part + p_b);
-                    result.R = result.B / minOverMax;
-                    result.G = result.B + h * (result.R - result.B);
+                    result.Z = P / MathF.Sqrt(p_r / minOverMax / minOverMax + p_g * part * part + p_b);
+                    result.X = result.Z / minOverMax;
+                    result.Y = result.Z + h * (result.X - result.Z);
                 }
                 else if (h < 2f / 6f)
                 {
                     h = 6f * (-h + 2f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.B = P / MathF.Sqrt(p_g / minOverMax / minOverMax + p_r * part * part + p_b);
-                    result.G = result.B / minOverMax;
-                    result.R = result.B + h * (result.G - result.B);
+                    result.Z = P / MathF.Sqrt(p_g / minOverMax / minOverMax + p_r * part * part + p_b);
+                    result.Y = result.Z / minOverMax;
+                    result.X = result.Z + h * (result.Y - result.Z);
                 }
                 else if (h < 3f / 6f)
                 {
                     h = 6f * (h - 2f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.R = P / MathF.Sqrt(p_g / minOverMax / minOverMax + p_b * part * part + p_r);
-                    result.G = result.R / minOverMax;
-                    result.B = result.R + h * (result.G - result.R);
+                    result.X = P / MathF.Sqrt(p_g / minOverMax / minOverMax + p_b * part * part + p_r);
+                    result.Y = result.X / minOverMax;
+                    result.Z = result.X + h * (result.Y - result.X);
                 }
                 else if (h < 4f / 6f)
                 {
                     h = 6f * (-h + 4f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.R = P / MathF.Sqrt(p_b / minOverMax / minOverMax + p_g * part * part + p_r);
-                    result.B = result.R / minOverMax;
-                    result.G = result.R + h * (result.B - result.R);
+                    result.X = P / MathF.Sqrt(p_b / minOverMax / minOverMax + p_g * part * part + p_r);
+                    result.Z = result.X / minOverMax;
+                    result.Y = result.X + h * (result.Z - result.X);
                 }
                 else if (h < 5f / 6f)
                 {
                     h = 6f * (h - 4f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.G = P / MathF.Sqrt(p_b / minOverMax / minOverMax + p_r * part * part + p_g);
-                    result.B = result.G / minOverMax;
-                    result.R = result.G + h * (result.B - result.G);
+                    result.Y = P / MathF.Sqrt(p_b / minOverMax / minOverMax + p_r * part * part + p_g);
+                    result.Z = result.Y / minOverMax;
+                    result.X = result.Y + h * (result.Z - result.Y);
                 }
                 else
                 {
                     h = 6f * (-h + 6f / 6f);
                     float part = 1f + h * (1f / minOverMax - 1f);
-                    result.G = P / MathF.Sqrt(p_r / minOverMax / minOverMax + p_b * part * part + p_g);
-                    result.R = result.G / minOverMax;
-                    result.B = result.G + h * (result.R - result.G);
+                    result.Y = P / MathF.Sqrt(p_r / minOverMax / minOverMax + p_b * part * part + p_g);
+                    result.X = result.Y / minOverMax;
+                    result.Z = result.Y + h * (result.X - result.Y);
                 }
             }
             else
@@ -154,48 +155,48 @@ namespace osu.Game.Graphics
                 if (h < 1f / 6f)
                 {
                     h = 6f * (h - 0f / 6f);
-                    result.R = MathF.Sqrt(P * P / (p_r + p_g * h * h));
-                    result.G = result.R * h;
-                    result.B = 0f;
+                    result.X = MathF.Sqrt(P * P / (p_r + p_g * h * h));
+                    result.Y = result.X * h;
+                    result.Z = 0f;
                 }
                 else if (h < 2f / 6f)
                 {
                     h = 6f * (-h + 2f / 6f);
-                    result.G = MathF.Sqrt(P * P / (p_g + p_r * h * h));
-                    result.R = result.G * h;
-                    result.B = 0f;
+                    result.Y = MathF.Sqrt(P * P / (p_g + p_r * h * h));
+                    result.X = result.Y * h;
+                    result.Z = 0f;
                 }
                 else if (h < 3f / 6f)
                 {
                     h = 6f * (h - 2f / 6f);
-                    result.G = MathF.Sqrt(P * P / (p_g + p_b * h * h));
-                    result.B = result.G * h;
-                    result.R = 0f;
+                    result.Y = MathF.Sqrt(P * P / (p_g + p_b * h * h));
+                    result.Z = result.Y * h;
+                    result.X = 0f;
                 }
                 else if (h < 4f / 6f)
                 {
                     h = 6f * (-h + 4f / 6f);
-                    result.B = MathF.Sqrt(P * P / (p_b + p_g * h * h));
-                    result.G = result.B * h;
-                    result.R = 0f;
+                    result.Z = MathF.Sqrt(P * P / (p_b + p_g * h * h));
+                    result.Y = result.Z * h;
+                    result.X = 0f;
                 }
                 else if (h < 5f / 6f)
                 {
                     h = 6f * (h - 4f / 6f);
-                    result.B = MathF.Sqrt(P * P / (p_b + p_r * h * h));
-                    result.R = result.B * h;
-                    result.G = 0f;
+                    result.Z = MathF.Sqrt(P * P / (p_b + p_r * h * h));
+                    result.X = result.Z * h;
+                    result.Y = 0f;
                 }
                 else
                 {
                     h = 6f * (-h + 6f / 6f);
-                    result.R = MathF.Sqrt(P * P / (p_r + p_b * h * h));
-                    result.B = result.R * h;
-                    result.G = 0f;
+                    result.X = MathF.Sqrt(P * P / (p_r + p_b * h * h));
+                    result.Z = result.X * h;
+                    result.Y = 0f;
                 }
             }
 
-            return result;
+            return new Colour4(result);
         }
     }
 }

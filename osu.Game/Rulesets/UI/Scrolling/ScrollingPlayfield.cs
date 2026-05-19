@@ -4,7 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Rulesets.Objects.Drawables;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI.Scrolling
 {

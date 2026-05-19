@@ -34,8 +34,8 @@ using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Screens.OnlinePlay.Matchmaking.Match.Gameplay;
 using osu.Game.Screens.OnlinePlay.Multiplayer;
 using osu.Game.Users;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 {

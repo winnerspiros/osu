@@ -10,7 +10,6 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Overlays.Login;
 using osu.Game.Overlays.Settings;
-using osuTK.Graphics;
 
 namespace osu.Game.Overlays
 {
@@ -31,7 +30,7 @@ namespace osu.Game.Overlays
             Masking = true;
             EdgeEffect = new EdgeEffectParameters
             {
-                Colour = Color4.Black,
+                Colour = Colour4.Black,
                 Type = EdgeEffectType.Shadow,
                 Radius = 10,
                 Hollow = true,

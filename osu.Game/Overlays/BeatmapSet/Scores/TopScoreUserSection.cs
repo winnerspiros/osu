@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,8 +14,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Scoring;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
 {
@@ -75,7 +73,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                         EdgeEffect = new EdgeEffectParameters
                         {
                             Type = EdgeEffectType.Shadow,
-                            Colour = Color4.Black.Opacity(0.25f),
+                            Colour = Colour4.Black.Opacity(0.25f),
                             Offset = new Vector2(0, 2),
                             Radius = 1,
                         },

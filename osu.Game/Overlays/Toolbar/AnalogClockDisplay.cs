@@ -9,8 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Toolbar
 {
@@ -34,7 +33,7 @@ namespace osu.Game.Overlays.Toolbar
                     RelativeSizeAxes = Axes.Both,
                     Masking = true,
                     BorderThickness = 2,
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     Child = new Box
                     {
                         AlwaysPresent = true,
@@ -98,7 +97,7 @@ namespace osu.Game.Overlays.Toolbar
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Size = new Vector2(hand_thickness),
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                     },
                     new Circle
                     {
@@ -157,7 +156,7 @@ namespace osu.Game.Overlays.Toolbar
                 {
                     new Circle
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         RelativeSizeAxes = Axes.Both,
                         BorderThickness = 0.7f,
                         BorderColour = colours.Gray2,

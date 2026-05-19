@@ -38,7 +38,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK;
+using Vector2 = System.Numerics.Vector2;
 using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Game.Screens.OnlinePlay.Playlists

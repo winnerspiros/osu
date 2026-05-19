@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,8 +13,6 @@ using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Default
 {
@@ -26,8 +24,8 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
         private const float idle_alpha = 0.2f;
         private const float tracking_alpha = 0.4f;
 
-        private Color4 normalColour;
-        private Color4 completeColour;
+        private Colour4 normalColour;
+        private Colour4 completeColour;
 
         private SpinnerTicks ticks = null!;
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -31,8 +32,7 @@ using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Screens.OnlinePlay;
 using osu.Game.Tests.Beatmaps;
 using osu.Game.Users.Drawables;
-using osuTK;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {

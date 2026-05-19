@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,7 +15,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Osu;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.Beatmaps
 {

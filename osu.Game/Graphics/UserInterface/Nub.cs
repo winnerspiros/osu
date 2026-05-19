@@ -4,15 +4,13 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {
@@ -35,7 +33,7 @@ namespace osu.Game.Graphics.UserInterface
             {
                 main = new CircularContainer
                 {
-                    BorderColour = Color4.White,
+                    BorderColour = Colour4.White,
                     BorderThickness = border_width,
                     Masking = true,
                     RelativeSizeAxes = Axes.Both,
@@ -90,7 +88,7 @@ namespace osu.Game.Graphics.UserInterface
                         .Then()
                         .FadeColour(GlowingAccentColour, 800, Easing.OutQuint);
 
-                    main.FadeEdgeEffectTo(Color4.White.Opacity(0.1f), 40, Easing.OutQuint)
+                    main.FadeEdgeEffectTo(Colour4.White.Opacity(0.1f), 40, Easing.OutQuint)
                         .Then()
                         .FadeEdgeEffectTo(GlowColour.Opacity(0.1f), 800, Easing.OutQuint);
                 }
@@ -114,40 +112,34 @@ namespace osu.Game.Graphics.UserInterface
             }
         } = new Bindable<bool>();
 
-        private Color4 accentColour;
-
-        public Color4 AccentColour
+        public Colour4 AccentColour
         {
-            get => accentColour;
+            get => field;
             set
             {
-                accentColour = value;
+                field = value;
                 if (!Glowing)
                     main.Colour = value;
             }
         }
 
-        private Color4 glowingAccentColour;
-
-        public Color4 GlowingAccentColour
+        public Colour4 GlowingAccentColour
         {
-            get => glowingAccentColour;
+            get;
             set
             {
-                glowingAccentColour = value;
+                field = value;
                 if (Glowing)
                     main.Colour = value;
             }
         }
 
-        private Color4 glowColour;
-
-        public Color4 GlowColour
+        public Colour4 GlowColour
         {
-            get => glowColour;
+            get => field;
             set
             {
-                glowColour = value;
+                field = value;
 
                 var effect = main.EdgeEffect;
                 effect.Colour = Glowing ? value : value.Opacity(0);

@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using osu.Framework.Graphics.Colour;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
@@ -33,17 +33,17 @@ namespace osu.Game.Online.API.Requests.Responses
 
         public bool Equals(APIUpdateStream other) => Id == other?.Id;
 
-        internal static readonly Dictionary<string, Color4> KNOWN_STREAMS = new Dictionary<string, Color4>
+        internal static readonly Dictionary<string, Colour4> KNOWN_STREAMS = new Dictionary<string, Colour4>
         {
-            ["stable40"] = new Color4(102, 204, 255, 255),
-            ["stable"] = new Color4(34, 153, 187, 255),
-            ["beta40"] = new Color4(255, 221, 85, 255),
-            ["cuttingedge"] = new Color4(238, 170, 0, 255),
-            ["lazer"] = new Color4(237, 18, 33, 255),
-            ["tachyon"] = new Color4(206, 0, 255, 255),
-            ["web"] = new Color4(136, 102, 238, 255)
+            ["stable40"] = new Colour4(102, 204, 255, 255),
+            ["stable"] = new Colour4(34, 153, 187, 255),
+            ["beta40"] = new Colour4(255, 221, 85, 255),
+            ["cuttingedge"] = new Colour4(238, 170, 0, 255),
+            ["lazer"] = new Colour4(237, 18, 33, 255),
+            ["tachyon"] = new Colour4(206, 0, 255, 255),
+            ["web"] = new Colour4(136, 102, 238, 255)
         };
 
-        public ColourInfo Colour => KNOWN_STREAMS.TryGetValue(Name, out var colour) ? colour : new Color4(0, 0, 0, 255);
+        public ColourInfo Colour => KNOWN_STREAMS.TryGetValue(Name, out var colour) ? colour : new Colour4(0, 0, 0, 255);
     }
 }

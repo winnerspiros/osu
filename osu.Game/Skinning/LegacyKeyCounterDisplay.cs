@@ -8,8 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Skinning
 {
@@ -55,7 +54,7 @@ namespace osu.Game.Skinning
         {
             base.LoadComplete();
 
-            KeyTextColor = source.GetConfig<SkinCustomColourLookup, Color4>(new SkinCustomColourLookup(SkinConfiguration.LegacySetting.InputOverlayText))?.Value ?? Color4.Black;
+            KeyTextColor = source.GetConfig<SkinCustomColourLookup, Colour4>(new SkinCustomColourLookup(SkinConfiguration.LegacySetting.InputOverlayText))?.Value ?? Colour4.Black;
 
             Texture? backgroundTexture = source.GetTexture(@"inputoverlay-background");
 

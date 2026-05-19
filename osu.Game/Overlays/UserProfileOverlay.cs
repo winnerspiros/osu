@@ -26,8 +26,7 @@ using osu.Game.Overlays.Profile;
 using osu.Game.Overlays.Profile.Sections;
 using osu.Game.Rulesets;
 using osu.Game.Users;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays
 {
@@ -82,7 +81,7 @@ namespace osu.Game.Overlays
 
         protected override ProfileHeader CreateHeader() => new ProfileHeader();
 
-        protected override Color4 BackgroundColour => ColourProvider.Background5;
+        protected override Colour4 BackgroundColour => ColourProvider.Background5;
 
         public void ShowUser(IUser userToShow, IRulesetInfo? userRuleset = null)
         {

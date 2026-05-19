@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
-using osuTK;
 
 namespace osu.Game.Graphics.Containers
 {
@@ -55,15 +55,15 @@ namespace osu.Game.Graphics.Containers
             parentMatrix.M31 = 0.0f;
             parentMatrix.M32 = 0.0f;
 
-            Matrix3 reversedParent = parentMatrix;
+            Matrix3x2 reversedParent = parentMatrix;
             MatrixExtensions.FastInvert(ref reversedParent);
 
             // Extract the rotation.
             float angle = MathF.Atan2(reversedParent.M12, reversedParent.M11);
-            Rotation = MathHelper.RadiansToDegrees(angle);
+            Rotation = float.RadiansToDegrees(angle);
 
             // Remove rotation from the C matrix so that it only contains shear and scale.
-            Matrix3 m = Matrix3.CreateRotationZ(-angle);
+            Matrix3x2 m = Matrix3x2.CreateRotation(-angle);
             reversedParent *= m;
 
             // Extract shear.
@@ -74,18 +74,19 @@ namespace osu.Game.Graphics.Containers
             float sx = reversedParent.M11;
             float sy = reversedParent.M22;
 
-            Vector3 parentScale = parentMatrix.ExtractScale();
+            float parentScaleX = MathF.Sqrt(parentMatrix.M11 * parentMatrix.M11 + parentMatrix.M12 * parentMatrix.M12);
+            float parentScaleY = MathF.Sqrt(parentMatrix.M21 * parentMatrix.M21 + parentMatrix.M22 * parentMatrix.M22);
 
             float usedScale = 1.0f;
 
             switch (Scaling)
             {
                 case ScaleMode.Horizontal:
-                    usedScale = parentScale.X;
+                    usedScale = parentScaleX;
                     break;
 
                 case ScaleMode.Vertical:
-                    usedScale = parentScale.Y;
+                    usedScale = parentScaleY;
                     break;
             }
 

@@ -1,11 +1,10 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.EmptyFreeform.Objects.Drawables
 {
@@ -40,7 +39,7 @@ namespace osu.Game.Rulesets.EmptyFreeform.Objects.Drawables
                     break;
 
                 case ArmedState.Miss:
-                    this.FadeColour(Color4.Red, duration);
+                    this.FadeColour(Colour4.Red, duration);
                     this.FadeOut(duration, Easing.InQuint).Expire();
                     break;
             }

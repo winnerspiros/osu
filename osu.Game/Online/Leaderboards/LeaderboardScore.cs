@@ -31,8 +31,7 @@ using osu.Game.Scoring;
 using osu.Game.Screens.Select;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using CommonStrings = osu.Game.Localisation.CommonStrings;
 using SongSelect = osu.Game.Screens.Select.SongSelect;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
@@ -132,7 +131,7 @@ namespace osu.Game.Online.Leaderboards
                                 background = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = (highlightFriend && isUserFriend) ? colour.Yellow : (user.OnlineID == api.LocalUser.Value.Id && isOnlineScope ? colour.Green : Color4.Black),
+                                    Colour = (highlightFriend && isUserFriend) ? colour.Yellow : (user.OnlineID == api.LocalUser.Value.Id && isOnlineScope ? colour.Green : Colour4.Black),
                                     Alpha = background_alpha,
                                 },
                             },
@@ -153,7 +152,7 @@ namespace osu.Game.Online.Leaderboards
                                         {
                                             Type = EdgeEffectType.Shadow,
                                             Radius = 1,
-                                            Colour = Color4.Black.Opacity(0.2f),
+                                            Colour = Colour4.Black.Opacity(0.2f),
                                         },
                                     })
                                 {
@@ -228,7 +227,7 @@ namespace osu.Game.Online.Leaderboards
                                     {
                                         ScoreText = new GlowingSpriteText
                                         {
-                                            TextColour = Color4.White,
+                                            TextColour = Colour4.White,
                                             GlowColour = Color4Extensions.FromHex(@"83ccfa"),
                                             Current = scoreManager.GetBindableTotalScoreString(Score),
                                             Font = OsuFont.Numeric.With(size: 23),

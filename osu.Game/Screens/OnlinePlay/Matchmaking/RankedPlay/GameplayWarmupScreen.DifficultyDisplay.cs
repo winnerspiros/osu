@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -19,7 +18,6 @@ using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Select;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
 {
@@ -53,7 +51,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
             private BeatmapTitleWedge.DifficultyStatisticsDisplay difficultyStatisticsDisplay = null!;
 
             private float lastDifficultyTextMaxWidth = float.NaN;
-            private Color4 lastAccentColour;
+            private Colour4 lastAccentColour;
 
             public DifficultyDisplay(APIBeatmap beatmap)
             {
@@ -231,7 +229,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 }
 
                 // Use difficulty colour until it gets too dark to be visible against dark backgrounds.
-                Color4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? colours.Orange1 : starRatingDisplay.DisplayedDifficultyColour;
+                Colour4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? colours.Orange1 : starRatingDisplay.DisplayedDifficultyColour;
 
                 if (col != lastAccentColour)
                 {

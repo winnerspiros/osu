@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -11,8 +10,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Catch.Objects;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Argon
 {
@@ -39,7 +37,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                         {
                             new Circle
                             {
-                                Colour = Color4.White.Opacity(0.4f),
+                                Colour = Colour4.White.Opacity(0.4f),
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Blending = BlendingParameters.Additive,
@@ -48,7 +46,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             },
                             new Box
                             {
-                                Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0), Color4.White.Opacity(0.8f)),
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0), Colour4.White.Opacity(0.8f)),
                                 RelativeSizeAxes = Axes.X,
                                 Blending = BlendingParameters.Additive,
                                 Anchor = Anchor.Centre,
@@ -58,7 +56,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             },
                             new Circle
                             {
-                                Colour = ColourInfo.GradientHorizontal(Color4.White.Opacity(0.8f), Color4.White.Opacity(0)),
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White.Opacity(0.8f), Colour4.White.Opacity(0)),
                                 RelativeSizeAxes = Axes.X,
                                 Blending = BlendingParameters.Additive,
                                 Anchor = Anchor.Centre,
@@ -78,7 +76,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                         {
                             Type = EdgeEffectType.Glow,
                             Hollow = false,
-                            Colour = Color4.White.Opacity(0.1f),
+                            Colour = Colour4.White.Opacity(0.1f),
                             Radius = 50,
                         },
                         Child =
@@ -86,7 +84,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Argon
                             Alpha = 0,
                             AlwaysPresent = true,
                         },
-                        BorderColour = Color4.White.Opacity(0.1f),
+                        BorderColour = Colour4.White.Opacity(0.1f),
                         BorderThickness = 3,
                     },
                 }

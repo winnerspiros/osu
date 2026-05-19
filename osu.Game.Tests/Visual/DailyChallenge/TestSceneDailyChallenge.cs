@@ -19,7 +19,7 @@ using osu.Game.Screens.Select;
 using osu.Game.Tests.Resources;
 using osu.Game.Tests.Visual.Metadata;
 using osu.Game.Tests.Visual.OnlinePlay;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.DailyChallenge
 {

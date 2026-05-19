@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -16,8 +16,7 @@ using osu.Game.Rulesets.EmptyFreeform.Mods;
 using osu.Game.Rulesets.EmptyFreeform.UI;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.EmptyFreeform
 {
@@ -65,7 +64,7 @@ namespace osu.Game.Rulesets.EmptyFreeform
                     new Circle
                     {
                         Size = new Vector2(20),
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                     },
                     new SpriteText
                     {

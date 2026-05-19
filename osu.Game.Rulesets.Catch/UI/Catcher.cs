@@ -19,8 +19,7 @@ using osu.Game.Rulesets.Catch.Skinning;
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects.Legacy;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.UI
 {
@@ -47,7 +46,7 @@ namespace osu.Game.Rulesets.Catch.UI
         /// <summary>
         /// The default colour used to tint hyper-dash fruit, along with the moving catcher, its trail and after-image during a hyper-dash.
         /// </summary>
-        public static readonly Color4 DEFAULT_HYPER_DASH_COLOUR = Color4.Red;
+        public static readonly Colour4 DEFAULT_HYPER_DASH_COLOUR = Colour4.Red;
 
         /// <summary>
         /// The duration between transitioning to hyper-dash state.
@@ -119,7 +118,7 @@ namespace osu.Game.Rulesets.Catch.UI
 
         private readonly SkinnableCatcher body;
 
-        private Color4 hyperDashColour = DEFAULT_HYPER_DASH_COLOUR;
+        private Colour4 hyperDashColour = DEFAULT_HYPER_DASH_COLOUR;
 
         private double? lastHyperDashStartTime;
         private double hyperDashModifier = 1;
@@ -334,7 +333,7 @@ namespace osu.Game.Rulesets.Catch.UI
 
         private void runHyperDashStateTransition(bool hyperDashing)
         {
-            this.FadeColour(hyperDashing ? hyperDashColour : Color4.White, HYPER_DASH_TRANSITION_DURATION, Easing.OutQuint);
+            this.FadeColour(hyperDashing ? hyperDashColour : Colour4.White, HYPER_DASH_TRANSITION_DURATION, Easing.OutQuint);
         }
 
         protected override void SkinChanged(ISkinSource skin)
@@ -342,7 +341,7 @@ namespace osu.Game.Rulesets.Catch.UI
             base.SkinChanged(skin);
 
             hyperDashColour =
-                skin.GetConfig<CatchSkinColour, Color4>(CatchSkinColour.HyperDash)?.Value ??
+                skin.GetConfig<CatchSkinColour, Colour4>(CatchSkinColour.HyperDash)?.Value ??
                 DEFAULT_HYPER_DASH_COLOUR;
 
             runHyperDashStateTransition(HyperDashing);
@@ -421,7 +420,7 @@ namespace osu.Game.Rulesets.Catch.UI
             return false;
         }
 
-        private void addLighting(JudgementResult judgementResult, Color4 colour, float x) =>
+        private void addLighting(JudgementResult judgementResult, Colour4 colour, float x) =>
             hitExplosionContainer.Add(new HitExplosionEntry(Time.Current, judgementResult, colour, x));
 
         private CaughtObject? getCaughtObject(PalpableCatchHitObject source)

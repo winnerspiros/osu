@@ -14,7 +14,7 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.UI.Scrolling.Algorithms;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.UI.Scrolling
 {

@@ -4,14 +4,12 @@
 #nullable disable
 
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
 {
@@ -29,7 +27,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Shadow,
-                Colour = Color4.Black.Opacity(0.2f),
+                Colour = Colour4.Black.Opacity(0.2f),
                 Radius = 1,
                 Offset = new Vector2(0, 1),
             };

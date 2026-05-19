@@ -22,8 +22,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play.HUD
 {
@@ -234,7 +233,7 @@ namespace osu.Game.Screens.Play.HUD
 
                     if (IsDangerousAction)
                     {
-                        Colour = Interpolation.ValueAt(progress.NewValue, Color4.White, Color4.Red, 0, 1, Easing.OutQuint);
+                        Colour = Interpolation.ValueAt(progress.NewValue, Colour4.White, Colour4.Red, 0, 1, Easing.OutQuint);
 
                         if (progress.NewValue > 0 && progress.NewValue < 1)
                         {

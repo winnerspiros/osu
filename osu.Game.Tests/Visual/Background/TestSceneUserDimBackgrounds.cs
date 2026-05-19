@@ -5,6 +5,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -35,8 +36,6 @@ using osu.Game.Screens.Ranking;
 using osu.Game.Screens.Select;
 using osu.Game.Storyboards.Drawables;
 using osu.Game.Tests.Resources;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Background
 {
@@ -306,7 +305,7 @@ namespace osu.Game.Tests.Visual.Background
                 {
                     Size = new Vector2(500, 50),
                     Alpha = 1,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Text = "THIS IS A STORYBOARD",
@@ -372,7 +371,7 @@ namespace osu.Game.Tests.Visual.Background
 
             public bool IsBackgroundDimmed() => background.CurrentColour == OsuColour.Gray(1f - background.CurrentDim);
 
-            public bool IsBackgroundUndimmed() => background.CurrentColour == new Color4(0.9f, 0.9f, 0.9f, 1f);
+            public bool IsBackgroundUndimmed() => background.CurrentColour == new Colour4(0.9f, 0.9f, 0.9f, 1f);
 
             public bool IsUserBlurApplied() => Precision.AlmostEquals(background.CurrentBlur, new Vector2((float)BlurLevel.Value * BackgroundScreenBeatmap.USER_BLUR_FACTOR), 0.1f);
 
@@ -469,7 +468,7 @@ namespace osu.Game.Tests.Visual.Background
         {
             protected override DimmableBackground CreateFadeContainer() => dimmable = new TestDimmableBackground { RelativeSizeAxes = Axes.Both };
 
-            public Color4 CurrentColour => dimmable.CurrentColour;
+            public Colour4 CurrentColour => dimmable.CurrentColour;
 
             public float CurrentAlpha => dimmable.CurrentAlpha;
 
@@ -498,7 +497,7 @@ namespace osu.Game.Tests.Visual.Background
 
         private partial class TestDimmableBackground : BackgroundScreenBeatmap.DimmableBackground
         {
-            public Color4 CurrentColour => Content.Colour;
+            public Colour4 CurrentColour => Content.Colour;
             public float CurrentAlpha => Content.Alpha;
 
             public new float DimLevel => base.DimLevel;

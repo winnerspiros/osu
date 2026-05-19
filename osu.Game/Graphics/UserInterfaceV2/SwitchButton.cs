@@ -4,7 +4,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -12,8 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -41,7 +39,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
-                BorderColour = Color4.White,
+                BorderColour = Colour4.White,
                 BorderThickness = 3.2f,
                 Masking = true,
                 CornerExponent = 2.5f,
@@ -101,8 +99,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
         private void updateState()
         {
-            Color4 fillColour = colourProvider.Background5.Opacity(0);
-            Color4 borderColour = colourProvider.Light4;
+            Colour4 fillColour = colourProvider.Background5.Opacity(0);
+            Colour4 borderColour = colourProvider.Light4;
 
             if (IsHovered)
                 borderColour = colourProvider.Highlight1;

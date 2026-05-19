@@ -3,8 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -21,8 +21,6 @@ using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Mods
 {
@@ -158,7 +156,7 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             public bool WasHit { get; set; }
 
-            public Color4 AccentColour { get; set; }
+            public Colour4 AccentColour { get; set; }
 
             private readonly Box colourBox;
             private readonly CircularContainer content;

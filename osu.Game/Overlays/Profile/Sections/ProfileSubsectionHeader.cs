@@ -11,7 +11,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Profile.Sections
 {

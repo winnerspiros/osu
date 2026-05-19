@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.Skinning.Default;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
 {

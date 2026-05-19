@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
@@ -32,7 +33,6 @@ using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 using osu.Game.Screens.Play;
 using osu.Game.Tests.Visual;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {

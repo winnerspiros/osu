@@ -14,8 +14,7 @@ using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Settings;
 using osu.Game.Screens.Menu;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.AccountCreation
 {
@@ -89,7 +88,7 @@ namespace osu.Game.Overlays.AccountCreation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Colour = Color4.Red,
+                            Colour = Colour4.Red,
                             Font = OsuFont.GetFont(size: 28, weight: FontWeight.Light),
                             Text = "Warning! 注意！",
                         },

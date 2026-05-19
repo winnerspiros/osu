@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -18,8 +19,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components.RadioButtons;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
@@ -107,7 +106,7 @@ namespace osu.Game.Rulesets.Osu.Edit
             if (!GridLinesRotation.Disabled)
             {
                 float period = GridLinesRotation.MaxValue - GridLinesRotation.MinValue;
-                GridLinesRotation.Value = normalizeRotation(MathHelper.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X)), period);
+                GridLinesRotation.Value = normalizeRotation(float.RadiansToDegrees(MathF.Atan2(point2.Y - point1.Y, point2.X - point1.X)), period);
             }
 
             // Divide the distance so that there is a good density of grid lines.
@@ -125,13 +124,23 @@ namespace osu.Game.Rulesets.Osu.Edit
             {
                 startPositionXSlider = new ExpandableSlider<float>
                 {
-                    Current = StartPositionX,
+                    Current = new BindableFloat
+                    {
+                        MinValue = -OsuPlayfield.BASE_SIZE.X / 2,
+                        MaxValue = OsuPlayfield.BASE_SIZE.X / 2,
+                        Precision = 0.1f,
+                    },
                     KeyboardStep = 1,
                     ExpandedLabelText = "X offset",
                 },
                 startPositionYSlider = new ExpandableSlider<float>
                 {
-                    Current = StartPositionY,
+                    Current = new BindableFloat
+                    {
+                        MinValue = -OsuPlayfield.BASE_SIZE.Y / 2,
+                        MaxValue = OsuPlayfield.BASE_SIZE.Y / 2,
+                        Precision = 0.1f,
+                    },
                     KeyboardStep = 1,
                     ExpandedLabelText = "Y offset",
                 },
@@ -186,14 +195,26 @@ namespace osu.Game.Rulesets.Osu.Edit
             StartPositionX.BindValueChanged(x =>
             {
                 startPositionXSlider.ContractedLabelText = $"X: {x.NewValue:#,0.##}";
+                startPositionXSlider.Current.Value = x.NewValue - OsuPlayfield.BASE_SIZE.X / 2;
                 StartPosition.Value = new Vector2(x.NewValue, StartPosition.Value.Y);
             }, true);
 
             StartPositionY.BindValueChanged(y =>
             {
                 startPositionYSlider.ContractedLabelText = $"Y: {y.NewValue:#,0.##}";
+                startPositionYSlider.Current.Value = y.NewValue - OsuPlayfield.BASE_SIZE.Y / 2;
                 StartPosition.Value = new Vector2(StartPosition.Value.X, y.NewValue);
             }, true);
+
+            startPositionXSlider.Current.BindValueChanged(x =>
+            {
+                StartPositionX.Value = x.NewValue + OsuPlayfield.BASE_SIZE.X / 2;
+            });
+
+            startPositionYSlider.Current.BindValueChanged(y =>
+            {
+                StartPositionY.Value = y.NewValue + OsuPlayfield.BASE_SIZE.Y / 2;
+            });
 
             StartPosition.BindValueChanged(pos =>
             {
@@ -289,7 +310,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                         Origin = Anchor.Centre,
                         RelativePositionAxes = Axes.Y,
                         Y = 0.48f,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Size = new Vector2(size - 7),
                         Blending = BlendingParameters.None,
                     });

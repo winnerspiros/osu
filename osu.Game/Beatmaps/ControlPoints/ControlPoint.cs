@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using osu.Game.Graphics;
 using osu.Game.Utils;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Beatmaps.ControlPoints
 {
@@ -38,7 +38,7 @@ namespace osu.Game.Beatmaps.ControlPoints
 
         public int CompareTo(ControlPoint? other) => Time.CompareTo(other?.Time);
 
-        public virtual Color4 GetRepresentingColour(OsuColour colours) => colours.Yellow;
+        public virtual Colour4 GetRepresentingColour(OsuColour colours) => colours.Yellow;
 
         /// <summary>
         /// Determines whether this <see cref="ControlPoint"/> results in a meaningful change when placed alongside another.

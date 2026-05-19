@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -18,8 +17,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using WebCommonStrings = osu.Game.Resources.Localisation.Web.CommonStrings;
 
 namespace osu.Game.Screens.Select
@@ -35,7 +33,6 @@ namespace osu.Game.Screens.Select
         private Box backgroundBorder = null!;
         private Box contentBackground = null!;
         private OsuSpriteText starRatingText = null!;
-        private CircularContainer countPill = null!;
         private OsuSpriteText countText = null!;
         private TrianglesV2 triangles = null!;
         private Box glow = null!;
@@ -103,7 +100,7 @@ namespace osu.Game.Screens.Select
                         }
                     }
                 },
-                countPill = new CircularContainer
+                new CircularContainer
                 {
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
@@ -115,7 +112,7 @@ namespace osu.Game.Screens.Select
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black.Opacity(0.7f),
+                            Colour = Colour4.Black.Opacity(0.7f),
                         },
                         countText = new OsuSpriteText
                         {
@@ -136,7 +133,7 @@ namespace osu.Game.Screens.Select
             Expanded.BindValueChanged(_ => onExpanded(), true);
         }
 
-        private Color4 rankColour;
+        private Colour4 rankColour;
 
         protected override void PrepareForUse()
         {
@@ -174,7 +171,7 @@ namespace osu.Game.Screens.Select
                     break;
 
                 default:
-                    starRatingText.Colour = Color4.White;
+                    starRatingText.Colour = Colour4.White;
                     iconContainer.Colour = colourProvider.Background5;
                     break;
             }

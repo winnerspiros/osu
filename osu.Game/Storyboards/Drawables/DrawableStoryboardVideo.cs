@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Storyboards.Drawables
 {
@@ -121,8 +121,10 @@ namespace osu.Game.Storyboards.Drawables
                 }
             }
 
-            protected override Vector2 DrawScale
-                => new Vector2(FlipH ? -base.DrawScale.X : base.DrawScale.X, FlipV ? -base.DrawScale.Y : base.DrawScale.Y) * VectorScale;
+            protected override System.Numerics.Vector2 DrawScale
+                => new System.Numerics.Vector2(
+                    (FlipH ? -base.DrawScale.X : base.DrawScale.X) * VectorScale.X,
+                    (FlipV ? -base.DrawScale.Y : base.DrawScale.Y) * VectorScale.Y);
 
             public override Anchor Origin => StoryboardExtensions.AdjustOrigin(base.Origin, VectorScale, FlipH, FlipV);
 

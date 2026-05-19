@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Taiko.Objects;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {

@@ -4,7 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Screens.Play.HUD;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {

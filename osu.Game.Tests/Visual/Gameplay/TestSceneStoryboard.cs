@@ -22,7 +22,6 @@ using osu.Game.Storyboards;
 using osu.Game.Storyboards.Drawables;
 using osu.Game.Tests.Gameplay;
 using osu.Game.Tests.Resources;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Gameplay
 {
@@ -77,7 +76,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                         },
                         storyboardContainer = new Container<DrawableStoryboard>
                         {

@@ -27,8 +27,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.Select.Filter;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {

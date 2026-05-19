@@ -3,10 +3,10 @@
 
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Performance;
 using osu.Game.Rulesets.Objects;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
 {
@@ -88,7 +88,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables.Connections
             Vector2 distanceVector = endPosition - startPosition;
 
             // The lifetime start will match the fade-in time of the first follow point.
-            float fraction = (int)(FollowPointConnection.SPACING * 1.5) / distanceVector.Length;
+            float fraction = (int)(FollowPointConnection.SPACING * 1.5) / distanceVector.Length();
             FollowPointConnection.GetFadeTimes(Start, End, fraction, out double fadeInTime, out _);
 
             LifetimeStart = fadeInTime;

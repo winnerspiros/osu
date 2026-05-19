@@ -3,7 +3,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -11,8 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Argon
 {
@@ -23,7 +21,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
         private readonly Vector2 defaultIconScale = new Vector2(0.6f, 0.8f);
 
-        private readonly IBindable<Color4> accentColour = new Bindable<Color4>();
+        private readonly IBindable<Colour4> accentColour = new Bindable<Colour4>();
 
         [Resolved(canBeNull: true)]
         private DrawableHitObject? parentObject { get; set; }
@@ -35,7 +33,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
             Masking = true;
 
             BorderThickness = ArgonMainCirclePiece.GRADIENT_THICKNESS;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
 
             InternalChildren = new Drawable[]
             {

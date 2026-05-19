@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using JetBrains.Annotations;
 using Moq;
 using NUnit.Framework;
@@ -20,9 +21,7 @@ using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Overlays.Toolbar;
 using osu.Game.Rulesets;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.Menus
 {
@@ -155,7 +154,7 @@ namespace osu.Game.Tests.Visual.Menus
                 {
                     RelativeSizeAxes = Axes.X,
                     Height = DrawHeight * 2,
-                    Colour = ColourInfo.GradientVertical(Color4.Gray, Color4.DarkGray),
+                    Colour = ColourInfo.GradientVertical(Colour4.Gray, Colour4.DarkGray),
                 }
             }));
 

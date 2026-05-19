@@ -16,8 +16,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 {
@@ -158,7 +157,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                                                 Size = new Vector2(12),
                                                 Masking = true,
                                                 BorderThickness = 2,
-                                                BorderColour = Color4.White,
+                                                BorderColour = Colour4.White,
                                                 Alpha = 0,
                                                 Child = hoverMarkerFill = new Box
                                                 {
@@ -460,7 +459,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
         {
             float minDistToCursor = float.MaxValue;
             Vector2 closestPointToCursor = Vector2.Zero;
-            Color4 closestColourToCursor = Color4.White;
+            Colour4 closestColourToCursor = Colour4.White;
             int closestRatingToCursor = 0;
             string closestValueToCursor = string.Empty;
 
@@ -679,7 +678,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             Alpha = 0.7f
                         },
                         new FillFlowContainer
@@ -753,7 +752,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
 
         public class RatingDistributionGraphTooltipData
         {
-            public Color4 Colour;
+            public Colour4 Colour;
             public Vector2 Position;
 
             public int Rating;

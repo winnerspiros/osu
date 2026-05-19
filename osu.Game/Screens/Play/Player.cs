@@ -36,9 +36,9 @@ using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 using osu.Game.Screens.Ranking;
 using osu.Game.Skinning;
+using osu.Game.Storyboards;
 using osu.Game.Users;
 using osu.Game.Utils;
-using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play
 {
@@ -284,7 +284,14 @@ namespace osu.Game.Screens.Play
             Score.ScoreInfo.Ruleset = ruleset.RulesetInfo;
             Score.ScoreInfo.Mods = gameplayMods;
 
-            dependencies.CacheAs(GameplayState = new GameplayState(playableBeatmap, ruleset, gameplayMods, Score, ScoreProcessor, HealthProcessor, Beatmap.Value.Storyboard, PlayingState));
+            // Avoid triggering the lazy storyboard parse (file I/O + CPU) when the user has disabled
+            // storyboards. DimmableStoryboard already skips creating the DrawableStoryboard in this
+            // case, so passing an empty Storyboard here means no parse work is done at all.
+            // If the storyboard was already parsed (e.g. by the song-select background when
+            // BackgroundSource.BeatmapWithStoryboard is selected), the lazy is cached and this read
+            // is a no-op anyway — so there is no cost to the check.
+            var storyboard = config.Get<bool>(OsuSetting.ShowStoryboard) ? Beatmap.Value.Storyboard : new Storyboard();
+            dependencies.CacheAs(GameplayState = new GameplayState(playableBeatmap, ruleset, gameplayMods, Score, ScoreProcessor, HealthProcessor, storyboard, PlayingState));
 
             var rulesetSkinProvider = new RulesetSkinProvidingContainer(ruleset, playableBeatmap, Beatmap.Value.Skin);
             config.BindWith(OsuSetting.BeatmapSkins, rulesetSkinProvider.BeatmapSkins);
@@ -589,8 +596,9 @@ namespace osu.Game.Screens.Play
                 if (Beatmap.Value.Beatmap == null)
                     throw new InvalidOperationException("Beatmap was not loaded");
 
-                var rulesetInfo = Ruleset.Value ?? Beatmap.Value.BeatmapInfo.Ruleset;
+                var rulesetInfo = Ruleset.Value;
                 ruleset = rulesetInfo.CreateInstance() ?? throw new RulesetLoadException("Instantiation failure");
+
                 try
                 {
                     playable = Beatmap.Value.GetPlayableBeatmap(ruleset.RulesetInfo, gameplayMods, cancellationToken);
@@ -1124,7 +1132,7 @@ namespace osu.Game.Screens.Play
             {
                 b.IgnoreUserSettings.Value = false;
                 b.BlurAmount.Value = 0;
-                b.FadeColour(Color4.White, 250);
+                b.FadeColour(Colour4.White, 250);
 
                 // bind component bindables.
                 ((IBindable<bool>)b.IsBreakTime).BindTo(breakTracker.IsBreakTime);

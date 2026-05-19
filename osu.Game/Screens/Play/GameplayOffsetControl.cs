@@ -10,8 +10,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Overlays;
 using osu.Game.Screens.Play.PlayerSettings;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.Play
 {
@@ -60,7 +59,7 @@ namespace osu.Game.Screens.Play
                 {
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.8f,
-                    Colour = colourProvider?.Background4 ?? Color4.Black,
+                    Colour = colourProvider?.Background4 ?? Colour4.Black,
                 },
                 new FillFlowContainer
                 {

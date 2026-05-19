@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -18,7 +17,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
             {
                 new Box
                 {
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = 0.7f,
                     RelativeSizeAxes = Axes.Both,
                 },

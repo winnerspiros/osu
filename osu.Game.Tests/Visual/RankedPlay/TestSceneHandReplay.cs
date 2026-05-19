@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -15,7 +16,6 @@ using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay;
 using osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Hand;
 using osu.Game.Tests.Visual.Multiplayer;
-using osuTK;
 
 namespace osu.Game.Tests.Visual.RankedPlay
 {

@@ -13,7 +13,7 @@ using osu.Game.Rulesets.Catch.UI;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Catch.Mods
 {

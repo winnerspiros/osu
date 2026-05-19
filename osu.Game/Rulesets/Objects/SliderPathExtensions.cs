@@ -4,7 +4,7 @@
 using System.Linq;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects.Types;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Objects
 {

@@ -14,8 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Localisation;
 using osu.Game.Online;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using Realms;
 
 namespace osu.Game.Overlays.FirstRunSetup
@@ -182,7 +181,7 @@ namespace osu.Game.Overlays.FirstRunSetup
                 return;
 
             downloadInBackgroundText
-                .FlashColour(Color4.White, 500)
+                .FlashColour(Colour4.White, 500)
                 .FadeIn(200);
 
             bundledDownloader = new BundledBeatmapDownloader(false);

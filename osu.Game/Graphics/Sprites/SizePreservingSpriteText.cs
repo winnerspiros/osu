@@ -7,8 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Graphics.Sprites
 {
@@ -72,7 +71,7 @@ namespace osu.Game.Graphics.Sprites
         /// <summary>
         /// The colour of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
         /// </summary>
-        public Color4 ShadowColour
+        public Colour4 ShadowColour
         {
             get => text.ShadowColour;
             set => text.ShadowColour = value;

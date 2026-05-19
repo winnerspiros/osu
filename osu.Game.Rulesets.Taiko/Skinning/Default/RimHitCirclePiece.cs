@@ -6,8 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Taiko.Objects;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Default
 {
@@ -38,7 +37,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Default
                 Size = new Vector2(SYMBOL_SIZE);
 
                 BorderThickness = SYMBOL_BORDER;
-                BorderColour = Color4.White;
+                BorderColour = Colour4.White;
                 Masking = true;
                 Children = new[]
                 {

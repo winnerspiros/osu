@@ -5,7 +5,6 @@
 
 using Markdig.Syntax;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
@@ -16,8 +15,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers.Markdown;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Wiki.Markdown;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Overlays.Wiki
 {
@@ -66,7 +64,7 @@ namespace osu.Game.Overlays.Wiki
         protected override void Update()
         {
             base.Update();
-            background.Size = Parent!.DrawSize * new Vector2(Size.X, 1);
+            background.Size = Parent!.DrawSize * (Size with { Y = 1 });
         }
 
         private partial class PanelBackground : CompositeDrawable
@@ -83,7 +81,7 @@ namespace osu.Game.Overlays.Wiki
                     EdgeEffect = new EdgeEffectParameters
                     {
                         Type = EdgeEffectType.Shadow,
-                        Colour = Color4.Black.Opacity(25),
+                        Colour = Colour4.Black.Opacity(25),
                         Offset = new Vector2(0, 1),
                         Radius = 3,
                     },

@@ -12,8 +12,8 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Input.Bindings;
 using osu.Game.Localisation;
 using osu.Game.Screens.Footer;
-using osuTK;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Screens.Select
 {

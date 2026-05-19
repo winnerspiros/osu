@@ -16,7 +16,7 @@ using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Graphics.Sprites;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Graphics.UserInterface
 {

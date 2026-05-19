@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -11,8 +12,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -41,7 +40,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
                     Anchor = Anchor.TopCentre,
                     Origin = Anchor.Centre,
                     Texture = source.GetTexture("spinner-background"),
-                    Colour = source.GetConfig<OsuSkinColour, Color4>(OsuSkinColour.SpinnerBackground)?.Value ?? new Color4(100, 100, 100, 255),
+                    Colour = source.GetConfig<OsuSkinColour, Colour4>(OsuSkinColour.SpinnerBackground)?.Value ?? new Colour4(100, 100, 100, 255),
                     Scale = new Vector2(SPRITE_SCALE),
                     Y = SPINNER_Y_CENTRE,
                 },

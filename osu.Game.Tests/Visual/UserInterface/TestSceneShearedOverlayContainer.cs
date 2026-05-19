@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -15,9 +16,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
@@ -89,7 +88,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     {
                         new Box
                         {
-                            Colour = Color4.Blue,
+                            Colour = Colour4.Blue,
                             RelativeSizeAxes = Axes.Both,
                         },
                         new OsuSpriteText

@@ -5,7 +5,6 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -13,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Rulesets.UI.Scrolling;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Mania.UI.Components
 {
@@ -21,8 +19,8 @@ namespace osu.Game.Rulesets.Mania.UI.Components
     {
         private readonly IBindable<ScrollingDirection> direction = new Bindable<ScrollingDirection>();
 
-        private Color4 brightColour;
-        private Color4 dimColour;
+        private Colour4 brightColour;
+        private Colour4 dimColour;
 
         private Box background;
         private Box backgroundOverlay;
@@ -30,7 +28,7 @@ namespace osu.Game.Rulesets.Mania.UI.Components
         [Resolved]
         private Column column { get; set; }
 
-        private Bindable<Color4> accentColour;
+        private Bindable<Colour4> accentColour;
 
         public DefaultColumnBackground()
         {

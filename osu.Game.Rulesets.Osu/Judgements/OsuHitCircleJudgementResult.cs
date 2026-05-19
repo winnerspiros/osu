@@ -4,7 +4,7 @@
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Objects;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Osu.Judgements
 {

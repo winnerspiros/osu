@@ -10,7 +10,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Online.Chat;
 using osu.Game.Rulesets;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Beatmaps.Drawables.Cards
 {

@@ -20,7 +20,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Overlays.News.Sidebar
 {

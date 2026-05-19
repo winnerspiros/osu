@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -17,9 +16,8 @@ using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
+using osu.Framework.Input;
 
 namespace osu.Game.Overlays.Notifications
 {
@@ -198,7 +196,7 @@ namespace osu.Game.Overlays.Notifications
                         },
                         initialFlash = new Box
                         {
-                            Colour = Color4.White.Opacity(0.8f),
+                            Colour = Colour4.White.Opacity(0.8f),
                             RelativeSizeAxes = Axes.Both,
                             Blending = BlendingParameters.Additive,
                         },
@@ -318,7 +316,7 @@ namespace osu.Game.Overlays.Notifications
                 Vector2 change = e.MousePosition - e.MouseDownPosition;
 
                 // Diminish the drag distance as we go further to simulate "rubber band" feeling.
-                change *= change.Length <= 0 ? 0 : MathF.Pow(change.Length, 0.8f) / change.Length;
+                change *= change.Length() <= 0 ? 0 : MathF.Pow(change.Length(), 0.8f) / change.Length();
 
                 // Only apply Y change if dragging to the left.
                 if (change.X >= 0)
@@ -483,7 +481,7 @@ namespace osu.Game.Overlays.Notifications
                     base.Colour = value;
                     pulsateLayer.EdgeEffect = new EdgeEffectParameters
                     {
-                        Colour = ((Color4)value).Opacity(0.18f),
+                        Colour = ((Colour4)value).Opacity(0.18f),
                         Type = EdgeEffectType.Glow,
                         Radius = 14,
                     };

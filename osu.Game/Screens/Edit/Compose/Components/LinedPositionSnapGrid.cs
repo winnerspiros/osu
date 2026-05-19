@@ -7,7 +7,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
@@ -22,7 +22,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
             // Make lines the same width independent of display resolution.
             float lineWidth = DrawWidth / ScreenSpaceDrawQuad.Width;
-            float rotation = MathHelper.RadiansToDegrees(MathF.Atan2(step.Y, step.X));
+            float rotation = float.RadiansToDegrees(MathF.Atan2(step.Y, step.X));
 
             List<Box> generatedLines = new List<Box>();
 
@@ -31,7 +31,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 Vector2 currentPosition = StartPosition.Value + index * step;
                 index++;
 
-                if (!lineDefinitelyIntersectsBox(currentPosition, step.PerpendicularLeft, drawSize, out var p1, out var p2))
+                if (!lineDefinitelyIntersectsBox(currentPosition, step.PerpendicularLeft(), drawSize, out var p1, out var p2))
                 {
                     if (!isMovingTowardsBox(currentPosition, step, drawSize))
                         break;
@@ -64,8 +64,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private bool isMovingTowardsBox(Vector2 currentPosition, Vector2 step, Vector2 box)
         {
-            return (currentPosition + step).LengthSquared < currentPosition.LengthSquared ||
-                   (currentPosition + step - box).LengthSquared < (currentPosition - box).LengthSquared;
+            return (currentPosition + step).LengthSquared() < currentPosition.LengthSquared() ||
+                   (currentPosition + step - box).LengthSquared() < (currentPosition - box).LengthSquared();
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 if (!Precision.DefinitelyBigger(lineStart.X, 0) || !Precision.DefinitelyBigger(box.X, lineStart.X))
                     return false;
 
-                p1 = new Vector2(lineStart.X, 0);
+                p1 = lineStart with { Y = 0 };
                 p2 = new Vector2(lineStart.X, box.Y);
                 return true;
             }
@@ -100,7 +100,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 if (!Precision.DefinitelyBigger(lineStart.Y, 0) || !Precision.DefinitelyBigger(box.Y, lineStart.Y))
                     return false;
 
-                p1 = new Vector2(0, lineStart.Y);
+                p1 = lineStart with { X = 0 };
                 p2 = new Vector2(box.X, lineStart.Y);
                 return true;
             }
@@ -115,9 +115,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
             if (0 <= b && b <= box.Y)
                 p.Add(new Vector2(0, b));
             if (0 <= (box.Y - b) * mInv && (box.Y - b) * mInv <= box.X)
-                p.Add(new Vector2((box.Y - b) * mInv, box.Y));
+                p.Add(box with { X = (box.Y - b) * mInv });
             if (0 <= m * box.X + b && m * box.X + b <= box.Y)
-                p.Add(new Vector2(box.X, m * box.X + b));
+                p.Add(box with { Y = m * box.X + b });
             if (0 <= -b * mInv && -b * mInv <= box.X)
                 p.Add(new Vector2(-b * mInv, 0));
 
@@ -132,8 +132,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
                     }
                     else
                     {
-                        p1 = new Vector2(0, box.Y);
-                        p2 = new Vector2(box.X, 0);
+                        p1 = box with { X = 0 };
+                        p2 = box with { Y = 0 };
                     }
 
                     break;

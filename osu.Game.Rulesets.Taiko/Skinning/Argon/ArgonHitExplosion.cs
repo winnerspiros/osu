@@ -8,8 +8,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.UI;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Taiko.Skinning.Argon
 {
@@ -42,7 +41,7 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Argon
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                     Size = new Vector2(0.85f),
                     Masking = true,
                 },

@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Graphics.Sprites;
-using osuTK;
 
 namespace osu.Game.Graphics
 {
@@ -72,6 +71,6 @@ namespace osu.Game.Graphics
             timeText.Text = LocalisableString.Interpolate($"{localDate:HH:mm:ss \"UTC\"z}");
         }
 
-        public void Move(Vector2 pos) => Position = pos;
+        public void Move(System.Numerics.Vector2 pos) => Position = pos;
     }
 }

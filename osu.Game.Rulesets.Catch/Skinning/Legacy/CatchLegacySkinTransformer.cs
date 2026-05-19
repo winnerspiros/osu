@@ -6,8 +6,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Legacy
 {
@@ -156,7 +155,7 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
             switch (lookup)
             {
                 case CatchSkinColour colour:
-                    var result = (Bindable<Color4>?)base.GetConfig<SkinCustomColourLookup, TValue>(new SkinCustomColourLookup(colour));
+                    var result = (Bindable<Colour4>?)base.GetConfig<SkinCustomColourLookup, TValue>(new SkinCustomColourLookup(colour));
                     if (result == null)
                         return null;
 

@@ -3,7 +3,7 @@
 
 using NUnit.Framework;
 using osu.Game.Rulesets.Osu.Mods;
-using osuTK.Input;
+using osu.Framework.Input;
 
 namespace osu.Game.Rulesets.Osu.Tests.Mods
 {

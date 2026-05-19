@@ -11,7 +11,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
-using Vector2 = osuTK.Vector2;
 
 namespace osu.Game.Graphics.UserInterface
 {

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -18,8 +19,6 @@ using osu.Game.Rulesets.Edit;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
 using osu.Game.Storyboards;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -133,7 +132,7 @@ namespace osu.Game.Tests.Visual.Editing
 
             public StartStopButton()
             {
-                BackgroundColour = Color4.SlateGray;
+                BackgroundColour = Colour4.SlateGray;
                 Size = new Vector2(100, 50);
                 Text = "Start";
 

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -16,8 +17,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Skinning;
 using osu.Game.Tests.Beatmaps;
-using osuTK;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Tests
 {
@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 (i, _) => i + 1);
         }
 
-        private void assertCorrectObjectComboColours(string description, Color4[] expectedColours, Func<int, OsuHitObject, int> nextExpectedComboIndex)
+        private void assertCorrectObjectComboColours(string description, Colour4[] expectedColours, Func<int, OsuHitObject, int> nextExpectedComboIndex)
         {
             AddUntilStep("wait for objects to become alive", () =>
                 TestPlayer.DrawableRuleset.Playfield.AllHitObjects.Count() == TestPlayer.DrawableRuleset.Objects.Count());
@@ -126,7 +126,7 @@ namespace osu.Game.Rulesets.Osu.Tests
                 });
             });
 
-            static bool checkComboColour(DrawableHitObject drawableHitObject, Color4 expectedColour)
+            static bool checkComboColour(DrawableHitObject drawableHitObject, Colour4 expectedColour)
             {
                 return drawableHitObject.AccentColour.Value == expectedColour &&
                        drawableHitObject.NestedHitObjects.All(n => checkComboColour(n, expectedColour));

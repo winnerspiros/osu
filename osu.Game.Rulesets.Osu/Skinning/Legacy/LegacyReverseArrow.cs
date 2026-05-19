@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -14,8 +15,6 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
 using osu.Game.Skinning;
-using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 {
@@ -25,7 +24,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
 
         private Drawable proxy = null!;
 
-        private Bindable<Color4> accentColour = null!;
+        private Bindable<Colour4> accentColour = null!;
 
         private bool textureIsDefaultSkin;
 
@@ -68,7 +67,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Legacy
             accentColour = drawableRepeat.AccentColour.GetBoundCopy();
             accentColour.BindValueChanged(c =>
             {
-                arrow.Colour = textureIsDefaultSkin && c.NewValue.R + c.NewValue.G + c.NewValue.B > 600 / 255f ? Color4.Black : Color4.White;
+                arrow.Colour = textureIsDefaultSkin && c.NewValue.R + c.NewValue.G + c.NewValue.B > 600 / 255f ? Colour4.Black : Colour4.White;
             }, true);
         }
 

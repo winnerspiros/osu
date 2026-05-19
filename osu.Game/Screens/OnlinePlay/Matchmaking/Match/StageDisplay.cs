@@ -5,7 +5,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -18,8 +17,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Multiplayer.MatchTypes.Matchmaking;
 using osu.Game.Overlays;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
 {
@@ -52,7 +50,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match
                 new BufferedContainer(cachedFrameBuffer: true)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = ColourInfo.GradientVertical(Color4.White, Color4.Transparent),
+                    Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.Transparent),
                     Alpha = 0.8f,
                     Child = new Box
                     {

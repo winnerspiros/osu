@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterface;
-using osuTK;
+using System.Numerics;
 
 namespace osu.Game.Rulesets.Edit
 {

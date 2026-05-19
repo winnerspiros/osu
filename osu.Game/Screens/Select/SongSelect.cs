@@ -14,7 +14,6 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -51,9 +50,7 @@ using osu.Game.Screens.Play;
 using osu.Game.Screens.Ranking;
 using osu.Game.Skinning;
 using osu.Game.Utils;
-using osuTK;
-using osuTK.Graphics;
-using osuTK.Input;
+using System.Numerics;
 
 namespace osu.Game.Screens.Select
 {
@@ -200,7 +197,7 @@ namespace osu.Game.Screens.Select
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Width = 0.6f,
-                                    Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.3f), Color4.Black.Opacity(0f)),
+                                    Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0.3f), Colour4.Black.Opacity(0f)),
                                 },
                                 mainGridContainer = new GridContainer // used for max width implementation
                                 {
@@ -260,7 +257,7 @@ namespace osu.Game.Screens.Select
                                                     {
                                                         Anchor = Anchor.TopRight,
                                                         Origin = Anchor.TopRight,
-                                                        Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.0f), Color4.Black.Opacity(0.5f)),
+                                                        Colour = ColourInfo.GradientHorizontal(Colour4.Black.Opacity(0.0f), Colour4.Black.Opacity(0.5f)),
                                                         RelativeSizeAxes = Axes.Both,
                                                     },
                                                     new Container
@@ -856,7 +853,7 @@ namespace osu.Game.Screens.Select
 
             // Required to undo results screen dimming the background.
             // Probably needs more thought because this needs to be in every `ApplyToBackground` currently to restore sane defaults.
-            backgroundModeBeatmap.FadeColour(Color4.White, 250);
+            backgroundModeBeatmap.FadeColour(Colour4.White, 250);
 
             bool backgroundRevealActive = revealBackgroundDelegate?.State == ScheduledDelegate.RunState.Running || revealBackgroundDelegate?.State == ScheduledDelegate.RunState.Complete;
             backgroundModeBeatmap.BlurAmount.Value = configBackgroundBlur.Value && !backgroundRevealActive ? 20 : 0f;

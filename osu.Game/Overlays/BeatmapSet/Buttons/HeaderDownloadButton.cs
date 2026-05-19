@@ -19,8 +19,7 @@ using osu.Game.Online;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 using APIUser = osu.Game.Online.API.Requests.Responses.APIUser;
 using CommonStrings = osu.Game.Localisation.CommonStrings;
 
@@ -169,7 +168,7 @@ namespace osu.Game.Overlays.BeatmapSet.Buttons
 
         private void userChanged(ValueChangedEvent<APIUser> e) => button.Enabled.Value = !(e.NewValue is GuestUser);
 
-        private void enabledChanged(ValueChangedEvent<bool> e) => this.FadeColour(e.NewValue ? Color4.White : Color4.Gray, 200, Easing.OutQuint);
+        private void enabledChanged(ValueChangedEvent<bool> e) => this.FadeColour(e.NewValue ? Colour4.White : Colour4.Gray, 200, Easing.OutQuint);
 
         private LocalisableString getVideoSuffixText()
         {

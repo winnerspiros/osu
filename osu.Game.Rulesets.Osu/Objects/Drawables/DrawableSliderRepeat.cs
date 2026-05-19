@@ -3,21 +3,17 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System;
-
+using System.Collections.Generic;
+using System.Numerics;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Utils;
-
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Skinning.Default;
 using osu.Game.Skinning;
-
-using JetBrains.Annotations;
-using osuTK.Graphics;
-using osuTK;
 
 namespace osu.Game.Rulesets.Osu.Objects.Drawables
 {
@@ -192,7 +188,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             if (hit)
             {
                 // More or less matches stable (see https://github.com/peppy/osu-stable-reference/blob/bb57924c1552adbed11ee3d96cdcde47cf96f2b6/osu!/GameplayElements/HitObjects/Osu/HitCircleOsu.cs#L336-L338)
-                AccentColour.Value = Color4.White;
+                AccentColour.Value = Colour4.White;
                 Alpha = Interpolation.ValueAt(Time.Current, 1f, 0f, HitStateUpdateTime, HitStateUpdateTime + 700);
                 Arrow.Alpha = 0;
             }
