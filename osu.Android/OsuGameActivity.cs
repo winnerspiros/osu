@@ -246,25 +246,29 @@ namespace osu.Android
 
             // Stamp RGBA8888 at the Window level BEFORE SDL creates its SurfaceView inside
             // base.OnCreate(). Android's default SurfaceView pixel format on many high-density
-            // Samsung / Qualcomm panels is RGB565. SDL3 only calls SurfaceHolder.setFormat(
-            // RGBA8888) for the OpenGL path — the Vulkan path inherits the window default.
-            // Setting the format here, before SDL attaches its SurfaceView, ensures the
-            // SurfaceView is born with RGBA8888 and eliminates the format-change teardown
-            // (SurfaceHolder.SetFormat in DecorView.Post) that otherwise fires mid-Vulkan-init
-            // and can produce the "Draw thread did not acknowledge teardown within 250ms" warning.
-            // The DecorView.Post call and the SurfaceChanged reactive guard are retained as
-            // belt-and-braces fallbacks for timing windows or OEM variants where this hint is
-            // not honoured by the SurfaceView allocation path.
-            if (LogManagement.IsVulkanConfigured())
+            // Samsung / Qualcomm panels is RGB565. Setting RGBA8888 here (before SDL attaches
+            // its SurfaceView) ensures the SurfaceView is born with full 32-bit colour in both
+            // Vulkan and OpenGL modes:
+            //   - Vulkan: the Veldrid swapchain can request VK_FORMAT_R8G8B8A8_SRGB / BGRA8888
+            //     directly, but the underlying ANativeWindow must also support RGBA8888 — a
+            //     Window born at RGB565 forces a surface teardown (and the
+            //     "Draw thread did not acknowledge teardown within 250ms" warning) when Veldrid
+            //     later calls ANativeWindow_setBuffersGeometry with RGBA8888.
+            //   - OpenGL safe-mode (after a Vulkan crash): SDL3 does call
+            //     SurfaceHolder.setFormat(RGBA8888) for EGL surfaces, but it only does so AFTER
+            //     the SurfaceView is created.  Pre-stamping the Window format here guarantees
+            //     the initial SurfaceView allocation happens at RGBA8888, avoiding a brief
+            //     RGB565 render pass that can leave colour-channel artefacts visible in the
+            //     first few frames.
+            // Belt-and-braces fallbacks (DecorView.Post watcher, SurfaceChanged reactive guard)
+            // are retained for OEM variants where this Window-level hint is not honoured.
+            try
             {
-                try
-                {
-                    Window?.SetFormat(global::Android.Graphics.Format.Rgba8888);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
-                }
+                Window?.SetFormat(global::Android.Graphics.Format.Rgba8888);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
             }
 
             // BASS AAudio: if the user opted in, tell BASS to open an AAudio device instead

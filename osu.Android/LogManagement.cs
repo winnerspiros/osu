@@ -481,6 +481,44 @@ namespace osu.Android
                 string? root = resolveStorageRoot();
                 if (root == null) return;
 
+                // The previous launch died (Vulkan ANR or native crash) before the
+                // shader compilation burst finished.  The on-disk pipeline cache can
+                // contain:
+                //   • SPIR-V blobs compiled against the old GlobalUniformData layout
+                //     (before the UniformPadding12 alignment fix in 2026.519.1) if
+                //     the WipeShaderCacheOnceForVersion sentinel was already written
+                //     but the Vulkan session was killed mid-compile.
+                //   • Partially-written or incomplete pipeline objects from the
+                //     interrupted Vulkan compile pass.
+                //
+                // Either case causes visual corruption on the rescue OpenGL session:
+                //   – Argon hit circles render as white rectangles (masking uniform
+                //     at wrong struct offset → CornerRadius clipping broken).
+                //   – TrianglesV2 buttons show the wrong hue (gradient colour data
+                //     at wrong offset → DrawColourInfo.Colour.Interpolate returns
+                //     garbage channel values).
+                //
+                // Wipe the shader cache unconditionally here — bypassing the
+                // version-code sentinel — so the OpenGL rescue session always starts
+                // from a clean slate.  The sentinel is NOT reset: the next normal
+                // (non-safe-mode) launch will still skip the version wipe and reuse
+                // the freshly-compiled OpenGL cache from this rescue session.
+                string shaderCacheDir = Path.Combine(root, "cache", "shaders");
+
+                if (Directory.Exists(shaderCacheDir))
+                {
+                    try
+                    {
+                        Directory.Delete(shaderCacheDir, recursive: true);
+                        Logger.Log("[osu!] Android safe-mode: shader cache wiped to ensure clean OpenGL recompilation.", LoggingTarget.Runtime);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] LogManagement: safe-mode shader cache wipe failed ({e.Message}); falling back to per-entry sweep");
+                        sweepDirectoryBestEffort(shaderCacheDir);
+                    }
+                }
+
                 string iniPath = Path.Combine(root, "framework.ini");
 
                 if (!File.Exists(iniPath))
