@@ -440,8 +440,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             loadRecentMatches(status.RecentMatches.OfType<RankedPlayRoomState>().ToArray()).FireAndForget();
         });
 
-        private int historyInsertOrder;
-
         private async Task loadRecentMatches(RankedPlayRoomState[] matches)
         {
             // matches initial API response.
