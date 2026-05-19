@@ -194,7 +194,7 @@ namespace osu.Game.Tests.Visual.Editing
                 // and the playfield/composer.
                 var scrollArea = hitObjectComposer.ChildrenOfType<ExpandingToolboxContainer>().First().ScreenSpaceDrawQuad;
                 var playfield = hitObjectComposer.Playfield.ScreenSpaceDrawQuad;
-                InputManager.MoveMouseTo(new Vector2(scrollArea.TopLeft.X + 1, playfield.Centre.Y));
+                InputManager.MoveMouseTo(playfield.Centre with { X = scrollArea.TopLeft.X + 1 });
             });
 
             AddAssert("no circles placed", () => editorBeatmap.HitObjects.Count == 0);

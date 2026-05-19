@@ -112,14 +112,12 @@ namespace osu.Game.Graphics.UserInterface
             }
         } = new Bindable<bool>();
 
-        private Colour4 accentColour;
-
         public Colour4 AccentColour
         {
-            get => accentColour;
+            get => field;
             set
             {
-                accentColour = value;
+                field = value;
                 if (!Glowing)
                     main.Colour = value;
             }
@@ -136,14 +134,12 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Colour4 glowColour;
-
         public Colour4 GlowColour
         {
-            get => glowColour;
+            get => field;
             set
             {
-                glowColour = value;
+                field = value;
 
                 var effect = main.EdgeEffect;
                 effect.Colour = Glowing ? value : value.Opacity(0);

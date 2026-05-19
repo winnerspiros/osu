@@ -161,7 +161,7 @@ namespace osu.Game.Tests.Visual.Editing
                     {
                         Origin = Anchor.Centre,
                         Size = new Vector2(10, 5),
-                        Position = new Vector2(StartPosition.X, s),
+                        Position = StartPosition with { Y = s },
                         Colour = GetColourForIndexFromPlacement(indexFromPlacement)
                     });
                 }
@@ -174,7 +174,7 @@ namespace osu.Game.Tests.Visual.Editing
                     {
                         Origin = Anchor.Centre,
                         Size = new Vector2(10, 5),
-                        Position = new Vector2(StartPosition.X, s),
+                        Position = StartPosition with { Y = s },
                         Colour = GetColourForIndexFromPlacement(indexFromPlacement)
                     });
                 }

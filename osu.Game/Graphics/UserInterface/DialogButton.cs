@@ -171,14 +171,12 @@ namespace osu.Game.Graphics.UserInterface
             StateChanged += selectionChanged;
         }
 
-        private Colour4 buttonColour;
-
         public Colour4 ButtonColour
         {
-            get => buttonColour;
+            get => field;
             set
             {
-                buttonColour = value;
+                field = value;
                 updateGlow();
                 ColourContainer.Colour = value;
             }

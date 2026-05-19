@@ -21,8 +21,6 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         protected Colour4 FlashColour = Colour4.White.Opacity(0.3f);
 
-        private Colour4 hoverColour = Colour4.White.Opacity(0.1f);
-
         protected float ScaleOnMouseDown { get; init; } = 0.75f;
 
         /// <summary>
@@ -30,13 +28,13 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         protected Colour4 HoverColour
         {
-            get => hoverColour;
+            get => field;
             set
             {
-                hoverColour = value;
+                field = value;
                 hover.Colour = value;
             }
-        }
+        } = Colour4.White.Opacity(0.1f);
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;

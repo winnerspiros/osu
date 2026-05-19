@@ -225,7 +225,7 @@ namespace osu.Game.Graphics.Backgrounds
                 Quad triangleQuad = new Quad(
                     Vector2Extensions.Transform(Vector2.Zero, DrawInfo.Matrix),
                     Vector2Extensions.Transform(new Vector2(triangle_size, 0f), DrawInfo.Matrix),
-                    Vector2Extensions.Transform(new Vector2(0f, triangleSize.Y), DrawInfo.Matrix),
+                    Vector2Extensions.Transform(triangleSize with { X = 0f }, DrawInfo.Matrix),
                     Vector2Extensions.Transform(triangleSize, DrawInfo.Matrix)
                 );
 
