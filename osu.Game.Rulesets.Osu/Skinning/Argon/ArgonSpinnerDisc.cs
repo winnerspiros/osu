@@ -205,7 +205,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
             else
             {
                 trackingElementInterpolation =
-                    (float)Interpolation.Damp(trackingElementInterpolation, drawableSpinner.RotationTracker.Tracking ? 1 : 0, 0.985f, (float)Math.Abs(Clock.ElapsedFrameTime));
+                    (float)Interpolation.Damp(trackingElementInterpolation, drawableSpinner.RotationTracker.Tracking ? 1 : 0, 0.985f, MathF.Abs((float)Clock.ElapsedFrameTime));
 
                 fill.Alpha = trackingElementInterpolation * (tracking_alpha - idle_alpha) + idle_alpha;
                 centre.Size = new Vector2(trackingElementInterpolation * (tracking_centre_size - idle_centre_size) + idle_centre_size);
@@ -214,7 +214,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
             const float initial_fill_scale = 0.1f;
             float targetScale = initial_fill_scale + (0.98f - initial_fill_scale) * drawableSpinner.Progress;
 
-            fill.Scale = new Vector2((float)Interpolation.Lerp(fill.Scale.X, targetScale, Math.Clamp(Math.Abs(Time.Elapsed) / 100, 0, 1)));
+            fill.Scale = new Vector2((float)Interpolation.Lerp(fill.Scale.X, targetScale, Math.Clamp(MathF.Abs((float)Time.Elapsed) / 100f, 0f, 1f)));
             ticks.Rotation = drawableSpinner.RotationTracker.Rotation;
         }
 

@@ -68,8 +68,8 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
 
             background.Alpha = spinner.Progress >= 1 ? 0 : 1;
 
-            fill.Alpha = (float)Interpolation.DampContinuously(fill.Alpha, spinner.Progress > 0 && spinner.Progress < 1 ? 1 : 0, 40f, (float)Math.Abs(Time.Elapsed));
-            fill.Progress = (float)Interpolation.DampContinuously(fill.Progress, spinner.Progress >= 1 ? 0 : arc_fill * spinner.Progress, 40f, (float)Math.Abs(Time.Elapsed));
+            fill.Alpha = (float)Interpolation.DampContinuously(fill.Alpha, spinner.Progress > 0 && spinner.Progress < 1 ? 1 : 0, 40f, MathF.Abs((float)Time.Elapsed));
+            fill.Progress = (float)Interpolation.DampContinuously(fill.Progress, spinner.Progress >= 1 ? 0 : arc_fill * spinner.Progress, 40f, MathF.Abs((float)Time.Elapsed));
 
             fill.Rotation = (float)(90 - fill.Progress * 180);
         }
