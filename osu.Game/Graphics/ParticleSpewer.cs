@@ -241,7 +241,7 @@ namespace osu.Game.Graphics
                 return StartPosition + (Velocity + currentGravity) * timeSinceStart / maxDuration;
             }
 
-            private float progressAtTime(float timeSinceStart) => MathF.Clamp(timeSinceStart / Duration, 0, 1);
+            private float progressAtTime(float timeSinceStart) => float.Clamp(timeSinceStart / Duration, 0, 1);
         }
     }
 }
