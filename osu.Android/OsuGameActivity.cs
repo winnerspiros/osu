@@ -967,6 +967,75 @@ namespace osu.Android
             }
         }
 
+        protected override void OnPause()
+        {
+            // Root cause of the recurring Vulkan IMMEDIATE-mode ANR (process-runtime ~50s):
+            //
+            //   1. Samsung Game Booster (or any surface-lifecycle event) fires onPause() on the
+            //      Java main thread at ~50 seconds of active Vulkan gameplay.
+            //   2. SDL3's native onPause() sends SDL_EVENT_DID_ENTER_BACKGROUND through its event
+            //      filter synchronously on the calling (Java main) thread.
+            //   3. The event filter calls Window.Suspended → GameHost.Suspend() →
+            //      ThreadRunner.Suspend() → DrawThread.Pause() → WaitForState(Paused).
+            //   4. WaitForState spins: `while (state != Paused) Thread.Sleep(1)` — NO TIMEOUT.
+            //   5. The draw thread is stuck inside vkQueuePresentKHR (Vulkan IMMEDIATE mode;
+            //      FrameSync=ActualUnlimited) due to an Adreno 7xx driver stall. It can only
+            //      check pauseRequested at the START of the next frame — which never comes.
+            //   6. Java main thread spins forever → input dispatching times out after 10s → ANR.
+            //
+            // Fix: watchdog the OnPause() call. If base.OnPause() hasn't returned within 7 seconds
+            // (leaving a 3-second margin before the 10-second ANR), the draw thread is conclusively
+            // stuck in the driver. Kill the process immediately for a clean restart rather than a
+            // frozen 10-second ANR.
+            //
+            // We intentionally do NOT set FLAG_STARTUP_IN_PROGRESS (safe-mode) before killing.
+            // The startup completed successfully; this is a mid-session driver hang triggered by
+            // a transient system event (Game Booster first-session overlay). The next launch will
+            // retry Vulkan normally. Safe-mode is reserved for launch-time hangs where the renderer
+            // itself cannot initialize.
+            //
+            // Only active for Vulkan: OpenGL's eglSwapBuffers cannot stall indefinitely in the way
+            // vkQueuePresentKHR can, so OpenGL sessions are not at risk of this ANR pattern.
+            if (LogManagement.IsVulkanConfigured())
+            {
+                var pauseCompleted = new ManualResetEventSlim(false);
+
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    const int watchdog_ms = 7000;
+
+                    if (pauseCompleted.Wait(watchdog_ms))
+                        return;
+
+                    // base.OnPause() has not returned — draw thread is conclusively stuck in
+                    // vkQueuePresentKHR. Write a diagnostic marker and kill cleanly.
+                    try
+                    {
+                        CrashDiagnostics.WriteAliveMarker(
+                            $"OnPause watchdog fired after {watchdog_ms}ms: draw thread stuck in vkQueuePresentKHR (Vulkan IMMEDIATE ANR). Killing for clean restart.");
+                    }
+                    catch { }
+
+                    try
+                    {
+                        Debug.WriteLine(
+                            "[osu!] OnPause watchdog: draw thread stuck in vkQueuePresentKHR >7s — killing for clean Vulkan restart.");
+                    }
+                    catch { }
+
+                    try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                    catch { }
+                });
+
+                base.OnPause();
+                pauseCompleted.Set();
+            }
+            else
+            {
+                base.OnPause();
+            }
+        }
+
         public override void OnConfigurationChanged(global::Android.Content.Res.Configuration newConfig)
         {
             base.OnConfigurationChanged(newConfig);
