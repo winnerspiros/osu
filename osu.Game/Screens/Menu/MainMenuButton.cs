@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -80,7 +79,7 @@ namespace osu.Game.Screens.Menu
                                           // Allow keyboard interaction based on state rather than waiting for delayed animations.
                                           || State == ButtonState.Expanded;
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
 
         public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Colour4 colour, Action<MainMenuButton, UIEvent>? clickAction = null, params Key[] triggerKeys)
         {

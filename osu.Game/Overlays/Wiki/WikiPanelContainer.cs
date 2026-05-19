@@ -64,7 +64,7 @@ namespace osu.Game.Overlays.Wiki
         protected override void Update()
         {
             base.Update();
-            background.Size = Parent!.DrawSize * new Vector2(Size.X, 1);
+            background.Size = Parent!.DrawSize * (Size with { Y = 1 });
         }
 
         private partial class PanelBackground : CompositeDrawable

@@ -47,15 +47,13 @@ namespace osu.Game.Overlays.Notifications
         /// </summary>
         public Func<bool>? CompletionClickAction { get; set; }
 
-        private LocalisableString text;
-
         public override LocalisableString Text
         {
-            get => text;
+            get;
             set
             {
-                text = value;
-                Scheduler.AddOnce(t => textDrawable.Text = t, text);
+                field = value;
+                Scheduler.AddOnce(t => textDrawable.Text = t, field);
             }
         }
 

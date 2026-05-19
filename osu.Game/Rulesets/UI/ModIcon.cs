@@ -113,7 +113,7 @@ namespace osu.Game.Rulesets.UI
                     Name = "extended content",
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Size = new Vector2(116, MOD_ICON_SIZE.Y),
+                    Size = MOD_ICON_SIZE with { X = 116 },
                     X = MOD_ICON_SIZE.X - 22,
                     Children = new Drawable[]
                     {

@@ -46,7 +46,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
         private readonly FillFlowContainer<LoungeRoomPanel> roomFlow;
 
         // handle deselection
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
         public RoomListing()
         {
@@ -77,7 +77,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 
         private partial class Scroll : OsuScrollContainer
         {
-            public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
         }
 
         protected override void LoadComplete()

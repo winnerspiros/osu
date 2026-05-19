@@ -204,8 +204,8 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             var usableAreaQuad = new Quad(
                 new Vector2(-halfUsableArea.X, -halfUsableArea.Y),
-                new Vector2(halfUsableArea.X, -halfUsableArea.Y),
-                new Vector2(-halfUsableArea.X, halfUsableArea.Y),
+                halfUsableArea with { Y = -halfUsableArea.Y },
+                halfUsableArea with { X = -halfUsableArea.X },
                 new Vector2(halfUsableArea.X, halfUsableArea.Y)
             );
 

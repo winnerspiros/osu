@@ -12,21 +12,19 @@ namespace osu.Game.Rulesets.Objects
 {
     public class PathControlPoint : IEquatable<PathControlPoint>
     {
-        private Vector2 position;
-
         /// <summary>
         /// The position of this <see cref="PathControlPoint"/>.
         /// </summary>
         [JsonProperty]
         public Vector2 Position
         {
-            get => position;
+            get;
             set
             {
-                if (value == position)
+                if (value == field)
                     return;
 
-                position = value;
+                field = value;
                 Changed?.Invoke();
             }
         }

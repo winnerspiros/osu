@@ -205,8 +205,8 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 offsetY.Value = val.NewValue.Y;
             }), true);
 
-            offsetX.BindValueChanged(val => areaOffset.Value = new Vector2(val.NewValue, areaOffset.Value.Y));
-            offsetY.BindValueChanged(val => areaOffset.Value = new Vector2(areaOffset.Value.X, val.NewValue));
+            offsetX.BindValueChanged(val => areaOffset.Value = areaOffset.Value with { X = val.NewValue });
+            offsetY.BindValueChanged(val => areaOffset.Value = areaOffset.Value with { Y = val.NewValue });
 
             areaSize.BindTo(tabletHandler.AreaSize);
             areaSize.BindValueChanged(val => Schedule(() =>
@@ -220,7 +220,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             sizeX.BindValueChanged(val =>
             {
-                areaSize.Value = new Vector2(val.NewValue, areaSize.Value.Y);
+                areaSize.Value = areaSize.Value with { X = val.NewValue };
 
                 aspectRatioApplication?.Cancel();
                 aspectRatioApplication = Schedule(() => applyAspectRatio(sizeX));
@@ -228,7 +228,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             sizeY.BindValueChanged(val =>
             {
-                areaSize.Value = new Vector2(areaSize.Value.X, val.NewValue);
+                areaSize.Value = areaSize.Value with { Y = val.NewValue };
 
                 aspectRatioApplication?.Cancel();
                 aspectRatioApplication = Schedule(() => applyAspectRatio(sizeY));

@@ -85,7 +85,7 @@ namespace osu.Game.Screens.Menu
             set => colourAndTriangles.FadeTo(value ? 1 : 0, transition_length, Easing.OutQuint);
         }
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => logoContainer.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => logoContainer.ReceivePositionalInputAt(screenSpacePos);
 
         public bool Ripple
         {

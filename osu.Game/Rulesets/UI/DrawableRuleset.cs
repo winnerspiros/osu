@@ -101,17 +101,15 @@ namespace osu.Game.Rulesets.UI
         private FrameStabilityContainer frameStabilityContainer;
         private DrawableRulesetDependencies dependencies;
 
-        private bool frameStablePlayback = true;
-
         internal override bool FrameStablePlayback
         {
-            get => frameStablePlayback;
+            get;
             set
             {
-                frameStablePlayback = value;
+                field = value;
                 frameStabilityContainer?.FrameStablePlayback = value;
             }
-        }
+        } = true;
 
         /// <summary>
         /// Creates a ruleset visualisation for the provided ruleset and beatmap.

@@ -125,14 +125,12 @@ namespace osu.Game.Graphics.UserInterface
             }
         }
 
-        private Colour4 glowingAccentColour;
-
         public Colour4 GlowingAccentColour
         {
-            get => glowingAccentColour;
+            get;
             set
             {
-                glowingAccentColour = value;
+                field = value;
                 if (Glowing)
                     main.Colour = value;
             }

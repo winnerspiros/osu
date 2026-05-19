@@ -235,7 +235,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge
             foreach (var r in result)
             {
                 if (localRoomsById.TryGetValue(r.RoomID ?? -1, out Room? existingRoom))
-                    existingRoom?.CopyFrom(r);
+                    existingRoom.CopyFrom(r);
                 else
                     roomListing.Rooms.Add(r);
             }

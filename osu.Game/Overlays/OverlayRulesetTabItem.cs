@@ -19,14 +19,12 @@ namespace osu.Game.Overlays
 {
     public partial class OverlayRulesetTabItem : TabItem<RulesetInfo>, IHasTooltip
     {
-        private Colour4 accentColour;
-
         protected virtual Colour4 AccentColour
         {
-            get => accentColour;
+            get;
             set
             {
-                accentColour = value;
+                field = value;
                 icon.FadeColour(value, 120, Easing.OutQuint);
             }
         }

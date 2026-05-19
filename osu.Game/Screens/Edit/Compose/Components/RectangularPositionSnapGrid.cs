@@ -31,11 +31,11 @@ namespace osu.Game.Screens.Edit.Compose.Components
             var drawSize = DrawSize;
             var rot = Matrix3x2.CreateRotation(float.DegreesToRadians(GridLineRotation.Value));
 
-            GenerateGridLines(Vector2.Transform(new Vector2(0, -Spacing.Value.Y), rot), drawSize);
-            GenerateGridLines(Vector2.Transform(new Vector2(0, Spacing.Value.Y), rot), drawSize);
+            GenerateGridLines(Vector2.Transform(-Spacing.Value with { X = 0 }, rot), drawSize);
+            GenerateGridLines(Vector2.Transform(Spacing.Value with { X = 0 }, rot), drawSize);
 
-            GenerateGridLines(Vector2.Transform(new Vector2(-Spacing.Value.X, 0), rot), drawSize);
-            GenerateGridLines(Vector2.Transform(new Vector2(Spacing.Value.X, 0), rot), drawSize);
+            GenerateGridLines(Vector2.Transform(-Spacing.Value with { Y = 0 }, rot), drawSize);
+            GenerateGridLines(Vector2.Transform(Spacing.Value with { Y = 0 }, rot), drawSize);
 
             GenerateOutline(drawSize);
         }

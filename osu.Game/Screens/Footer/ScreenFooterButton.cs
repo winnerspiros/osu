@@ -198,7 +198,7 @@ namespace osu.Game.Screens.Footer
         }
 
         // account for shear and buttons temporarily hidden with DisappearToBottom.
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos) => shearedContent.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => shearedContent.ReceivePositionalInputAt(screenSpacePos);
 
         public GlobalAction? Hotkey;
 

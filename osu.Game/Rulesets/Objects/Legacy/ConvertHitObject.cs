@@ -24,13 +24,13 @@ namespace osu.Game.Rulesets.Objects.Legacy
         public float X
         {
             get => Position.X;
-            set => Position = new Vector2(value, Position.Y);
+            set => Position = Position with { X = value };
         }
 
         public float Y
         {
             get => Position.Y;
-            set => Position = new Vector2(Position.X, value);
+            set => Position = Position with { Y = value };
         }
 
         public Vector2 Position { get; set; }

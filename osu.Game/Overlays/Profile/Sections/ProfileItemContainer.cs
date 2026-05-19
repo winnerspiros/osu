@@ -18,26 +18,22 @@ namespace osu.Game.Overlays.Profile.Sections
         private readonly Box background;
         private readonly Container content;
 
-        private Colour4 idleColour;
-
         protected Colour4 IdleColour
         {
-            get => idleColour;
+            get;
             set
             {
-                idleColour = value;
+                field = value;
                 fadeBackgroundColour();
             }
         }
 
-        private Colour4 hoverColour;
-
         protected Colour4 HoverColour
         {
-            get => hoverColour;
+            get;
             set
             {
-                hoverColour = value;
+                field = value;
                 fadeBackgroundColour();
             }
         }

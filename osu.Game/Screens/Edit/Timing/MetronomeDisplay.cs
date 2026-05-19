@@ -83,7 +83,7 @@ namespace osu.Game.Screens.Edit.Timing
                     Masking = true,
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.BottomCentre,
-                    Size = new Vector2(triangleSize.X, triangleSize.Y - taper),
+                    Size = triangleSize with { Y = triangleSize.Y - taper },
                     Children = new Drawable[]
                     {
                         new Triangle
@@ -171,7 +171,7 @@ namespace osu.Game.Screens.Edit.Timing
                     Masking = true,
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.BottomCentre,
-                    Size = new Vector2(triangleSize.X, triangleSize.Y - taper),
+                    Size = triangleSize with { Y = triangleSize.Y - taper },
                     Children = new Drawable[]
                     {
                         new Circle

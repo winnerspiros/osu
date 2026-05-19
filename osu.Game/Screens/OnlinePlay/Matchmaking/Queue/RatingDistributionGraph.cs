@@ -439,7 +439,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             return Math.Ceiling(value / factor) * factor;
         }
 
-        public override bool ReceivePositionalInputAt(System.Numerics.Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             return chartContainer.DrawRectangle.Inflate(20).Contains(chartContainer.ToLocalSpace(screenSpacePos));
         }
