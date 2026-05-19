@@ -274,8 +274,7 @@ namespace osu.Game.Screens.Edit.Components
 
                 recycleSamples();
 
-                if (triangles != null)
-                    triangles.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour ?? default, BackgroundColour);
+                triangles?.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour ?? default, BackgroundColour);
             }
 
             private void recycleSamples() => Schedule(() =>
