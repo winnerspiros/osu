@@ -129,7 +129,7 @@ namespace osu.Game.Rulesets.Osu.Mods
             float angle = (float)(2.16 / (1 + 200 * Math.Exp(0.036 * (targetDistance - 310 + customOffsetX))) + 0.5);
             angle += offset + customOffsetY;
 
-            float relativeAngle = (float)Math.PI - angle;
+            float relativeAngle = MathF.PI - angle;
 
             return flowDirection ? -relativeAngle : relativeAngle;
         }

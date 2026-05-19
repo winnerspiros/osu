@@ -75,7 +75,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             if (diff.LengthSquared() < 0.0001f)
                 return;
 
-            ball.Rotation = -90 + (float)(-Math.Atan2(diff.X, diff.Y) * 180 / Math.PI);
+            ball.Rotation = -90 + -MathF.Atan2(diff.X, diff.Y) * (180f / MathF.PI);
         }
     }
 }

@@ -7,7 +7,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Osu.Objects.Drawables;
@@ -50,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
         protected override void Update()
         {
             base.Update();
-            symbol.Rotation = (float)Interpolation.Lerp(symbol.Rotation, spinner.RotationTracker.Rotation / 2, Math.Clamp(Math.Abs(Time.Elapsed) / 40, 0, 1));
+            symbol.Rotation = float.Lerp(symbol.Rotation, spinner.RotationTracker.Rotation * 0.5f, (float)Math.Clamp(Math.Abs(Time.Elapsed) / 40, 0, 1));
         }
 
         private Colour4 accentColour;

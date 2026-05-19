@@ -147,7 +147,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
             {
                 base.Update();
 
-                float elapsed = (float)Math.Min(20, Time.Elapsed) / 1000;
+                float elapsed = MathF.Min(20f, (float)Time.Elapsed) / 1000f;
 
                 Scale = new Vector2((float)Interpolation.Lerp(Scale.X, targetScale, elapsed / 100));
                 Alpha = (float)Interpolation.Lerp(Alpha, targetAlpha, elapsed / 100);

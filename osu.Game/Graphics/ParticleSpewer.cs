@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Utils;
 using System.Numerics;
 
 namespace osu.Game.Graphics
@@ -230,9 +229,9 @@ namespace osu.Game.Graphics
 
             public float AlphaAtTime(float timeSinceStart) => 1 - progressAtTime(timeSinceStart);
 
-            public float ScaleAtTime(float timeSinceStart) => (float)Interpolation.Lerp(1, EndScale, progressAtTime(timeSinceStart));
+            public float ScaleAtTime(float timeSinceStart) => float.Lerp(1f, EndScale, progressAtTime(timeSinceStart));
 
-            public float AngleAtTime(float timeSinceStart) => (float)Interpolation.Lerp(StartAngle, EndAngle, progressAtTime(timeSinceStart));
+            public float AngleAtTime(float timeSinceStart) => float.Lerp(StartAngle, EndAngle, progressAtTime(timeSinceStart));
 
             public Vector2 PositionAtTime(float timeSinceStart, float gravity, float maxDuration)
             {
@@ -242,7 +241,7 @@ namespace osu.Game.Graphics
                 return StartPosition + (Velocity + currentGravity) * timeSinceStart / maxDuration;
             }
 
-            private float progressAtTime(float timeSinceStart) => Math.Clamp(timeSinceStart / Duration, 0, 1);
+            private float progressAtTime(float timeSinceStart) => MathF.Clamp(timeSinceStart / Duration, 0, 1);
         }
     }
 }

@@ -120,7 +120,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
             {
                 base.Update();
 
-                X = initialX + (float)Math.Cos(Time.Current * 0.002 + seed) * 5;
+                X = initialX + MathF.Cos((float)Time.Current * 0.002f + seed) * 5f;
                 Y -= (float)(Time.Elapsed * 0.04f);
             }
         }

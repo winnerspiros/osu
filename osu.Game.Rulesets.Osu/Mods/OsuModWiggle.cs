@@ -57,9 +57,9 @@ namespace osu.Game.Rulesets.Osu.Mods
 
             void wiggle()
             {
-                float nextAngle = (float)(objRand.NextDouble() * 2 * Math.PI);
+                float nextAngle = (float)(objRand.NextDouble() * 2) * MathF.PI;
                 float nextDist = (float)(objRand.NextDouble() * Strength.Value * 7);
-                drawable.MoveTo(new Vector2((float)(nextDist * Math.Cos(nextAngle) + origin.X), (float)(nextDist * Math.Sin(nextAngle) + origin.Y)), wiggle_duration);
+                drawable.MoveTo(new Vector2(nextDist * MathF.Cos(nextAngle) + origin.X, nextDist * MathF.Sin(nextAngle) + origin.Y), wiggle_duration);
             }
 
             for (int i = 0; i < amountWiggles; i++)

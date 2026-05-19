@@ -49,9 +49,9 @@ namespace osu.Game.Rulesets.Taiko.Skinning.Legacy
             base.Update();
 
             if (isKiaiActive)
-                sprite.Alpha = (float)Math.Min(1, sprite.Alpha + Math.Abs(Clock.ElapsedFrameTime) / 100f);
+                sprite.Alpha = MathF.Min(1f, sprite.Alpha + MathF.Abs((float)Clock.ElapsedFrameTime) / 100f);
             else
-                sprite.Alpha = (float)Math.Max(0, sprite.Alpha - Math.Abs(Clock.ElapsedFrameTime) / 600f);
+                sprite.Alpha = MathF.Max(0f, sprite.Alpha - MathF.Abs((float)Clock.ElapsedFrameTime) / 600f);
         }
 
         protected override void OnNewBeat(int beatIndex, TimingControlPoint timingPoint, EffectControlPoint effectPoint, ChannelAmplitudes amplitudes)

@@ -298,6 +298,8 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 
             const float min_alpha = 0.4f;
 
+            float expFactor = MathF.Exp(-0.01f * (float)Time.Elapsed);
+
             foreach (var bar in bars)
             {
                 float value = gaussianCurve(bar.StarRating, 1f, starRating, stdDev);
@@ -306,7 +308,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 
                 float targetAlpha = float.Clamp(min_alpha + value * 20f, min_alpha, 1);
 
-                bar.Alpha = float.Lerp(targetAlpha, bar.Alpha, (float)Math.Exp(-0.01f * Time.Elapsed));
+                bar.Alpha = float.Lerp(targetAlpha, bar.Alpha, expFactor);
             }
 
             foreach (var child in starContainer)
@@ -315,7 +317,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Intro
 
                 float targetAlpha = float.Clamp(min_alpha + value * 20f, min_alpha, 1);
 
-                child.Alpha = float.Lerp(targetAlpha, child.Alpha, (float)Math.Exp(-0.01f * Time.Elapsed));
+                child.Alpha = float.Lerp(targetAlpha, child.Alpha, expFactor);
             }
 
             static float gaussianCurve(float x, float amplitude, float center, float stdev)

@@ -242,11 +242,14 @@ namespace osu.Game.Rulesets.Objects
             // Adjust rotation, radius, and position
             var result = new Vector2[arc.Length];
 
+            double cosTheta = Math.Cos(pr.ThetaStart);
+            double sinTheta = Math.Sin(pr.ThetaStart);
+
             for (int i = 0; i < arc.Length; i++)
             {
                 result[i] = new Vector2(
-                    (float)((Math.Cos(pr.ThetaStart) * arc[i].X + -Math.Sin(pr.ThetaStart) * pr.Direction * arc[i].Y) * pr.Radius + pr.Centre.X),
-                    (float)((Math.Sin(pr.ThetaStart) * arc[i].X + Math.Cos(pr.ThetaStart) * pr.Direction * arc[i].Y) * pr.Radius + pr.Centre.Y));
+                    (float)((cosTheta * arc[i].X + -sinTheta * pr.Direction * arc[i].Y) * pr.Radius + pr.Centre.X),
+                    (float)((sinTheta * arc[i].X + cosTheta * pr.Direction * arc[i].Y) * pr.Radius + pr.Centre.Y));
             }
 
             return result;

@@ -280,7 +280,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
                 if (timeDoingFinalFadeOut > 0 && point.Time >= firstVisiblePointTimeAfterSmokeEnded)
                 {
-                    float fraction = Math.Clamp((float)(timeDoingFinalFadeOut / final_fade_out_duration), 0, 1);
+                    float fraction = MathF.Clamp((float)(timeDoingFinalFadeOut / final_fade_out_duration), 0, 1);
                     fraction = MathF.Pow(fraction, 5);
                     color = new Colour4(color.R, color.G, color.B, (1 - fraction) * re_fade_in_alpha);
                 }
@@ -290,7 +290,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
                     if (timeDoingInitialFadeOut > 0)
                     {
-                        float fraction = Math.Clamp((float)(timeDoingInitialFadeOut / initial_fade_out_duration), 0, 1);
+                        float fraction = MathF.Clamp((float)(timeDoingInitialFadeOut / initial_fade_out_duration), 0, 1);
                         color = new Colour4(color.R, color.G, color.B, (1 - fraction) * initial_alpha);
                     }
 
@@ -300,7 +300,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
                         if (timeDoingReFadeIn > 0)
                         {
-                            float fraction = Math.Clamp((float)(timeDoingReFadeIn / re_fade_in_duration), 0, 1);
+                            float fraction = MathF.Clamp((float)(timeDoingReFadeIn / re_fade_in_duration), 0, 1);
                             fraction = 1 - MathF.Pow(1 - fraction, 5);
                             color = new Colour4(color.R, color.G, color.B, fraction * (re_fade_in_alpha - color.A) + color.A);
                         }
@@ -313,7 +313,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
             protected virtual float PointScale(SmokePoint point)
             {
                 double timeDoingScale = CurrentTime - point.Time;
-                float fraction = Math.Clamp((float)(timeDoingScale / scale_duration), 0, 1);
+                float fraction = MathF.Clamp((float)(timeDoingScale / scale_duration), 0, 1);
                 fraction = 1 - MathF.Pow(1 - fraction, 5);
                 return fraction * (final_scale - initial_scale) + initial_scale;
             }
@@ -321,7 +321,7 @@ namespace osu.Game.Rulesets.Osu.Skinning
             protected virtual Vector2 PointDirection(SmokePoint point, int index)
             {
                 double timeDoingRotation = CurrentTime - point.Time;
-                float fraction = Math.Clamp((float)(timeDoingRotation / rotation_duration), 0, 1);
+                float fraction = MathF.Clamp((float)(timeDoingRotation / rotation_duration), 0, 1);
                 fraction = 1 - MathF.Pow(1 - fraction, 5);
                 float angle = fraction * getRotation(index) + point.Angle;
 

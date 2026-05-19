@@ -146,7 +146,7 @@ namespace osu.Game.Screens.Play.HUD
                 ChangeInternalChildDepth(audioBar, shouldBeBehind ? -1 : 1);
             }
 
-            float timeDelta = (float)Math.Abs(AudioTime - trackTime);
+            float timeDelta = MathF.Abs((float)(AudioTime - trackTime));
 
             const float colour_transition_threshold = 20000;
 
