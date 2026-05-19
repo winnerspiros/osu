@@ -44,8 +44,8 @@ namespace osu.Game.Rulesets.Osu.Skinning.Argon
         {
             base.Update();
 
-            fill.Progress = (float)Interpolation.DampContinuously(fill.Progress, spinner.Progress >= 1 ? arc_fill_complete : arc_fill, 40f, (float)Math.Abs(Time.Elapsed));
-            fill.InnerRadius = (float)Interpolation.DampContinuously(fill.InnerRadius, spinner.Progress >= 1 ? arc_radius * 2.2f : arc_radius, 40f, (float)Math.Abs(Time.Elapsed));
+            fill.Progress = (float)Interpolation.DampContinuously(fill.Progress, spinner.Progress >= 1 ? arc_fill_complete : arc_fill, 40f, MathF.Abs((float)Time.Elapsed));
+            fill.InnerRadius = (float)Interpolation.DampContinuously(fill.InnerRadius, spinner.Progress >= 1 ? arc_radius * 2.2f : arc_radius, 40f, MathF.Abs((float)Time.Elapsed));
 
             fill.Rotation = (float)(-fill.Progress * 180);
         }

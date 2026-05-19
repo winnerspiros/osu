@@ -450,7 +450,8 @@ namespace osu.Game.Rulesets.Osu.Mods
 
         private bool checkForOverlap(IEnumerable<OsuHitObject> objectsToCheck, OsuHitObject target)
         {
-            return objectsToCheck.Any(h => Vector2.Distance(h.Position, target.Position) < target.Radius * 2);
+            float radiusTwice = (float)target.Radius * 2;
+            return objectsToCheck.Any(h => Vector2.DistanceSquared(h.Position, target.Position) < radiusTwice * radiusTwice);
         }
 
         /// <summary>

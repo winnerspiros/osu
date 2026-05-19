@@ -283,7 +283,7 @@ namespace osu.Game.Overlays
         {
             private readonly float direction;
 
-            private Vector2 positionForOffset(float offset) => new Vector2((float)(offset * Math.Sin(direction)), (float)(offset * Math.Cos(direction)));
+            private Vector2 positionForOffset(float offset) => new Vector2(offset * MathF.Sin(direction), offset * MathF.Cos(direction));
 
             public MedalParticle(float direction)
             {

@@ -112,13 +112,13 @@ namespace osu.Game.Rulesets.Osu.Skinning.Default
             }
             else
             {
-                fill.Alpha = (float)Interpolation.Damp(fill.Alpha, drawableSpinner.RotationTracker.Tracking ? tracking_alpha : idle_alpha, 0.98f, (float)Math.Abs(Clock.ElapsedFrameTime));
+                fill.Alpha = (float)Interpolation.Damp(fill.Alpha, drawableSpinner.RotationTracker.Tracking ? tracking_alpha : idle_alpha, 0.98f, MathF.Abs((float)Clock.ElapsedFrameTime));
             }
 
             const float initial_fill_scale = 0.2f;
             float targetScale = initial_fill_scale + (1 - initial_fill_scale) * drawableSpinner.Progress;
 
-            fill.Scale = new Vector2((float)Interpolation.Lerp(fill.Scale.X, targetScale, Math.Clamp(Math.Abs(Time.Elapsed) / 100, 0, 1)));
+            fill.Scale = new Vector2((float)Interpolation.Lerp(fill.Scale.X, targetScale, Math.Clamp(MathF.Abs((float)Time.Elapsed) / 100f, 0f, 1f)));
             mainContainer.Rotation = drawableSpinner.RotationTracker.Rotation;
         }
 

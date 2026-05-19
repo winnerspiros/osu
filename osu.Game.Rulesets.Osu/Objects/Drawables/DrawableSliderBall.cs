@@ -72,10 +72,10 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             // Ensure the value is substantially high enough to allow for Atan2 to get a valid angle.
             // Needed for when near completion, or in case of a very short slider.
-            if (diff.Length() < 0.01f)
+            if (diff.LengthSquared() < 0.0001f)
                 return;
 
-            ball.Rotation = -90 + (float)(-Math.Atan2(diff.X, diff.Y) * 180 / Math.PI);
+            ball.Rotation = -90 + -MathF.Atan2(diff.X, diff.Y) * (180f / MathF.PI);
         }
     }
 }

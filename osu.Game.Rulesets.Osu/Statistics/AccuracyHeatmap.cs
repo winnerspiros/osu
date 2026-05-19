@@ -182,6 +182,7 @@ namespace osu.Game.Rulesets.Osu.Statistics
 
             Vector2 centre = new Vector2(points_per_dimension) / 2;
             float innerRadius = centre.X * inner_portion;
+            float innerRadiusSq = innerRadius * innerRadius;
 
             Drawable[][] points = new Drawable[points_per_dimension][];
 
@@ -191,7 +192,7 @@ namespace osu.Game.Rulesets.Osu.Statistics
 
                 for (int c = 0; c < points_per_dimension; c++)
                 {
-                    bool isHit = Vector2.Distance(new Vector2(c + 0.5f, r + 0.5f), centre) <= innerRadius;
+                    bool isHit = Vector2.DistanceSquared(new Vector2(c + 0.5f, r + 0.5f), centre) <= innerRadiusSq;
 
                     if (isHit)
                     {

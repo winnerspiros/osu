@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Edit
         {
             // If the pair of hit objects in question here could feasibly be on the same stack, do not provide a distance snap value -
             // they're likely too close to one another for the distance snap value to be useful anyway even if they somehow are not.
-            if (Vector2.Distance(((OsuHitObject)before).EndPosition, ((OsuHitObject)after).Position) < OsuBeatmapProcessor.STACK_DISTANCE)
+            if (Vector2.DistanceSquared(((OsuHitObject)before).EndPosition, ((OsuHitObject)after).Position) < OsuBeatmapProcessor.STACK_DISTANCE * OsuBeatmapProcessor.STACK_DISTANCE)
                 return 0;
 
             var lastObjectWithVelocity = EditorBeatmap.HitObjects.TakeWhile(ho => ho != after).OfType<IHasSliderVelocity>().LastOrDefault();

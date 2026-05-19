@@ -296,11 +296,11 @@ namespace osu.Game.Seasonal
 
                     for (int i = 0; i < (beatsHandled + 1); i++)
                     {
-                        float angle = (float)(RNG.NextDouble() * 2 * Math.PI);
-                        float randomRadius = (float)(Math.Sqrt(RNG.NextDouble()));
+                        float angle = (float)(RNG.NextDouble() * 2) * MathF.PI;
+                        float randomRadius = MathF.Sqrt((float)RNG.NextDouble());
 
-                        float x = 0.5f + 0.5f * randomRadius * (float)Math.Cos(angle);
-                        float y = 0.5f + 0.5f * randomRadius * (float)Math.Sin(angle);
+                        float x = 0.5f + 0.5f * randomRadius * MathF.Cos(angle);
+                        float y = 0.5f + 0.5f * randomRadius * MathF.Sin(angle);
 
                         Colour4 christmasColour = RNG.NextBool() ? SeasonalUIConfig.PRIMARY_COLOUR_1 : SeasonalUIConfig.PRIMARY_COLOUR_2;
 

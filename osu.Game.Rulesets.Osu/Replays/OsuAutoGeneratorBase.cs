@@ -115,7 +115,7 @@ namespace osu.Game.Rulesets.Osu.Replays
 
         protected void AddFrameToReplay(ReplayFrame frame) => Frames.Insert(FindInsertionIndex(frame), frame);
 
-        protected static Vector2 CirclePosition(double t, double radius) => new Vector2((float)(Math.Cos(t) * radius), (float)(Math.Sin(t) * radius));
+        protected static Vector2 CirclePosition(double t, double radius) => new Vector2(MathF.Cos((float)t) * (float)radius, MathF.Sin((float)t) * (float)radius);
 
         #endregion
     }

@@ -161,7 +161,7 @@ namespace osu.Game.Rulesets.Osu.Replays
 
                 Vector2 spinCentreOffset = SPINNER_CENTRE - ((OsuReplayFrame)Frames[^1]).Position;
 
-                if (spinCentreOffset.Length() > SPIN_RADIUS)
+                if (spinCentreOffset.LengthSquared() > SPIN_RADIUS * SPIN_RADIUS)
                 {
                     // If moving in from the outside, don't ease out (default eases out). This means auto will "start" spinning immediately after moving into position.
                     easing = Easing.In;
@@ -215,7 +215,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 // Move along the tangent line, now startPosition is at the tangent point.
                 startPosition = prevPos + spinCentreOffset;
             }
-            else if (spinCentreOffset.Length() > 0)
+            else if (spinCentreOffset.LengthSquared() > 0)
             {
                 // Previous cursor position was inside spin circle, set startPosition to the nearest point on spin circle.
                 startPosition = SPINNER_CENTRE - spinCentreOffset * (SPIN_RADIUS / spinCentreOffset.Length());

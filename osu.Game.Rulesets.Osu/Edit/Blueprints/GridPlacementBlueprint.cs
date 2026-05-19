@@ -110,7 +110,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints
             else
             {
                 // Default to the original spacing and rotation if the distance is too small.
-                if (Vector2.Distance(gridToolboxGroup.StartPosition.Value, pos) < 2)
+                if (Vector2.DistanceSquared(gridToolboxGroup.StartPosition.Value, pos) < 4)
                 {
                     gridToolboxGroup.GridLineSpacing.Value = originalSpacing;
                     if (!gridToolboxGroup.GridLinesRotation.Disabled)

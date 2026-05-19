@@ -131,7 +131,7 @@ namespace osu.Game.Graphics.Cursor
             base.Update();
 
             if (dragRotationState != DragRotationState.NotDragging
-                && Vector2.Distance(positionMouseDown, lastMovePosition) > 60)
+                && Vector2.DistanceSquared(positionMouseDown, lastMovePosition) > 3600f)
             {
                 // make the rotation centre point floating.
                 positionMouseDown = Interpolation.ValueAt(0.04f, positionMouseDown, lastMovePosition, 0, Clock.ElapsedFrameTime);

@@ -309,9 +309,9 @@ namespace osu.Game.Rulesets.Osu.Edit
                 if (!snapPositions.Any())
                     continue;
 
-                var closestSnapPosition = snapPositions.MinBy(p => Vector2.Distance(p, screenSpacePosition));
+                var closestSnapPosition = snapPositions.MinBy(p => Vector2.DistanceSquared(p, screenSpacePosition));
 
-                if (Vector2.Distance(closestSnapPosition, screenSpacePosition) < snapRadius)
+                if (Vector2.DistanceSquared(closestSnapPosition, screenSpacePosition) < snapRadius * snapRadius)
                 {
                     // if the snap target is a stacked object, snap to its unstacked position rather than its stacked position.
                     // this is intended to make working with stacks easier (because thanks to this, you can drag an object to any

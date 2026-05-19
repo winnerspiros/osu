@@ -335,7 +335,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                     // This code is designed to prevent buffing situations where lazy end is actually a less efficient movement.
                     Vector2 lazyMovement = Vector2.Subtract((Vector2)LazyEndPosition, currCursorPosition);
 
-                    if (lazyMovement.Length() < currMovement.Length())
+                    if (lazyMovement.LengthSquared() < currMovement.LengthSquared())
                         currMovement = lazyMovement;
 
                     currMovementLength = scalingFactor * currMovement.Length();
