@@ -284,12 +284,10 @@ jobs:
           # Fix: MacOSX.sdk in Xcode 26.5 is a minimal stub. Replace it with a symlink to the
           # real versioned SDK found across Xcode installs. Real SDKs have hundreds of headers;
           # stubs have ≤1.
-          ACTIVE_XCODE="/Applications/Xcode_26.5.app"
-          sudo xcode-select -switch "$ACTIVE_XCODE"
-          SDKS_DIR="$ACTIVE_XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"
-          MACOS_SDK="$SDKS_DIR/MacOSX.sdk"
+          PREFERRED_XCODE="/Applications/Xcode_26.5.app"
           REAL_SDK=""
-          # Search ALL Xcode_26.x.app installs (including active) for versioned MacOSX[N].sdk.
+          REAL_XCODE=""
+          # Search ALL Xcode_26.x.app installs for versioned MacOSX[N].sdk.
           # Validate by usr/include header count: stubs ≤1 file, real SDKs have hundreds.
           for xapp in $(ls -d /Applications/Xcode_26.*.app 2>/dev/null | sort -rV); do
             sdk_dir="$xapp/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"
@@ -299,6 +297,7 @@ jobs:
               hdr_count=$(ls "$cand/usr/include" 2>/dev/null | wc -l | tr -d ' ')
               if [ "${hdr_count:-0}" -gt 5 ]; then
                 REAL_SDK="$cand"
+                REAL_XCODE="$xapp"
                 break 2
               fi
             done
@@ -314,7 +313,18 @@ jobs:
               fi
             done
           fi
+          # Switch to preferred Xcode if it exists, otherwise the one that has the real SDK.
+          if [ -d "$PREFERRED_XCODE" ]; then
+            sudo xcode-select -switch "$PREFERRED_XCODE"
+          elif [ -n "$REAL_XCODE" ]; then
+            sudo xcode-select -switch "$REAL_XCODE"
+            echo "Note: Xcode_26.5.app not found; using $REAL_XCODE for xcode-select"
+          fi
+          # Replace stub MacOSX.sdk in the active Xcode with a symlink to the real versioned SDK.
           if [ -n "$REAL_SDK" ]; then
+            ACTIVE_DEV="$(xcode-select -p)"
+            ACTIVE_SDKS_DIR="$ACTIVE_DEV/Platforms/MacOSX.platform/Developer/SDKs"
+            MACOS_SDK="$ACTIVE_SDKS_DIR/MacOSX.sdk"
             sudo rm -rf "$MACOS_SDK"
             sudo ln -sfn "$REAL_SDK" "$MACOS_SDK"
             echo "Created MacOSX.sdk symlink -> $REAL_SDK"
