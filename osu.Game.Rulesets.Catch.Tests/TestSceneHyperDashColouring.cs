@@ -10,6 +10,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -210,7 +211,11 @@ namespace osu.Game.Rulesets.Catch.Tests
             }
 
             public TestSkin()
-                : base(new SkinInfo(), null, null, string.Empty)
+                : base(new SkinInfo(), null,
+                    new NamespacedResourceStore<byte[]>(
+                        new DllResourceStore(typeof(TestSceneHyperDashColouring).Assembly),
+                        @"Resources/special-skin"),
+                    string.Empty)
             {
             }
         }
