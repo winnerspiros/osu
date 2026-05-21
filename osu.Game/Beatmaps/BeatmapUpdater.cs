@@ -57,10 +57,19 @@ namespace osu.Game.Beatmaps
 
                     var ruleset = working.BeatmapInfo.Ruleset.CreateInstance();
                     var calculator = ruleset.CreateDifficultyCalculator(working);
-                    var playable = working.GetPlayableBeatmap(working.BeatmapInfo.Ruleset);
 
                     beatmap.StarRating = calculator.Calculate().StarRating;
-                    beatmap.UpdateStatisticsFromBeatmap(playable);
+
+                    // Use the raw decoded beatmap for basic statistics that do not require ApplyDefaults.
+                    // DifficultyCalculator.Calculate() already calls GetPlayableBeatmap() internally, so
+                    // calling it again here would double the cost of beatmap conversion during import.
+                    beatmap.UpdateStatisticsFromBeatmap(working.Beatmap);
+
+                    // MaxSliderTicks requires nested hit objects that are only populated after ApplyDefaults
+                    // (i.e. a full GetPlayableBeatmap() pass).  Reset to -1 so that
+                    // BackgroundDataStoreProcessor will schedule a ProcessObjectCounts call that computes
+                    // the accurate value without duplicating the conversion work done above.
+                    beatmap.MaxSliderTicks = -1;
                 }
 
                 // And invalidate again afterwards as re-fetching the most up-to-date database metadata will be required.

@@ -340,6 +340,12 @@ namespace osu.Game.Screens.Play
             // - the sort mode is not specified and defaults to `Score` which is good because gameplay leaderboards only support sorting by score.
             //   this may change at some point in the future, at which point specifying a sort mode should be considered.
             refetchLeaderboard(force: false);
+
+            // Begin playable beatmap pre-computation as early as possible.
+            // PlayerLoader is often loaded asynchronously in the background while the previous screen is
+            // still showing, so starting here gives the background task the maximum available lead time
+            // before the Player itself needs the result.
+            beginPlayableBeatmapPrewarm();
         }
 
         private void refetchLeaderboard(bool force)
@@ -732,7 +738,11 @@ namespace osu.Game.Screens.Play
 
         private void beginPlayableBeatmapPrewarm()
         {
-            cancelPlayableBeatmapPrewarm();
+            // Don't restart if a prewarm is already running — LoadComplete() and contentIn() both call
+            // this method; the one that fires second (contentIn) would otherwise cancel work that is
+            // potentially already done or nearly done.
+            if (playablePrewarmCancellation != null)
+                return;
 
             if (playableBeatmapCache == null || Beatmap.Value is DummyWorkingBeatmap)
                 return;
