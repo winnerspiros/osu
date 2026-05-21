@@ -260,6 +260,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
                     break;
 
                 case nameof(Room.ParticipantCount):
+                case nameof(Room.MaxParticipants):
                     updateRoomParticipantCount();
                     break;
 
@@ -284,7 +285,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
         private void updateRoomParticipantCount()
         {
             updateHiddenUsers();
-            totalCount.Text = room.ParticipantCount.ToString();
+            totalCount.Text = room.MaxParticipants == null ? room.ParticipantCount.ToString() : $@"{room.ParticipantCount} / {room.MaxParticipants}";
         }
 
         protected override void Dispose(bool isDisposing)
