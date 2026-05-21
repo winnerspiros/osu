@@ -27,6 +27,14 @@ namespace osu.Game.Rulesets.UI
         /// </remarks>
         public IEnumerable<DrawableHitObject> Objects => enumerateByStartTimeAscending();
 
+        private IEnumerable<DrawableHitObject> enumerateByStartTimeAscending()
+        {
+            // InternalChildren is sorted descending (earlier start times at the end via Compare).
+            // Iterate in reverse to yield ascending order without a separate sort.
+            for (int i = InternalChildren.Count - 1; i >= 0; i--)
+                yield return (DrawableHitObject)InternalChildren[i];
+        }
+
         /// <summary>
         /// All alive <see cref="DrawableHitObject"/>s in this container, sorted by ascending <see cref="HitObject.StartTime"/>.
         /// </summary>

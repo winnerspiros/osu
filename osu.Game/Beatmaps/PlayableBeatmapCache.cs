@@ -8,7 +8,6 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Logging;
-using osu.Game;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 
@@ -32,7 +31,7 @@ namespace osu.Game.Beatmaps
     /// update or reimport).
     /// </para>
     /// </remarks>
-    public class PlayableBeatmapCache : Component
+    public partial class PlayableBeatmapCache : Component
     {
         private readonly record struct CacheKey(Guid BeatmapId, string BeatmapHash, string RulesetShortName, string ModsKey, string GameVersion);
 
@@ -129,8 +128,7 @@ namespace osu.Game.Beatmaps
         {
             base.Dispose(isDisposing);
 
-            if (workingBeatmapCache != null)
-                workingBeatmapCache.OnInvalidated -= handleInvalidated;
+            workingBeatmapCache?.OnInvalidated -= handleInvalidated;
         }
     }
 }

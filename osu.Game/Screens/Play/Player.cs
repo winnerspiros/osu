@@ -140,7 +140,7 @@ namespace osu.Game.Screens.Play
         private OsuGameBase game { get; set; }
 
         [Resolved(canBeNull: true)]
-        private PlayableBeatmapCache? playableBeatmapCache { get; set; }
+        private PlayableBeatmapCache playableBeatmapCache { get; set; }
 
         public GameplayState GameplayState { get; private set; }
 
