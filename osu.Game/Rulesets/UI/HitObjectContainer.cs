@@ -38,28 +38,16 @@ namespace osu.Game.Rulesets.UI
         public IEnumerable<DrawableHitObject> AliveObjects => getSortedAliveObjects();
 
         private readonly List<DrawableHitObject> aliveObjectsSortedCache = new List<DrawableHitObject>();
-        private bool aliveObjectsCacheDirty = true;
 
-        private IEnumerable<DrawableHitObject> enumerateByStartTimeAscending()
-        {
-            var children = InternalChildren;
-
-            for (int i = children.Count - 1; i >= 0; i--)
-            {
-                if (children[i] is DrawableHitObject hitObject)
-                    yield return hitObject;
-            }
-        }
+        // Set only when a start-time bindable fires (extremely rare: editor only).
+        // Normal add/remove uses incremental insertion which never sets this flag.
+        private bool aliveObjectsCacheDirty;
 
         private IEnumerable<DrawableHitObject> getSortedAliveObjects()
         {
+            // Re-sort only if a StartTime bindable changed (editor scenario).
             if (aliveObjectsCacheDirty)
             {
-                aliveObjectsSortedCache.Clear();
-
-                foreach (var dho in AliveEntries.Values)
-                    aliveObjectsSortedCache.Add(dho);
-
                 aliveObjectsSortedCache.Sort(static (a, b) => a.HitObject.StartTime.CompareTo(b.HitObject.StartTime));
                 aliveObjectsCacheDirty = false;
             }
@@ -149,7 +137,23 @@ namespace osu.Game.Rulesets.UI
 
         private void addDrawable(DrawableHitObject drawable)
         {
-            aliveObjectsCacheDirty = true;
+            // Binary-search insertion to keep aliveObjectsSortedCache in StartTime order.
+            // O(log n) search + O(n) shift — far cheaper than rebuilding & sorting
+            // the entire list from scratch on every alive-state transition.
+            double startTime = drawable.HitObject.StartTime;
+            int lo = 0, hi = aliveObjectsSortedCache.Count;
+
+            while (lo < hi)
+            {
+                int mid = (lo + hi) >> 1;
+
+                if (aliveObjectsSortedCache[mid].HitObject.StartTime <= startTime)
+                    lo = mid + 1;
+                else
+                    hi = mid;
+            }
+
+            aliveObjectsSortedCache.Insert(lo, drawable);
 
             drawable.OnNewResult += onNewResult;
 
@@ -159,7 +163,8 @@ namespace osu.Game.Rulesets.UI
 
         private void removeDrawable(DrawableHitObject drawable)
         {
-            aliveObjectsCacheDirty = true;
+            // Linear removal is acceptable; alive object counts are small (typically 5–30).
+            aliveObjectsSortedCache.Remove(drawable);
 
             drawable.OnNewResult -= onNewResult;
 
@@ -205,7 +210,11 @@ namespace osu.Game.Rulesets.UI
             bindable.BindValueChanged(_ =>
             {
                 if (LoadState >= LoadState.Ready)
+                {
                     SortInternal();
+                    // StartTime changed: incremental order is no longer valid; re-sort on next access.
+                    aliveObjectsCacheDirty = true;
+                }
             });
 
             startTimeMap[hitObject] = bindable;

@@ -248,12 +248,17 @@ namespace osu.Game.Rulesets.UI
         }
 
         private Mod[] mods;
+        private IUpdatableByPlayfield[] updatableByPlayfieldMods = Array.Empty<IUpdatableByPlayfield>();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
             mods = Mods?.ToArray();
+
+            // Pre-filter once; avoids a per-frame `is IUpdatableByPlayfield` check on every mod.
+            updatableByPlayfieldMods = mods?.OfType<IUpdatableByPlayfield>().ToArray()
+                                       ?? Array.Empty<IUpdatableByPlayfield>();
 
             // in the case a consumer forgets to add the HitObjectContainer, we will add it here.
             if (HitObjectContainer.Parent == null)
@@ -264,13 +269,10 @@ namespace osu.Game.Rulesets.UI
         {
             base.Update();
 
-            if (!IsNested && mods != null)
+            if (!IsNested)
             {
-                foreach (Mod mod in mods)
-                {
-                    if (mod is IUpdatableByPlayfield updatable)
-                        updatable.Update(this);
-                }
+                foreach (var updatable in updatableByPlayfieldMods)
+                    updatable.Update(this);
             }
 
             // When rewinding, revert future judgements in the reverse order.

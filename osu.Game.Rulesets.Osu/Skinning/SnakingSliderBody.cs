@@ -141,12 +141,22 @@ namespace osu.Game.Rulesets.Osu.Skinning
             Path.Size = Size;
         }
 
+        // Minimum progress-change needed before we rebuild the path mesh.
+        // 0.002 = 0.2% of path length; sub-pixel for any slider ≥ 50px.
+        // At ≤240fps the per-frame change always exceeds this, so there is
+        // zero visual impact at normal frame rates.  At 500fps+ it halves
+        // (or better) the number of GetPathToProgress + SetVertices calls.
+        private const double snaking_update_threshold = 0.002;
+
         private void setRange(double p0, double p1)
         {
             if (p0 > p1)
                 (p0, p1) = (p1, p0);
 
-            if (SnakedStart == p0 && SnakedEnd == p1) return;
+            if (SnakedStart.HasValue && SnakedEnd.HasValue
+                && Math.Abs(p0 - SnakedStart.Value) < snaking_update_threshold
+                && Math.Abs(p1 - SnakedEnd.Value) < snaking_update_threshold)
+                return;
 
             SnakedStart = p0;
             SnakedEnd = p1;
