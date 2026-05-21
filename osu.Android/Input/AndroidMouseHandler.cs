@@ -54,6 +54,12 @@ namespace osu.Android.Input
         // Avoids a BindableDouble read per MotionEvent.
         private volatile float cachedSensitivity = 1f;
 
+        // Cached enabled state. Enabled.Value reads through the Bindable<bool> property
+        // chain; a volatile field gives the OS dispatch thread a direct read that is also
+        // cross-thread correct (changes written on the Update thread are immediately
+        // visible here via the volatile acquire/release semantics).
+        private volatile bool cachedEnabled = true;
+
         public AndroidMouseHandler()
         {
             Enabled.Default = true;
@@ -66,6 +72,7 @@ namespace osu.Android.Input
                 return false;
 
             Sensitivity.BindValueChanged(v => cachedSensitivity = (float)v.NewValue, true);
+            Enabled.BindValueChanged(v => cachedEnabled = v.NewValue, true);
 
             return true;
         }
@@ -73,7 +80,7 @@ namespace osu.Android.Input
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleMotionEvent(MotionEvent e)
         {
-            if (!Enabled.Value) return false;
+            if (!cachedEnabled) return false;
 
             if (e.ActionMasked == MotionEventActions.Scroll)
             {

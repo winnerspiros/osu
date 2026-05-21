@@ -179,6 +179,13 @@ namespace osu.Android
         private IntPtr adpfDrawSession;
         private IntPtr adpfUpdateSession;
 
+        // Cached GameThread references stored when ADPF sessions are created. Avoids walking
+        // Host?.DrawThread? / Host?.UpdateThread? / Host?.InputThread? on every frame callback
+        // (3 levels of nullable dereference at 120 Hz × 3 threads = 360 null checks/s → 0).
+        private osu.Framework.Threading.GameThread? adpfDrawThread;
+        private osu.Framework.Threading.GameThread? adpfUpdateThread;
+        private osu.Framework.Threading.GameThread? adpfInputThread;
+
         // Input thread ADPF session.  The input thread may poll at ~100 kHz (one cycle ≈ 10 µs),
         // which is far finer than the ADPF reporting granularity.  Instead of calling
         // reportActualWorkDuration once per poll (which would flood the ADPF API), we accumulate
@@ -603,6 +610,9 @@ namespace osu.Android
                                     // Silent no-op on API < 35 (resolved via dlsym).
                                     OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfDrawSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Draw thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                                    // Cache the thread reference now (we're already on the Draw thread)
+                                    // so per-frame callbacks avoid the Host?.DrawThread? nullable chain.
+                                    adpfDrawThread = Host!.DrawThread;
                                     // Subscribe per-frame reporting now that the session handle is valid.
                                     // FrameCompleted fires on the Draw thread itself, so reading
                                     // Host.DrawThread.Clock.ElapsedFrameTime is thread-safe.
@@ -622,6 +632,7 @@ namespace osu.Android
                                 {
                                     OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfUpdateSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Update thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                                    adpfUpdateThread = Host!.UpdateThread;
                                     Host!.UpdateThread!.FrameCompleted += onUpdateFrameCompleted;
                                 }
                             }
@@ -643,6 +654,7 @@ namespace osu.Android
                                 {
                                     OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfInputSession, 0);
                                     Logger.Log($"[osu!] ADPF session created for Input thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
+                                    adpfInputThread = Host!.InputThread;
                                     Host!.InputThread!.FrameCompleted += onInputFrameCompleted;
                                 }
                             }
@@ -1607,7 +1619,7 @@ namespace osu.Android
 
             try
             {
-                double elapsedMs = Host?.DrawThread?.Clock.ElapsedFrameTime ?? 0;
+                double elapsedMs = adpfDrawThread?.Clock.ElapsedFrameTime ?? 0;
                 if (elapsedMs > 0)
                     OboeAudioBridge.nADPFReportActualDuration(adpfDrawSession, (long)(elapsedMs * 1_000_000.0));
             }
@@ -1624,7 +1636,7 @@ namespace osu.Android
 
             try
             {
-                double elapsedMs = Host?.UpdateThread?.Clock.ElapsedFrameTime ?? 0;
+                double elapsedMs = adpfUpdateThread?.Clock.ElapsedFrameTime ?? 0;
                 if (elapsedMs > 0)
                     OboeAudioBridge.nADPFReportActualDuration(adpfUpdateSession, (long)(elapsedMs * 1_000_000.0));
             }
@@ -1644,7 +1656,7 @@ namespace osu.Android
 
             try
             {
-                double elapsedMs = Host?.InputThread?.Clock.ElapsedFrameTime ?? 0;
+                double elapsedMs = adpfInputThread?.Clock.ElapsedFrameTime ?? 0;
                 if (elapsedMs <= 0) return;
 
                 inputAdpfAccumulatedMs += elapsedMs;
