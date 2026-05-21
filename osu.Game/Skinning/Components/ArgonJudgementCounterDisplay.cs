@@ -117,7 +117,7 @@ namespace osu.Game.Skinning.Components
             if (index == 0 && !ShowMaxJudgement.Value)
                 return false;
 
-            var hitResult = counter.Result.Types.First();
+            var hitResult = counter.Result.Types[0];
 
             switch (Mode.Value)
             {

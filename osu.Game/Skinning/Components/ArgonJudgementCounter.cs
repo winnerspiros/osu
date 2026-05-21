@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.LocalisationExtensions;
@@ -57,7 +56,7 @@ namespace osu.Game.Skinning.Components
                 updateWireframe();
             }, true);
 
-            var result = Result.Types.First();
+            var result = Result.Types[0];
             textComponent.LabelColour.Value = getJudgementColor(result);
             textComponent.ShowLabel.BindValueChanged(v => textComponent.TextColour.Value = !v.NewValue ? getJudgementColor(result) : Colour4.White, true);
         }
