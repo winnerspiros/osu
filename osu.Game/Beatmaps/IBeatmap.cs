@@ -196,13 +196,24 @@ namespace osu.Game.Beatmaps
         /// </summary>
         public static (double start, double end) CalculatePlayableBounds(IEnumerable<HitObject> objects)
         {
-            if (!objects.Any())
-                return (0, 0);
+            double firstObjectTime = double.MaxValue;
+            double lastObjectTime = double.MinValue;
+            bool any = false;
 
-            double lastObjectTime = objects.Max(o => o.GetEndTime());
-            double firstObjectTime = objects.First().StartTime;
+            foreach (var obj in objects)
+            {
+                any = true;
 
-            return (firstObjectTime, lastObjectTime);
+                if (obj.StartTime < firstObjectTime)
+                    firstObjectTime = obj.StartTime;
+
+                double endTime = obj.GetEndTime();
+
+                if (endTime > lastObjectTime)
+                    lastObjectTime = endTime;
+            }
+
+            return any ? (firstObjectTime, lastObjectTime) : (0, 0);
         }
 
         #endregion

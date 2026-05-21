@@ -70,7 +70,9 @@ namespace osu.Game.Beatmaps
 
             beatmap.BeatmapInfo = original.BeatmapInfo;
             beatmap.ControlPointInfo = original.ControlPointInfo;
-            beatmap.HitObjects = convertHitObjects(original.HitObjects, original, cancellationToken).OrderBy(s => s.StartTime).ToList();
+            var hitObjects = convertHitObjects(original.HitObjects, original, cancellationToken);
+            hitObjects.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+            beatmap.HitObjects = hitObjects;
             beatmap.Breaks = original.Breaks;
             beatmap.AudioLeadIn = original.AudioLeadIn;
             beatmap.StackLeniency = original.StackLeniency;

@@ -91,6 +91,11 @@ namespace osu.Android.Input
         private bool useRotation;
         private float cachedPressureThreshold;
 
+        // Cached enabled state. Enabled.Value reads through the Bindable<bool> property
+        // chain; a volatile field gives the OS dispatch thread a direct read that is also
+        // cross-thread correct.
+        private volatile bool cachedEnabled = true;
+
         // Cached tablet bounds — updated whenever `tablet.Value` is reassigned. Avoids
         // three bindable reads + property accesses per historical pointer sample in the
         // hot path. A local-field comparison is a single un-locked memory read.
@@ -178,6 +183,7 @@ namespace osu.Android.Input
 
             Rotation.BindValueChanged(_ => updateCachedTransform());
             PressureThreshold.BindValueChanged(v => cachedPressureThreshold = v.NewValue, true);
+            Enabled.BindValueChanged(v => cachedEnabled = v.NewValue, true);
 
             // Force one initial cache population so `areaWidth` / `outWidth` are non-zero
             // before the very first MotionEvent arrives (BindValueChanged above only fires
@@ -285,7 +291,7 @@ namespace osu.Android.Input
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleMotionEvent(MotionEvent e)
         {
-            if (!Enabled.Value) return false;
+            if (!cachedEnabled) return false;
 
             // Cache ActionMasked once: each `e.ActionMasked` access is a JNI call into
             // MotionEvent#getActionMasked. On a busy stylus drag the previous code did

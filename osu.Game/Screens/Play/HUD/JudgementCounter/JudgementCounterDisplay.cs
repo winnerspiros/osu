@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -89,7 +88,7 @@ namespace osu.Game.Screens.Play.HUD.JudgementCounter
                 if (index == 0 && !ShowMaxJudgement.Value)
                     return false;
 
-                var hitResult = counter.Result.Types.First();
+                var hitResult = counter.Result.Types[0];
 
                 switch (Mode.Value)
                 {

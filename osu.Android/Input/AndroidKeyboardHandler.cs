@@ -54,6 +54,11 @@ namespace osu.Android.Input
             { Keycode.Period, Key.Period }, { Keycode.Slash, Key.Slash },
         }.ToFrozenDictionary();
 
+        // Cached enabled state. Enabled.Value reads through the Bindable<bool> property
+        // chain; a volatile field gives the OS dispatch thread a direct read that is also
+        // cross-thread correct.
+        private volatile bool cachedEnabled = true;
+
         public AndroidKeyboardHandler()
         {
             Enabled.Default = true;
@@ -65,13 +70,15 @@ namespace osu.Android.Input
             if (!base.Initialize(host))
                 return false;
 
+            Enabled.BindValueChanged(v => cachedEnabled = v.NewValue, true);
+
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HandleKeyEvent(KeyEvent e)
         {
-            if (!Enabled.Value) return false;
+            if (!cachedEnabled) return false;
 
             if (e.KeyCode == Keycode.Back || e.KeyCode == Keycode.Home || e.KeyCode == Keycode.Menu ||
                 e.KeyCode == Keycode.VolumeUp || e.KeyCode == Keycode.VolumeDown || e.KeyCode == Keycode.VolumeMute ||
