@@ -228,9 +228,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             };
 
             bool hasFlashlight = false;
+
             for (int i = 0; i < mods.Length; i++)
             {
-                if (mods[i] is OsuModFlashlight) { hasFlashlight = true; break; }
+                if (mods[i] is OsuModFlashlight)
+                {
+                    hasFlashlight = true;
+                    break;
+                }
             }
 
             if (hasFlashlight)

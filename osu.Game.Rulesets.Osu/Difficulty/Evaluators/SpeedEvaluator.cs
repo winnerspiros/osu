@@ -63,9 +63,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             distanceBonus *= Math.Sqrt(osuCurrObj.SmallCircleBonus);
 
             bool hasAutopilot = false;
+
             for (int i = 0; i < mods.Count; i++)
             {
-                if (mods[i] is OsuModAutopilot) { hasAutopilot = true; break; }
+                if (mods[i] is OsuModAutopilot)
+                {
+                    hasAutopilot = true;
+                    break;
+                }
             }
 
             if (hasAutopilot)

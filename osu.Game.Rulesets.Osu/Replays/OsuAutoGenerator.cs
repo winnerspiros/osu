@@ -397,10 +397,12 @@ namespace osu.Game.Rulesets.Osu.Replays
         private static bool actionsEqual(List<OsuAction> a, List<OsuAction> b)
         {
             if (a.Count != b.Count) return false;
+
             for (int i = 0; i < a.Count; i++)
             {
                 if (a[i] != b[i]) return false;
             }
+
             return true;
         }
 
