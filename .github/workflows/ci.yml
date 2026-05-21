@@ -278,19 +278,16 @@ jobs:
 
       # https://github.com/dotnet/macios/issues/19157
       # https://github.com/actions/runner-images/issues/12758
-      - name: Use Xcode 26.4
+      - name: Use Xcode 26.5
         run: |
-          # Pin to Xcode 26.4 — the .NET iOS workload (net10.0_26.4) requires exactly Xcode 26.4.
-          # Using Xcode 26.5 causes a hard build failure: "requires Xcode 26.4, current is 26.5".
-          # Fix: MacOSX.sdk in Xcode 26.4 is a minimal stub. Replace it with a symlink to the
+          # Pin to Xcode 26.5 — the .NET iOS workload (net10.0_26.5) requires exactly Xcode 26.5.
+          # Fix: MacOSX.sdk in Xcode 26.5 is a minimal stub. Replace it with a symlink to the
           # real versioned SDK found across Xcode installs. Real SDKs have hundreds of headers;
           # stubs have ≤1.
-          ACTIVE_XCODE="/Applications/Xcode_26.4.app"
-          sudo xcode-select -switch "$ACTIVE_XCODE"
-          SDKS_DIR="$ACTIVE_XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"
-          MACOS_SDK="$SDKS_DIR/MacOSX.sdk"
+          PREFERRED_XCODE="/Applications/Xcode_26.5.app"
           REAL_SDK=""
-          # Search ALL Xcode_26.x.app installs (including active) for versioned MacOSX[N].sdk.
+          REAL_XCODE=""
+          # Search ALL Xcode_26.x.app installs for versioned MacOSX[N].sdk.
           # Validate by usr/include header count: stubs ≤1 file, real SDKs have hundreds.
           for xapp in $(ls -d /Applications/Xcode_26.*.app 2>/dev/null | sort -rV); do
             sdk_dir="$xapp/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"
@@ -300,6 +297,7 @@ jobs:
               hdr_count=$(ls "$cand/usr/include" 2>/dev/null | wc -l | tr -d ' ')
               if [ "${hdr_count:-0}" -gt 5 ]; then
                 REAL_SDK="$cand"
+                REAL_XCODE="$xapp"
                 break 2
               fi
             done
@@ -315,10 +313,23 @@ jobs:
               fi
             done
           fi
+          # Switch to preferred Xcode if it exists, otherwise the one that has the real SDK.
+          if [ -d "$PREFERRED_XCODE" ]; then
+            sudo xcode-select -switch "$PREFERRED_XCODE"
+          elif [ -n "$REAL_XCODE" ]; then
+            sudo xcode-select -switch "$REAL_XCODE"
+            echo "Note: Xcode_26.5.app not found; using $REAL_XCODE for xcode-select"
+          fi
+          # Replace stub MacOSX.sdk in the active Xcode with a symlink to the real versioned SDK.
           if [ -n "$REAL_SDK" ]; then
+            ACTIVE_DEV="$(xcode-select -p)"
+            ACTIVE_SDKS_DIR="$ACTIVE_DEV/Platforms/MacOSX.platform/Developer/SDKs"
+            MACOS_SDK="$ACTIVE_SDKS_DIR/MacOSX.sdk"
+            # Resolve REAL_SDK to its canonical (symlink-free) path to prevent ELOOP errors.
+            REAL_SDK_CANON=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$REAL_SDK" 2>/dev/null || echo "$REAL_SDK")
             sudo rm -rf "$MACOS_SDK"
-            sudo ln -sfn "$REAL_SDK" "$MACOS_SDK"
-            echo "Created MacOSX.sdk symlink -> $REAL_SDK"
+            sudo ln -sfn "$REAL_SDK_CANON" "$MACOS_SDK"
+            echo "Created MacOSX.sdk symlink -> $REAL_SDK_CANON"
           else
             echo "WARNING: no valid macOS SDK found; build may fail"
           fi

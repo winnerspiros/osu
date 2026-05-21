@@ -21,11 +21,11 @@ namespace osu.Game.Rulesets.Taiko.UI
 
         private readonly HitType hitType;
 
-        private SkinnableDrawable skinnable = null!;
+        private SkinnableDrawable? skinnable;
 
-        public override double LifetimeStart => skinnable.Drawable.LifetimeStart;
+        public override double LifetimeStart => skinnable?.Drawable.LifetimeStart ?? base.LifetimeStart;
 
-        public override double LifetimeEnd => skinnable.Drawable.LifetimeEnd;
+        public override double LifetimeEnd => skinnable?.Drawable.LifetimeEnd ?? base.LifetimeEnd;
 
         public KiaiHitExplosion(DrawableHitObject judgedObject, HitType hitType)
         {

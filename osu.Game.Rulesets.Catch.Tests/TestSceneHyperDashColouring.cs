@@ -7,12 +7,19 @@ using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
+using osu.Game.Database;
+using osu.Game.IO;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Catch.Objects.Drawables;
 using osu.Game.Rulesets.Catch.Skinning;
@@ -23,15 +30,18 @@ using osu.Game.Tests.Visual;
 
 namespace osu.Game.Rulesets.Catch.Tests
 {
-    public partial class TestSceneHyperDashColouring : OsuTestScene
+    public partial class TestSceneHyperDashColouring : OsuTestScene, IStorageResourceProvider
     {
         [Resolved]
         private SkinManager skins { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; } = null!;
+
         [Test]
         public void TestDefaultCatcherColour()
         {
-            var skin = new TestSkin();
+            var skin = new TestSkin(this);
 
             checkHyperDashCatcherColour(skin, Catcher.DEFAULT_HYPER_DASH_COLOUR);
         }
@@ -39,7 +49,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestCustomCatcherColour()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashColour = Colour4.Goldenrod
             };
@@ -50,7 +60,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestCustomAfterImageColour()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashAfterImageColour = Colour4.Lime
             };
@@ -61,7 +71,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestCustomAfterImageColourPriority()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashColour = Colour4.Goldenrod,
                 HyperDashAfterImageColour = Colour4.Lime
@@ -73,7 +83,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestDefaultFruitColour()
         {
-            var skin = new TestSkin();
+            var skin = new TestSkin(this);
 
             checkHyperDashFruitColour(skin, Catcher.DEFAULT_HYPER_DASH_COLOUR);
         }
@@ -81,7 +91,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestCustomFruitColour()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashFruitColour = Colour4.Cyan
             };
@@ -92,7 +102,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestCustomFruitColourPriority()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashColour = Colour4.Goldenrod,
                 HyperDashFruitColour = Colour4.Cyan
@@ -104,7 +114,7 @@ namespace osu.Game.Rulesets.Catch.Tests
         [Test]
         public void TestFruitColourFallback()
         {
-            var skin = new TestSkin
+            var skin = new TestSkin(this)
             {
                 HyperDashColour = Colour4.Goldenrod
             };
@@ -209,10 +219,21 @@ namespace osu.Game.Rulesets.Catch.Tests
                 set => Configuration.CustomColours[nameof(CatchSkinColour.HyperDashFruit)] = value;
             }
 
-            public TestSkin()
-                : base(new SkinInfo(), null, null, string.Empty)
+            public TestSkin(IStorageResourceProvider resources)
+                : base(new SkinInfo(), resources, new NamespacedResourceStore<byte[]>(resources.Resources, "Skins/Legacy"), string.Empty)
             {
             }
         }
+
+        #region IStorageResourceProvider
+
+        IRenderer IStorageResourceProvider.Renderer => host.Renderer;
+        AudioManager IStorageResourceProvider.AudioManager => Audio;
+        IResourceStore<byte[]> IStorageResourceProvider.Files => null!;
+        IResourceStore<byte[]> IStorageResourceProvider.Resources => base.Resources;
+        IResourceStore<TextureUpload> IStorageResourceProvider.CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => host.CreateTextureLoaderStore(underlyingStore);
+        RealmAccess IStorageResourceProvider.RealmAccess => null!;
+
+        #endregion
     }
 }

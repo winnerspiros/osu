@@ -246,25 +246,29 @@ namespace osu.Android
 
             // Stamp RGBA8888 at the Window level BEFORE SDL creates its SurfaceView inside
             // base.OnCreate(). Android's default SurfaceView pixel format on many high-density
-            // Samsung / Qualcomm panels is RGB565. SDL3 only calls SurfaceHolder.setFormat(
-            // RGBA8888) for the OpenGL path — the Vulkan path inherits the window default.
-            // Setting the format here, before SDL attaches its SurfaceView, ensures the
-            // SurfaceView is born with RGBA8888 and eliminates the format-change teardown
-            // (SurfaceHolder.SetFormat in DecorView.Post) that otherwise fires mid-Vulkan-init
-            // and can produce the "Draw thread did not acknowledge teardown within 250ms" warning.
-            // The DecorView.Post call and the SurfaceChanged reactive guard are retained as
-            // belt-and-braces fallbacks for timing windows or OEM variants where this hint is
-            // not honoured by the SurfaceView allocation path.
-            if (LogManagement.IsVulkanConfigured())
+            // Samsung / Qualcomm panels is RGB565. Setting RGBA8888 here (before SDL attaches
+            // its SurfaceView) ensures the SurfaceView is born with full 32-bit colour in both
+            // Vulkan and OpenGL modes:
+            //   - Vulkan: the Veldrid swapchain can request VK_FORMAT_R8G8B8A8_SRGB / BGRA8888
+            //     directly, but the underlying ANativeWindow must also support RGBA8888 — a
+            //     Window born at RGB565 forces a surface teardown (and the
+            //     "Draw thread did not acknowledge teardown within 250ms" warning) when Veldrid
+            //     later calls ANativeWindow_setBuffersGeometry with RGBA8888.
+            //   - OpenGL safe-mode (after a Vulkan crash): SDL3 does call
+            //     SurfaceHolder.setFormat(RGBA8888) for EGL surfaces, but it only does so AFTER
+            //     the SurfaceView is created.  Pre-stamping the Window format here guarantees
+            //     the initial SurfaceView allocation happens at RGBA8888, avoiding a brief
+            //     RGB565 render pass that can leave colour-channel artefacts visible in the
+            //     first few frames.
+            // Belt-and-braces fallbacks (DecorView.Post watcher, SurfaceChanged reactive guard)
+            // are retained for OEM variants where this Window-level hint is not honoured.
+            try
             {
-                try
-                {
-                    Window?.SetFormat(global::Android.Graphics.Format.Rgba8888);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
-                }
+                Window?.SetFormat(global::Android.Graphics.Format.Rgba8888);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Pre-SDL Window.SetFormat(RGBA8888) failed (non-fatal): {e.Message}");
             }
 
             // BASS AAudio: if the user opted in, tell BASS to open an AAudio device instead
@@ -960,6 +964,75 @@ namespace osu.Android
 
                 heldSurface?.Dispose();
                 heldSurface = null;
+            }
+        }
+
+        protected override void OnPause()
+        {
+            // Root cause of the recurring Vulkan IMMEDIATE-mode ANR (process-runtime ~50s):
+            //
+            //   1. Samsung Game Booster (or any surface-lifecycle event) fires onPause() on the
+            //      Java main thread at ~50 seconds of active Vulkan gameplay.
+            //   2. SDL3's native onPause() sends SDL_EVENT_DID_ENTER_BACKGROUND through its event
+            //      filter synchronously on the calling (Java main) thread.
+            //   3. The event filter calls Window.Suspended → GameHost.Suspend() →
+            //      ThreadRunner.Suspend() → DrawThread.Pause() → WaitForState(Paused).
+            //   4. WaitForState spins: `while (state != Paused) Thread.Sleep(1)` — NO TIMEOUT.
+            //   5. The draw thread is stuck inside vkQueuePresentKHR (Vulkan IMMEDIATE mode;
+            //      FrameSync=ActualUnlimited) due to an Adreno 7xx driver stall. It can only
+            //      check pauseRequested at the START of the next frame — which never comes.
+            //   6. Java main thread spins forever → input dispatching times out after 10s → ANR.
+            //
+            // Fix: watchdog the OnPause() call. If base.OnPause() hasn't returned within 7 seconds
+            // (leaving a 3-second margin before the 10-second ANR), the draw thread is conclusively
+            // stuck in the driver. Kill the process immediately for a clean restart rather than a
+            // frozen 10-second ANR.
+            //
+            // We intentionally do NOT set FLAG_STARTUP_IN_PROGRESS (safe-mode) before killing.
+            // The startup completed successfully; this is a mid-session driver hang triggered by
+            // a transient system event (Game Booster first-session overlay). The next launch will
+            // retry Vulkan normally. Safe-mode is reserved for launch-time hangs where the renderer
+            // itself cannot initialize.
+            //
+            // Only active for Vulkan: OpenGL's eglSwapBuffers cannot stall indefinitely in the way
+            // vkQueuePresentKHR can, so OpenGL sessions are not at risk of this ANR pattern.
+            if (LogManagement.IsVulkanConfigured())
+            {
+                var pauseCompleted = new ManualResetEventSlim(false);
+
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    const int watchdog_ms = 7000;
+
+                    if (pauseCompleted.Wait(watchdog_ms))
+                        return;
+
+                    // base.OnPause() has not returned — draw thread is conclusively stuck in
+                    // vkQueuePresentKHR. Write a diagnostic marker and kill cleanly.
+                    try
+                    {
+                        CrashDiagnostics.WriteAliveMarker(
+                            $"OnPause watchdog fired after {watchdog_ms}ms: draw thread stuck in vkQueuePresentKHR (Vulkan IMMEDIATE ANR). Killing for clean restart.");
+                    }
+                    catch { }
+
+                    try
+                    {
+                        Debug.WriteLine(
+                            "[osu!] OnPause watchdog: draw thread stuck in vkQueuePresentKHR >7s — killing for clean Vulkan restart.");
+                    }
+                    catch { }
+
+                    try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                    catch { }
+                });
+
+                base.OnPause();
+                pauseCompleted.Set();
+            }
+            else
+            {
+                base.OnPause();
             }
         }
 
