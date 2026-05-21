@@ -576,6 +576,10 @@ namespace osu.Game.Screens.Play
         private void contentIn(double delayBeforeSideDisplays = 0)
         {
             MetadataInfo.Loading = true;
+
+            // On initial entry this is already running from LoadComplete(), so the call is a no-op.
+            // On retry (OnResuming → cancelLoad → contentIn) cancelLoad() has cleared the token,
+            // so this correctly restarts the prewarm for the same beatmap/mod combination.
             beginPlayableBeatmapPrewarm();
 
             if (QuickRestart)

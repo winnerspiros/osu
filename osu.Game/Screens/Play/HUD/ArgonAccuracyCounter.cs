@@ -53,10 +53,17 @@ namespace osu.Game.Screens.Play.HUD
                 get => wholePart.Text;
                 set
                 {
-                    string[] split = value.ToString().Replace("%", string.Empty).Split(".");
+                    // Avoid Replace + Split which allocates a string copy, a string array, and two element strings
+                    // on every roll tick during gameplay. IndexOf-based slicing halves the allocation count.
+                    string str = value.ToString();
+                    int dotIndex = str.IndexOf('.');
+                    int pctIndex = str.IndexOf('%');
 
-                    wholePart.Text = split[0];
-                    fractionPart.Text = "." + split[1];
+                    if (dotIndex >= 0 && pctIndex > dotIndex)
+                    {
+                        wholePart.Text = str[..dotIndex];
+                        fractionPart.Text = str[dotIndex..pctIndex];
+                    }
                 }
             }
 

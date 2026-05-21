@@ -76,7 +76,7 @@ namespace osu.Game.Rulesets.Scoring.Legacy
             EndTimeObjectCount = beatmap.HitObjects.Count(h => h is IHasDuration),
             TotalObjectCount = beatmap.HitObjects.Count,
             MaxSliderRepeats = beatmap.HitObjects.OfType<IHasRepeats>().Select(h => h.RepeatCount).DefaultIfEmpty(0).Max(),
-            MaxSliderTicks = beatmap.HitObjects.Select(h => h.NestedHitObjects.Count(n => n.GetType().Name == "SliderTick")).DefaultIfEmpty(0).Max()
+            MaxSliderTicks = beatmap.HitObjects.Select(h => h.NestedHitObjects.Count(n => n is ISliderTick)).DefaultIfEmpty(0).Max()
         };
 
         public static LegacyBeatmapConversionDifficultyInfo FromBeatmapInfo(IBeatmapInfo beatmapInfo) => new LegacyBeatmapConversionDifficultyInfo

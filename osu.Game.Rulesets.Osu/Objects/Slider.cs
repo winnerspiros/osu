@@ -34,7 +34,10 @@ namespace osu.Game.Rulesets.Osu.Objects
             set => throw new System.NotSupportedException($"Adjust via {nameof(RepeatCount)} instead"); // can be implemented if/when needed.
         }
 
-        public override IList<HitSampleInfo> AuxiliarySamples => CreateSlidingSamples().Concat(TailSamples).ToArray();
+        public override IList<HitSampleInfo> AuxiliarySamples => cachedAuxiliarySamples ??= CreateSlidingSamples().Concat(TailSamples).ToArray();
+
+        // Cached after ApplyDefaults populates TailSamples — stable for the lifetime of this slider instance.
+        private IList<HitSampleInfo>? cachedAuxiliarySamples;
 
         private readonly Cached<Vector2> endPositionCache = new Cached<Vector2>();
 
@@ -164,6 +167,9 @@ namespace osu.Game.Rulesets.Osu.Objects
         protected override void CreateNestedHitObjects(CancellationToken cancellationToken)
         {
             base.CreateNestedHitObjects(cancellationToken);
+
+            // Invalidate the auxiliary-samples cache since TailSamples will be reassigned below.
+            cachedAuxiliarySamples = null;
 
             var sliderEvents = SliderEventGenerator.Generate(StartTime, SpanDuration, Velocity, TickDistance, Path.Distance, this.SpanCount(), cancellationToken);
 

@@ -35,7 +35,7 @@ namespace osu.Game.Beatmaps
             // This method is called both with raw and playable beatmaps; for raw beatmaps this will
             // naturally become 0 and later be backfilled by background processing.
             beatmapInfo.MaxSliderTicks = beatmap.HitObjects
-                                                .Select(h => h.NestedHitObjects.Count(n => n.GetType().Name == "SliderTick"))
+                                                .Select(h => h.NestedHitObjects.Count(n => n is ISliderTick))
                                                 .DefaultIfEmpty(0)
                                                 .Max();
         }
