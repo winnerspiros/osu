@@ -10,8 +10,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.IO;
 using osu.Game.Storyboards;
-using osuTK;
-using osuTK.Graphics;
+using System.Numerics;
 
 namespace osu.Game.Tests.Beatmaps.Formats
 {
@@ -150,7 +149,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             var sprite = new StoryboardSprite(StoryboardElementSource.Beatmap, "test.jpg", Anchor.Centre, new Vector2(300));
             sprite.Commands.AddAlpha(Easing.InBack, 100, 200, 0, 1);
             sprite.Commands.AddBlendingParameters(Easing.None, 300, 300, BlendingParameters.Additive, BlendingParameters.Additive);
-            sprite.Commands.AddColour(Easing.InCubic, 400, 500, Color4.White, Color4.Aquamarine);
+            sprite.Commands.AddColour(Easing.InCubic, 400, 500, Colour4.White, Colour4.Aquamarine);
             sprite.Commands.AddFlipH(Easing.InOutQuad, 600, 600, true, true);
             sprite.Commands.AddFlipV(Easing.InOutQuad, 800, 900, true, false);
             sprite.Commands.AddRotation(Easing.OutSine, 1000, 1100, 0, 720);
@@ -185,8 +184,8 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 Assert.That(colourCommand.Easing, Is.EqualTo(Easing.InCubic));
                 Assert.That(colourCommand.StartTime, Is.EqualTo(400));
                 Assert.That(colourCommand.EndTime, Is.EqualTo(500));
-                Assert.That(colourCommand.StartValue, Is.EqualTo(Color4.White));
-                Assert.That(colourCommand.EndValue, Is.EqualTo(Color4.Aquamarine));
+                Assert.That(colourCommand.StartValue, Is.EqualTo(Colour4.White));
+                Assert.That(colourCommand.EndValue, Is.EqualTo(Colour4.Aquamarine));
 
                 var flipHCommand = decodedSprite.Commands.FlipH.Single();
                 Assert.That(flipHCommand.Easing, Is.EqualTo(Easing.InOutQuad));
