@@ -33,6 +33,9 @@ namespace osu.Game.Rulesets.UI
         // Reusable scratch list for iterative depth-first traversal of nested hit objects.
         // Avoids allocating iterator state-machine objects on every Play() call.
         private readonly List<HitObject> nestedScratch = new List<HitObject>();
+        private bool entryBoundsComputed;
+        private HitObjectLifetimeEntry? earliestEntry;
+        private HitObjectLifetimeEntry? latestEntry;
 
         private HitObjectLifetimeEntry? mostValidObject;
 
@@ -68,7 +71,8 @@ namespace osu.Game.Rulesets.UI
             if (nextObject == null)
                 return;
 
-            PlaySamples(nextObject.Samples.Cast<ISampleInfo>().ToArray());
+            var samples = nextObject.Samples;
+            PlaySamples(samples is ISampleInfo[] sampleArray ? sampleArray : samples.Cast<ISampleInfo>().ToArray());
         }
 
         protected virtual void PlaySamples(ISampleInfo[] samples) => Schedule(() =>
@@ -126,7 +130,8 @@ namespace osu.Game.Rulesets.UI
                 // In the case there are no non-judged objects, the last hit object should be used instead.
                 if (candidate == null)
                 {
-                    mostValidObject = hitObjectContainer.Entries.LastOrDefault();
+                    computeEntryBoundsIfNeeded();
+                    mostValidObject = latestEntry;
                 }
                 else
                 {
@@ -136,7 +141,8 @@ namespace osu.Game.Rulesets.UI
                     }
                     else
                     {
-                        mostValidObject ??= hitObjectContainer.Entries.FirstOrDefault();
+                        computeEntryBoundsIfNeeded();
+                        mostValidObject ??= earliestEntry;
                     }
                 }
             }
@@ -181,6 +187,23 @@ namespace osu.Game.Rulesets.UI
         private bool isCloseEnoughToCurrentTime(HitObject h) => getReferenceTime() >= h.StartTime - h.HitWindows.WindowFor(HitResult.Miss) * 2;
 
         private double getReferenceTime() => gameplayClock?.CurrentTime ?? Clock.CurrentTime;
+
+        private void computeEntryBoundsIfNeeded()
+        {
+            if (entryBoundsComputed)
+                return;
+
+            foreach (var entry in hitObjectContainer.Entries)
+            {
+                if (earliestEntry == null || entry.HitObject.StartTime < earliestEntry.HitObject.StartTime)
+                    earliestEntry = entry;
+
+                if (latestEntry == null || entry.HitObject.StartTime > latestEntry.HitObject.StartTime)
+                    latestEntry = entry;
+            }
+
+            entryBoundsComputed = true;
+        }
 
         protected SkinnableSound GetNextSample()
         {
