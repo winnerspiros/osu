@@ -8,6 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Logging;
+using osu.Game;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 
@@ -21,7 +22,7 @@ namespace osu.Game.Beatmaps
     /// <remarks>
     /// <para>
     /// The cache stores one <em>canonical</em> (immutable) copy keyed by
-    /// <c>(BeatmapInfo.ID, rulesetShortName, orderedModsKey)</c>.
+    /// <c>(BeatmapInfo.ID + BeatmapInfo.Hash, rulesetShortName, orderedModsKey, gameVersion)</c>.
     /// Callers receive a shallow <see cref="IBeatmap.Clone"/> so that gameplay state does not
     /// bleed across sessions while still reusing the pre-built hit-object graph.
     /// </para>
@@ -33,20 +34,23 @@ namespace osu.Game.Beatmaps
     /// </remarks>
     public class PlayableBeatmapCache : Component
     {
-        private readonly record struct CacheKey(Guid BeatmapId, string RulesetShortName, string ModsKey);
+        private readonly record struct CacheKey(Guid BeatmapId, string BeatmapHash, string RulesetShortName, string ModsKey, string GameVersion);
 
         private readonly Dictionary<CacheKey, IBeatmap> cache = new Dictionary<CacheKey, IBeatmap>();
 
         private WorkingBeatmapCache? workingBeatmapCache;
+        private string gameVersion = string.Empty;
 
-        [BackgroundDependencyLoader]
-        private void load(IWorkingBeatmapCache beatmapCache)
+        [BackgroundDependencyLoader(true)]
+        private void load(IWorkingBeatmapCache beatmapCache, OsuGameBase? game)
         {
             if (beatmapCache is WorkingBeatmapCache concrete)
             {
                 workingBeatmapCache = concrete;
                 workingBeatmapCache.OnInvalidated += handleInvalidated;
             }
+
+            gameVersion = game?.VersionHash ?? typeof(OsuGameBase).Assembly.GetName().Version?.ToString() ?? "unknown";
         }
 
         /// <summary>
@@ -110,7 +114,7 @@ namespace osu.Game.Beatmaps
             }
         }
 
-        private static CacheKey makeKey(BeatmapInfo beatmapInfo, IRulesetInfo ruleset, IReadOnlyList<Mod> mods)
+        private CacheKey makeKey(BeatmapInfo beatmapInfo, IRulesetInfo ruleset, IReadOnlyList<Mod> mods)
         {
             // Build a deterministic key from ordered mod acronyms and their settings hash.
             // Mod.GetHashCode() accounts for both the type and any user-adjustable settings.
@@ -118,7 +122,7 @@ namespace osu.Game.Beatmaps
                                               .OrderBy(m => m.Acronym)
                                               .Select(m => $"{m.Acronym}:{m.GetHashCode()}"));
 
-            return new CacheKey(beatmapInfo.ID, ruleset.ShortName, modsKey);
+            return new CacheKey(beatmapInfo.ID, beatmapInfo.Hash, ruleset.ShortName, modsKey, gameVersion);
         }
 
         protected override void Dispose(bool isDisposing)

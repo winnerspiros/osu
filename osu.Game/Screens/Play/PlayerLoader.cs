@@ -3,6 +3,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass.Fx;
 using osu.Framework.Allocation;
@@ -168,6 +170,7 @@ namespace osu.Game.Screens.Play
         protected bool QuickRestart { get; private set; }
 
         private IDisposable? highPerformanceSession;
+        private CancellationTokenSource? playablePrewarmCancellation;
 
         [Resolved]
         private INotificationOverlay? notificationOverlay { get; set; }
@@ -177,6 +180,9 @@ namespace osu.Game.Screens.Play
 
         [Resolved]
         private AudioManager audioManager { get; set; } = null!;
+
+        [Resolved(canBeNull: true)]
+        private PlayableBeatmapCache? playableBeatmapCache { get; set; }
 
         [Resolved]
         private BatteryInfo? batteryInfo { get; set; }
@@ -564,6 +570,7 @@ namespace osu.Game.Screens.Play
         private void contentIn(double delayBeforeSideDisplays = 0)
         {
             MetadataInfo.Loading = true;
+            beginPlayableBeatmapPrewarm();
 
             if (QuickRestart)
             {
@@ -720,6 +727,58 @@ namespace osu.Game.Screens.Play
         {
             scheduledPushPlayer?.Cancel();
             scheduledPushPlayer = null;
+            cancelPlayableBeatmapPrewarm();
+        }
+
+        private void beginPlayableBeatmapPrewarm()
+        {
+            cancelPlayableBeatmapPrewarm();
+
+            if (playableBeatmapCache == null || Beatmap.Value is DummyWorkingBeatmap)
+                return;
+
+            var workingBeatmap = Beatmap.Value;
+            var beatmapInfo = workingBeatmap.BeatmapInfo;
+            var rulesetInfo = Ruleset.Value;
+            var gameplayMods = Mods.Value.Select(m => m.DeepClone()).ToArray();
+
+            playablePrewarmCancellation = new CancellationTokenSource();
+            var token = playablePrewarmCancellation.Token;
+
+            Task.Run(() =>
+            {
+                if (token.IsCancellationRequested)
+                    return;
+
+                var ruleset = rulesetInfo.CreateInstance();
+
+                if (ruleset == null)
+                    return;
+
+                if (playableBeatmapCache.TryGetPlayableBeatmap(beatmapInfo, ruleset.RulesetInfo, gameplayMods, out _))
+                    return;
+
+                var playable = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, gameplayMods, token);
+
+                if (token.IsCancellationRequested || playable.HitObjects.Count == 0)
+                    return;
+
+                playableBeatmapCache.CachePlayableBeatmap(beatmapInfo, ruleset.RulesetInfo, gameplayMods, playable);
+            }, token).ContinueWith(t =>
+            {
+                if (t.IsCanceled || t.Exception?.InnerException is OperationCanceledException)
+                    return;
+
+                if (t.Exception != null)
+                    Logger.Error(t.Exception.InnerException ?? t.Exception, "Playable beatmap prewarm failed.");
+            }, TaskScheduler.Default);
+        }
+
+        private void cancelPlayableBeatmapPrewarm()
+        {
+            playablePrewarmCancellation?.Cancel();
+            playablePrewarmCancellation?.Dispose();
+            playablePrewarmCancellation = null;
         }
 
         private void endHighPerformance()
@@ -741,6 +800,8 @@ namespace osu.Game.Screens.Play
                 // if the player never got pushed, we should explicitly dispose it.
                 DisposalTask = LoadTask?.ContinueWith(_ => CurrentPlayer?.Dispose());
             }
+
+            cancelPlayableBeatmapPrewarm();
 
             // This is only a failsafe; should be disposed more immediately by `endHighPerformance` call.
             highPerformanceSession?.Dispose();

@@ -130,6 +130,13 @@ namespace osu.Game.Beatmaps
         public int MaxSliderRepeats { get; set; } = -1;
 
         /// <summary>
+        /// The maximum number of slider ticks found on a single slider in the beatmap.
+        /// Only relevant for rulesets that expose slider ticks (currently osu!).
+        /// Defaults to -1 (meaning not-yet-calculated).
+        /// </summary>
+        public int MaxSliderTicks { get; set; } = -1;
+
+        /// <summary>
         /// Reset any fetched online linking information (and history).
         /// </summary>
         public void ResetOnlineInfo(bool resetOnlineId = true)

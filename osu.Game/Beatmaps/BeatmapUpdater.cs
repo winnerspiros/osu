@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -10,7 +9,6 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osu.Game.Database;
 using osu.Game.Online.API;
-using osu.Game.Rulesets.Objects.Types;
 
 namespace osu.Game.Beatmaps
 {
@@ -59,9 +57,10 @@ namespace osu.Game.Beatmaps
 
                     var ruleset = working.BeatmapInfo.Ruleset.CreateInstance();
                     var calculator = ruleset.CreateDifficultyCalculator(working);
+                    var playable = working.GetPlayableBeatmap(working.BeatmapInfo.Ruleset);
 
                     beatmap.StarRating = calculator.Calculate().StarRating;
-                    beatmap.UpdateStatisticsFromBeatmap(working.Beatmap);
+                    beatmap.UpdateStatisticsFromBeatmap(playable);
                 }
 
                 // And invalidate again afterwards as re-fetching the most up-to-date database metadata will be required.
@@ -77,15 +76,9 @@ namespace osu.Game.Beatmaps
                 workingBeatmapCache.Invalidate(beatmapInfo);
 
                 var working = workingBeatmapCache.GetWorkingBeatmap(beatmapInfo);
-                var beatmap = working.Beatmap;
+                var playable = working.GetPlayableBeatmap(beatmapInfo.Ruleset);
 
-                beatmapInfo.EndTimeObjectCount = beatmap.HitObjects.Count(h => h is IHasDuration);
-                beatmapInfo.TotalObjectCount = beatmap.HitObjects.Count;
-                beatmapInfo.MaxSliderRepeats = beatmap.HitObjects
-                                                      .OfType<IHasRepeats>()
-                                                      .Select(h => h.RepeatCount)
-                                                      .DefaultIfEmpty(0)
-                                                      .Max();
+                beatmapInfo.UpdateStatisticsFromBeatmap(playable);
 
                 // And invalidate again afterwards as re-fetching the most up-to-date database metadata will be required.
                 workingBeatmapCache.Invalidate(beatmapInfo);

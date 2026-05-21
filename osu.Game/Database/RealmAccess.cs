@@ -102,8 +102,9 @@ namespace osu.Game.Database
         /// 50   2025-07-11    Add UserTags to BeatmapMetadata.
         /// 51   2025-07-22    Add ScoreInfo.Pauses.
         /// 52   2025-??-??    Add MaxSliderRepeats to BeatmapInfo for osu! pool sizing metadata.
+        /// 53   2025-??-??    Add MaxSliderTicks to BeatmapInfo for osu! pool sizing metadata.
         /// </summary>
-        private const int schema_version = 52;
+        private const int schema_version = 53;
 
         /// <summary>
         /// Lock object which is held during <see cref="BlockAllOperations"/> sections, blocking realm retrieval during blocking periods.
@@ -1351,6 +1352,14 @@ namespace osu.Game.Database
                     // Set all existing entries to -1 so BackgroundDataStoreProcessor can backfill them.
                     foreach (var beatmap in migration.NewRealm.All<BeatmapInfo>())
                         beatmap.MaxSliderRepeats = -1;
+
+                    break;
+
+                case 53:
+                    // New MaxSliderTicks field on BeatmapInfo for osu! pool sizing.
+                    // Set all existing entries to -1 so BackgroundDataStoreProcessor can backfill them.
+                    foreach (var beatmap in migration.NewRealm.All<BeatmapInfo>())
+                        beatmap.MaxSliderTicks = -1;
 
                     break;
             }

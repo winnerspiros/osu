@@ -56,6 +56,11 @@ namespace osu.Game.Rulesets.Scoring.Legacy
         /// </summary>
         public int MaxSliderRepeats { get; set; }
 
+        /// <summary>
+        /// The maximum number of slider ticks on a single slider in the beatmap.
+        /// </summary>
+        public int MaxSliderTicks { get; set; }
+
         double IBeatmapDifficultyInfo.SliderMultiplier => 0;
         double IBeatmapDifficultyInfo.SliderTickRate => 0;
 
@@ -69,7 +74,9 @@ namespace osu.Game.Rulesets.Scoring.Legacy
             CircleSize = beatmap.Difficulty.CircleSize,
             OverallDifficulty = beatmap.Difficulty.OverallDifficulty,
             EndTimeObjectCount = beatmap.HitObjects.Count(h => h is IHasDuration),
-            TotalObjectCount = beatmap.HitObjects.Count
+            TotalObjectCount = beatmap.HitObjects.Count,
+            MaxSliderRepeats = beatmap.HitObjects.OfType<IHasRepeats>().Select(h => h.RepeatCount).DefaultIfEmpty(0).Max(),
+            MaxSliderTicks = beatmap.HitObjects.Select(h => h.NestedHitObjects.Count(n => n.GetType().Name == "SliderTick")).DefaultIfEmpty(0).Max()
         };
 
         public static LegacyBeatmapConversionDifficultyInfo FromBeatmapInfo(IBeatmapInfo beatmapInfo) => new LegacyBeatmapConversionDifficultyInfo
@@ -80,7 +87,9 @@ namespace osu.Game.Rulesets.Scoring.Legacy
             CircleSize = beatmapInfo.Difficulty.CircleSize,
             OverallDifficulty = beatmapInfo.Difficulty.OverallDifficulty,
             EndTimeObjectCount = beatmapInfo.EndTimeObjectCount,
-            TotalObjectCount = beatmapInfo.TotalObjectCount
+            TotalObjectCount = beatmapInfo.TotalObjectCount,
+            MaxSliderRepeats = beatmapInfo.MaxSliderRepeats,
+            MaxSliderTicks = beatmapInfo.MaxSliderTicks
         };
     }
 }

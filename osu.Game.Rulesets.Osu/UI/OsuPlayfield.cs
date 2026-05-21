@@ -142,27 +142,23 @@ namespace osu.Game.Rulesets.Osu.UI
 
             // handle edge cases where a beatmap has a slider with many repeats.
             int maxRepeatsOnOneSlider;
-            int maxTicksOnOneSlider = 0;
+            int maxTicksOnOneSlider;
 
             // Use persisted metadata when available to avoid a full beatmap scan.
             // Fall back to scanning the loaded beatmap if metadata has not yet been computed.
             int persistedMaxRepeats = beatmap?.BeatmapInfo.MaxSliderRepeats ?? -1;
+            int persistedMaxTicks = beatmap?.BeatmapInfo.MaxSliderTicks ?? -1;
 
-            if (persistedMaxRepeats >= 0)
+            if (persistedMaxRepeats >= 0 && persistedMaxTicks >= 0)
             {
                 maxRepeatsOnOneSlider = persistedMaxRepeats;
-
-                // Still scan for tick counts since MaxSliderTicks is not yet persisted.
-                if (osuBeatmap != null)
-                {
-                    foreach (var slider in osuBeatmap.HitObjects.OfType<Slider>())
-                        maxTicksOnOneSlider = Math.Max(maxTicksOnOneSlider, slider.NestedHitObjects.OfType<SliderTick>().Count());
-                }
+                maxTicksOnOneSlider = persistedMaxTicks;
             }
             else
             {
                 // Fallback: scan all sliders when persisted metadata is not available.
                 maxRepeatsOnOneSlider = 0;
+                maxTicksOnOneSlider = 0;
 
                 if (osuBeatmap != null)
                 {

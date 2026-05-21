@@ -28,6 +28,8 @@ namespace osu.Game.Tournament.Models
 
         public int MaxSliderRepeats { get; set; }
 
+        public int MaxSliderTicks { get; set; }
+
         public IBeatmapMetadataInfo Metadata { get; set; } = new BeatmapMetadata();
 
         public IBeatmapDifficultyInfo Difficulty { get; set; } = new BeatmapDifficulty();
@@ -52,6 +54,8 @@ namespace osu.Game.Tournament.Models
             Covers = beatmap.BeatmapSet?.Covers ?? new BeatmapSetOnlineCovers();
             EndTimeObjectCount = beatmap.EndTimeObjectCount;
             TotalObjectCount = beatmap.TotalObjectCount;
+            MaxSliderRepeats = beatmap.MaxSliderRepeats;
+            MaxSliderTicks = beatmap.MaxSliderTicks;
             Ruleset = beatmap.Ruleset;
         }
 

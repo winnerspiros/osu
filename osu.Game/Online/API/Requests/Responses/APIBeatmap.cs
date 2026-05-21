@@ -53,6 +53,9 @@ namespace osu.Game.Online.API.Requests.Responses
         // Not provided by the online API; callers that need this for pool sizing should fall back to an in-memory scan.
         public int MaxSliderRepeats => 0;
 
+        // Not provided by the online API; callers that need this for pool sizing should fall back to an in-memory scan.
+        public int MaxSliderTicks => 0;
+
         [JsonProperty(@"drain")]
         public float DrainRate { get; set; }
 
