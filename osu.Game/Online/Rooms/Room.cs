@@ -127,7 +127,7 @@ namespace osu.Game.Online.Rooms
         /// <summary>
         /// The maximum number of users allowed in the room.
         /// </summary>
-        public int? MaxParticipants
+        public byte? MaxParticipants
         {
             get;
             set => SetField(ref field, value);
@@ -318,6 +318,7 @@ namespace osu.Game.Online.Rooms
             QueueMode = room.Settings.QueueMode;
             AutoStartDuration = room.Settings.AutoStartDuration;
             AutoSkip = room.Settings.AutoSkip;
+            MaxParticipants = room.Settings.MaxParticipants;
             Host = room.Host != null ? new APIUser { Id = room.Host.UserID } : null;
             Playlist = room.Playlist.Select(p => new PlaylistItem(p)).ToArray();
         }
