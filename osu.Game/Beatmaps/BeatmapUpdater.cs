@@ -81,6 +81,11 @@ namespace osu.Game.Beatmaps
 
                 beatmapInfo.EndTimeObjectCount = beatmap.HitObjects.Count(h => h is IHasDuration);
                 beatmapInfo.TotalObjectCount = beatmap.HitObjects.Count;
+                beatmapInfo.MaxSliderRepeats = beatmap.HitObjects
+                                                      .OfType<IHasRepeats>()
+                                                      .Select(h => h.RepeatCount)
+                                                      .DefaultIfEmpty(0)
+                                                      .Max();
 
                 // And invalidate again afterwards as re-fetching the most up-to-date database metadata will be required.
                 workingBeatmapCache.Invalidate(beatmapInfo);

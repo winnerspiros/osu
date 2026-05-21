@@ -26,6 +26,8 @@ namespace osu.Game.Tournament.Models
 
         public int TotalObjectCount { get; set; }
 
+        public int MaxSliderRepeats { get; set; }
+
         public IBeatmapMetadataInfo Metadata { get; set; } = new BeatmapMetadata();
 
         public IBeatmapDifficultyInfo Difficulty { get; set; } = new BeatmapDifficulty();

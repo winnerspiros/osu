@@ -475,6 +475,12 @@ namespace osu.Game
             // Add after all the above cache operations as it depends on them.
             base.Content.Add(difficultyCache);
 
+            // Session-level cache for fully-built (converted + ApplyDefaults) playable beatmaps.
+            // Registered here so that Player, the difficulty cache, and any other consumer can resolve it.
+            PlayableBeatmapCache playableBeatmapCache;
+            dependencies.Cache(playableBeatmapCache = new PlayableBeatmapCache());
+            base.Content.Add(playableBeatmapCache);
+
             // TODO: OsuGame or OsuGameBase?
             dependencies.CacheAs(beatmapUpdater = CreateBeatmapUpdater());
             dependencies.CacheAs(SpectatorClient = new OnlineSpectatorClient(endpoints));

@@ -51,6 +51,11 @@ namespace osu.Game.Rulesets.Scoring.Legacy
         /// </summary>
         public int TotalObjectCount { get; set; }
 
+        /// <summary>
+        /// The maximum number of repeats on a single hit object in the beatmap.
+        /// </summary>
+        public int MaxSliderRepeats { get; set; }
+
         double IBeatmapDifficultyInfo.SliderMultiplier => 0;
         double IBeatmapDifficultyInfo.SliderTickRate => 0;
 

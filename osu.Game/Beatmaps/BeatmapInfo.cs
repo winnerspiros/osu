@@ -123,6 +123,13 @@ namespace osu.Game.Beatmaps
         public int TotalObjectCount { get; set; } = -1;
 
         /// <summary>
+        /// The maximum number of repeats found on a single <see cref="osu.Game.Rulesets.Objects.Types.IHasRepeats"/> hit object in the beatmap.
+        /// Only relevant for rulesets that have such objects (e.g. osu! sliders, mania hold notes).
+        /// Defaults to -1 (meaning not-yet-calculated).
+        /// </summary>
+        public int MaxSliderRepeats { get; set; } = -1;
+
+        /// <summary>
         /// Reset any fetched online linking information (and history).
         /// </summary>
         public void ResetOnlineInfo(bool resetOnlineId = true)
