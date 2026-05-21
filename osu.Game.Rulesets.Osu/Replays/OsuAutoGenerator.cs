@@ -329,7 +329,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                         var frame = (OsuReplayFrame)Frames[j];
 
                         // Don't affect frames which stop pressing a button!
-                        if (j < Frames.Count - 1 || ActionsEqual(frame.Actions, previousActions))
+                        if (j < Frames.Count - 1 || actionsEqual(frame.Actions, previousActions))
                         {
                             frame.Actions.Clear();
                             frame.Actions.Add(action);
@@ -394,7 +394,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 AddFrameToReplay(endFrame);
         }
 
-        private static bool ActionsEqual(List<OsuAction> a, List<OsuAction> b)
+        private static bool actionsEqual(List<OsuAction> a, List<OsuAction> b)
         {
             if (a.Count != b.Count) return false;
             for (int i = 0; i < a.Count; i++)

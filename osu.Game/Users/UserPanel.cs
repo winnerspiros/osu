@@ -23,6 +23,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Metadata;
 using osu.Game.Online.Multiplayer;
+using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Screens;
@@ -210,9 +211,9 @@ namespace osu.Game.Users
                 return items.ToArray();
 
                 bool isUserOnline() => metadataClient?.GetPresence(User.OnlineID) != null;
-                bool canInviteUser() => isUserOnline() && multiplayerClient?.Room?.Users.All(u => u.UserID != User.Id) == true;
+                bool canInviteUser() => isUserOnline() && multiplayerClient?.Room?.Users.All(u => u.UserID != User.Id) == true && multiplayerClient?.Room?.Settings.MatchType.IsMatchmakingType() != true;
                 bool isUserBlocked() => api.LocalUserState.Blocks.Any(b => b.TargetID == User.OnlineID);
-                bool canDuelUser() => isUserOnline() && queueController?.SelectedPool.Value != null;
+                bool canDuelUser() => isUserOnline() && queueController?.SelectedPool.Value != null && multiplayerClient?.Room?.Settings.MatchType.IsMatchmakingType() != true;
             }
         }
 

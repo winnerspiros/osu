@@ -138,7 +138,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                             double power = DifficultyCalculationUtils.Logistic(island.Delta, maxValue: 2.75, multiplier: 0.24, midpointOffset: 58.33);
                             effectiveRatio *= Math.Min(3.0 / islandCount.Count, Math.Pow(1.0 / islandCount.Count, power));
 
-                            islandCounts[islandCountIndex] = (islandCount.Island, islandCount.Count);
+                            islandCounts[islandCountIndex] = (islandCount.Island!, islandCount.Count);
                         }
                         else
                         {
