@@ -126,7 +126,8 @@ namespace osu.Game.Rulesets.UI
                 // In the case there are no non-judged objects, the last hit object should be used instead.
                 if (candidate == null)
                 {
-                    mostValidObject = hitObjectContainer.Entries.LastOrDefault();
+                    var (_, lastEntry) = getEntryBounds();
+                    mostValidObject = lastEntry;
                 }
                 else
                 {
@@ -136,7 +137,8 @@ namespace osu.Game.Rulesets.UI
                     }
                     else
                     {
-                        mostValidObject ??= hitObjectContainer.Entries.FirstOrDefault();
+                        var (firstEntry, _) = getEntryBounds();
+                        mostValidObject ??= firstEntry;
                     }
                 }
             }
@@ -175,6 +177,23 @@ namespace osu.Game.Rulesets.UI
             }
 
             return best ?? mostValidObject.HitObject;
+        }
+
+        private (HitObjectLifetimeEntry? first, HitObjectLifetimeEntry? last) getEntryBounds()
+        {
+            HitObjectLifetimeEntry? first = null;
+            HitObjectLifetimeEntry? last = null;
+
+            foreach (var entry in hitObjectContainer.Entries)
+            {
+                if (first == null || entry.HitObject.StartTime < first.HitObject.StartTime)
+                    first = entry;
+
+                if (last == null || entry.HitObject.StartTime > last.HitObject.StartTime)
+                    last = entry;
+            }
+
+            return (first, last);
         }
 
         private bool isAlreadyHit(HitObjectLifetimeEntry h) => h.AllJudged;
