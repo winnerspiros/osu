@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Utils;
 using osu.Game.Rulesets.Osu.Difficulty.Preprocessing;
@@ -116,12 +115,21 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                         if (previousIsland.DeltaCount == island.DeltaCount)
                             effectiveRatio *= 0.5;
 
-                        var islandCount = islandCounts.FirstOrDefault(x => x.Island.Equals(island));
+                        int islandCountIndex = -1;
+                        (Island Island, int Count) islandCount = default;
 
-                        if (islandCount != default)
+                        for (int k = 0; k < islandCounts.Count; k++)
                         {
-                            int countIndex = islandCounts.IndexOf(islandCount);
+                            if (islandCounts[k].Island.Equals(island))
+                            {
+                                islandCountIndex = k;
+                                islandCount = islandCounts[k];
+                                break;
+                            }
+                        }
 
+                        if (islandCountIndex >= 0)
+                        {
                             // only add island to island counts if they're going one after another
                             if (previousIsland.Equals(island))
                                 islandCount.Count++;
@@ -130,7 +138,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
                             double power = DifficultyCalculationUtils.Logistic(island.Delta, maxValue: 2.75, multiplier: 0.24, midpointOffset: 58.33);
                             effectiveRatio *= Math.Min(3.0 / islandCount.Count, Math.Pow(1.0 / islandCount.Count, power));
 
-                            islandCounts[countIndex] = (islandCount.Island, islandCount.Count);
+                            islandCounts[islandCountIndex] = (islandCount.Island, islandCount.Count);
                         }
                         else
                         {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using osu.Framework.Graphics;
 using osu.Framework.Utils;
@@ -308,7 +307,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                 var previousActions = previousFrame.Actions;
 
                 // If a button is already held, then we simply alternate
-                if (previousActions.Any())
+                if (previousActions.Count > 0)
                 {
                     // Force alternation if we have the same button. Otherwise we can just keep the naturally to us assigned button.
                     if (previousActions.Contains(action))
@@ -330,7 +329,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                         var frame = (OsuReplayFrame)Frames[j];
 
                         // Don't affect frames which stop pressing a button!
-                        if (j < Frames.Count - 1 || frame.Actions.SequenceEqual(previousActions))
+                        if (j < Frames.Count - 1 || ActionsEqual(frame.Actions, previousActions))
                         {
                             frame.Actions.Clear();
                             frame.Actions.Add(action);
@@ -393,6 +392,16 @@ namespace osu.Game.Rulesets.Osu.Replays
             // We only want to let go of our button if we are at the end of the current replay. Otherwise something is still going on after us so we need to keep the button pressed!
             if (Frames[^1].Time <= endFrame.Time)
                 AddFrameToReplay(endFrame);
+        }
+
+        private static bool ActionsEqual(List<OsuAction> a, List<OsuAction> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (a[i] != b[i]) return false;
+            }
+            return true;
         }
 
         #endregion

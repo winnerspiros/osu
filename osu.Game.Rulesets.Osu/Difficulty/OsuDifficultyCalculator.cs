@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
@@ -51,10 +50,36 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (beatmap.HitObjects.Count == 0)
                 return new OsuDifficultyAttributes { Mods = mods };
 
-            var aim = skills.OfType<Aim>().Single(a => a.IncludeSliders);
-            var aimWithoutSliders = skills.OfType<Aim>().Single(a => !a.IncludeSliders);
-            var speed = skills.OfType<Speed>().Single();
-            var flashlight = skills.OfType<Flashlight>().SingleOrDefault();
+            Aim? aim = null;
+            Aim? aimWithoutSliders = null;
+            Speed? speed = null;
+            Flashlight? flashlight = null;
+
+            for (int i = 0; i < skills.Length; i++)
+            {
+                switch (skills[i])
+                {
+                    case Aim a when a.IncludeSliders:
+                        aim = a;
+                        break;
+
+                    case Aim a:
+                        aimWithoutSliders = a;
+                        break;
+
+                    case Speed s:
+                        speed = s;
+                        break;
+
+                    case Flashlight f:
+                        flashlight = f;
+                        break;
+                }
+            }
+
+            ArgumentNullException.ThrowIfNull(aim);
+            ArgumentNullException.ThrowIfNull(aimWithoutSliders);
+            ArgumentNullException.ThrowIfNull(speed);
 
             double speedNotes = speed.RelevantNoteCount();
 
@@ -74,9 +99,25 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double approachRate = CalculateRateAdjustedApproachRate(beatmap.Difficulty.ApproachRate, clockRate);
             double overallDifficulty = CalculateRateAdjustedOverallDifficulty(beatmap.Difficulty.OverallDifficulty, clockRate);
 
-            int hitCircleCount = beatmap.HitObjects.Count(h => h is HitCircle);
-            int sliderCount = beatmap.HitObjects.Count(h => h is Slider);
-            int spinnerCount = beatmap.HitObjects.Count(h => h is Spinner);
+            int hitCircleCount = 0, sliderCount = 0, spinnerCount = 0;
+
+            for (int i = 0; i < beatmap.HitObjects.Count; i++)
+            {
+                switch (beatmap.HitObjects[i])
+                {
+                    case HitCircle:
+                        hitCircleCount++;
+                        break;
+
+                    case Slider:
+                        sliderCount++;
+                        break;
+
+                    case Spinner:
+                        spinnerCount++;
+                        break;
+                }
+            }
 
             int totalHits = beatmap.HitObjects.Count;
 
@@ -186,7 +227,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 new Speed(mods)
             };
 
-            if (mods.Any(h => h is OsuModFlashlight))
+            bool hasFlashlight = false;
+            for (int i = 0; i < mods.Length; i++)
+            {
+                if (mods[i] is OsuModFlashlight) { hasFlashlight = true; break; }
+            }
+
+            if (hasFlashlight)
                 skills.Add(new Flashlight(mods));
 
             return skills.ToArray();

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Utils;
 using osu.Game.Rulesets.Mods;
@@ -63,7 +62,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators
             // Apply reduced small circle bonus because flow aim difficulty on small circles doesn't scale as hard as jumps
             distanceBonus *= Math.Sqrt(osuCurrObj.SmallCircleBonus);
 
-            if (mods.OfType<OsuModAutopilot>().Any())
+            bool hasAutopilot = false;
+            for (int i = 0; i < mods.Count; i++)
+            {
+                if (mods[i] is OsuModAutopilot) { hasAutopilot = true; break; }
+            }
+
+            if (hasAutopilot)
                 distanceBonus = 0;
 
             // Base difficulty with all bonuses
