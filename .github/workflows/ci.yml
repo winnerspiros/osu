@@ -325,9 +325,11 @@ jobs:
             ACTIVE_DEV="$(xcode-select -p)"
             ACTIVE_SDKS_DIR="$ACTIVE_DEV/Platforms/MacOSX.platform/Developer/SDKs"
             MACOS_SDK="$ACTIVE_SDKS_DIR/MacOSX.sdk"
+            # Resolve REAL_SDK to its canonical (symlink-free) path to prevent ELOOP errors.
+            REAL_SDK_CANON=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$REAL_SDK" 2>/dev/null || echo "$REAL_SDK")
             sudo rm -rf "$MACOS_SDK"
-            sudo ln -sfn "$REAL_SDK" "$MACOS_SDK"
-            echo "Created MacOSX.sdk symlink -> $REAL_SDK"
+            sudo ln -sfn "$REAL_SDK_CANON" "$MACOS_SDK"
+            echo "Created MacOSX.sdk symlink -> $REAL_SDK_CANON"
           else
             echo "WARNING: no valid macOS SDK found; build may fail"
           fi
