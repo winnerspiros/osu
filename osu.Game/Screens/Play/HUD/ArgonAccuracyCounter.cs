@@ -64,6 +64,12 @@ namespace osu.Game.Screens.Play.HUD
                         wholePart.Text = str[..dotIndex];
                         fractionPart.Text = str[dotIndex..pctIndex];
                     }
+                    else
+                    {
+                        // Fallback for unexpected format (e.g. localised strings without '.' or '%').
+                        wholePart.Text = str;
+                        fractionPart.Text = string.Empty;
+                    }
                 }
             }
 

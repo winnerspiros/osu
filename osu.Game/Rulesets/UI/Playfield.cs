@@ -257,6 +257,8 @@ namespace osu.Game.Rulesets.UI
             mods = Mods?.ToArray();
 
             // Pre-filter once; avoids a per-frame `is IUpdatableByPlayfield` check on every mod.
+            // Mods are resolved once at construction and don't change during gameplay, so this
+            // cached slice is always valid for the lifetime of this Playfield.
             updatableByPlayfieldMods = mods?.OfType<IUpdatableByPlayfield>().ToArray()
                                        ?? Array.Empty<IUpdatableByPlayfield>();
 

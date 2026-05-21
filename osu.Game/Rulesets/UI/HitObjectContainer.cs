@@ -140,6 +140,11 @@ namespace osu.Game.Rulesets.UI
             // Binary-search insertion to keep aliveObjectsSortedCache in StartTime order.
             // O(log n) search + O(n) shift — far cheaper than rebuilding & sorting
             // the entire list from scratch on every alive-state transition.
+            // Note: `<=` means new objects with the same StartTime are appended after
+            // existing ones (stable insertion order within a tie group).  The full
+            // visual-tree Compare also applies CompareReverseChildID as a tie-breaker,
+            // but AliveObjects consumers (e.g. cursor particles) don't require that
+            // level of ordering stability.
             double startTime = drawable.HitObject.StartTime;
             int lo = 0, hi = aliveObjectsSortedCache.Count;
 
