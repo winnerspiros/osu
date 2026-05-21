@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -56,6 +57,11 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
         protected readonly List<SmokePoint> SmokePoints = new List<SmokePoint>();
 
+        // Incremented (with a full memory barrier via Interlocked) whenever SmokePoints changes.
+        // The draw node reads this with Volatile.Read and only copies SmokePoints when the
+        // version changes, eliminating the O(N) per-frame list copy during smoke fade.
+        private int smokeVersion;
+
         private float pointInterval => width * 7f / 8;
 
         private double smokeStartTime { get; set; } = double.MinValue;
@@ -85,6 +91,8 @@ namespace osu.Game.Rulesets.Osu.Skinning
             SmokePoints.Clear();
             lastPosition = null;
             totalDistance = pointInterval;
+            // Signal the draw node to discard its cached copy.
+            Interlocked.Increment(ref smokeVersion);
         }
 
         public void AddPosition(Vector2 position, double time)
@@ -118,6 +126,11 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
                         pointPos += increment;
                     }
+
+                    // Full barrier: the SmokePoints writes above must be visible to the render
+                    // thread before the version increment so the draw node always sees a
+                    // consistent snapshot when it re-copies the list.
+                    Interlocked.Increment(ref smokeVersion);
                 }
 
                 Invalidate(Invalidation.DrawNode);
@@ -132,6 +145,10 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
             double initialFadeOutDurationTrunc = Math.Min(initial_fade_out_duration, smokeEndTime - smokeStartTime);
             LifetimeEnd = smokeEndTime + final_fade_out_duration + initialFadeOutDurationTrunc / re_fade_in_speed + initialFadeOutDurationTrunc / final_fade_out_speed;
+
+            // Notify the draw node that the end-time state changed so it re-copies on its
+            // next ApplyState and correctly clamps future-point lookups.
+            Interlocked.Increment(ref smokeVersion);
         }
 
         protected override DrawNode CreateDrawNode() => new SmokeDrawNode(this);
@@ -182,14 +199,16 @@ namespace osu.Game.Rulesets.Osu.Skinning
             protected double SmokeEndTime { get; private set; }
             protected double CurrentTime { get; private set; }
 
-            private readonly List<SmokePoint> points = new List<SmokePoint>();
+            private readonly List<SmokePoint> allPoints = new List<SmokePoint>();
+            private int lastSmokeVersion = -1;
             private IVertexBatch<TexturedVertex2D>? quadBatch;
             private float width;
             private float height;
             private Vector2 drawSize;
             private Texture? texture;
             private int rotationSeed;
-            private int firstVisiblePointIndex;
+            private int firstVisibleIndex;
+            private int futureIndex;
 
             // anim calculation vars (color, scale, direction)
             private double initialFadeOutDurationTrunc;
@@ -226,26 +245,35 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 reFadeInTime = CurrentTime - initialFadeOutDurationTrunc - firstVisiblePointTimeAfterSmokeEnded * (1 - 1 / re_fade_in_speed);
                 finalFadeOutTime = CurrentTime - initialFadeOutDurationTrunc - firstVisiblePointTimeAfterSmokeEnded * (1 - 1 / final_fade_out_speed);
 
+                // Only re-copy the full SmokePoints list when new points were added or the
+                // smoke ended — not on every frame.  Between add-calls the list is unchanged,
+                // so the existing allPoints snapshot is still valid for the binary searches.
+                int currentVersion = Volatile.Read(ref Source.smokeVersion);
+
+                if (currentVersion != lastSmokeVersion)
+                {
+                    allPoints.Clear();
+                    allPoints.AddRange(Source.SmokePoints);
+                    lastSmokeVersion = currentVersion;
+                }
+
                 double firstVisiblePointTime = Math.Min(SmokeEndTime, CurrentTime) - initialFadeOutDurationTrunc;
-                firstVisiblePointIndex = ~Source.SmokePoints.BinarySearch(new SmokePoint { Time = firstVisiblePointTime }, new SmokePoint.LowerBoundComparer());
-                int futurePointIndex = ~Source.SmokePoints.BinarySearch(new SmokePoint { Time = CurrentTime }, new SmokePoint.UpperBoundComparer());
-
-                points.Clear();
-
-                for (int i = firstVisiblePointIndex; i < futurePointIndex; i++)
-                    points.Add(Source.SmokePoints[i]);
+                firstVisibleIndex = ~allPoints.BinarySearch(new SmokePoint { Time = firstVisiblePointTime }, new SmokePoint.LowerBoundComparer());
+                futureIndex = ~allPoints.BinarySearch(new SmokePoint { Time = CurrentTime }, new SmokePoint.UpperBoundComparer());
             }
 
             protected sealed override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
-                if (points.Count == 0)
+                int visibleCount = futureIndex - firstVisibleIndex;
+
+                if (visibleCount <= 0)
                     return;
 
                 quadBatch ??= renderer.CreateQuadBatch<TexturedVertex2D>(200, 4);
 
-                if (points.Count > quadBatch.Size && quadBatch.Size != IRenderer.MAX_QUADS)
+                if (visibleCount > quadBatch.Size && quadBatch.Size != IRenderer.MAX_QUADS)
                 {
                     int batchSize = Math.Min(quadBatch.Size * 2, IRenderer.MAX_QUADS);
                     quadBatch = renderer.CreateQuadBatch<TexturedVertex2D>(batchSize, 4);
@@ -261,8 +289,11 @@ namespace osu.Game.Rulesets.Osu.Skinning
 
                 texture.Bind();
 
-                for (int i = 0; i < points.Count; i++)
-                    drawPointQuad(renderer, points[i], textureRect, i + firstVisiblePointIndex);
+                // Iterate allPoints directly with absolute indices — no per-frame copy needed.
+                // 'i' is the absolute index into allPoints (mirroring SmokePoints), which is
+                // what getRotation() requires for its seeded RNG.
+                for (int i = firstVisibleIndex; i < futureIndex; i++)
+                    drawPointQuad(renderer, allPoints[i], textureRect, i);
 
                 UnbindTextureShader(renderer);
                 renderer.PopLocalMatrix();
