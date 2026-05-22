@@ -522,6 +522,11 @@ namespace osu.Android
             }
 
             CrashDiagnostics.WriteAliveMarker("Activity.OnCreate exit");
+
+            // Arm the general Vulkan UI-thread watchdog LAST in OnCreate, after all
+            // surface setup and base initialisation is complete. The 7-second initial
+            // sleep in the watchdog thread provides additional grace.
+            startVulkanUiWatchdog();
         }
 
         protected override void OnNewIntent(Intent? intent) => handleIntent(intent);
@@ -965,6 +970,138 @@ namespace osu.Android
                 heldSurface?.Dispose();
                 heldSurface = null;
             }
+        }
+
+        /// <summary>
+        /// Arms a background watchdog that monitors the Java main thread (UI thread) for
+        /// responsiveness during Vulkan sessions.
+        ///
+        /// <para>
+        /// Root cause this addresses: SDL3 on Android serialises certain surface-lifecycle
+        /// and window-focus events (surfaceDestroyed, nativeWindowFocusChanged, …) through
+        /// an internal Java <c>synchronized</c> block that blocks the Java main thread until
+        /// the SDL game/draw thread acknowledges the event. If the draw thread is stuck
+        /// inside a long kernel GPU driver call (e.g. <c>vkQueuePresentKHR</c> on an
+        /// Adreno 7xx under high load — visible as 70–80% kernel CPU time), the
+        /// acknowledgement is delayed and the main thread can block for the full 10-second
+        /// Android ANR window. The Samsung Game Optimizing Service (GOS) toolbar, ADPF
+        /// display-mode changes, and other system overlays are typical triggers around
+        /// 25–35 s of gameplay.
+        /// </para>
+        ///
+        /// <para>
+        /// The <see cref="OnPause"/> watchdog already covers the <c>OnPause</c> path.
+        /// This watchdog covers every other blocking entry point on the UI thread by
+        /// posting a 1-second repeating no-op to the main looper and measuring how long
+        /// ago the last no-op was executed. If the gap exceeds 7 seconds (leaving a 3-
+        /// second margin before the 10-second ANR deadline), the process is killed for a
+        /// clean restart rather than an ANR.
+        /// </para>
+        ///
+        /// <para>
+        /// Safe-mode is deliberately NOT set: this watchdog fires during mid-session
+        /// driver stalls, not at startup. The next launch should retry Vulkan normally.
+        /// </para>
+        /// </summary>
+        private void startVulkanUiWatchdog()
+        {
+            if (!LogManagement.IsVulkanConfigured())
+                return;
+
+            const int watchdog_threshold_ms = 7000;
+            const int ping_interval_ms = 1000;
+
+            Android.OS.Handler? pingHandler;
+
+            try
+            {
+                pingHandler = new Android.OS.Handler(Android.OS.Looper.MainLooper!);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] VulkanUiWatchdog: failed to create Handler — watchdog disabled ({e.Message})");
+                return;
+            }
+
+            // Shared field written by the UI-thread pong and read by the watchdog thread.
+            // Interlocked/Volatile access: the pong runs on the UI thread, the reader runs
+            // on the watchdog thread.  The field is a reference so it can be captured by
+            // both lambdas without a ref capture.
+            long[] lastPongMonotonicMs = { Environment.TickCount64 };
+
+            // Self-rescheduling pong: posts itself every ping_interval_ms on the UI thread.
+            // Capturing pingHandler via a local ref rather than the outer variable so the
+            // lambda holds no hard reference to the activity (GC-safety: the Handler is
+            // bound to the process-lifetime main looper, not to this activity instance).
+            Action? pong = null;
+            pong = () =>
+            {
+                System.Threading.Volatile.Write(ref lastPongMonotonicMs[0], Environment.TickCount64);
+
+                try { pingHandler.PostDelayed(pong!, ping_interval_ms); }
+                catch { /* handler gone (process teardown) — stop rescheduling */ }
+            };
+
+            try
+            {
+                pingHandler.Post(pong);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] VulkanUiWatchdog: failed to post initial pong — watchdog disabled ({e.Message})");
+                return;
+            }
+
+            var watchdog = new System.Threading.Thread(() =>
+            {
+                // Initial grace period equal to the threshold: the first pong may not
+                // have executed yet, and early-startup UI-thread work (surface format
+                // stamp, DecorView.Post lambda, Samsung Game Launcher broadcast) all
+                // runs during this window.
+                System.Threading.Thread.Sleep(watchdog_threshold_ms);
+
+                while (true)
+                {
+                    long age = Environment.TickCount64 - System.Threading.Volatile.Read(ref lastPongMonotonicMs[0]);
+
+                    if (age > watchdog_threshold_ms)
+                    {
+                        // UI thread has not executed the pong for > 7 s.  The draw thread
+                        // is conclusively stuck in vkQueuePresentKHR (or a similar SDL
+                        // surface-event wait), holding the Java main thread.  Kill now to
+                        // avoid the impending ANR and let the user's launcher restart cleanly.
+                        try
+                        {
+                            CrashDiagnostics.WriteAliveMarker(
+                                $"VulkanUiWatchdog fired after {age}ms: "
+                                + "main thread blocked in SDL surface-event wait — "
+                                + "draw thread stuck in vkQueuePresentKHR (Vulkan KGSL stall). "
+                                + "Killing for clean restart rather than Android ANR.");
+                        }
+                        catch { }
+
+                        try
+                        {
+                            Debug.WriteLine(
+                                $"[osu!] VulkanUiWatchdog: main thread blocked {age}ms >7s — killing for clean Vulkan restart.");
+                        }
+                        catch { }
+
+                        try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                        catch { }
+
+                        return;
+                    }
+
+                    System.Threading.Thread.Sleep(ping_interval_ms);
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "VulkanUiWatchdog",
+            };
+
+            watchdog.Start();
         }
 
         protected override void OnPause()
