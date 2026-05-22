@@ -295,7 +295,11 @@ namespace osu.Game.Database
 
             realmAccess.Run(r =>
             {
-                foreach (var b in r.All<BeatmapInfo>().Where(b => b.TotalObjectCount < 0 || b.EndTimeObjectCount < 0 || b.MaxSliderRepeats < 0 || b.MaxSliderTicks < 0))
+                // Do not queue MaxSliderRepeats / MaxSliderTicks here.
+                // They are pool-sizing hints only, and OsuPlayfield falls back to scanning the loaded beatmap
+                // when metadata is unavailable. Backfilling them at startup forces a playable conversion for
+                // every migrated beatmap and regresses startup/test runtime significantly.
+                foreach (var b in r.All<BeatmapInfo>().Where(b => b.TotalObjectCount < 0 || b.EndTimeObjectCount < 0))
                     beatmapIds.Add(b.ID);
             });
 
