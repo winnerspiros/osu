@@ -160,6 +160,8 @@ namespace osu.Game
 
         private OnScreenDisplay onScreenDisplay;
 
+        private DialogOverlay dialogOverlay;
+
         [Resolved]
         private FrameworkConfigManager frameworkConfig { get; set; }
 
@@ -1258,7 +1260,7 @@ namespace osu.Game
             }, rightFloatingOverlayContent.Add, true);
 
             loadComponentSingleFile(new AccountCreationOverlay(), topMostOverlayContent.Add, true);
-            loadComponentSingleFile<IDialogOverlay>(new DialogOverlay(), topMostOverlayContent.Add, true);
+            loadComponentSingleFile<IDialogOverlay>(dialogOverlay = new DialogOverlay(), topMostOverlayContent.Add, true);
             loadComponentSingleFile(new MedalOverlay(), topMostOverlayContent.Add);
 
             loadComponentSingleFile(CreateBackgroundDataStoreProcessor(), Add);
@@ -1365,6 +1367,21 @@ namespace osu.Game
 
                 if (penHandler != null && mouseHandler != null && penHandler.Sensitivity.IsDefault)
                     penHandler.Sensitivity.Value = mouseHandler.Sensitivity.Value;
+            }
+
+            if (combined < 20260521 && RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+            {
+                bool wasAlreadyUsing = Audio.UseExperimentalWasapi.Value;
+
+                // see application of FramedBeatmapClock.WINDOWS_EXPERIMENTAL_AUDIO_OFFSET in FramedBeatmapClock.
+                // this basically undoes this new offset assuming that users which have been using this setting for a while
+                // already have had things tuned.
+                if (wasAlreadyUsing)
+                    LocalConfig.SetValue(OsuSetting.AudioOffset, LocalConfig.Get<double>(OsuSetting.AudioOffset) - FramedBeatmapClock.WINDOWS_EXPERIMENTAL_AUDIO_OFFSET);
+
+                Audio.UseExperimentalWasapi.Value = true;
+
+                dialogOverlay.Push(new MigrateNewAudioDialog(wasAlreadyUsing));
             }
         }
 
