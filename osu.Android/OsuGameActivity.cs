@@ -1011,11 +1011,11 @@ namespace osu.Android
             const int watchdog_threshold_ms = 7000;
             const int ping_interval_ms = 1000;
 
-            Android.OS.Handler? pingHandler;
+            global::Android.OS.Handler? pingHandler;
 
             try
             {
-                pingHandler = new Android.OS.Handler(Android.OS.Looper.MainLooper!);
+                pingHandler = new global::Android.OS.Handler(global::Android.OS.Looper.MainLooper!);
             }
             catch (Exception e)
             {
@@ -1027,7 +1027,7 @@ namespace osu.Android
             // Interlocked/Volatile access: the pong runs on the UI thread, the reader runs
             // on the watchdog thread.  The field is a reference so it can be captured by
             // both lambdas without a ref capture.
-            long[] lastPongMonotonicMs = { Environment.TickCount64 };
+            long[] lastPongMonotonicMs = { System.Environment.TickCount64 };
 
             // Self-rescheduling pong: posts itself every ping_interval_ms on the UI thread.
             // Capturing pingHandler via a local ref rather than the outer variable so the
@@ -1036,7 +1036,7 @@ namespace osu.Android
             Action? pong = null;
             pong = () =>
             {
-                System.Threading.Volatile.Write(ref lastPongMonotonicMs[0], Environment.TickCount64);
+                System.Threading.Volatile.Write(ref lastPongMonotonicMs[0], System.Environment.TickCount64);
 
                 try { pingHandler.PostDelayed(pong!, ping_interval_ms); }
                 catch { /* handler gone (process teardown) — stop rescheduling */ }
@@ -1062,7 +1062,7 @@ namespace osu.Android
 
                 while (true)
                 {
-                    long age = Environment.TickCount64 - System.Threading.Volatile.Read(ref lastPongMonotonicMs[0]);
+                    long age = System.Environment.TickCount64 - System.Threading.Volatile.Read(ref lastPongMonotonicMs[0]);
 
                     if (age > watchdog_threshold_ms)
                     {
