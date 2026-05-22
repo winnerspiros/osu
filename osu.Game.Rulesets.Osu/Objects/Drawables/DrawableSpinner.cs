@@ -50,6 +50,7 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         /// every frame once many ticks have already been judged.
         /// </summary>
         private int nextUnjudgedTickIndex;
+
         private double lastTickScanTime;
 
         private const float spinning_sample_initial_frequency = 1.0f;

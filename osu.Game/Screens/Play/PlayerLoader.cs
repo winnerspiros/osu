@@ -767,9 +767,6 @@ namespace osu.Game.Screens.Play
 
                 var ruleset = rulesetInfo.CreateInstance();
 
-                if (ruleset == null)
-                    return;
-
                 if (playableBeatmapCache.TryGetPlayableBeatmap(beatmapInfo, ruleset.RulesetInfo, gameplayMods, out _))
                     return;
 

@@ -26,10 +26,10 @@ namespace osu.Game.Beatmaps
             // RepeatCount is set during decoding and is available on the raw (pre-ApplyDefaults) beatmap,
             // so this can be derived without a full conversion pass.
             beatmapInfo.MaxSliderRepeats = beatmap.HitObjects
-                                                   .OfType<IHasRepeats>()
-                                                   .Select(h => h.RepeatCount)
-                                                   .DefaultIfEmpty(0)
-                                                   .Max();
+                                                  .OfType<IHasRepeats>()
+                                                  .Select(h => h.RepeatCount)
+                                                  .DefaultIfEmpty(0)
+                                                  .Max();
 
             // Slider tick objects are generated as nested hit objects after defaults have been applied.
             // This method is called both with raw and playable beatmaps; for raw beatmaps this will
