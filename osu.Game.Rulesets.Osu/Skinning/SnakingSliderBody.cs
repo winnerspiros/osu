@@ -164,8 +164,8 @@ namespace osu.Game.Rulesets.Osu.Skinning
                 (p0, p1) = (p1, p0);
 
             if (SnakedStart.HasValue && SnakedEnd.HasValue
-                         && Math.Abs(p0 - SnakedStart.Value) < snaking_update_threshold
-                         && Math.Abs(p1 - SnakedEnd.Value) < snaking_update_threshold)
+                && Math.Abs(p0 - SnakedStart.Value) < snaking_update_threshold
+                && Math.Abs(p1 - SnakedEnd.Value) < snaking_update_threshold)
                 return;
 
             SnakedStart = p0;
