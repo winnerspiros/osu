@@ -37,7 +37,7 @@ namespace osu.Game.Rulesets.Osu.Objects
         public override IList<HitSampleInfo> AuxiliarySamples => cachedAuxiliarySamples ??= CreateSlidingSamples().Concat(TailSamples).ToArray();
 
         // Cached after ApplyDefaults populates TailSamples — stable for the lifetime of this slider instance.
-        private IList<HitSampleInfo>? cachedAuxiliarySamples;
+        private IList<HitSampleInfo> cachedAuxiliarySamples;
 
         private readonly Cached<Vector2> endPositionCache = new Cached<Vector2>();
 
