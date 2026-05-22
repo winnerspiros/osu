@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Numerics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -75,6 +76,11 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
 
         private readonly TrailPart[] parts = new TrailPart[max_sprites];
         private int currentIndex;
+
+        // Incremented (via Interlocked) every time a new trail part is written.
+        // The draw node reads this to decide whether a full CopyTo is necessary;
+        // on frames where the cursor hasn't moved no copy is performed.
+        private int partsVersion;
         private IShader shader;
         private double timeOffset;
         private float time;
@@ -221,6 +227,10 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
             ++parts[currentIndex].InvalidationID;
 
             currentIndex = (currentIndex + 1) % max_sprites;
+
+            // Memory barrier: ensure the parts[] write above is visible to the draw thread
+            // before the version increment so ApplyState always sees a consistent snapshot.
+            Interlocked.Increment(ref partsVersion);
         }
 
         protected override DrawNode CreateDrawNode() => new TrailDrawNode(this);
@@ -247,6 +257,10 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
 
             private readonly TrailPart[] parts = new TrailPart[max_sprites];
             private Vector2 originPosition;
+
+            // Tracks the last partsVersion we copied from the source.
+            // CopyTo (≈56 KB) is skipped on frames where no new parts were added.
+            private int lastAppliedPartsVersion = -1;
 
             private IVertexBatch<TexturedTrailVertex> vertexBatch;
 
@@ -278,7 +292,16 @@ namespace osu.Game.Rulesets.Osu.UI.Cursor
                 else if (Source.TrailOrigin.HasFlag(Anchor.y2))
                     originPosition.Y = 1f;
 
-                Source.parts.CopyTo(parts, 0);
+                // Only copy the parts array when new trail parts have been written since
+                // the last ApplyState.  The Interlocked.Increment in addPart() provides a
+                // full memory barrier so the array content is always consistent here.
+                int currentVersion = Volatile.Read(ref Source.partsVersion);
+
+                if (currentVersion != lastAppliedPartsVersion)
+                {
+                    Source.parts.CopyTo(parts, 0);
+                    lastAppliedPartsVersion = currentVersion;
+                }
             }
 
             private IUniformBuffer<CursorTrailParameters> cursorTrailParameters;

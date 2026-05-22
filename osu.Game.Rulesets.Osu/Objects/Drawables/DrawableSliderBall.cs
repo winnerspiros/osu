@@ -61,17 +61,34 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             base.ApplyTransformsAt(time, false);
         }
 
+        private double cachedPathDistance = -1;
+        private double cachedCheckDistance;
+
         public void UpdateProgress(double completionProgress)
         {
             Slider slider = drawableSlider.HitObject;
+
+            // Cache the check-distance; Path.Distance is stable after ApplyDefaults so the
+            // division only runs once per slider-pool reuse (when the path changes).
+            double pathDistance = slider.Path.Distance;
+
+            if (pathDistance != cachedPathDistance)
+            {
+                cachedPathDistance = pathDistance;
+                cachedCheckDistance = 0.1 / pathDistance;
+            }
+
+            // Exact position at current progress (binary search #1).
             Position = slider.CurvePositionAt(completionProgress);
 
-            // 0.1 / slider.Path.Distance is the additional progress needed to ensure the diff length is 0.1
-            double checkDistance = 0.1 / slider.Path.Distance;
-            var diff = slider.CurvePositionAt(Math.Min(1 - checkDistance, completionProgress)) - slider.CurvePositionAt(Math.Min(1, completionProgress + checkDistance));
+            // Forward-tangent point for ball rotation (binary search #2).
+            // Using (current → forward) instead of the original symmetric
+            // (backward → forward) cuts one PositionAt call per frame with
+            // imperceptible accuracy loss, since checkDistance is tiny.
+            double dForward = Math.Min(1, completionProgress + cachedCheckDistance);
+            var diff = Position - slider.CurvePositionAt(dForward);
 
-            // Ensure the value is substantially high enough to allow for Atan2 to get a valid angle.
-            // Needed for when near completion, or in case of a very short slider.
+            // Ensure the diff is long enough for Atan2 to return a meaningful angle.
             if (diff.LengthSquared() < 0.0001f)
                 return;
 

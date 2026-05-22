@@ -21,6 +21,23 @@ namespace osu.Game.Beatmaps
             beatmapInfo.BPM = 60000 / beatmap.GetMostCommonBeatLength();
             beatmapInfo.EndTimeObjectCount = beatmap.HitObjects.Count(h => h is IHasDuration);
             beatmapInfo.TotalObjectCount = beatmap.HitObjects.Count;
+
+            // Compute the maximum repeat count for pool sizing purposes.
+            // RepeatCount is set during decoding and is available on the raw (pre-ApplyDefaults) beatmap,
+            // so this can be derived without a full conversion pass.
+            beatmapInfo.MaxSliderRepeats = beatmap.HitObjects
+                                                  .OfType<IHasRepeats>()
+                                                  .Select(h => h.RepeatCount)
+                                                  .DefaultIfEmpty(0)
+                                                  .Max();
+
+            // Slider tick objects are generated as nested hit objects after defaults have been applied.
+            // This method is called both with raw and playable beatmaps; for raw beatmaps this will
+            // naturally become 0 and later be backfilled by background processing.
+            beatmapInfo.MaxSliderTicks = beatmap.HitObjects
+                                                .Select(h => h.NestedHitObjects.Count(n => n is ISliderTick))
+                                                .DefaultIfEmpty(0)
+                                                .Max();
         }
 
         /// <summary>

@@ -263,14 +263,27 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             double completionProgress = Math.Clamp((Time.Current - HitObject.StartTime) / HitObject.Duration, 0, 1);
 
+            // Cache once per frame: the property resolves Body.Drawable via a type-check cast on each access.
+            PlaySliderBody sliderBody = SliderBody;
+
             Ball.UpdateProgress(completionProgress);
-            SliderBody?.UpdateProgress(HeadCircle.IsHit ? completionProgress : 0);
+            sliderBody?.UpdateProgress(HeadCircle.IsHit ? completionProgress : 0);
 
-            foreach (DrawableSliderRepeat repeat in repeatContainer)
-                repeat.UpdateSnakingPosition(HitObject.Path.PositionAt(SliderBody?.SnakedStart ?? 0), HitObject.Path.PositionAt(SliderBody?.SnakedEnd ?? 0));
+            // Pre-compute the snaking start/end path positions once.
+            // PositionAt() performs a binary search over the pre-built path points list,
+            // so recomputing it for every repeat on every frame is wasteful — all repeats
+            // share the same start/end values within a single update.
+            if (repeatContainer.Count > 0)
+            {
+                Vector2 snakeStart = HitObject.Path.PositionAt(sliderBody?.SnakedStart ?? 0);
+                Vector2 snakeEnd = HitObject.Path.PositionAt(sliderBody?.SnakedEnd ?? 0);
 
-            Size = SliderBody?.Size ?? Vector2.Zero;
-            OriginPosition = SliderBody?.PathOffset ?? Vector2.Zero;
+                foreach (DrawableSliderRepeat repeat in repeatContainer)
+                    repeat.UpdateSnakingPosition(snakeStart, snakeEnd);
+            }
+
+            Size = sliderBody?.Size ?? Vector2.Zero;
+            OriginPosition = sliderBody?.PathOffset ?? Vector2.Zero;
 
             if (!relativeAnchorPositionLayout.IsValid)
             {

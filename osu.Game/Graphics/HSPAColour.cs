@@ -45,7 +45,7 @@ namespace osu.Game.Graphics
         {
             H = 0;
             S = 0;
-            P = MathF.Sqrt(colour.R * colour.R * p_r + colour.G * colour.G * p_g + colour.B + colour.B * p_b);
+            P = MathF.Sqrt(colour.R * colour.R * p_r + colour.G * colour.G * p_g + colour.B * colour.B * p_b);
             A = colour.A;
 
             if (colour.R == colour.G && colour.R == colour.B)

@@ -4,12 +4,13 @@
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Judgements;
+using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu.Judgements;
 using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Rulesets.Osu.Objects
 {
-    public class SliderTick : OsuHitObject
+    public class SliderTick : OsuHitObject, ISliderTick
     {
         public int SpanIndex { get; set; }
         public double SpanStartTime { get; set; }

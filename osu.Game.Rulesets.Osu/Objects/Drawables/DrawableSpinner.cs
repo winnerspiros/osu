@@ -44,6 +44,15 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
         private Bindable<bool> isSpinning;
         private bool spinnerFrequencyModulate;
 
+        /// <summary>
+        /// Scan index for the first unjudged nested tick, updated each frame.
+        /// Avoids restarting the <see cref="DrawableHitObject.NestedHitObjects"/> scan from index 0
+        /// every frame once many ticks have already been judged.
+        /// </summary>
+        private int nextUnjudgedTickIndex;
+
+        private double lastTickScanTime;
+
         private const float spinning_sample_initial_frequency = 1.0f;
         private const float spinning_sample_modulated_base_frequency = 0.5f;
 
@@ -137,6 +146,9 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
 
             spinningSample.ClearSamples();
             maxBonusSample.ClearSamples();
+
+            nextUnjudgedTickIndex = 0;
+            lastTickScanTime = double.MinValue;
         }
 
         protected override void LoadSamples()
@@ -291,13 +303,27 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             // but for performance reasons, we only want to keep the next tick alive.
             DrawableHitObject nextTick = null;
 
-            foreach (var nested in NestedHitObjects)
+            // Reset the hint index on rewind so newly-unjudged ticks are not skipped.
+            if (Time.Current < lastTickScanTime)
+                nextUnjudgedTickIndex = 0;
+
+            lastTickScanTime = Time.Current;
+
+            int nestedCount = NestedHitObjects.Count;
+
+            for (int i = nextUnjudgedTickIndex; i < nestedCount; i++)
             {
-                if (!nested.Judged)
+                var nested = NestedHitObjects[i];
+
+                if (nested.Judged)
                 {
-                    nextTick = nested;
-                    break;
+                    // Advance the hint past confirmed judged ticks.
+                    nextUnjudgedTickIndex = i + 1;
+                    continue;
                 }
+
+                nextTick = nested;
+                break;
             }
 
             // See default `LifetimeStart` as set in `DrawableSpinnerTick`.

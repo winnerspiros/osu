@@ -120,11 +120,11 @@ namespace osu.Game.Rulesets.Osu.Objects.Drawables
             if (IsHit) return;
 
             bool isRepeatAtEnd = HitObject.RepeatIndex % 2 == 0;
-            List<Vector2> curve = ((PlaySliderBody)DrawableSlider.Body.Drawable).CurrentCurve;
+            List<Vector2> curve = DrawableSlider.SliderBody?.CurrentCurve;
 
             Position = isRepeatAtEnd ? end : start;
 
-            if (curve.Count < 2)
+            if (curve == null || curve.Count < 2)
                 return;
 
             Vector2 aimRotationVector = Vector2.Zero;

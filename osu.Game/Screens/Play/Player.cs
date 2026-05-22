@@ -139,6 +139,9 @@ namespace osu.Game.Screens.Play
         [Resolved]
         private OsuGameBase game { get; set; }
 
+        [Resolved(canBeNull: true)]
+        private PlayableBeatmapCache playableBeatmapCache { get; set; }
+
         public GameplayState GameplayState { get; private set; }
 
         private Ruleset ruleset;
@@ -599,6 +602,17 @@ namespace osu.Game.Screens.Play
                 var rulesetInfo = Ruleset.Value;
                 ruleset = rulesetInfo.CreateInstance() ?? throw new RulesetLoadException("Instantiation failure");
 
+                // Check the session-level playable beatmap cache before running the expensive
+                // convert + ApplyDefaults pipeline. This is the primary win for quick retry,
+                // replay/re-results reload, and repeated plays of the same map.
+                var beatmapInfo = Beatmap.Value.BeatmapInfo;
+
+                if (playableBeatmapCache != null && playableBeatmapCache.TryGetPlayableBeatmap(beatmapInfo, ruleset.RulesetInfo, gameplayMods, out var cachedPlayable))
+                {
+                    Logger.Log($"Reusing cached playable beatmap for {Beatmap.Value}", LoggingTarget.Performance);
+                    return cachedPlayable;
+                }
+
                 try
                 {
                     playable = Beatmap.Value.GetPlayableBeatmap(ruleset.RulesetInfo, gameplayMods, cancellationToken);
@@ -614,6 +628,9 @@ namespace osu.Game.Screens.Play
                     Logger.Log("Beatmap contains no hit objects!", level: LogLevel.Important);
                     return null;
                 }
+
+                // Store the freshly-built playable for future sessions with the same key.
+                playableBeatmapCache?.CachePlayableBeatmap(beatmapInfo, ruleset.RulesetInfo, gameplayMods, playable);
             }
             catch (OperationCanceledException)
             {

@@ -141,15 +141,32 @@ namespace osu.Game.Rulesets.Osu.UI
             RegisterPool<HitCircle, DrawableHitCircle>(20, 100);
 
             // handle edge cases where a beatmap has a slider with many repeats.
-            int maxRepeatsOnOneSlider = 0;
-            int maxTicksOnOneSlider = 0;
+            int maxRepeatsOnOneSlider;
+            int maxTicksOnOneSlider;
 
-            if (osuBeatmap != null)
+            // Use persisted metadata when available to avoid a full beatmap scan.
+            // Fall back to scanning the loaded beatmap if metadata has not yet been computed.
+            int persistedMaxRepeats = beatmap?.BeatmapInfo.MaxSliderRepeats ?? -1;
+            int persistedMaxTicks = beatmap?.BeatmapInfo.MaxSliderTicks ?? -1;
+
+            if (persistedMaxRepeats >= 0 && persistedMaxTicks >= 0)
             {
-                foreach (var slider in osuBeatmap.HitObjects.OfType<Slider>())
+                maxRepeatsOnOneSlider = persistedMaxRepeats;
+                maxTicksOnOneSlider = persistedMaxTicks;
+            }
+            else
+            {
+                // Fallback: scan all sliders when persisted metadata is not available.
+                maxRepeatsOnOneSlider = 0;
+                maxTicksOnOneSlider = 0;
+
+                if (osuBeatmap != null)
                 {
-                    maxRepeatsOnOneSlider = Math.Max(maxRepeatsOnOneSlider, slider.RepeatCount);
-                    maxTicksOnOneSlider = Math.Max(maxTicksOnOneSlider, slider.NestedHitObjects.OfType<SliderTick>().Count());
+                    foreach (var slider in osuBeatmap.HitObjects.OfType<Slider>())
+                    {
+                        maxRepeatsOnOneSlider = Math.Max(maxRepeatsOnOneSlider, slider.RepeatCount);
+                        maxTicksOnOneSlider = Math.Max(maxTicksOnOneSlider, slider.NestedHitObjects.OfType<SliderTick>().Count());
+                    }
                 }
             }
 

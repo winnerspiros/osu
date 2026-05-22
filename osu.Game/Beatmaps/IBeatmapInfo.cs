@@ -77,5 +77,19 @@ namespace osu.Game.Beatmaps
         /// Defaults to -1 (meaning not-yet-calculated).
         /// </summary>
         int TotalObjectCount { get; }
+
+        /// <summary>
+        /// The maximum number of repeats on a single hit object in the beatmap.
+        /// Only meaningful for rulesets that have repeating objects (e.g. osu! sliders).
+        /// Defaults to -1 (meaning not-yet-calculated).
+        /// </summary>
+        int MaxSliderRepeats { get; }
+
+        /// <summary>
+        /// The maximum number of slider ticks on a single slider in the beatmap.
+        /// Only meaningful for rulesets that have slider ticks (e.g. osu!).
+        /// Defaults to -1 (meaning not-yet-calculated).
+        /// </summary>
+        int MaxSliderTicks { get; }
     }
 }
