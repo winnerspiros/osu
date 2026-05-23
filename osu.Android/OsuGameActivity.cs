@@ -900,17 +900,20 @@ namespace osu.Android
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
 
+                // Set the surface event BEFORE anything else so the draw thread can
+                // proceed with the current (soon-to-be-recreated) surface. Without this,
+                // the draw thread blocks on surfaceEvent.Wait(5000) and the native watchdog
+                // fires because no managed heartbeat arrives during the synchronous teardown.
+                // A brief frame or two with the old surface format is preferable to a
+                // deadlocked draw thread and watchdog kill.
+                surfaceEvent.Set();
+
                 // Tick the native watchdog BEFORE calling SetFormat. SetFormat triggers a
                 // synchronous surface teardown on the UI thread that can block for hundreds
                 // of milliseconds. During this window the Update thread may not get a chance
                 // to send a heartbeat (especially during startup when the runtime is under
                 // heavy load), and the native watchdog (10s default) would fire, killing the
                 // process and producing a black screen.
-                //
-                // Calling Heartbeat() here resets the watchdog timer from the UI thread,
-                // giving SetFormat time to complete without triggering a false positive.
-                // The native watchdog checks g_lastHeartbeatMonotonicSec which is updated
-                // by a simple atomic store — safe to call from any thread.
                 try
                 {
                     NativeWatchdog.Heartbeat();
@@ -921,6 +924,8 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] NativeWatchdog.Heartbeat failed (non-fatal): {e.Message}");
                 }
 
+                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
+
                 try
                 {
                     holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
@@ -929,13 +934,6 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
-
-                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
-
-                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock with the
-                // old (about-to-be-invalidated) surface handle. The event will be re-set when
-                // SurfaceChanged fires again for the new RGBA8888 surface.
-                surfaceEvent.Reset();
 
                 return;
             }
