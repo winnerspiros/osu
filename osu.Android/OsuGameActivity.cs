@@ -21,6 +21,7 @@ using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Framework.Logging;
+using osu.Android.Native;
 
 namespace osu.Android
 {
@@ -891,9 +892,6 @@ namespace osu.Android
                 setFormatPending = true;
                 setFormatAttempts = 1;
 
-                // Log to Runtime so the mid-session RGB565 reset is visible in the main log
-                // (and therefore in the notification overlay). Performance log gets the same
-                // entry for correlation with display-mode and frame-timing data.
                 string rgb565Message =
                     "[osu!] Android surface pixel format RGB565 detected (Vulkan path) — " +
                     "requesting RGBA8888 and triggering a surface recreate. " +
@@ -901,6 +899,27 @@ namespace osu.Android
                     "which would cause a mid-session swapchain rebuild at wrong dimensions.";
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
+
+                // Tick the native watchdog BEFORE calling SetFormat. SetFormat triggers a
+                // synchronous surface teardown on the UI thread that can block for hundreds
+                // of milliseconds. During this window the Update thread may not get a chance
+                // to send a heartbeat (especially during startup when the runtime is under
+                // heavy load), and the native watchdog (10s default) would fire, killing the
+                // process and producing a black screen.
+                //
+                // Calling Heartbeat() here resets the watchdog timer from the UI thread,
+                // giving SetFormat time to complete without triggering a false positive.
+                // The native watchdog checks g_lastHeartbeatMonotonicSec which is updated
+                // by a simple atomic store — safe to call from any thread.
+                try
+                {
+                    NativeWatchdog.Heartbeat();
+                    Debug.WriteLine("[osu!] Native watchdog heartbeat ticked before SetFormat(RGBA8888)");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] NativeWatchdog.Heartbeat failed (non-fatal): {e.Message}");
+                }
 
                 try
                 {
@@ -911,17 +930,13 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
 
-                // The SetFormat call above queues a SurfaceDestroyed→SurfaceCreated cycle.
-                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock yet —
-                // the current Surface handle is about to be invalidated, and any caller that
-                // receives it would forward a dangling pointer into the Vulkan driver.
-                // The event will be re-set when SurfaceChanged fires again for the new
-                // RGBA8888 Surface; the normal-path surfaceEvent.Set() at the end of this
-                // method (lines below the if/else-if guard) handles that on the next call.
-                // We must NOT fall through to the width/height check, because that would
-                // signal the event with the old (about-to-die) surface dimensions.
+                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
+
+                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock with the
+                // old (about-to-be-invalidated) surface handle. The event will be re-set when
+                // SurfaceChanged fires again for the new RGBA8888 surface.
                 surfaceEvent.Reset();
-                Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
+
                 return;
             }
 
