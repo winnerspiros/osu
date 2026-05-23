@@ -315,6 +315,25 @@ namespace osu.Android
                 string sentinelPath = Path.Combine(root, renderer_migration_sentinel);
                 if (File.Exists(sentinelPath)) return;
 
+                // On fresh installs (no framework.ini yet), default to OpenGL instead of Vulkan.
+                // Vulkan causes black screens on several Adreno GPU families (7xx series in
+                // particular) because the Veldrid Vulkan backend either times out its 5s
+                // SurfaceHandle poll or hands a stale ANativeWindow to vkCreateAndroidSurfaceKHR.
+                // OpenGL ES is the safer default; users can switch to Vulkan in Settings.
+                string iniPath = Path.Combine(root, "framework.ini");
+                if (!File.Exists(iniPath))
+                {
+                    try
+                    {
+                        File.WriteAllText(iniPath, "Renderer = OpenGL" + Environment.NewLine);
+                        Debug.WriteLine("[osu!] Fresh install — defaulted renderer to OpenGL.");
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[osu!] Could not write fresh-install renderer default: {e.Message}");
+                    }
+                }
+
                 tryDropSentinel(sentinelPath);
             }
             catch (Exception e)
