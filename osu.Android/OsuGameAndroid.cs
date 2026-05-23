@@ -2247,6 +2247,18 @@ namespace osu.Android
             // still make the enqueue side spin on its lock.
             CrashDiagnostics.WriteAliveMarker("OsuGameAndroid.SetHost (about to start HangWatchdog)");
 
+            // Keep the native pthread watchdog fed even when verbose diagnostics are off.
+            // The native watchdog is always armed from Activity.OnCreate, but HangWatchdog
+            // (which normally forwards heartbeats) is verbose-gated below.
+            try
+            {
+                host.UpdateThread.Scheduler.AddDelayed(static () => NativeWatchdog.Heartbeat(), 1_000, true);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] Failed to schedule native watchdog heartbeat: {e.Message}");
+            }
+
             // Start the hang watchdog only when verbose diagnostics are enabled.
             // It writes /proc/self/task snapshots to native_crash.log on stalls — valuable
             // during debugging but adds a dedicated background thread and periodic file I/O
