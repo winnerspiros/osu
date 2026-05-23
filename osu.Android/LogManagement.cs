@@ -277,39 +277,31 @@ namespace osu.Android
             }
         }
 
-        // Sentinel file dropped after the one-shot Renderer-default migration has
-        // run. Stored in the storage root next to framework.ini so a single
-        // existence check governs whether we should respect the user's currently
-        // persisted Renderer choice (sentinel present) or perform the one-time
-        // Automatic→OpenGL nudge (sentinel absent).
+        // Sentinel file dropped after the one-shot Android renderer-default
+        // normalisation has run. Stored in the storage root next to framework.ini
+        // so a single existence check governs whether startup should touch the
+        // renderer default at all.
         private const string renderer_migration_sentinel = "android_renderer_default_migrated.flag";
 
         /// <summary>
-        /// One-shot migration that flips the framework default <c>Renderer</c>
-        /// choice from <c>Automatic</c> (which resolves to Vulkan on Android,
-        /// requiring runtime SPIR-V compilation via glslang) to <c>OpenGL</c>
-        /// (which uses the Adreno driver's native GLSL compiler — no glslang,
-        /// no SPIR-V, and therefore no shader-compile burst on Toolbar load).
+        /// One-shot Android renderer-default normalisation.
         ///
         /// <para>
-        /// Why this matters: every recent black-screen ANR fingerprint in the
-        /// field tombstones (PIDs 27798 / 29226 / 499) shows a Veldrid worker
-        /// stuck inside <c>glslang::TParseContext::executeInitializer</c> /
-        /// <c>TShader::parse</c> at <c>nice=-10</c> on a big core, monopolising
-        /// the CPU during the Toolbar texture-upload burst and starving the
-        /// Update thread past the 10-second MotionEvent ANR deadline. Switching
-        /// the default away from the Vulkan-via-glslang path eliminates the
-        /// entire failure class on stock installs. Users who specifically want
-        /// Vulkan can still select it from Settings → Graphics → Renderer; the
-        /// migration only nudges the *default* and is recorded by an on-disk
-        /// sentinel so subsequent launches never overwrite an explicit choice.
+        /// Earlier builds rewrote the Android default renderer to <c>OpenGL</c>
+        /// on first launch in an attempt to dodge a Vulkan startup hang.
+        /// Current field logs show the opposite failure mode as well:
+        /// some devices now black-screen before the first managed heartbeat while
+        /// booting the OpenGL/ANGLE path. Rewriting the default in either
+        /// direction is therefore too risky; the framework's own default should
+        /// be left untouched and safe-mode should only intervene after an actual
+        /// failed launch.
         /// </para>
         ///
         /// <para>
-        /// Best-effort and never throws — if the file is missing or the rewrite
-        /// fails, startup proceeds with the existing value. Must be invoked from
-        /// <c>OsuGameActivity.OnCreate</c> BEFORE the framework reads
-        /// framework.ini, alongside the existing
+        /// Best-effort and never throws. The method now only drops its sentinel
+        /// so future launches know the normalisation has already been considered.
+        /// Must be invoked from <c>OsuGameActivity.OnCreate</c> BEFORE the
+        /// framework reads framework.ini, alongside the existing
         /// <see cref="NormaliseFrameworkIniExecutionMode"/> hook.
         /// </para>
         /// </summary>
@@ -323,95 +315,6 @@ namespace osu.Android
                 string sentinelPath = Path.Combine(root, renderer_migration_sentinel);
                 if (File.Exists(sentinelPath)) return;
 
-                string iniPath = Path.Combine(root, "framework.ini");
-
-                if (!File.Exists(iniPath))
-                {
-                    // Brand-new install: no framework.ini yet. Pre-create a minimal
-                    // file with just the Renderer line set; the framework will fill
-                    // in its other defaults on first save.
-                    try
-                    {
-                        File.WriteAllText(iniPath, "Renderer = OpenGL" + System.Environment.NewLine);
-                        tryDropSentinel(sentinelPath);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] LogManagement: could not pre-create framework.ini: {e.Message}");
-                    }
-                    return;
-                }
-
-                string[] lines;
-
-                try
-                {
-                    lines = File.ReadAllLines(iniPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for renderer migration: {e.Message}");
-                    return;
-                }
-
-                bool changed = false;
-                bool seenRendererLine = false;
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    string line = lines[i];
-                    int eq = line.IndexOf('=');
-                    if (eq <= 0) continue;
-
-                    string key = line.Substring(0, eq).Trim();
-                    string value = line.Substring(eq + 1).Trim();
-
-                    if (!string.Equals(key, "Renderer", StringComparison.Ordinal))
-                        continue;
-
-                    seenRendererLine = true;
-
-                    // Only nudge the default. If the user has explicitly chosen
-                    // Vulkan / OpenGLLegacy / Direct3D11 / Metal / Deferred, leave
-                    // it alone — the migration's job is to change the *default*,
-                    // not overwrite intent.
-                    if (string.Equals(value, "Automatic", StringComparison.Ordinal))
-                    {
-                        lines[i] = "Renderer = OpenGL";
-                        changed = true;
-                    }
-
-                    break;
-                }
-
-                if (!seenRendererLine)
-                {
-                    // No Renderer line at all — append one at the end of the file.
-                    var newLines = new string[lines.Length + 1];
-                    Array.Copy(lines, newLines, lines.Length);
-                    newLines[lines.Length] = "Renderer = OpenGL";
-                    lines = newLines;
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    try
-                    {
-                        File.WriteAllLines(iniPath, lines);
-                        Logger.Log("[osu!] Android first-launch Renderer-default migration: Automatic → OpenGL", LoggingTarget.Performance);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for renderer migration: {e.Message}");
-                        return;
-                    }
-                }
-
-                // Drop sentinel regardless of whether we changed anything: the
-                // migration has now had its one chance to run, and any subsequent
-                // user choice (including a deliberate "Automatic") must be
-                // respected.
                 tryDropSentinel(sentinelPath);
             }
             catch (Exception e)
@@ -435,35 +338,33 @@ namespace osu.Android
         /// <summary>
         /// Safe-mode renderer fallback: when the previous launch died before reaching the
         /// post-LoadComplete clear point (i.e. <see cref="AndroidStartupSafeMode.IsActive"/>
-        /// is true), force <c>Renderer = OpenGL</c> in the on-disk <c>framework.ini</c>
+        /// is true), switch the on-disk <c>Renderer</c> away from the previous startup path
         /// for this launch only.
         ///
         /// <para>
-        /// Why: the recurring black-screen ANR fingerprint is a Vulkan-path Toolbar-time
-        /// stall on Adreno (driver MAILBOX deadlock + glslang shader-compile burst),
-        /// and the failure has been reproduced across multiple Adreno generations
-        /// (high-end 740 and a lower-end model with Vulkan &lt; 1.3) — i.e. it is a
-        /// cross-driver issue, not a single-device quirk. If the user has explicitly
-        /// picked Vulkan and the previous launch died inside it, re-attempting Vulkan
-        /// immediately reproduces the same hang.
+        /// Why: older builds primarily failed on the Vulkan startup path, so safe-mode
+        /// forced <c>OpenGL</c>. Current crash logs also show devices that wedge before
+        /// the first managed heartbeat on the OpenGL/ANGLE path. Safe-mode therefore
+        /// needs to escape whichever renderer was persisted previously instead of always
+        /// retrying the same one.
         /// </para>
         ///
         /// <para>
-        /// Persistence: the original renderer value is saved to
+        /// Persistence: when safe-mode switches <em>to</em> <c>OpenGL</c>, the original
+        /// renderer value is saved to
         /// <see cref="AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE"/> before
         /// being overwritten. <see cref="RestoreRendererAfterSafeMode"/> reads this on
         /// the next successful launch and restores the renderer automatically — making
-        /// this a single-launch rescue rather than a permanent override. Users who
-        /// deliberately want to stay on OpenGL after a crash can change the setting
-        /// themselves; users who have Vulkan working correctly are automatically returned
-        /// to it on the next clean start.
+        /// Vulkan→OpenGL a single-launch rescue rather than a permanent override.
+        /// OpenGL→Automatic fallbacks deliberately do <em>not</em> auto-restore, because
+        /// restoring the same failing OpenGL path would recreate the startup loop.
         /// </para>
         ///
         /// <para>
         /// Bypasses the <c>renderer_migration_sentinel</c> deliberately —
         /// <see cref="NormaliseFrameworkIniRendererDefault"/> is one-shot and intentionally
         /// respects user intent on subsequent launches; this method's job is precisely the
-        /// opposite (override user intent when their previous Vulkan launch died).
+        /// opposite (override user intent when their previous startup path just failed).
         /// </para>
         ///
         /// <para>
@@ -491,7 +392,7 @@ namespace osu.Android
                 //   • Partially-written or incomplete pipeline objects from the
                 //     interrupted Vulkan compile pass.
                 //
-                // Either case causes visual corruption on the rescue OpenGL session:
+                // Either case causes visual corruption on the rescue renderer session:
                 //   – Argon hit circles render as white rectangles (masking uniform
                 //     at wrong struct offset → CornerRadius clipping broken).
                 //   – TrianglesV2 buttons show the wrong hue (gradient colour data
@@ -499,10 +400,10 @@ namespace osu.Android
                 //     garbage channel values).
                 //
                 // Wipe the shader cache unconditionally here — bypassing the
-                // version-code sentinel — so the OpenGL rescue session always starts
-                // from a clean slate.  The sentinel is NOT reset: the next normal
+                // version-code sentinel — so the rescue renderer always starts
+                // from a clean slate. The sentinel is NOT reset: the next normal
                 // (non-safe-mode) launch will still skip the version wipe and reuse
-                // the freshly-compiled OpenGL cache from this rescue session.
+                // whatever cache the successful rescue session just rebuilt.
                 string shaderCacheDir = Path.Combine(root, "cache", "shaders");
 
                 if (Directory.Exists(shaderCacheDir))
@@ -510,7 +411,7 @@ namespace osu.Android
                     try
                     {
                         Directory.Delete(shaderCacheDir, recursive: true);
-                        Logger.Log("[osu!] Android safe-mode: shader cache wiped to ensure clean OpenGL recompilation.", LoggingTarget.Runtime);
+                        Logger.Log("[osu!] Android safe-mode: shader cache wiped to ensure a clean renderer fallback recompilation.", LoggingTarget.Runtime);
                     }
                     catch (Exception e)
                     {
@@ -528,8 +429,9 @@ namespace osu.Android
                     // safe renderer choice so the framework picks it up on first read.
                     try
                     {
-                        File.WriteAllText(iniPath, "Renderer = OpenGL" + System.Environment.NewLine);
-                        Logger.Log("[osu!] Android safe-mode renderer fallback: pre-created framework.ini with Renderer = OpenGL", LoggingTarget.Performance);
+                        const string fallbackRenderer = "OpenGL";
+                        File.WriteAllText(iniPath, $"Renderer = {fallbackRenderer}" + System.Environment.NewLine);
+                        Logger.Log($"[osu!] Android safe-mode renderer fallback: pre-created framework.ini with Renderer = {fallbackRenderer}", LoggingTarget.Performance);
                     }
                     catch (Exception e)
                     {
@@ -553,6 +455,7 @@ namespace osu.Android
                 bool changed = false;
                 bool seenRendererLine = false;
                 string? previousValue = null;
+                string fallbackRenderer = "OpenGL";
 
                 for (int i = 0; i < lines.Length; i++)
                 {
@@ -568,10 +471,11 @@ namespace osu.Android
 
                     seenRendererLine = true;
                     previousValue = value;
+                    fallbackRenderer = chooseSafeModeRenderer(previousValue);
 
-                    if (!string.Equals(value, "OpenGL", StringComparison.Ordinal))
+                    if (!string.Equals(value, fallbackRenderer, StringComparison.Ordinal))
                     {
-                        lines[i] = "Renderer = OpenGL";
+                        lines[i] = $"Renderer = {fallbackRenderer}";
                         changed = true;
                     }
 
@@ -582,7 +486,7 @@ namespace osu.Android
                 {
                     var newLines = new string[lines.Length + 1];
                     Array.Copy(lines, newLines, lines.Length);
-                    newLines[lines.Length] = "Renderer = OpenGL";
+                    newLines[lines.Length] = $"Renderer = {fallbackRenderer}";
                     lines = newLines;
                     changed = true;
                 }
@@ -597,7 +501,9 @@ namespace osu.Android
                 // "OpenGL" from the previous safe-mode write.
                 string? existingRestore = AndroidStartupFlags.ReadValue(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE);
 
-                if (existingRestore == null && previousValue != null
+                if (existingRestore == null
+                    && previousValue != null
+                    && string.Equals(fallbackRenderer, "OpenGL", StringComparison.Ordinal)
                     && !string.Equals(previousValue, "OpenGL", StringComparison.Ordinal))
                 {
                     AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_SAFE_MODE_RENDERER_RESTORE, previousValue);
@@ -609,7 +515,10 @@ namespace osu.Android
                     string reason = AndroidStartupSafeMode.DrawThreadNativeCrashTriggered
                         ? "Draw-thread native crash detected"
                         : "previous launch died before LoadComplete clear point";
-                    Logger.Log($"[osu!] Android safe-mode renderer fallback ({reason}): Renderer {previousValue ?? "(unset)"} → OpenGL (temporary; will restore to {previousValue} after next successful launch)", LoggingTarget.Performance);
+                    string restoreText = string.Equals(fallbackRenderer, "OpenGL", StringComparison.Ordinal) && previousValue != null
+                        ? $"temporary; will restore to {previousValue} after next successful launch"
+                        : "sticky until the user changes it again";
+                    Logger.Log($"[osu!] Android safe-mode renderer fallback ({reason}): Renderer {previousValue ?? "(unset)"} → {fallbackRenderer} ({restoreText})", LoggingTarget.Performance);
                 }
                 catch (Exception e)
                 {
@@ -620,6 +529,13 @@ namespace osu.Android
             {
                 Debug.WriteLine($"[osu!] LogManagement: ForceOpenGLRendererIfSafeMode failed: {e.Message}");
             }
+        }
+
+        private static string chooseSafeModeRenderer(string? previousRenderer)
+        {
+            return string.Equals(previousRenderer, "OpenGL", StringComparison.OrdinalIgnoreCase)
+                ? "Automatic"
+                : "OpenGL";
         }
 
         /// <summary>
