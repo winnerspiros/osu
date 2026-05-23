@@ -77,10 +77,10 @@ namespace osu.Android
         public const string FLAG_STARTUP_IN_PROGRESS = "android_startup_in_progress.flag";
 
         /// <summary>
-        /// Stores the renderer value that was overwritten by <see cref="LogManagement.ForceOpenGLRendererIfSafeMode"/>.
+        /// Stores the renderer value that was overwritten by <see cref="LogManagement.ForceOpenGLRendererIfSafeMode"/>
+        /// when safe-mode temporarily switches the app to OpenGL.
         /// On the next successful launch, <see cref="LogManagement.RestoreRendererAfterSafeMode"/> reads this,
         /// restores the renderer in <c>framework.ini</c>, and deletes the file so the restore only happens once.
-        /// This makes the safe-mode OpenGL fallback a single-launch rescue rather than a permanent override.
         /// </summary>
         public const string FLAG_SAFE_MODE_RENDERER_RESTORE = "android_safe_mode_renderer_restore.flag";
 

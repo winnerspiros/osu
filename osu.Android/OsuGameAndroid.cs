@@ -136,7 +136,7 @@ namespace osu.Android
         // Veldrid Vulkan present queue — the cross-driver Adreno failure mode
         // reproduced on multiple phones), we deliberately leave the
         // IN_PROGRESS sentinel armed so the NEXT launch enters safe-mode
-        // (which forces Renderer = OpenGL via
+        // (which switches to a renderer fallback via
         // LogManagement.ForceOpenGLRendererIfSafeMode) and KillProcess so
         // the user gets an automatic restart-into-safe-mode in 1-2 s instead
         // of staring at a black screen.
@@ -890,7 +890,7 @@ namespace osu.Android
                         // its first scheduled lambda within 25 s of LoadComplete,
                         // we assume the renderer is hung. Leave the IN_PROGRESS
                         // sentinel armed so the next launch will enter safe-mode
-                        // (which rewrites Renderer = OpenGL via
+                        // (which rewrites Renderer to a fallback via
                         // LogManagement.ForceOpenGLRendererIfSafeMode) and
                         // append a diagnostic block flagging the cause so the
                         // next-session log clearly identifies it.
@@ -920,7 +920,7 @@ namespace osu.Android
                                     + $"  utc_time = {DateTime.UtcNow:O}\n"
                                     + "  reason   = Draw thread did not execute a scheduled lambda within 25s of LoadComplete\n"
                                     + "  effect   = leaving FLAG_STARTUP_IN_PROGRESS set; killing process so next launch enters safe-mode\n"
-                                    + "             (which forces Renderer = OpenGL via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
+                                    + "             (which applies a renderer fallback via LogManagement.ForceOpenGLRendererIfSafeMode)\n"
                                     + "  suspect  = Vulkan present-queue deadlock that survives Veldrid's bounded vkAcquireNextImageKHR\n"
                                     + "             + VkSurfaceKHR-loss recovery (i.e. a genuinely broken Vulkan stack on this device,\n"
                                     + "             not a transient surface loss). The framework's recovery cycle should fit comfortably\n"

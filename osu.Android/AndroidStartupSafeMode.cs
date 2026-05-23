@@ -159,7 +159,7 @@ namespace osu.Android
                         + $"  thread_name  = {crash.Value.ThreadName}\n"
                         + $"  top_frame    = {crash.Value.TopFrame}\n"
                         + $"  fingerprint  = {fingerprint}\n"
-                        + "  effects      = defer Oboe/Vulkan-probe init; skip FrameSync migration; longer refresh-rate defer; force Renderer = OpenGL\n"
+                        + "  effects      = defer Oboe/Vulkan-probe init; skip FrameSync migration; longer refresh-rate defer; apply renderer fallback\n"
                         + "=== END SAFE-MODE BANNER ===\n\n");
                 }
                 catch (Exception e)

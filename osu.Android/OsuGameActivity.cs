@@ -217,19 +217,18 @@ namespace osu.Android
             LogManagement.NormaliseFrameworkIniExecutionMode();
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniExecutionMode (returned)");
 
-            // One-shot Renderer-default migration: Automatic → OpenGL on Android.
-            // Eliminates the Veldrid glslang/SPIR-V shader-compile burst that has
-            // been the proximate cause of the recurring Toolbar-time MotionEvent
-            // ANR on Adreno devices. User can still pick Vulkan from
-            // Settings → Graphics → Renderer; the migration only nudges the
-            // default and never re-runs (governed by an on-disk sentinel).
+            // One-shot Android renderer-default normalisation. Earlier builds
+            // rewrote Automatic → OpenGL here, but field logs now show some
+            // devices black-screening on the OpenGL/ANGLE path before the first
+            // managed heartbeat. Leave the framework default untouched and only
+            // use safe-mode after an actual failed launch.
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniRendererDefault (about to start)");
             LogManagement.NormaliseFrameworkIniRendererDefault();
             CrashDiagnostics.WriteAliveMarker("LogManagement.NormaliseFrameworkIniRendererDefault (returned)");
 
-            // One-shot safe-mode rescue: if the previous launch died (typically the
-            // recurring Adreno-Vulkan Toolbar-time ANR), force Renderer = OpenGL for
-            // THIS launch only so the user is not trapped in a Vulkan crash loop.
+            // One-shot safe-mode rescue: if the previous launch died, switch the
+            // persisted renderer away from the failing startup path for THIS launch
+            // only so the user is not trapped in a startup loop.
             // No-op when AndroidStartupSafeMode.IsActive is false. Bypasses the
             // one-shot Renderer-migration sentinel deliberately — its job is to
             // respect user intent on healthy launches; this method's job is the
