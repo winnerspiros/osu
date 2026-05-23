@@ -763,6 +763,7 @@ namespace osu.Android
         // check-then-set in SurfaceChanged (lines ~732-734) is not a concurrency concern
         // because no two SurfaceChanged calls can overlap on the single UI thread.
         private volatile bool setFormatPending;
+        private volatile int setFormatAttempts;
 
         public IntPtr GetSurfaceGlobalRef()
         {
@@ -889,6 +890,7 @@ namespace osu.Android
                 && !AndroidStartupSafeMode.IsActive)
             {
                 setFormatPending = true;
+                setFormatAttempts = 1;
 
                 // Log to Runtime so the mid-session RGB565 reset is visible in the main log
                 // (and therefore in the notification overlay). Performance log gets the same
@@ -924,6 +926,29 @@ namespace osu.Android
                 return;
             }
 
+            if (format == global::Android.Graphics.Format.Rgb565
+                && LogManagement.IsVulkanConfigured()
+                && setFormatPending
+                && !AndroidStartupSafeMode.IsActive)
+            {
+                setFormatAttempts++;
+
+                if (setFormatAttempts >= 2)
+                {
+                    Logger.Log(
+                        "[osu!] Surface remained RGB565 after RGBA8888 request; restarting to enter safe-mode OpenGL fallback.",
+                        LoggingTarget.Runtime,
+                        LogLevel.Important);
+                    Logger.Log(
+                        "[osu!] Vulkan surface-format recovery failed (RGB565 persisted); killing process for safe-mode restart.",
+                        LoggingTarget.Performance,
+                        LogLevel.Important);
+
+                    try { global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid()); }
+                    catch (Exception e) { Debug.WriteLine($"[osu!] Failed to kill process after persistent RGB565 detection: {e.Message}"); }
+                }
+            }
+
             // Release the pending-format guard once the surface is confirmed RGBA8888.
             // This allows future RGB565 detection (e.g. after a display-mode change that
             // would legitimately reset the format) while still blocking a second spurious
@@ -931,6 +956,7 @@ namespace osu.Android
             if (format == global::Android.Graphics.Format.Rgba8888 && setFormatPending)
             {
                 setFormatPending = false;
+                setFormatAttempts = 0;
                 Debug.WriteLine("[osu!] Surface format confirmed RGBA8888 — pending-format guard released.");
             }
 
