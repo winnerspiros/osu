@@ -906,11 +906,6 @@ namespace osu.Android
                 // to send a heartbeat (especially during startup when the runtime is under
                 // heavy load), and the native watchdog (10s default) would fire, killing the
                 // process and producing a black screen.
-                //
-                // Calling Heartbeat() here resets the watchdog timer from the UI thread,
-                // giving SetFormat time to complete without triggering a false positive.
-                // The native watchdog checks g_lastHeartbeatMonotonicSec which is updated
-                // by a simple atomic store — safe to call from any thread.
                 try
                 {
                     NativeWatchdog.Heartbeat();
@@ -921,6 +916,8 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] NativeWatchdog.Heartbeat failed (non-fatal): {e.Message}");
                 }
 
+                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
+
                 try
                 {
                     holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
@@ -930,12 +927,13 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
 
-                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
-
-                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock with the
-                // old (about-to-be-invalidated) surface handle. The event will be re-set when
-                // SurfaceChanged fires again for the new RGBA8888 surface.
-                surfaceEvent.Reset();
+                // After SetFormat returns, the synchronous SurfaceDestroyed→SurfaceCreated→SurfaceChanged
+                // cycle has already completed and surfaceGlobalRef points to the new RGBA8888 surface.
+                // Set the event now so GetSurfaceGlobalRef() returns the new valid surface.
+                // This preserves the invariant that surfaceEvent is only set when surfaceGlobalRef
+                // points to a safe-to-render surface, while the watchdog heartbeat above prevents
+                // a false positive during the blocking SetFormat call.
+                surfaceEvent.Set();
 
                 return;
             }
