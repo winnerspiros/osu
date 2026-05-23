@@ -349,3 +349,5 @@ FodyWeavers.xsd
 osu.Android/libs/
 build-native/
 graphify-out/
+.context/
+.github/copilot-instructions.md
