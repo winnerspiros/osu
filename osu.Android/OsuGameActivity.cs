@@ -931,6 +931,12 @@ namespace osu.Android
                 }
 
                 Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
+
+                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock with the
+                // old (about-to-be-invalidated) surface handle. The event will be re-set when
+                // SurfaceChanged fires again for the new RGBA8888 surface.
+                surfaceEvent.Reset();
+
                 return;
             }
 
