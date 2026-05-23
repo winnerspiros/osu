@@ -21,6 +21,7 @@ using osu.Android.Input;
 using osu.Framework.Android;
 using osu.Game.Database;
 using osu.Framework.Logging;
+using osu.Android.Native;
 
 namespace osu.Android
 {
@@ -899,18 +900,25 @@ namespace osu.Android
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
 
-                // Set the surface event BEFORE calling SetFormat so the draw thread can
-                // proceed with the current (soon-to-be-recreated) surface. Without this,
-                // the draw thread blocks on surfaceEvent.Wait(5000) while SetFormat triggers
-                // a synchronous surface teardown on the UI thread, blocking the entire
-                // managed runtime from sending heartbeats. The native watchdog then fires
-                // at 10s because no managed heartbeat is observed.
-                // The new surface will trigger another SurfaceChanged which will set
-                // surfaceEvent again with the correct RGBA8888 format.
-                if (width > 0 && height > 0)
+                // Tick the native watchdog BEFORE calling SetFormat. SetFormat triggers a
+                // synchronous surface teardown on the UI thread that can block for hundreds
+                // of milliseconds. During this window the Update thread may not get a chance
+                // to send a heartbeat (especially during startup when the runtime is under
+                // heavy load), and the native watchdog (10s default) would fire, killing the
+                // process and producing a black screen.
+                //
+                // Calling Heartbeat() here resets the watchdog timer from the UI thread,
+                // giving SetFormat time to complete without triggering a false positive.
+                // The native watchdog checks g_lastHeartbeatMonotonicSec which is updated
+                // by a simple atomic store — safe to call from any thread.
+                try
                 {
-                    surfaceEvent.Set();
-                    Debug.WriteLine($"[osu!] Native surface signal set before format change (size: {width}x{height})");
+                    NativeWatchdog.Heartbeat();
+                    Debug.WriteLine("[osu!] Native watchdog heartbeat ticked before SetFormat(RGBA8888)");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] NativeWatchdog.Heartbeat failed (non-fatal): {e.Message}");
                 }
 
                 try
