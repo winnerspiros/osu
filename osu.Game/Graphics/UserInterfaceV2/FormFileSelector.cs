@@ -22,6 +22,7 @@ using osu.Framework.Platform;
 using osu.Game.Database;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Localisation;
 using osu.Game.Overlays;
 using System.Numerics;
 
