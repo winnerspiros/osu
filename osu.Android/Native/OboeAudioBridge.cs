@@ -226,11 +226,6 @@ namespace osu.Android.Native
         [DllImport(lib_name)] internal static extern byte nSetThreadAffinity(int coreMask);
         [DllImport(lib_name)] internal static extern int nGetBigCoreMask();
         [DllImport(lib_name)] internal static extern int nTameBackgroundThreads(int littleCoreMask);
-        [DllImport(lib_name)] internal static extern IntPtr nADPFCreateSession(long targetDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFReportActualDuration(IntPtr sessionPtr, long actualDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFUpdateTargetDuration(IntPtr sessionPtr, long targetDurationNanos);
-        [DllImport(lib_name)] internal static extern void nADPFCloseSession(IntPtr sessionPtr);
-        [DllImport(lib_name)] internal static extern void nADPFSetPreferPowerEfficiency(IntPtr sessionPtr, byte preferEfficiency);
         [DllImport(lib_name)] internal static extern void nInstallCrashHandler([MarshalAs(UnmanagedType.LPUTF8Str)] string? logPath);
         [DllImport(lib_name)] internal static extern void nReinstallCrashHandler();
     }

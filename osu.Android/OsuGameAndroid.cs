@@ -168,37 +168,6 @@ namespace osu.Android
         private global::Android.Content.PM.ScreenOrientation? lastRequestedOrientation;
         private int currentRefreshRate;
 
-        // ADPF (Android Dynamic Performance Framework) hint sessions for the Draw, Update, and Input threads.
-        // These tell the CPU scheduler to boost the clock frequency so game-loop threads can complete
-        // their work within the display frame deadline (e.g. 8.33 ms at 120 Hz).
-        // The sessions are created once after LoadComplete (when thread IDs are stable) and closed on
-        // Dispose. Target duration is updated whenever the active display refresh rate changes.
-        // Per-frame actual-duration reporting is done via GameThread.FrameCompleted, which fires on
-        // the respective game thread at the end of every frame (after clock throttle), giving the
-        // CPU governor a signal to pre-boost the clock for the next frame.
-        private IntPtr adpfDrawSession;
-        private IntPtr adpfUpdateSession;
-
-        // Cached GameThread references stored when ADPF sessions are created. Avoids walking
-        // Host?.DrawThread? / Host?.UpdateThread? / Host?.InputThread? on every frame callback
-        // (3 levels of nullable dereference at 120 Hz × 3 threads = 360 null checks/s → 0).
-        private osu.Framework.Threading.GameThread? adpfDrawThread;
-        private osu.Framework.Threading.GameThread? adpfUpdateThread;
-        private osu.Framework.Threading.GameThread? adpfInputThread;
-
-        // Input thread ADPF session.  The input thread may poll at ~100 kHz (one cycle ≈ 10 µs),
-        // which is far finer than the ADPF reporting granularity.  Instead of calling
-        // reportActualWorkDuration once per poll (which would flood the ADPF API), we accumulate
-        // total input-processing time and report once per display frame (~8 ms at 120 Hz).
-        // The session target is set to the display frame period, which is the correct deadline:
-        // "input for the next rendered frame must be ready within one frame interval".
-        private IntPtr adpfInputSession;
-        private double inputAdpfAccumulatedMs;
-        private long inputAdpfLastReportMs; // Environment.TickCount64 ms timestamp of last ADPF report
-        // Cached display-frame period in ms. Recomputed in applyDisplayMode so the hot
-        // input callback (which can fire at ~100 kHz) reads a plain field, not Math.Round.
-        private long adpfInputIntervalMs = 8L;
-
         // One-shot System.Threading.Timer that runs a burst of background-thread taming passes
         // when the user transitions into active gameplay.  Cancelled and replaced on each new
         // gameplay entry so repeated pause/resume cycles don't stack timers.
@@ -583,89 +552,6 @@ namespace osu.Android
                     });
                 }
 
-                // ADPF (Android Dynamic Performance Framework) hint sessions for Draw + Update threads.
-                // These hint sessions tell the CPU governor "these threads need to finish their work
-                // within one display-frame interval". The kernel then pre-boosts the CPU frequency
-                // so the threads don't stall mid-frame waiting for a slow core to spin up.
-                //
-                // Target duration = 1 / displayRefreshRate. We default to 120 Hz (8.33 ms) and
-                // update the target when the display refresh rate is confirmed by applyDisplayMode.
-                //
-                // nADPFCreateSession() captures gettid() of the *calling* thread, so each Add
-                // lambda must run on its respective game thread to register the correct TID.
-                Scheduler.Add(() =>
-                {
-                    try
-                    {
-                        Host?.DrawThread?.Scheduler.Add(() =>
-                        {
-                            try
-                            {
-                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
-                                adpfDrawSession = OboeAudioBridge.nADPFCreateSession(targetNs);
-                                if (adpfDrawSession != IntPtr.Zero)
-                                {
-                                    // API 35 (Android 15)+: disable power-efficiency bias so the
-                                    // CPU governor targets performance headroom for this thread.
-                                    // Silent no-op on API < 35 (resolved via dlsym).
-                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfDrawSession, 0);
-                                    Logger.Log($"[osu!] ADPF session created for Draw thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
-                                    // Cache the thread reference now (we're already on the Draw thread)
-                                    // so per-frame callbacks avoid the Host?.DrawThread? nullable chain.
-                                    adpfDrawThread = Host!.DrawThread;
-                                    // Subscribe per-frame reporting now that the session handle is valid.
-                                    // FrameCompleted fires on the Draw thread itself, so reading
-                                    // Host.DrawThread.Clock.ElapsedFrameTime is thread-safe.
-                                    Host!.DrawThread!.FrameCompleted += onDrawFrameCompleted;
-                                }
-                            }
-                            catch { }
-                        });
-
-                        Host?.UpdateThread?.Scheduler.Add(() =>
-                        {
-                            try
-                            {
-                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
-                                adpfUpdateSession = OboeAudioBridge.nADPFCreateSession(targetNs);
-                                if (adpfUpdateSession != IntPtr.Zero)
-                                {
-                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfUpdateSession, 0);
-                                    Logger.Log($"[osu!] ADPF session created for Update thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
-                                    adpfUpdateThread = Host!.UpdateThread;
-                                    Host!.UpdateThread!.FrameCompleted += onUpdateFrameCompleted;
-                                }
-                            }
-                            catch { }
-                        });
-
-                        // Input thread ADPF session.  The input thread runs at up to ~100 kHz
-                        // on high-end devices (one poll ≈ 10 µs) — far too fast to call
-                        // reportActualWorkDuration on every cycle.  We register the session
-                        // here (capturing the Input thread's TID via gettid()) and let
-                        // onInputFrameCompleted accumulate and report once per display frame.
-                        Host?.InputThread?.Scheduler.Add(() =>
-                        {
-                            try
-                            {
-                                long targetNs = currentRefreshRate > 0 ? 1_000_000_000L / currentRefreshRate : 8_333_333L;
-                                adpfInputSession = OboeAudioBridge.nADPFCreateSession(targetNs);
-                                if (adpfInputSession != IntPtr.Zero)
-                                {
-                                    OboeAudioBridge.nADPFSetPreferPowerEfficiency(adpfInputSession, 0);
-                                    Logger.Log($"[osu!] ADPF session created for Input thread (target={targetNs / 1_000_000.0:F2}ms)", LoggingTarget.Performance);
-                                    adpfInputThread = Host!.InputThread;
-                                    Host!.InputThread!.FrameCompleted += onInputFrameCompleted;
-                                }
-                            }
-                            catch { }
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"[osu!] Failed to enqueue ADPF session creation: {e.Message}");
-                    }
-                });
             }
             catch (Exception e)
             {
@@ -1537,8 +1423,6 @@ namespace osu.Android
                 try
                 {
                     currentRefreshRate = (int)mode.RefreshRate;
-                    // Cache the interval so the input hot-path avoids Math.Round on every poll.
-                    adpfInputIntervalMs = currentRefreshRate > 0 ? (long)Math.Round(1000.0 / currentRefreshRate) : 8L;
 
                     // Request the refresh rate via Surface.setFrameRate() ONLY.
                     //
@@ -1571,108 +1455,12 @@ namespace osu.Android
                     }
 
                     Logger.Log($"[osu!] Display mode applied: {mode.RefreshRate}Hz (mode {mode.ModeId}, {mode.PhysicalWidth}x{mode.PhysicalHeight})", LoggingTarget.Performance);
-
-                    // Update ADPF target duration to match the new display refresh rate.
-                    // This keeps the CPU governor hint aligned with the actual frame deadline.
-                    if (mode.RefreshRate > 0)
-                    {
-                        long targetNs = (long)(1_000_000_000.0 / mode.RefreshRate);
-                        updateAdpfTargetDuration(targetNs);
-                    }
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine($"[osu!] Failed to apply display mode: {e.Message}");
                 }
             });
-        }
-
-        /// <summary>
-        /// Updates the target work duration on all three ADPF hint sessions (Draw, Update, and Input thread)
-        /// so the CPU governor can pre-boost each thread to meet the new frame deadline.
-        /// </summary>
-        private void updateAdpfTargetDuration(long targetNs)
-        {
-            try
-            {
-                if (adpfDrawSession != IntPtr.Zero)
-                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfDrawSession, targetNs);
-                if (adpfUpdateSession != IntPtr.Zero)
-                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfUpdateSession, targetNs);
-                if (adpfInputSession != IntPtr.Zero)
-                    OboeAudioBridge.nADPFUpdateTargetDuration(adpfInputSession, targetNs);
-            }
-            catch { }
-        }
-
-        /// <summary>
-        /// Called by <see cref="osu.Framework.Threading.GameThread.FrameCompleted"/> on the Draw thread.
-        /// Reports the actual frame duration to the ADPF session so the CPU governor can adjust clock
-        /// frequency for the next frame. <see cref="osu.Framework.Threading.GameThread.Clock"/>
-        /// <c>ElapsedFrameTime</c> is in milliseconds; we convert to nanoseconds for the ADPF API.
-        /// In <see cref="FrameSync.ActualUnlimited"/> mode there is no throttle sleep, so
-        /// ElapsedFrameTime accurately reflects actual GPU+CPU work time.
-        /// </summary>
-        private void onDrawFrameCompleted()
-        {
-            if (adpfDrawSession == IntPtr.Zero) return;
-
-            try
-            {
-                double elapsedMs = adpfDrawThread?.Clock.ElapsedFrameTime ?? 0;
-                if (elapsedMs > 0)
-                    OboeAudioBridge.nADPFReportActualDuration(adpfDrawSession, (long)(elapsedMs * 1_000_000.0));
-            }
-            catch { }
-        }
-
-        /// <summary>
-        /// Called by <see cref="osu.Framework.Threading.GameThread.FrameCompleted"/> on the Update thread.
-        /// See <see cref="onDrawFrameCompleted"/> for rationale.
-        /// </summary>
-        private void onUpdateFrameCompleted()
-        {
-            if (adpfUpdateSession == IntPtr.Zero) return;
-
-            try
-            {
-                double elapsedMs = adpfUpdateThread?.Clock.ElapsedFrameTime ?? 0;
-                if (elapsedMs > 0)
-                    OboeAudioBridge.nADPFReportActualDuration(adpfUpdateSession, (long)(elapsedMs * 1_000_000.0));
-            }
-            catch { }
-        }
-
-        /// <summary>
-        /// Called by <see cref="osu.Framework.Threading.GameThread.FrameCompleted"/> on the Input thread.
-        /// The input thread may poll at ~100 kHz so we accumulate total CPU time across many polls
-        /// and report to ADPF at most once per display-frame interval (~8 ms at 120 Hz).
-        /// This avoids flooding the ADPF API while still giving the CPU governor a meaningful
-        /// signal about how heavily the input core is loaded.
-        /// </summary>
-        private void onInputFrameCompleted()
-        {
-            if (adpfInputSession == IntPtr.Zero) return;
-
-            try
-            {
-                double elapsedMs = adpfInputThread?.Clock.ElapsedFrameTime ?? 0;
-                if (elapsedMs <= 0) return;
-
-                inputAdpfAccumulatedMs += elapsedMs;
-
-                // Report once per display frame period.  `adpfInputIntervalMs` is pre-computed
-                // in applyDisplayMode() so this callback reads a plain field instead of calling Math.Round.
-                long nowMs = System.Environment.TickCount64;
-
-                if (nowMs - inputAdpfLastReportMs >= adpfInputIntervalMs)
-                {
-                    OboeAudioBridge.nADPFReportActualDuration(adpfInputSession, (long)(inputAdpfAccumulatedMs * 1_000_000.0));
-                    inputAdpfAccumulatedMs = 0;
-                    inputAdpfLastReportMs = nowMs;
-                }
-            }
-            catch { }
         }
 
         /// <summary>
@@ -2886,36 +2674,6 @@ namespace osu.Android
                 highPerformanceSession = null;
                 dexPerformanceSession?.Dispose();
                 dexPerformanceSession = null;
-
-                // Close ADPF hint sessions for game threads.
-                // Unsubscribe FrameCompleted FIRST so the callbacks don't fire with a stale
-                // (already-closed) session handle during the final frames of teardown.
-                try
-                {
-                    if (Host?.DrawThread != null)
-                        Host.DrawThread.FrameCompleted -= onDrawFrameCompleted;
-                    if (Host?.UpdateThread != null)
-                        Host.UpdateThread.FrameCompleted -= onUpdateFrameCompleted;
-                    if (Host?.InputThread != null)
-                        Host.InputThread.FrameCompleted -= onInputFrameCompleted;
-
-                    if (adpfDrawSession != IntPtr.Zero)
-                    {
-                        OboeAudioBridge.nADPFCloseSession(adpfDrawSession);
-                        adpfDrawSession = IntPtr.Zero;
-                    }
-                    if (adpfUpdateSession != IntPtr.Zero)
-                    {
-                        OboeAudioBridge.nADPFCloseSession(adpfUpdateSession);
-                        adpfUpdateSession = IntPtr.Zero;
-                    }
-                    if (adpfInputSession != IntPtr.Zero)
-                    {
-                        OboeAudioBridge.nADPFCloseSession(adpfInputSession);
-                        adpfInputSession = IntPtr.Zero;
-                    }
-                }
-                catch { }
 
                 var cst = System.Threading.Interlocked.Exchange(ref coldStartTamingTimer, null);
                 try { cst?.Dispose(); }
