@@ -900,14 +900,6 @@ namespace osu.Android
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
 
-                // Set the surface event BEFORE anything else so the draw thread can
-                // proceed with the current (soon-to-be-recreated) surface. Without this,
-                // the draw thread blocks on surfaceEvent.Wait(5000) and the native watchdog
-                // fires because no managed heartbeat arrives during the synchronous teardown.
-                // A brief frame or two with the old surface format is preferable to a
-                // deadlocked draw thread and watchdog kill.
-                surfaceEvent.Set();
-
                 // Tick the native watchdog BEFORE calling SetFormat. SetFormat triggers a
                 // synchronous surface teardown on the UI thread that can block for hundreds
                 // of milliseconds. During this window the Update thread may not get a chance
@@ -934,6 +926,14 @@ namespace osu.Android
                 {
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
+
+                // After SetFormat returns, the synchronous SurfaceDestroyed→SurfaceCreated→SurfaceChanged
+                // cycle has already completed and surfaceGlobalRef points to the new RGBA8888 surface.
+                // Set the event now so GetSurfaceGlobalRef() returns the new valid surface.
+                // This preserves the invariant that surfaceEvent is only set when surfaceGlobalRef
+                // points to a safe-to-render surface, while the watchdog heartbeat above prevents
+                // a false positive during the blocking SetFormat call.
+                surfaceEvent.Set();
 
                 return;
             }
