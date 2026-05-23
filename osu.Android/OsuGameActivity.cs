@@ -891,9 +891,6 @@ namespace osu.Android
                 setFormatPending = true;
                 setFormatAttempts = 1;
 
-                // Log to Runtime so the mid-session RGB565 reset is visible in the main log
-                // (and therefore in the notification overlay). Performance log gets the same
-                // entry for correlation with display-mode and frame-timing data.
                 string rgb565Message =
                     "[osu!] Android surface pixel format RGB565 detected (Vulkan path) — " +
                     "requesting RGBA8888 and triggering a surface recreate. " +
@@ -901,6 +898,20 @@ namespace osu.Android
                     "which would cause a mid-session swapchain rebuild at wrong dimensions.";
                 Logger.Log(rgb565Message, LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log(rgb565Message, LoggingTarget.Performance, LogLevel.Important);
+
+                // Set the surface event BEFORE calling SetFormat so the draw thread can
+                // proceed with the current (soon-to-be-recreated) surface. Without this,
+                // the draw thread blocks on surfaceEvent.Wait(5000) while SetFormat triggers
+                // a synchronous surface teardown on the UI thread, blocking the entire
+                // managed runtime from sending heartbeats. The native watchdog then fires
+                // at 10s because no managed heartbeat is observed.
+                // The new surface will trigger another SurfaceChanged which will set
+                // surfaceEvent again with the correct RGBA8888 format.
+                if (width > 0 && height > 0)
+                {
+                    surfaceEvent.Set();
+                    Debug.WriteLine($"[osu!] Native surface signal set before format change (size: {width}x{height})");
+                }
 
                 try
                 {
@@ -911,17 +922,7 @@ namespace osu.Android
                     Debug.WriteLine($"[osu!] Failed to request RGBA8888 format change for Vulkan: {e.Message}");
                 }
 
-                // The SetFormat call above queues a SurfaceDestroyed→SurfaceCreated cycle.
-                // Reset the surface event so GetSurfaceGlobalRef() does NOT unblock yet —
-                // the current Surface handle is about to be invalidated, and any caller that
-                // receives it would forward a dangling pointer into the Vulkan driver.
-                // The event will be re-set when SurfaceChanged fires again for the new
-                // RGBA8888 Surface; the normal-path surfaceEvent.Set() at the end of this
-                // method (lines below the if/else-if guard) handles that on the next call.
-                // We must NOT fall through to the width/height check, because that would
-                // signal the event with the old (about-to-die) surface dimensions.
-                surfaceEvent.Reset();
-                Debug.WriteLine("[osu!] Native surface signal reset (RGB565→RGBA8888 format change pending)");
+                Debug.WriteLine("[osu!] Native surface format change requested (RGB565→RGBA8888)");
                 return;
             }
 
