@@ -227,7 +227,7 @@ jobs:
       - name: Setup JDK 11
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 11
 
       - name: Install .NET 10.0.x
@@ -294,9 +294,13 @@ jobs:
             [ -d "$sdk_dir" ] || continue
             for sdk in $(ls "$sdk_dir" 2>/dev/null | grep '^MacOSX[0-9].*\.sdk$' | sort -rV); do
               cand="$sdk_dir/$sdk"
-              hdr_count=$(ls "$cand/usr/include" 2>/dev/null | wc -l | tr -d ' ')
+              cand_real=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$cand" 2>/dev/null || echo "$cand")
+              # Skip candidates that resolve back to the unversioned MacOSX.sdk alias.
+              # Re-linking MacOSX.sdk to itself creates a broken self-referential symlink.
+              [ "$(basename "$cand_real")" = "MacOSX.sdk" ] && continue
+              hdr_count=$(ls "$cand_real/usr/include" 2>/dev/null | wc -l | tr -d ' ')
               if [ "${hdr_count:-0}" -gt 5 ]; then
-                REAL_SDK="$cand"
+                REAL_SDK="$cand_real"
                 REAL_XCODE="$xapp"
                 break 2
               fi
@@ -306,9 +310,11 @@ jobs:
           if [ -z "$REAL_SDK" ]; then
             for sdk in $(ls /Library/Developer/CommandLineTools/SDKs 2>/dev/null | grep '^MacOSX[0-9].*\.sdk$' | sort -rV); do
               cand="/Library/Developer/CommandLineTools/SDKs/$sdk"
-              hdr_count=$(ls "$cand/usr/include" 2>/dev/null | wc -l | tr -d ' ')
+              cand_real=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$cand" 2>/dev/null || echo "$cand")
+              [ "$(basename "$cand_real")" = "MacOSX.sdk" ] && continue
+              hdr_count=$(ls "$cand_real/usr/include" 2>/dev/null | wc -l | tr -d ' ')
               if [ "${hdr_count:-0}" -gt 5 ]; then
-                REAL_SDK="$cand"
+                REAL_SDK="$cand_real"
                 break
               fi
             done
@@ -327,9 +333,13 @@ jobs:
             MACOS_SDK="$ACTIVE_SDKS_DIR/MacOSX.sdk"
             # Resolve REAL_SDK to its canonical (symlink-free) path to prevent ELOOP errors.
             REAL_SDK_CANON=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$REAL_SDK" 2>/dev/null || echo "$REAL_SDK")
-            sudo rm -rf "$MACOS_SDK"
-            sudo ln -sfn "$REAL_SDK_CANON" "$MACOS_SDK"
-            echo "Created MacOSX.sdk symlink -> $REAL_SDK_CANON"
+            if [ "$REAL_SDK_CANON" = "$MACOS_SDK" ]; then
+              echo "WARNING: resolved SDK points to active MacOSX.sdk alias; skipping relink to avoid self-referential symlink"
+            else
+              sudo rm -rf "$MACOS_SDK"
+              sudo ln -sfn "$REAL_SDK_CANON" "$MACOS_SDK"
+              echo "Created MacOSX.sdk symlink -> $REAL_SDK_CANON"
+            fi
           else
             echo "WARNING: no valid macOS SDK found; build may fail"
           fi
