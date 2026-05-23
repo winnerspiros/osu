@@ -429,9 +429,9 @@ namespace osu.Android
                     // safe renderer choice so the framework picks it up on first read.
                     try
                     {
-                        const string fallbackRenderer = "OpenGL";
-                        File.WriteAllText(iniPath, $"Renderer = {fallbackRenderer}" + System.Environment.NewLine);
-                        Logger.Log($"[osu!] Android safe-mode renderer fallback: pre-created framework.ini with Renderer = {fallbackRenderer}", LoggingTarget.Performance);
+                        const string initialFallbackRenderer = "OpenGL";
+                        File.WriteAllText(iniPath, $"Renderer = {initialFallbackRenderer}" + System.Environment.NewLine);
+                        Logger.Log($"[osu!] Android safe-mode renderer fallback: pre-created framework.ini with Renderer = {initialFallbackRenderer}", LoggingTarget.Performance);
                     }
                     catch (Exception e)
                     {
