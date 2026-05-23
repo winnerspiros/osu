@@ -331,6 +331,8 @@ namespace osu.Android
                     catch (Exception e)
                     {
                         Debug.WriteLine($"[osu!] Could not write fresh-install renderer default: {e.Message}");
+                        // Don't drop the sentinel — allow retry on next launch.
+                        return;
                     }
                 }
 
