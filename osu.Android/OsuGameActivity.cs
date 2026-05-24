@@ -405,6 +405,9 @@ namespace osu.Android
                             try
                             {
                                 setFormatPending = true;
+                                // Reset both watchdogs before the blocking SetFormat call.
+                                NativeWatchdog.Heartbeat();
+                                System.Threading.Volatile.Write(ref vulkanWatchdogLastPongMs[0], System.Environment.TickCount64);
                                 holder.SetFormat(global::Android.Graphics.Format.Rgba8888);
                                 Logger.Log("[osu!] SurfaceHolder.SetFormat(Rgba8888) applied (Vulkan renderer).", LoggingTarget.Runtime, LogLevel.Important);
                             }
@@ -722,6 +725,13 @@ namespace osu.Android
 
         private readonly System.Threading.ManualResetEventSlim surfaceEvent = new System.Threading.ManualResetEventSlim(false);
 
+        /// <summary>
+        /// Shared timestamp written by the UI-thread pong and read by the VulkanUiWatchdog.
+        /// Promoted to an activity field so that known UI-thread-blocking operations
+        /// (e.g. SetFormat) can reset it and prevent a spurious watchdog kill.
+        /// </summary>
+        private readonly long[] vulkanWatchdogLastPongMs = { System.Environment.TickCount64 };
+
         // Hold both the JNI global ref AND the managed Surface peer alive against the
         // SurfaceView lifecycle. The global ref alone is NOT enough — .NET-for-Android
         // tracks managed peers separately, and once the local `Surface` returned by
@@ -909,7 +919,13 @@ namespace osu.Android
                 try
                 {
                     NativeWatchdog.Heartbeat();
-                    Debug.WriteLine("[osu!] Native watchdog heartbeat ticked before SetFormat(RGBA8888)");
+                    // Also reset the VulkanUiWatchdog pong timestamp. SetFormat blocks the
+                    // UI thread for the full SurfaceDestroyed→SurfaceCreated→SurfaceChanged
+                    // cycle; during this window the Handler pong cannot run. Without this
+                    // reset the 7-second VulkanUiWatchdog fires and kills the process before
+                    // the native watchdog (10 s) would, producing the observed black screen.
+                    System.Threading.Volatile.Write(ref vulkanWatchdogLastPongMs[0], System.Environment.TickCount64);
+                    Debug.WriteLine("[osu!] Native watchdog heartbeat + VulkanUiWatchdog pong reset before SetFormat(RGBA8888)");
                 }
                 catch (Exception e)
                 {
@@ -1063,9 +1079,9 @@ namespace osu.Android
 
             // Shared field written by the UI-thread pong and read by the watchdog thread.
             // Interlocked/Volatile access: the pong runs on the UI thread, the reader runs
-            // on the watchdog thread.  The field is a reference so it can be captured by
-            // both lambdas without a ref capture.
-            long[] lastPongMonotonicMs = { System.Environment.TickCount64 };
+            // on the watchdog thread.  Promoted to an activity field so that SurfaceChanged
+            // can reset it before blocking SetFormat calls, preventing spurious kills.
+            long[] lastPongMonotonicMs = vulkanWatchdogLastPongMs;
 
             // Self-rescheduling pong: posts itself every ping_interval_ms on the UI thread.
             // Capturing pingHandler via a local ref rather than the outer variable so the
