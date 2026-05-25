@@ -96,6 +96,10 @@ volatile int g_dumpCount = 0;
 constexpr uint64_t kRedumpCooldownSec = 30;
 volatile uint64_t g_lastDumpMonotonicSec = 0;
 
+// Kill threshold multiplier: process is killed after hangSeconds * this when
+// no managed heartbeat has EVER been observed (renderer init hung).
+constexpr uint64_t kKillThresholdMultiplier = 2;
+
 // --------------------------------------------------------------------------
 // Async-signal-safe formatters / I/O.
 // --------------------------------------------------------------------------
@@ -531,7 +535,7 @@ void* watchdogMain(void* /*arg*/)
     // gives the renderer a generous window: the first dump fires at 1×
     // threshold for diagnostics, then we wait one more threshold period before
     // concluding the hang is unrecoverable.
-    const uint64_t killThresholdSec = (uint64_t)g_hangSeconds * 2;
+    const uint64_t killThresholdSec = (uint64_t)g_hangSeconds * kKillThresholdMultiplier;
 
     for (;;)
     {
@@ -565,17 +569,20 @@ void* watchdogMain(void* /*arg*/)
         {
             // Write a final diagnostic before killing.
             int fd = openLogAppend();
-            writeStr(fd, "\n=========================================================\n");
-            writeStr(fd, "=== NATIVE WATCHDOG KILL ===\n");
-            writeStr(fd, "  reason         = renderer init hang (no heartbeat ever observed after ");
-            writeDec(fd, (long long)age);
-            writeStr(fd, "s)\n");
-            writeStr(fd, "  action         = killing process for safe-mode restart (OpenGL fallback)\n");
-            writeStr(fd, "  kill_threshold = ");
-            writeDec(fd, (long long)killThresholdSec);
-            writeStr(fd, "s\n");
-            writeStr(fd, "=== END NATIVE WATCHDOG KILL ===\n\n");
-            if (fd >= 0) close(fd);
+            if (fd >= 0)
+            {
+                writeStr(fd, "\n=========================================================\n");
+                writeStr(fd, "=== NATIVE WATCHDOG KILL ===\n");
+                writeStr(fd, "  reason         = renderer init hang (no heartbeat ever observed after ");
+                writeDec(fd, (long long)age);
+                writeStr(fd, "s)\n");
+                writeStr(fd, "  action         = killing process for safe-mode restart (OpenGL fallback)\n");
+                writeStr(fd, "  kill_threshold = ");
+                writeDec(fd, (long long)killThresholdSec);
+                writeStr(fd, "s\n");
+                writeStr(fd, "=== END NATIVE WATCHDOG KILL ===\n\n");
+                close(fd);
+            }
 
             __android_log_write(ANDROID_LOG_ERROR, WATCHDOG_LOG_TAG,
                 "NATIVE WATCHDOG KILL — renderer init hung, killing for safe-mode OpenGL restart");
