@@ -209,7 +209,7 @@ namespace osu.Game.Rulesets.UI
                 this.parent = parent;
             }
 
-            public override IShader Load(string vertex, string fragment)
+            public new IShader Load(string vertex, string fragment)
             {
                 try
                 {
