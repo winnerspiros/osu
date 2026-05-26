@@ -152,6 +152,13 @@ namespace osu.Android
         // wedged renderer.
         private volatile bool drawThreadEverPresented;
 
+        /// <summary>
+        /// Cached reference to <see cref="FrameworkConfigManager"/> for use in the
+        /// draw-thread heartbeat lambda, which restores the original <c>FrameSync</c>
+        /// value after the first frame presents (see <see cref="LogManagement.ForceVSyncDuringVulkanColdStart"/>).
+        /// </summary>
+        private FrameworkConfigManager? cachedFrameworkConfig;
+
         // Set true by the deferred SelectHighestRefreshRate call in LoadComplete; gates
         // any earlier OnConfigurationChanged-driven SelectHighestRefreshRate() invocations
         // out of the cold-start swapchain bring-up window. See SelectHighestRefreshRate.
@@ -257,6 +264,8 @@ namespace osu.Android
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager frameworkConfig)
         {
+            cachedFrameworkConfig = frameworkConfig;
+
             LocalConfig.BindWith(OsuSetting.AndroidPerformanceMode, performanceMode);
             LocalConfig.BindWith(OsuSetting.AndroidAudioOutput, audioOutput);
             LocalConfig.BindWith(OsuSetting.AndroidVulkanProbe, vulkanProbeEnabled);
@@ -868,6 +877,35 @@ namespace osu.Android
                     catch (Exception queueEx)
                     {
                         Debug.WriteLine($"[osu!] Could not queue ClearStartupInProgress from Draw-thread heartbeat: {queueEx.Message}");
+                    }
+
+                    // Restore the original FrameSync value that was temporarily
+                    // forced to VSync by LogManagement.ForceVSyncDuringVulkanColdStart.
+                    // Now that the Draw thread is demonstrably healthy (first frame
+                    // presented), it is safe to switch the swapchain from FIFO to
+                    // IMMEDIATE — the texture-upload burst is past and the GPU can
+                    // handle the recreation without stalling.
+                    try
+                    {
+                        string? savedFrameSync = AndroidStartupFlags.ReadValue(
+                            AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE);
+
+                        if (savedFrameSync != null && cachedFrameworkConfig != null)
+                        {
+                            if (Enum.TryParse<FrameSync>(savedFrameSync, out var originalFrameSync))
+                            {
+                                cachedFrameworkConfig.SetValue(FrameworkSetting.FrameSync, originalFrameSync);
+                                Logger.Log($"[osu!] Vulkan cold-start: restored FrameSync to {originalFrameSync} after first frame", LoggingTarget.Performance);
+                            }
+
+                            // Delete the flag regardless of parse success so we don't
+                            // re-attempt restoration on the next Draw-thread tick.
+                            AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE, false);
+                        }
+                    }
+                    catch (Exception restoreEx)
+                    {
+                        Debug.WriteLine($"[osu!] Vulkan cold-start FrameSync restore failed: {restoreEx.Message}");
                     }
                 });
             }
