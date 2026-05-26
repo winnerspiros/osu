@@ -834,10 +834,10 @@ namespace osu.Android
                     break;
                 }
 
-                if (!changed) return;
+                if (!changed || originalValue == null) return;
 
                 // Save the original value so OsuGameAndroid can restore it after first frame.
-                AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE, originalValue!);
+                AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE, originalValue);
 
                 try
                 {
