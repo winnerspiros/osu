@@ -28,6 +28,8 @@ namespace osu.Game.Screens.Edit.Components.TernaryButtons
 {
     public partial class NewComboTernaryButton : CompositeDrawable, IHasCurrentValue<TernaryState>
     {
+        public Func<Drawable>? CreateIcon { get; init; }
+
         public Bindable<TernaryState> Current
         {
             get => current.Current;
@@ -60,7 +62,7 @@ namespace osu.Game.Screens.Edit.Components.TernaryButtons
                     {
                         Current = Current,
                         Description = "New combo",
-                        CreateIcon = () => new SpriteIcon { Icon = OsuIcon.EditorNewCombo },
+                        CreateIcon = CreateIcon,
                     },
                 },
                 pickerButton = new ColourPickerButton

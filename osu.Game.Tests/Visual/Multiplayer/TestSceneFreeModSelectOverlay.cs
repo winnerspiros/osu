@@ -177,7 +177,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 LoadComponent(Overlay = new FreeModSelectOverlay
                 {
-                    SelectedMods = { BindTarget = FreeMods }
+                    SelectedMods = { BindTarget = FreeMods },
+                    Ruleset = { BindTarget = Ruleset }
                 });
             }
 

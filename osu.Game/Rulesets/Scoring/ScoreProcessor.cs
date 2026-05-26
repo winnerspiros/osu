@@ -210,10 +210,8 @@ namespace osu.Game.Rulesets.Scoring
 
             Mods.ValueChanged += mods =>
             {
-                scoreMultiplier = 1;
-
-                foreach (var m in mods.NewValue)
-                    scoreMultiplier *= m.ScoreMultiplier;
+                var calculator = ruleset.CreateScoreMultiplierCalculator(new ScoreMultiplierContext());
+                scoreMultiplier = calculator.CalculateFor(mods.NewValue);
 
                 // Rebuild the cached array so updateRank() can iterate without any heap allocation.
                 applicableScoreMods = mods.NewValue.OfType<IApplicableToScoreProcessor>().ToArray();

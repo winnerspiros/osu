@@ -51,6 +51,7 @@
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" />
     <PackageReference Include="ppy.osu.Game.Resources" Version="2026.523.0" />
     <PackageReference Include="Sentry" Version="6.5.0" />
+    <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->
     <PackageReference Include="SharpCompress" Version="0.48.0" />
     <PackageReference Include="NUnit" Version="4.6.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
@@ -197,7 +198,13 @@ namespace osu.Game.Rulesets.Catch.Tests
 
         private bool checkLegacyFruitHyperDashColour(DrawableFruit fruit, Colour4 expectedColour) =>
             fruit.ChildrenOfType<SkinnableDrawable>().FirstOrDefault()?.Drawable.ChildrenOfType<Sprite>()
-                 .Any(c => c.Colour == expectedColour) == true;
+                 .Any(c => colourApproximatelyEquals(c.Colour.TopLeft.SRGB, expectedColour)) == true;
+
+        private static bool colourApproximatelyEquals(Colour4 actual, Colour4 expected) =>
+            Math.Abs(actual.R - expected.R) < 0.002f
+            && Math.Abs(actual.G - expected.G) < 0.002f
+            && Math.Abs(actual.B - expected.B) < 0.002f
+            && Math.Abs(actual.A - expected.A) < 0.002f;
 
         private class TestSkin : LegacySkin
         {
