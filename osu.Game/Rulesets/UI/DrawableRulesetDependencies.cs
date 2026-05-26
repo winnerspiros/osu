@@ -209,6 +209,18 @@ namespace osu.Game.Rulesets.UI
                 this.parent = parent;
             }
 
+            public override IShader Load(string vertex, string fragment)
+            {
+                try
+                {
+                    return base.Load(vertex, fragment);
+                }
+                catch (FileNotFoundException)
+                {
+                    return parent.Load(vertex, fragment);
+                }
+            }
+
             public override IShader? GetCachedShader(string vertex, string fragment) => base.GetCachedShader(vertex, fragment) ?? parent.GetCachedShader(vertex, fragment);
 
             public override IShaderPart? GetCachedShaderPart(string name) => base.GetCachedShaderPart(name) ?? parent.GetCachedShaderPart(name);
