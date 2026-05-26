@@ -38,10 +38,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="ppy.osu.Framework" Version="2026.521.1" />
+    <PackageReference Include="ppy.osu.Framework" Version="2026.526.1" />
     <!--
       Explicitly pin `ppy.Veldrid.SPIRV` to the winnerspiros fork build that
-      `ppy.osu.Framework 2026.521.1` was compiled against. This version is the only
+      `ppy.osu.Framework 2026.526.1` was compiled against. This version is the only
       one whose `runtimes/android-arm64/native/libveldrid-spirv.so` is aligned to 16 KB
       pages (required by Android 16+). It lives only as a release asset on
       <https://github.com/winnerspiros/veldrid-spirv/releases/tag/1.0> and is vendored
@@ -49,8 +49,9 @@
       would silently fall back to the 4 KB-aligned nuget.org build and emit NU1903.
     -->
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gb268bf39ea" />
-    <PackageReference Include="ppy.osu.Game.Resources" Version="2026.519.0" />
+    <PackageReference Include="ppy.osu.Game.Resources" Version="2026.523.0" />
     <PackageReference Include="Sentry" Version="6.5.0" />
+    <!-- Held back due to 0.34.0 failing AOT compilation on ZstdSharp.dll dependency. -->
     <PackageReference Include="SharpCompress" Version="0.48.0" />
     <PackageReference Include="NUnit" Version="4.6.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />

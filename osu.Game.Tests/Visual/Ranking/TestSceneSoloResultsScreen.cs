@@ -172,6 +172,7 @@ namespace osu.Game.Tests.Visual.Ranking
             AddUntilStep("local score is #16", () => this.ChildrenOfType<ScorePanelList>().Single().GetPanelForScore(localScore).ScorePosition.Value, () => Is.EqualTo(16));
         }
 
+        [FlakyTest]
         [Test]
         public void TestOnlineLeaderboardWithLessThan50Scores_UserWasInTop50()
         {

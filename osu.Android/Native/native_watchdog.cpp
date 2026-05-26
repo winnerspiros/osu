@@ -96,6 +96,10 @@ volatile int g_dumpCount = 0;
 constexpr uint64_t kRedumpCooldownSec = 30;
 volatile uint64_t g_lastDumpMonotonicSec = 0;
 
+// Kill threshold multiplier: process is killed after hangSeconds * this when
+// no managed heartbeat has EVER been observed (renderer init hung).
+constexpr uint64_t kKillThresholdMultiplier = 2;
+
 // --------------------------------------------------------------------------
 // Async-signal-safe formatters / I/O.
 // --------------------------------------------------------------------------
@@ -522,6 +526,17 @@ void* watchdogMain(void* /*arg*/)
         "watchdog thread up (tid=%d, hang_threshold=%ds)",
         (int)gettid(), (int)g_hangSeconds);
 
+    // Kill threshold: if no managed heartbeat has EVER been observed (meaning
+    // the game threads were never created — renderer init hung) and this
+    // condition persists for 2× the hang threshold (default: 20s with 10s
+    // threshold), kill the process. This triggers the safe-mode system on the
+    // next launch (FLAG_STARTUP_IN_PROGRESS remains on disk → next launch
+    // forces OpenGL via ForceOpenGLRendererIfSafeMode). The 2× multiplier
+    // gives the renderer a generous window: the first dump fires at 1×
+    // threshold for diagnostics, then we wait one more threshold period before
+    // concluding the hang is unrecoverable.
+    const uint64_t killThresholdSec = (uint64_t)g_hangSeconds * kKillThresholdMultiplier;
+
     for (;;)
     {
         struct timespec req{};
@@ -530,8 +545,6 @@ void* watchdogMain(void* /*arg*/)
         // CLOCK_MONOTONIC TIMER_RELATIVE → not affected by wall-clock jumps.
         // We accept early wakeups (EINTR) silently and re-loop.
         (void)clock_nanosleep(CLOCK_MONOTONIC, 0, &req, nullptr);
-
-        if (g_dumpCount >= kMaxDumps) continue;
 
         uint64_t now = monotonicSec();
         if (now == 0) continue;
@@ -546,6 +559,40 @@ void* watchdogMain(void* /*arg*/)
 
         uint64_t age = now - reference;
         if (age < (uint64_t)g_hangSeconds) continue;
+
+        // Kill the process if no heartbeat was EVER observed and we have
+        // exceeded the kill threshold. This means the renderer initialization
+        // (typically GraphicsDevice.CreateVulkan) hung in native driver code
+        // and game threads were never created. Killing triggers safe-mode on
+        // the next launch, which falls back to OpenGL.
+        if (lastTick == 0 && age >= killThresholdSec)
+        {
+            // Write a final diagnostic before killing.
+            int fd = openLogAppend();
+            if (fd >= 0)
+            {
+                writeStr(fd, "\n=========================================================\n");
+                writeStr(fd, "=== NATIVE WATCHDOG KILL ===\n");
+                writeStr(fd, "  reason         = renderer init hang (no heartbeat ever observed after ");
+                writeDec(fd, (long long)age);
+                writeStr(fd, "s)\n");
+                writeStr(fd, "  action         = killing process for safe-mode restart (OpenGL fallback)\n");
+                writeStr(fd, "  kill_threshold = ");
+                writeDec(fd, (long long)killThresholdSec);
+                writeStr(fd, "s\n");
+                writeStr(fd, "=== END NATIVE WATCHDOG KILL ===\n\n");
+                close(fd);
+            }
+
+            __android_log_write(ANDROID_LOG_ERROR, WATCHDOG_LOG_TAG,
+                "NATIVE WATCHDOG KILL — renderer init hung, killing for safe-mode OpenGL restart");
+
+            // Use _exit to terminate immediately without running atexit handlers
+            // or C++ destructors — the process is in an unrecoverable state.
+            _exit(1);
+        }
+
+        if (g_dumpCount >= kMaxDumps) continue;
 
         if (g_lastDumpMonotonicSec != 0 && now - g_lastDumpMonotonicSec < kRedumpCooldownSec)
             continue;
