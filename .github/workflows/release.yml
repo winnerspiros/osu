@@ -45,6 +45,8 @@ on:
         default: ""
         type: string
 
+permissions: {}
+
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════════
   # Determine version (shared across all platform jobs)
