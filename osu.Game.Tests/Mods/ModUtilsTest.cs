@@ -420,7 +420,6 @@ namespace osu.Game.Tests.Mods
             public override string Name => string.Empty;
             public override LocalisableString Description => string.Empty;
             public override string Acronym => string.Empty;
-            public override double ScoreMultiplier => 1;
             public override bool HasImplementation => true;
             public override bool ValidForMultiplayer => false;
             public override bool ValidForMultiplayerAsFreeMod => false;
@@ -431,7 +430,6 @@ namespace osu.Game.Tests.Mods
             public override string Name => string.Empty;
             public override LocalisableString Description => string.Empty;
             public override string Acronym => string.Empty;
-            public override double ScoreMultiplier => 1;
             public override bool HasImplementation => true;
             public override bool ValidForMultiplayerAsFreeMod => false;
         }
@@ -440,7 +438,6 @@ namespace osu.Game.Tests.Mods
         {
             public override string Name => string.Empty;
             public override LocalisableString Description => string.Empty;
-            public override double ScoreMultiplier => 1;
             public override string Acronym => string.Empty;
             public override bool HasImplementation => true;
             public override bool ValidForFreestyleAsRequiredMod => false;
