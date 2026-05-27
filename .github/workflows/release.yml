@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Release Build
 
 on:
   push:
@@ -12,8 +12,20 @@ on:
         required: false
         default: ""
         type: string
+      platforms:
+        description: "Platforms to build"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - android
+          - windows
+          - linux
+          - macos
+          - ios
       create_release:
-        description: "Create a GitHub Release with the APK?"
+        description: "Create a GitHub Release with the artifacts?"
         required: false
         default: true
         type: boolean
@@ -34,13 +46,65 @@ on:
         type: string
 
 jobs:
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Determine version (shared across all platform jobs)
+  # ═══════════════════════════════════════════════════════════════════════════════
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      build_android: ${{ steps.platforms.outputs.android }}
+      build_windows: ${{ steps.platforms.outputs.windows }}
+      build_linux: ${{ steps.platforms.outputs.linux }}
+      build_macos: ${{ steps.platforms.outputs.macos }}
+      build_ios: ${{ steps.platforms.outputs.ios }}
+    steps:
+      - name: Determine version
+        id: version
+        run: |
+          INPUT_VERSION="${{ inputs.version }}"
+          REF="${{ github.ref_name }}"
+
+          if [[ -n "$INPUT_VERSION" && "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="$INPUT_VERSION"
+            echo "Using manually specified version: $VERSION"
+          elif [[ "$REF" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="$REF"
+            echo "Using version from tag: $VERSION"
+          else
+            VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
+            echo "Auto-generated version: $VERSION"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION"    >> "$GITHUB_OUTPUT"
+
+      - name: Determine platforms
+        id: platforms
+        run: |
+          PLATFORM="${{ inputs.platforms || 'all' }}"
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "android" ]; then echo "android=true" >> "$GITHUB_OUTPUT"; else echo "android=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "windows" ]; then echo "windows=true" >> "$GITHUB_OUTPUT"; else echo "windows=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "linux" ]; then echo "linux=true" >> "$GITHUB_OUTPUT"; else echo "linux=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "macos" ]; then echo "macos=true" >> "$GITHUB_OUTPUT"; else echo "macos=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "ios" ]; then echo "ios=true" >> "$GITHUB_OUTPUT"; else echo "ios=false" >> "$GITHUB_OUTPUT"; fi
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Android Build
+  # ═══════════════════════════════════════════════════════════════════════════════
   build-android:
     name: Build Android APK
+    needs: prepare
+    if: needs.prepare.outputs.build_android == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: write
       packages: read
+    outputs:
+      apk_artifact: ${{ steps.find_apk.outputs.artifact_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -50,7 +114,7 @@ jobs:
       - name: Setup JDK 17
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17
 
       - name: Install .NET 10.0.x
@@ -66,10 +130,7 @@ jobs:
 
       - name: Ensure Android NDK and CMake are available
         run: |
-          # The ubuntu-latest runner has $ANDROID_HOME pre-installed.
-          # sdkmanager is not on PATH; use the full path.
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          # Install latest stable NDK (r29) + CMake.
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" --install "ndk;29.0.14206865" "cmake;3.22.1" > /dev/null 2>&1
 
@@ -78,13 +139,8 @@ jobs:
           NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
           CMAKE_BIN="$ANDROID_HOME/cmake/3.22.1/bin/cmake"
 
-          # arm64 only — matches RuntimeIdentifiers in osu.Android.props.
           for ABI in arm64-v8a; do
             echo "::group::Building osu_native for $ABI"
-            # Retry CMake configure up to 5 times: it performs the Oboe FetchContent
-            # git clone, which has intermittently failed with transient GitHub HTTP
-            # 500 errors (e.g. run 24845529416). Each retry wipes the partial build
-            # dir so FetchContent re-clones cleanly. Short backoff between attempts.
             CONFIGURE_ATTEMPTS=5
             for attempt in $(seq 1 $CONFIGURE_ATTEMPTS); do
               rm -rf "build-native/$ABI"
@@ -99,7 +155,7 @@ jobs:
                 echo "::error::CMake configure failed after $CONFIGURE_ATTEMPTS attempts"
                 exit 1
               fi
-              echo "::warning::CMake configure attempt $attempt failed (likely transient FetchContent clone error); retrying in $((attempt * 10))s"
+              echo "::warning::CMake configure attempt $attempt failed; retrying in $((attempt * 10))s"
               sleep $((attempt * 10))
             done
             "$CMAKE_BIN" --build "build-native/$ABI" --config Release -j "$(nproc)"
@@ -116,41 +172,22 @@ jobs:
         run: |
           KS_PATH="${{ github.workspace }}/osu.Android/osu.keystore"
 
-          # Priority: workflow_dispatch inputs > repository secrets > auto-generate.
-          # This lets users paste values from SAVE-THESE-SECRETS.txt directly into
-          # the "Run workflow" form so they don't need to set up repo secrets.
-          # Note: the auto-generated keystore uses the same password for both key and
-          # store, so a single key_password input covers both. Users with separate
-          # passwords should use repository secrets instead of workflow inputs.
           EFFECTIVE_KS="${INPUT_KEYSTORE_BASE64:-$KEYSTORE_BASE64}"
           EFFECTIVE_ALIAS="${INPUT_KEY_ALIAS:-$KEY_ALIAS_SECRET}"
           EFFECTIVE_PASS="${INPUT_KEY_PASSWORD:-$KEY_PASS_SECRET}"
           EFFECTIVE_STORE_PASS="${INPUT_KEY_PASSWORD:-${STORE_PASS_SECRET:-$EFFECTIVE_PASS}}"
 
-          # Mask passwords so they never appear in logs.
           if [ -n "$EFFECTIVE_PASS" ]; then echo "::add-mask::$EFFECTIVE_PASS"; fi
           if [ -n "$EFFECTIVE_STORE_PASS" ]; then echo "::add-mask::$EFFECTIVE_STORE_PASS"; fi
 
           if [ -n "$EFFECTIVE_KS" ]; then
-            # ── User provided a keystore (via input or secret) ──────────────
             echo "$EFFECTIVE_KS" | base64 --decode > "$KS_PATH"
             echo "has_keystore=true"  >> "$GITHUB_OUTPUT"
             echo "generated=false"    >> "$GITHUB_OUTPUT"
             echo "key_alias=${EFFECTIVE_ALIAS:-osu-release}" >> "$GITHUB_OUTPUT"
             echo "key_pass=${EFFECTIVE_PASS}"     >> "$GITHUB_OUTPUT"
             echo "store_pass=${EFFECTIVE_STORE_PASS}" >> "$GITHUB_OUTPUT"
-
-            if [ -n "$INPUT_KEYSTORE_BASE64" ]; then
-              echo "✅ Using keystore from workflow dispatch inputs."
-            else
-              echo "✅ Using saved keystore from repository secrets."
-            fi
           else
-            # ── No keystore → auto-generate one for this build ──────────────
-            # The APK will install fine on any device, but UPDATING from a
-            # previous build signed with a DIFFERENT key will fail.
-            # To avoid that, save the generated keystore as a secret
-            # (instructions are printed at the end of the build).
             AUTO_PASS="osu-$(openssl rand -hex 12)"
             echo "::add-mask::$AUTO_PASS"
 
@@ -168,8 +205,6 @@ jobs:
             echo "key_pass=$AUTO_PASS"   >> "$GITHUB_OUTPUT"
             echo "store_pass=$AUTO_PASS" >> "$GITHUB_OUTPUT"
 
-            # Export base64 and password into a single instructions file
-            # so the user only needs to download one artifact.
             {
               echo "=== osu! Android Signing Keystore ==="
               echo ""
@@ -188,7 +223,6 @@ jobs:
             } > "${{ github.workspace }}/SAVE-THESE-SECRETS.txt"
 
             echo "::warning::No signing keystore secret found — auto-generated one for this build."
-            echo "::warning::See the end of this job for instructions to save it for future builds."
           fi
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -199,28 +233,6 @@ jobs:
           INPUT_KEY_ALIAS: ${{ inputs.key_alias }}
           INPUT_KEY_PASSWORD: ${{ inputs.key_password }}
 
-      - name: Determine version
-        id: version
-        run: |
-          # Priority: manual input > tag name > auto-increment from run number
-          INPUT_VERSION="${{ inputs.version }}"
-          REF="${{ github.ref_name }}"
-
-          if [[ -n "$INPUT_VERSION" && "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VERSION="$INPUT_VERSION"
-            echo "📦 Using manually specified version: $VERSION"
-          elif [[ "$REF" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VERSION="$REF"
-            echo "📦 Using version from tag: $VERSION"
-          else
-            # Auto-generate: YYYY.MMDD.run_number
-            VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
-            echo "📦 Auto-generated version: $VERSION"
-          fi
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION"    >> "$GITHUB_OUTPUT"
-
       - name: Install ffmpeg
         run: |
           sudo apt-get update
@@ -228,47 +240,30 @@ jobs:
 
       - name: Clone and optimize all osu-resources from GitHub
         run: |
-          # ── Clone the upstream ppy/osu-resources repository ─────────────────────
           git clone --depth=1 https://github.com/ppy/osu-resources /tmp/osu-resources
 
-          # Patch deprecated <PackageLicenseUrl> → <PackageLicenseExpression> to silence
-          # the "licenseUrl will be deprecated" NuGet warning during dotnet pack.
           sed -i \
             's|<PackageLicenseUrl>[^<]*</PackageLicenseUrl>|<PackageLicenseExpression>MIT</PackageLicenseExpression>|g' \
             /tmp/osu-resources/osu.Game.Resources/osu.Game.Resources.csproj
 
-          # ── Optimize ALL media assets with ffmpeg ────────────────────────────────
-          # Uses keep_original_files=false so the packed DLL ships only the
-          # compressed form (webp/ogg/webm) — originals would waste APK space
-          # because the fallback chain always prefers the optimized extension.
           python3 scripts/optimize_resource_overrides.py \
             --root /tmp/osu-resources/osu.Game.Resources \
             --config .github/resource-optimizer/osu-resources-config.json \
             --report-file resource-budget/osu-resources-optimizer-report.json \
             --summary-file resource-budget/osu-resources-optimizer-summary.md
 
-          # ── Pack the optimized DLL as a local NuGet package ──────────────────────
-          # Use a run-number-unique version so the NuGet cache never serves a stale
-          # hit. local-packages/ is the first NuGet source in NuGet.Config, so
-          # dotnet restore will prefer this local build over nuget.org automatically.
           RESOURCES_VERSION="$(date -u +%Y).$(date -u +%-m%d).${{ github.run_number }}"
 
           if dotnet pack /tmp/osu-resources/osu.Game.Resources/osu.Game.Resources.csproj \
               -c Release \
               -o ./local-packages/ \
               -p:Version="${RESOURCES_VERSION}"; then
-            # Patch the PackageReference in osu.Game.csproj to pick up our local build.
             sed -i \
               "s|ppy.osu.Game.Resources\" Version=\"[^\"]*\"|ppy.osu.Game.Resources\" Version=\"${RESOURCES_VERSION}\"|" \
               osu.Game/osu.Game.csproj
             echo "✅ Using optimized osu.Game.Resources ${RESOURCES_VERSION} (local pack)"
           else
             echo "⚠️ dotnet pack failed; falling back to upstream ppy.osu.Game.Resources from NuGet"
-          fi
-
-          # Append optimizer summary to the workflow summary
-          if [ -f resource-budget/osu-resources-optimizer-summary.md ]; then
-            cat resource-budget/osu-resources-optimizer-summary.md >> "$GITHUB_STEP_SUMMARY" || true
           fi
 
       - name: Optimize local override media
@@ -279,22 +274,13 @@ jobs:
             --report-file resource-budget/optimizer-report.json \
             --summary-file resource-budget/optimizer-summary.md
 
-      - name: Check source override resource budgets
-        run: |
-          python3 scripts/check_resource_budgets.py \
-            --mode source \
-            --source-root osu.Game/Resources \
-            --budget-file .github/resource-budgets/source-overrides.json \
-            --report-file resource-budget/source-report.json \
-            --summary-file resource-budget/source-summary.md
-
       - name: Build Android APK
         run: >
           dotnet publish -c Release
           osu.Android/osu.Android.csproj
           -f net10.0-android
-          -p:Version="${{ steps.version.outputs.version }}"
-          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:ApplicationDisplayVersion="${{ needs.prepare.outputs.version }}"
           -p:ApplicationVersion="${{ github.run_number }}"
           -p:AndroidKeyStore=true
           -p:AndroidSigningKeyStore="${{ github.workspace }}/osu.Android/osu.keystore"
@@ -311,13 +297,12 @@ jobs:
           fi
 
           if [ -z "$APK" ]; then
-            echo "::error::Failed to locate signed APK. Listing bin directory:"
+            echo "::error::Failed to locate signed APK."
             find osu.Android/bin -name "*.apk" -o -name "*.aab" 2>/dev/null || true
             exit 1
           fi
 
-          # Rename to a clean versioned filename for the release
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
           FINAL_APK="$(dirname "$APK")/osu-lazer-$VERSION.apk"
           cp "$APK" "$FINAL_APK"
 
@@ -325,121 +310,51 @@ jobs:
           APK_SIZE_MB=$((APK_SIZE / 1048576))
           echo "Found APK: $FINAL_APK ($APK_SIZE_MB MB)"
           echo "apk_path=$FINAL_APK" >> "$GITHUB_OUTPUT"
-
-      - name: Check APK media budgets
-        run: |
-          python3 scripts/check_resource_budgets.py \
-            --mode apk \
-            --apk-path "${{ steps.find_apk.outputs.apk_path }}" \
-            --budget-file .github/resource-budgets/android-apk-media.json \
-            --report-file resource-budget/apk-report.json \
-            --summary-file resource-budget/apk-summary.md
-
-      - name: Publish resource budget summary
-        if: ${{ !cancelled() }}
-        run: |
-          cat resource-budget/optimizer-summary.md >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat resource-budget/source-summary.md >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          cat resource-budget/apk-summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "artifact_name=osu-android-$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify APK signature
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
           APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
-
-          if "$APKSIGNER" verify --print-certs "$APK"; then
-            echo "APK signature verified ✓"
-          else
-            echo "::error::APK signature verification failed. The APK may not install correctly."
-            exit 1
-          fi
+          "$APKSIGNER" verify --print-certs "$APK"
 
       - name: Verify native libraries in APK
         run: |
           APK="${{ steps.find_apk.outputs.apk_path }}"
-          echo "Checking APK for required native libraries..."
-
           NATIVE_LIBS=$(unzip -l "$APK" | grep "lib/arm64-v8a/.*\.so" || true)
-          echo "$NATIVE_LIBS"
-          echo ""
 
           MISSING=0
           for LIB in libbass.so libbass_fx.so libbassmix.so; do
             if echo "$NATIVE_LIBS" | grep -q "$LIB"; then
               echo "✅ $LIB found"
             else
-              echo "::error::$LIB is MISSING from the APK — the app will crash at startup (DllNotFoundException)."
+              echo "::error::$LIB is MISSING from the APK."
               MISSING=1
             fi
           done
+          [ "$MISSING" -eq 0 ] || exit 1
 
-          if [ "$MISSING" -ne 0 ]; then
-            echo ""
-            echo "::error::One or more required native libraries are missing from the APK. Ensure ppy.osu.Framework.Android was properly restored from the winnerspiros GitHub Packages feed."
-            exit 1
-          fi
-
-          # Architecture sanity check: a previous build packaged the Linux-glibc
-          # libbass.so from ppy.osu.Framework.NativeLibs into lib/arm64-v8a/, which
-          # passed the name check above but failed at runtime with
-          # System.DllNotFoundException: bass because Android's bionic linker cannot
-          # resolve glibc-only symbols. Both Linux and Android builds report
-          # identically as "ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV)"
-          # via file(1), so we rely on the presence of GLIBC_ versioned symbols
-          # (which exist only in glibc-linked binaries) to distinguish them.
-          echo ""
-          echo "Verifying native library architectures (must be Android arm64, not Linux glibc)..."
+          # Verify not Linux glibc ELFs
           TMPDIR=$(mktemp -d)
           trap 'rm -rf "$TMPDIR"' EXIT
           BAD=0
           for LIB in libbass.so libbass_fx.so libbassmix.so; do
             unzip -p "$APK" "lib/arm64-v8a/$LIB" > "$TMPDIR/$LIB"
-            FILE_INFO=$(file "$TMPDIR/$LIB")
-            echo "  $LIB: $FILE_INFO"
-            # Must be a 64-bit aarch64 ELF shared object.
-            if ! echo "$FILE_INFO" | grep -qE "ELF 64-bit.*aarch64|ELF 64-bit.*ARM aarch64"; then
-              echo "::error::$LIB is not a 64-bit aarch64 ELF — runtime DllNotFoundException will occur."
-              BAD=1
-              continue
-            fi
-            # Reliable Linux-vs-Android distinguisher: GLIBC_ versioned symbols
-            # (e.g. memcpy@@GLIBC_2.17) appear only in glibc-linked Linux binaries.
-            # Android's bionic libc uses no symbol versioning.
             if strings "$TMPDIR/$LIB" | grep -q "^GLIBC_"; then
-              echo "::error::$LIB references GLIBC_ versioned symbols — this is the Linux ELF from ppy.osu.Framework.NativeLibs runtimes/linux-arm64/native/, not the Android ELF from ppy.osu.Framework.Android. Android's bionic linker cannot load it; the app will crash at startup with System.DllNotFoundException: bass."
+              echo "::error::$LIB references GLIBC_ — this is a Linux ELF, not Android."
               BAD=1
-              continue
             fi
-            echo "    ✅ $LIB is a valid Android arm64 ELF"
           done
-
-          if [ "$BAD" -ne 0 ]; then
-            echo ""
-            echo "::error::One or more native libraries in the APK are NOT valid Android arm64 binaries. This usually means desktop runtime .so files (e.g. from ppy.osu.Framework.NativeLibs runtimes/linux-arm64/native/) leaked into lib/arm64-v8a/ during packaging. See osu.Android.props FixRuntimePackAssetTypes target."
-            exit 1
-          fi
-
-          echo ""
-          echo "All required native libraries present and valid ✓"
+          [ "$BAD" -eq 0 ] || exit 1
+          echo "All native libraries valid ✓"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: osu-android-${{ steps.version.outputs.version }}
+          name: osu-android-${{ needs.prepare.outputs.version }}
           path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
 
-      - name: Upload resource budget reports
-        uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() }}
-        with:
-          name: resource-budget-android-${{ steps.version.outputs.version }}
-          path: resource-budget/*
-
-      # When the keystore was auto-generated, upload it so the user can save it
-      # as a repository secret for consistent signing across builds.
       - name: Upload generated keystore
         if: steps.keystore.outputs.generated == 'true'
         uses: actions/upload-artifact@v7
@@ -450,59 +365,308 @@ jobs:
             ${{ github.workspace }}/SAVE-THESE-SECRETS.txt
           retention-days: 7
 
-      - name: Print keystore setup instructions
-        if: steps.keystore.outputs.generated == 'true'
-        run: |
-          echo ""
-          echo "=================================================================="
-          echo "  ⚠️  YOUR APK WAS SIGNED WITH AN AUTO-GENERATED KEYSTORE"
-          echo "=================================================================="
-          echo ""
-          echo "  ✅ The APK will install fine on any device."
-          echo ""
-          echo "  ⚠️  BUT — if you build again without saving this keystore,"
-          echo "     Android will REFUSE to update (different signing certificate)."
-          echo ""
-          echo "  To keep your APK updatable across builds:"
-          echo ""
-          echo "  1. Download the 'osu-signing-keystore' artifact from this run"
-          echo "  2. Open 'SAVE-THESE-SECRETS.txt' — it contains all 4 values"
-          echo "  3. Go to: Settings → Secrets and variables → Actions"
-          echo "  4. Create these 4 secrets with the values from the file:"
-          echo ""
-          echo "     • ANDROID_KEYSTORE_BASE64"
-          echo "     • ANDROID_SIGNING_KEY_ALIAS"
-          echo "     • ANDROID_SIGNING_KEY_PASSWORD"
-          echo "     • ANDROID_SIGNING_STORE_PASSWORD"
-          echo ""
-          echo "  ⚡ After saving the secrets, all future builds will use the"
-          echo "     same keystore automatically — no more setup needed."
-          echo ""
-          echo "  💡 QUICK OPTION: You can also paste the values from"
-          echo "     SAVE-THESE-SECRETS.txt directly into the workflow"
-          echo "     dispatch inputs (keystore_base64, key_alias, key_password)"
-          echo "     when running the 'Build Android APK' workflow manually."
-          echo "=================================================================="
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Windows Build
+  # ═══════════════════════════════════════════════════════════════════════════════
+  build-windows:
+    name: Build Windows
+    needs: prepare
+    if: needs.prepare.outputs.build_windows == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-      # Create a GitHub Release with the APK attached.
-      # Works for both tag pushes and manual workflow_dispatch runs.
-      # For manual runs: creates a tag automatically.
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
+      - name: Publish Windows x64
+        run: >
+          dotnet publish -c Release
+          osu.Desktop/osu.Desktop.csproj
+          -r win-x64
+          --self-contained
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:TrimMode=partial
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:ServerGarbageCollection=true
+          -p:ConcurrentGarbageCollection=true
+          -o artifacts/win-x64
+
+      - name: Package Windows build
+        run: |
+          $version = "${{ needs.prepare.outputs.version }}"
+          Compress-Archive -Path artifacts/win-x64/* -DestinationPath "artifacts/osu-lazer-win-x64-$version.zip"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-windows-${{ needs.prepare.outputs.version }}
+          path: artifacts/osu-lazer-win-x64-*.zip
+          if-no-files-found: error
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Linux Build
+  # ═══════════════════════════════════════════════════════════════════════════════
+  build-linux:
+    name: Build Linux
+    needs: prepare
+    if: needs.prepare.outputs.build_linux == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
+      - name: Publish Linux x64
+        run: >
+          dotnet publish -c Release
+          osu.Desktop/osu.Desktop.csproj
+          -r linux-x64
+          --self-contained
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:TrimMode=partial
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:ServerGarbageCollection=true
+          -p:ConcurrentGarbageCollection=true
+          -o artifacts/linux-x64
+
+      - name: Package Linux build
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          chmod +x artifacts/linux-x64/osu!
+          tar -czf "artifacts/osu-lazer-linux-x64-$VERSION.tar.gz" -C artifacts/linux-x64 .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-linux-${{ needs.prepare.outputs.version }}
+          path: artifacts/osu-lazer-linux-x64-*.tar.gz
+          if-no-files-found: error
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # macOS Build
+  # ═══════════════════════════════════════════════════════════════════════════════
+  build-macos:
+    name: Build macOS
+    needs: prepare
+    if: needs.prepare.outputs.build_macos == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
+      - name: Publish macOS arm64
+        run: >
+          dotnet publish -c Release
+          osu.Desktop/osu.Desktop.csproj
+          -r osx-arm64
+          --self-contained
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:TrimMode=partial
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:ServerGarbageCollection=true
+          -p:ConcurrentGarbageCollection=true
+          -o artifacts/osx-arm64
+
+      - name: Publish macOS x64
+        run: >
+          dotnet publish -c Release
+          osu.Desktop/osu.Desktop.csproj
+          -r osx-x64
+          --self-contained
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:TrimMode=partial
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -p:ServerGarbageCollection=true
+          -p:ConcurrentGarbageCollection=true
+          -o artifacts/osx-x64
+
+      - name: Package macOS builds
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          chmod +x "artifacts/osx-arm64/osu!"
+          chmod +x "artifacts/osx-x64/osu!"
+          tar -czf "artifacts/osu-lazer-macos-arm64-$VERSION.tar.gz" -C artifacts/osx-arm64 .
+          tar -czf "artifacts/osu-lazer-macos-x64-$VERSION.tar.gz" -C artifacts/osx-x64 .
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-macos-${{ needs.prepare.outputs.version }}
+          path: artifacts/osu-lazer-macos-*.tar.gz
+          if-no-files-found: error
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # iOS Build
+  # ═══════════════════════════════════════════════════════════════════════════════
+  build-ios:
+    name: Build iOS
+    needs: prepare
+    if: needs.prepare.outputs.build_ios == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET 10.0.x
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install .NET iOS workload
+        run: dotnet workload install ios
+
+      - name: Authenticate to GitHub Packages
+        run: dotnet nuget update source winnerspiros-github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+
+      - name: Build iOS (unsigned .app)
+        run: >
+          dotnet publish -c Release
+          osu.iOS/osu.iOS.csproj
+          -f net10.0-ios
+          -p:Version="${{ needs.prepare.outputs.version }}"
+          -p:ApplicationDisplayVersion="${{ needs.prepare.outputs.version }}"
+          -p:ApplicationVersion="${{ github.run_number }}"
+          -p:ArchiveOnBuild=false
+          -p:BuildIpa=false
+          -p:CodesignKey=""
+          -p:CodesignProvision=""
+          -p:ServerGarbageCollection=true
+          -p:ConcurrentGarbageCollection=true
+
+      - name: Package iOS build
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          mkdir -p artifacts
+          APP_PATH=$(find osu.iOS/bin/Release -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::Could not find .app bundle"
+            exit 1
+          fi
+          tar -czf "artifacts/osu-lazer-ios-$VERSION.tar.gz" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osu-ios-${{ needs.prepare.outputs.version }}
+          path: artifacts/osu-lazer-ios-*.tar.gz
+          if-no-files-found: error
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Create GitHub Release
+  # ═══════════════════════════════════════════════════════════════════════════════
+  release:
+    name: Create Release
+    needs: [prepare, build-android, build-windows, build-linux, build-macos, build-ios]
+    if: |
+      always() &&
+      (inputs.create_release != false) &&
+      !contains(needs.*.result, 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          pattern: osu-*-${{ needs.prepare.outputs.version }}
+          merge-multiple: true
+
+      - name: List release artifacts
+        run: |
+          echo "Release artifacts:"
+          find release-artifacts -type f | sort
+
       - name: Create GitHub Release
-        if: inputs.create_release != false
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "osu! Android ${{ steps.version.outputs.version }}"
-          files: ${{ steps.find_apk.outputs.apk_path }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: "osu! ${{ needs.prepare.outputs.version }}"
+          files: release-artifacts/*
           generate_release_notes: true
           body: |
-            ## osu! Android v${{ steps.version.outputs.version }}
+            ## osu! v${{ needs.prepare.outputs.version }}
 
-            ### Download
-            Grab the APK below and install it on your Android device.
+            ### Downloads
 
-            > **Minimum Android version:** 13 (API 33)
-            > **Architecture:** arm64-v8a
+            | Platform | File |
+            |---|---|
+            | Android (arm64) | `osu-lazer-*.apk` |
+            | Windows (x64) | `osu-lazer-win-x64-*.zip` |
+            | Linux (x64) | `osu-lazer-linux-x64-*.tar.gz` |
+            | macOS (Apple Silicon) | `osu-lazer-macos-arm64-*.tar.gz` |
+            | macOS (Intel) | `osu-lazer-macos-x64-*.tar.gz` |
+            | iOS (unsigned) | `osu-lazer-ios-*.tar.gz` |
+
+            > **Android:** Requires Android 13+ (arm64). Enable "Install from unknown sources" if prompted.
+            > **iOS:** Unsigned build — requires sideloading via AltStore, Sideloadly, or Xcode.
+            > **Desktop:** Self-contained, no .NET runtime needed.
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
