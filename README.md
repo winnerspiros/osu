@@ -364,7 +364,7 @@ The audio latency improvements for **Windows** (WASAPI) and **Android** (Oboe) a
 
 For **macOS**, **iOS**, and **Linux**, the BASS audio library (used by osu-framework) already communicates with the native audio subsystems. The key latency-reducing parameters (device buffer, playback buffer, update period) are tuned in the framework fork. However, to achieve the absolute lowest latency comparable to Oboe on Android:
 
-| Platform | Native API | What could be done in osu-framework |
+| Platform | Native API | What can be done in osu-framework |
 |---|---|---|
 | **macOS** | Core Audio (Audio Unit HAL) | Set `kAudioDevicePropertyBufferFrameSize` to minimum supported value (~64–128 frames at 48 kHz = ~1.3–2.7 ms). Currently relies on BASS defaults. |
 | **iOS** | AVAudioSession + Audio Unit | Request `setPreferredIOBufferDuration` to ~0.005 s. Set `AVAudioSession.category` to `.playback` with `.mixWithOthers`. |

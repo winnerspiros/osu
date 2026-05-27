@@ -625,8 +625,9 @@ jobs:
     needs: [prepare, build-android, build-windows, build-linux, build-macos, build-ios]
     if: |
       always() &&
-      (inputs.create_release != false) &&
-      !contains(needs.*.result, 'failure')
+      (inputs.create_release == true || github.event_name == 'push') &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -637,9 +638,14 @@ jobs:
           path: release-artifacts
           pattern: osu-*-${{ needs.prepare.outputs.version }}
           merge-multiple: true
+        continue-on-error: true
 
-      - name: List release artifacts
+      - name: Verify artifacts exist
         run: |
+          if [ ! -d release-artifacts ] || [ -z "$(ls -A release-artifacts 2>/dev/null)" ]; then
+            echo "::error::No release artifacts found"
+            exit 1
+          fi
           echo "Release artifacts:"
           find release-artifacts -type f | sort
 
