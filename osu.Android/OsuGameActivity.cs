@@ -240,6 +240,16 @@ namespace osu.Android
             LogManagement.ForceOpenGLRendererIfSafeMode();
             CrashDiagnostics.WriteAliveMarker("LogManagement.ForceOpenGLRendererIfSafeMode (returned)");
 
+            // Vulkan cold-start present-mode deferral: temporarily force VSync (FIFO)
+            // in framework.ini so the swapchain is created in safe FIFO mode. The
+            // original IMMEDIATE-mode value is restored by OsuGameAndroid after the
+            // Draw thread presents its first frame. This prevents the Adreno 7xx
+            // vkQueuePresentKHR stall during the texture-upload burst that causes
+            // black screen + ANR on cold start.
+            CrashDiagnostics.WriteAliveMarker("LogManagement.ForceVSyncDuringVulkanColdStart (about to start)");
+            LogManagement.ForceVSyncDuringVulkanColdStart();
+            CrashDiagnostics.WriteAliveMarker("LogManagement.ForceVSyncDuringVulkanColdStart (returned)");
+
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (about to start)");
             LogManagement.WipeShaderCacheOnceForVersion();
             CrashDiagnostics.WriteAliveMarker("LogManagement.WipeShaderCacheOnceForVersion (returned)");

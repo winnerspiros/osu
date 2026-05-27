@@ -93,6 +93,16 @@ namespace osu.Android
         /// </summary>
         public const string FLAG_LAST_NATIVE_CRASH_CONSUMED = "android_last_native_crash_consumed.flag";
 
+        /// <summary>
+        /// Stores the original <c>FrameSync</c> value that was temporarily overwritten to
+        /// <c>VSync</c> by <see cref="LogManagement.ForceVSyncDuringVulkanColdStart"/> before
+        /// framework init. After the Draw thread presents its first frame,
+        /// <see cref="OsuGameAndroid"/> reads this value and restores it via the framework
+        /// config manager (applying it in-memory AND persisting to <c>framework.ini</c>),
+        /// then deletes the flag so subsequent launches repeat the same cycle.
+        /// </summary>
+        public const string FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE = "android_vulkan_cold_start_frame_sync_restore.flag";
+
         private static string? resolveDir()
         {
             try

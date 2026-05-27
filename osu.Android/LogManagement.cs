@@ -746,6 +746,117 @@ namespace osu.Android
             return renderer != null && string.Equals(renderer, "Vulkan", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Temporarily forces <c>FrameSync = VSync</c> in <c>framework.ini</c> when
+        /// Vulkan is configured and the persisted value maps to IMMEDIATE present mode
+        /// (i.e. <c>ActualUnlimited</c> or <c>Unlimited</c>).
+        ///
+        /// <para>
+        /// <b>Why:</b> On Adreno 7xx (Snapdragon 8 Gen 2/3), applying
+        /// <c>VK_PRESENT_MODE_IMMEDIATE_KHR</c> during the cold-start texture-upload burst
+        /// triggers a swapchain recreation (FIFO → IMMEDIATE) while hundreds of textures
+        /// are being uploaded. The Vulkan driver stalls in <c>vkQueuePresentKHR</c>,
+        /// blocking the Draw thread indefinitely and producing a black screen + ANR.
+        /// </para>
+        ///
+        /// <para>
+        /// <b>How:</b> Before the framework reads <c>framework.ini</c> (in OnCreate,
+        /// before <c>base.OnCreate</c>), we rewrite <c>FrameSync</c> to <c>VSync</c> so
+        /// the swapchain is created in FIFO mode (safe). The original value is saved to
+        /// <see cref="AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE"/>
+        /// and restored by <see cref="OsuGameAndroid"/> after the Draw thread presents
+        /// its first frame (via <c>FrameworkConfigManager.SetValue</c>, which applies
+        /// in-memory AND persists to disk).
+        /// </para>
+        ///
+        /// <para>
+        /// <b>Safety:</b> If the process dies before restoration, next launch finds
+        /// <c>FrameSync = VSync</c> in the ini (safe FIFO cold start) plus the restore
+        /// flag still on disk, so the same deferred-switch cycle repeats. No user-visible
+        /// permanent change to the config.
+        /// </para>
+        /// </summary>
+        public static void ForceVSyncDuringVulkanColdStart()
+        {
+            try
+            {
+                if (!IsVulkanConfigured())
+                    return;
+
+                // If safe-mode is active, ForceOpenGLRendererIfSafeMode already switched
+                // to OpenGL — no Vulkan swapchain will be created, so no override needed.
+                if (AndroidStartupSafeMode.IsActive)
+                    return;
+
+                string? root = resolveStorageRoot();
+                if (root == null) return;
+
+                string iniPath = Path.Combine(root, "framework.ini");
+                if (!File.Exists(iniPath)) return;
+
+                string[] lines;
+
+                try
+                {
+                    lines = File.ReadAllLines(iniPath);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not read framework.ini for Vulkan cold-start VSync override: {e.Message}");
+                    return;
+                }
+
+                bool changed = false;
+                string? originalValue = null;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+
+                    string key = line.Substring(0, eq).Trim();
+                    string value = line.Substring(eq + 1).Trim();
+
+                    if (!string.Equals(key, "FrameSync", StringComparison.Ordinal))
+                        continue;
+
+                    // Only override values that map to IMMEDIATE present mode.
+                    // VSync and Limit2x use FIFO, which is safe during cold start.
+                    if (string.Equals(value, "ActualUnlimited", StringComparison.Ordinal)
+                        || string.Equals(value, "Unlimited", StringComparison.Ordinal))
+                    {
+                        originalValue = value;
+                        lines[i] = "FrameSync = VSync";
+                        changed = true;
+                    }
+
+                    break;
+                }
+
+                if (!changed || originalValue == null) return;
+
+                // Save the original value so OsuGameAndroid can restore it after first frame.
+                AndroidStartupFlags.WriteValue(AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE, originalValue);
+
+                try
+                {
+                    File.WriteAllLines(iniPath, lines);
+                    Logger.Log($"[osu!] Vulkan cold-start protection: FrameSync {originalValue} → VSync (FIFO) until first frame presents", LoggingTarget.Performance);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[osu!] LogManagement: could not rewrite framework.ini for Vulkan cold-start VSync override: {e.Message}");
+                    // Clean up the flag since we couldn't apply the override
+                    AndroidStartupFlags.Set(AndroidStartupFlags.FLAG_VULKAN_COLD_START_FRAME_SYNC_RESTORE, false);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[osu!] LogManagement: ForceVSyncDuringVulkanColdStart failed: {e.Message}");
+            }
+        }
+
         // Sentinel file dropped after a successful one-shot shader-cache wipe.
         // Stored alongside the cache itself (not in the cache directory, which
         // we delete) so the marker survives the wipe. The file payload is the
