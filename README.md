@@ -2,7 +2,7 @@
   <img width="500" alt="osu! logo" src="assets/lazer.png">
 </p>
 
-<h1 align="center">osu! lazer — Multi-Platform Fork</h1>
+<h1 align="center">osu! lazer</h1>
 
 <p align="center">
   <a href="https://github.com/winnerspiros/osu/actions/workflows/release.yml"><img src="https://github.com/winnerspiros/osu/actions/workflows/release.yml/badge.svg" alt="Release Build"></a>
