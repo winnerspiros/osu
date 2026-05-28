@@ -128,7 +128,13 @@ namespace osu.Game.Rulesets.UI
 
         protected override void AddDrawable(HitObjectLifetimeEntry entry, DrawableHitObject drawable)
         {
-            if (nonPooledDrawableMap.ContainsKey(entry)) return;
+            if (nonPooledDrawableMap.ContainsKey(entry))
+            {
+                // Non-pooled drawables are permanently present in InternalChildren.
+                // Only insert into the alive-objects cache when the entry becomes alive.
+                insertIntoAliveCache(drawable);
+                return;
+            }
 
             addDrawable(drawable);
             HitObjectUsageBegan?.Invoke(entry.HitObject);
@@ -137,22 +143,21 @@ namespace osu.Game.Rulesets.UI
         protected override void RemoveDrawable(HitObjectLifetimeEntry entry, DrawableHitObject drawable)
         {
             drawable.OnKilled();
-            if (nonPooledDrawableMap.ContainsKey(entry)) return;
+
+            if (nonPooledDrawableMap.ContainsKey(entry))
+            {
+                // Non-pooled drawables stay in InternalChildren; only remove from alive cache.
+                aliveObjectsSortedCache.Remove(drawable);
+                return;
+            }
 
             removeDrawable(drawable);
             HitObjectUsageFinished?.Invoke(entry.HitObject);
         }
 
-        private void addDrawable(DrawableHitObject drawable)
+        private void insertIntoAliveCache(DrawableHitObject drawable)
         {
             // Binary-search insertion to keep aliveObjectsSortedCache in StartTime order.
-            // O(log n) search + O(n) shift — far cheaper than rebuilding & sorting
-            // the entire list from scratch on every alive-state transition.
-            // Note: `<=` means new objects with the same StartTime are appended after
-            // existing ones (stable insertion order within a tie group).  The full
-            // visual-tree Compare also applies CompareReverseChildID as a tie-breaker,
-            // but AliveObjects consumers (e.g. cursor particles) don't require that
-            // level of ordering stability.
             double startTime = drawable.HitObject.StartTime;
             int lo = 0, hi = aliveObjectsSortedCache.Count;
 
@@ -167,6 +172,11 @@ namespace osu.Game.Rulesets.UI
             }
 
             aliveObjectsSortedCache.Insert(lo, drawable);
+        }
+
+        private void addDrawable(DrawableHitObject drawable)
+        {
+            insertIntoAliveCache(drawable);
 
             drawable.OnNewResult += onNewResult;
 
@@ -196,7 +206,13 @@ namespace osu.Game.Rulesets.UI
                 throw new InvalidOperationException($"May not add a {nameof(DrawableHitObject)} without {nameof(HitObject)} associated");
 
             nonPooledDrawableMap.Add(drawable.Entry, drawable);
-            addDrawable(drawable);
+
+            // Set up permanent bindings once. The alive-objects cache is managed via
+            // AddDrawable/RemoveDrawable callbacks when the lifetime entry becomes alive/dead.
+            drawable.OnNewResult += onNewResult;
+            bindStartTime(drawable);
+            AddInternal(drawable);
+
             Add(drawable.Entry);
         }
 
