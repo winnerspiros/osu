@@ -11,6 +11,9 @@
     <ApplicationIcon>lazer.ico</ApplicationIcon>
     <Version>0.0.0</Version>
     <FileVersion>0.0.0</FileVersion>
+    <!-- WindowsKey.Disable() carries [RequiresAssemblyFiles] (IL3002); we already guard the call-site
+         with a pragma but add the project-level suppression for completeness. -->
+    <NoWarn>$(NoWarn);IL3002</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>osu.Desktop.Program</StartupObject>

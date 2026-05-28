@@ -3,6 +3,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The codebase uses extensive reflection (Newtonsoft.Json, Realm, AutoMapper, Activator.CreateInstance)
+         that cannot be statically analysed by the ILLink trim analyser. Suppress trim analysis warnings
+         here to keep the build output clean; iOS already suppresses these in osu.iOS.props. -->
+    <NoWarn>$(NoWarn);IL2026;IL2067;IL3000</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!</Title>
