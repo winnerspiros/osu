@@ -133,7 +133,9 @@ namespace osu.Desktop
         {
             base.LoadComplete();
 
+#pragma warning disable IL2026
             LoadComponentAsync(new DiscordRichPresence(), Add);
+#pragma warning restore IL2026
 
             switch (RuntimeInfo.OS)
             {

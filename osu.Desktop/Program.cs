@@ -125,7 +125,9 @@ namespace osu.Desktop
                     try
                     {
                         Logger.Log("Starting legacy IPC provider...");
+#pragma warning disable IL2026
                         legacyIpc = new LegacyTcpIpcProvider();
+#pragma warning restore IL2026
                         legacyIpc.Bind();
                     }
                     catch (Exception ex)
