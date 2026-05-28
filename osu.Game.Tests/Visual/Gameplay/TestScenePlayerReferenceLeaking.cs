@@ -25,7 +25,7 @@ namespace osu.Game.Tests.Visual.Gameplay
                 // Run multiple GC passes to handle finalizer queues and large object heap.
                 for (int i = 0; i < 3; i++)
                 {
-                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: false);
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
                     GC.WaitForPendingFinalizers();
                 }
 
@@ -41,7 +41,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: false);
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
                     GC.WaitForPendingFinalizers();
                 }
 
