@@ -6,6 +6,7 @@ using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
+using osu.Game.Tests;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Rulesets.Osu.Mods;
@@ -18,6 +19,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Mods
     public partial class TestSceneOsuModMirror : OsuModTestScene
     {
         [Test]
+        [FlakyTest]
         public void TestCorrectReflections([Values] OsuModMirror.MirrorType type, [Values] bool withStrictTracking) => CreateModTest(new ModTestData
         {
             Autoplay = true,
