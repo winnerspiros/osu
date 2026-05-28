@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using DiscordRPC;
 using DiscordRPC.Message;
@@ -27,6 +28,7 @@ using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Desktop
 {
+    [RequiresUnreferencedCode("Newtonsoft.Json relies on reflection over types that may be removed when trimming.")]
     internal partial class DiscordRichPresence : Component
     {
         private const string client_id = "1216669957799018608";

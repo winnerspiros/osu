@@ -598,8 +598,6 @@ jobs:
           -p:BuildIpa=false
           -p:CodesignKey=""
           -p:CodesignProvision=""
-          -p:ServerGarbageCollection=true
-          -p:ConcurrentGarbageCollection=true
 
       - name: Package iOS build
         run: |

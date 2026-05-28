@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using osu.Framework.Logging;
@@ -20,6 +21,7 @@ namespace osu.Desktop.LegacyIpc
     /// <summary>
     /// Provides IPC to legacy osu! clients.
     /// </summary>
+    [RequiresUnreferencedCode("Newtonsoft.Json relies on reflection over types that may be removed when trimming.")]
     public class LegacyTcpIpcProvider : TcpIpcProvider
     {
         private static readonly Logger logger = Logger.GetLogger("legacy-ipc");

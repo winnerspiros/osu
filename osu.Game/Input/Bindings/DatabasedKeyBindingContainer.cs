@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Input.Bindings;
@@ -55,7 +56,9 @@ namespace osu.Game.Input.Bindings
             {
                 // The first fire of this is a bit redundant as this is being called in base.LoadComplete,
                 // but this is safest in case the subscription is restored after a context recycle.
+#pragma warning disable IL2026
                 ReloadMappings(sender.AsQueryable());
+#pragma warning restore IL2026
             });
 
             base.LoadComplete();
