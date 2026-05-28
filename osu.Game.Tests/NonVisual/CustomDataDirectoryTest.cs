@@ -14,7 +14,6 @@ using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Configuration;
 using osu.Game.IO;
-using osu.Game.Tests;
 
 namespace osu.Game.Tests.NonVisual
 {
