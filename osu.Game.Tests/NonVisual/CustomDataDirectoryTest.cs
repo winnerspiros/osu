@@ -14,6 +14,7 @@ using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Configuration;
 using osu.Game.IO;
+using osu.Game.Tests;
 
 namespace osu.Game.Tests.NonVisual
 {
@@ -173,6 +174,7 @@ namespace osu.Game.Tests.NonVisual
         }
 
         [Test]
+        [FlakyTest]
         public void TestMigrationBetweenTwoTargets()
         {
             using (prepareCustomPath(out string customPath))

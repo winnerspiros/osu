@@ -591,6 +591,10 @@ namespace osu.Game.Beatmaps.Formats
             {
                 switch (sample.Name)
                 {
+                    case HitSampleInfo.HIT_NORMAL:
+                        type |= LegacyHitSoundType.Normal;
+                        break;
+
                     case HitSampleInfo.HIT_WHISTLE:
                         type |= LegacyHitSoundType.Whistle;
                         break;
