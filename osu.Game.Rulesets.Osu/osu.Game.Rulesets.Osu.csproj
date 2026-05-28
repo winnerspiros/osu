@@ -4,6 +4,8 @@
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>click the circles. to the beat.</Description>
+    <!-- CreateSettingsControls uses reflection; suppress trim analysis warnings to keep the build output clean. -->
+    <NoWarn>$(NoWarn);IL2026</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Label="Nuget">
