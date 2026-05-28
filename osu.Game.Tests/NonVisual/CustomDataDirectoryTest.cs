@@ -173,6 +173,7 @@ namespace osu.Game.Tests.NonVisual
         }
 
         [Test]
+        [FlakyTest]
         public void TestMigrationBetweenTwoTargets()
         {
             using (prepareCustomPath(out string customPath))

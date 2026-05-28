@@ -6,6 +6,8 @@ on:
       - '*.*.*'
       - '!*-*'
 
+permissions: {}
+
 jobs:
   notify_pending_production_deploy:
     runs-on: ubuntu-latest

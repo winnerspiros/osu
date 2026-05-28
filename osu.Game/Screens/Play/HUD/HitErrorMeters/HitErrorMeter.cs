@@ -18,7 +18,7 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
     {
         protected HitWindows HitWindows { get; private set; }
 
-        [Resolved]
+        [Resolved(canBeNull: true)]
         private ScoreProcessor processor { get; set; }
 
         [Resolved]
@@ -44,7 +44,7 @@ namespace osu.Game.Screens.Play.HUD.HitErrorMeters
 
             gameplayClockContainer?.OnSeek += Clear;
 
-            processor.NewJudgement += processorNewJudgement;
+            processor?.NewJudgement += processorNewJudgement;
         }
 
         // Scheduled as meter implementations are likely going to change/add drawables when reacting to this.

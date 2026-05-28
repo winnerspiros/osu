@@ -22,8 +22,13 @@ namespace osu.Game.Tests.Visual.Gameplay
         {
             AddUntilStep("no leaked beatmaps", () =>
             {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                // Run multiple GC passes to handle finalizer queues and large object heap.
+                for (int i = 0; i < 3; i++)
+                {
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
+                    GC.WaitForPendingFinalizers();
+                }
+
                 int count = 0;
 
                 foreach (var unused in workingWeakReferences)
@@ -34,8 +39,12 @@ namespace osu.Game.Tests.Visual.Gameplay
 
             AddUntilStep("no leaked players", () =>
             {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                for (int i = 0; i < 3; i++)
+                {
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
+                    GC.WaitForPendingFinalizers();
+                }
+
                 int count = 0;
 
                 foreach (var unused in playerWeakReferences)

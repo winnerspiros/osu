@@ -52,9 +52,10 @@ namespace osu.Game.Tests.Visual.Gameplay
         [SetUpSteps]
         public override void SetUpSteps()
         {
+            AddStep("reset skin", () => skins.CurrentSkinInfo.SetDefault());
+
             base.SetUpSteps();
 
-            AddStep("reset skin", () => skins.CurrentSkinInfo.SetDefault());
             AddUntilStep("wait for hud load", () => targetContainer.ComponentsLoaded);
 
             AddStep("reload skin editor", () =>
