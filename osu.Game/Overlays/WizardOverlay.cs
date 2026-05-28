@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
@@ -200,6 +201,7 @@ namespace osu.Game.Overlays
             ShowNextStep();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Step types are always WizardScreen subtypes with parameterless constructors.")]
         protected virtual void ShowNextStep()
         {
             Debug.Assert(CurrentStepIndex != null);

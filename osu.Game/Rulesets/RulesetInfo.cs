@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using osu.Game.Rulesets.Difficulty;
 using Realms;
@@ -94,6 +95,7 @@ namespace osu.Game.Rulesets
             LastAppliedDifficultyVersion = LastAppliedDifficultyVersion,
         };
 
+        [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "InstantiationInfo is a trusted ruleset type name from loaded assemblies.")]
         public Ruleset CreateInstance()
         {
             if (!Available)

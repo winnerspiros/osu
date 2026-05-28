@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -97,6 +98,7 @@ namespace osu.Game.Tournament
             Task.Run(readBracket);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Tournament uses Newtonsoft.Json which is not subject to IL trimming in this context.")]
         private async Task readBracket()
         {
             try
@@ -348,6 +350,7 @@ namespace osu.Game.Tournament
                 sw.Write(serialisedLadder);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Tournament uses Newtonsoft.Json which is not subject to IL trimming in this context.")]
         public string GetSerialisedLadder()
         {
             foreach (var r in ladder.Rounds)

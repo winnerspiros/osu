@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Game.Database;
@@ -40,6 +41,7 @@ namespace osu.Game.Skinning
 
         public bool Protected { get; set; }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "InstantiationInfo is a trusted skin type name set from known skin types.")]
         public virtual Skin CreateInstance(IStorageResourceProvider resources)
         {
             var type = string.IsNullOrEmpty(InstantiationInfo)

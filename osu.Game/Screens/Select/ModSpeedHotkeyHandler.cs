@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -45,6 +46,7 @@ namespace osu.Game.Screens.Select
             lastActiveRateAdjustMod = (ModRateAdjust?)selectedMods.Value.OfType<ModRateAdjust>().SingleOrDefault()?.DeepClone() ?? lastActiveRateAdjustMod;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "ModRateAdjust property names are stable and will not be trimmed.")]
         public bool ChangeSpeed(double delta, IEnumerable<Mod> availableMods)
         {
             double targetSpeed = (selectedMods.Value.OfType<ModRateAdjust>().SingleOrDefault()?.SpeedChange.Value ?? 1) + delta;

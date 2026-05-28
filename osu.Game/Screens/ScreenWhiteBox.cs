@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -52,6 +53,7 @@ namespace osu.Game.Screens
             this.FadeIn(transition_time, Easing.OutExpo);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "PossibleChildren types always have parameterless constructors.")]
         public ScreenWhiteBox()
         {
             FillFlowContainer childModeButtons;
