@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Newtonsoft.Json;
 using osu.Framework.Platform;
@@ -29,6 +30,7 @@ namespace osu.Game.Tournament.Models
 
         private readonly Storage configStorage;
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Tournament uses Newtonsoft.Json which is not subject to IL trimming in this context.")]
         public StableInfo(TournamentStorage storage)
         {
             configStorage = storage.AllTournaments;
@@ -43,6 +45,7 @@ namespace osu.Game.Tournament.Models
             }
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Tournament uses Newtonsoft.Json which is not subject to IL trimming in this context.")]
         public void SaveChanges()
         {
             using (var stream = configStorage.CreateFileSafely(config_path))

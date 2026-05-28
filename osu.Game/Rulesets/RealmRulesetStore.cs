@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -29,6 +30,7 @@ namespace osu.Game.Rulesets
             informUserAboutBrokenRulesets();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "InstantiationInfo is a trusted ruleset type name from loaded assemblies.")]
         private void prepareDetachedRulesets()
         {
             realmAccess.Write(realm =>

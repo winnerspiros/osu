@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
@@ -27,6 +28,7 @@ namespace osu.Game.Skinning
     [Serializable]
     public sealed class SerialisedDrawableInfo
     {
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         public Type Type { get; set; } = null!;
 
         public Vector2 Position { get; set; }
