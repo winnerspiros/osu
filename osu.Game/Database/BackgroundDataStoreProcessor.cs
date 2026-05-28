@@ -78,7 +78,6 @@ namespace osu.Game.Database
 
         protected virtual int TimeToSleepDuringGameplay => 30000;
 
-        [RequiresUnreferencedCode("Calls processScoresWithMissingStatistics which uses Newtonsoft.Json reflection.")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -94,7 +93,9 @@ namespace osu.Game.Database
                 processOnlineBeatmapSetsWithNoUpdate();
                 // Note that the previous method will also update these on a fresh run.
                 processBeatmapsWithMissingObjectCounts();
+#pragma warning disable IL2026
                 processScoresWithMissingStatistics();
+#pragma warning restore IL2026
                 convertLegacyTotalScoreToStandardised();
                 upgradeScoreRanks();
                 backpopulateMissingSubmissionAndRankDates();

@@ -55,7 +55,9 @@ namespace osu.Desktop.IPC
             if (server?.IsRunning != true)
                 return;
 
+#pragma warning disable IL2026
             string messageString = JsonConvert.SerializeObject(message);
+#pragma warning restore IL2026
             server.BroadcastAsync(messageString).FireAndForget();
         }
 

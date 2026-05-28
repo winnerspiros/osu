@@ -63,11 +63,15 @@ namespace osu.Game.IO.Serialization.Converters
                     throw new JsonException("Expected $type token.");
 
                 // Prevent instantiation of types that do not inherit the type targetted by this converter
+#pragma warning disable IL2057
                 Type type = Type.GetType(lookupTable[(int)tok["$type"]]).AsNonNull();
+#pragma warning restore IL2057
                 if (!type.IsAssignableTo(typeof(T)))
                     continue;
 
+#pragma warning disable IL2072
                 var instance = (T)Activator.CreateInstance(type)!;
+#pragma warning restore IL2072
                 serializer.Populate(itemReader, instance);
 
                 list.Add(instance);

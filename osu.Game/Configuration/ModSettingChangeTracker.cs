@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using osu.Game.Overlays.Settings;
 using osu.Game.Rulesets.Mods;
@@ -30,6 +31,7 @@ namespace osu.Game.Configuration
         /// Creates a new <see cref="ModSettingChangeTracker"/> for a set of <see cref="Mod"/>s.
         /// </summary>
         /// <param name="mods">The set of <see cref="Mod"/>s whose settings need to be tracked.</param>
+        [UnconditionalSuppressMessage("ILLink", "IL2026", Justification = "SettingSourceAttribute uses reflection intentionally; callers on trimmed targets must ensure mod types are preserved.")]
         public ModSettingChangeTracker(IEnumerable<Mod> mods)
         {
             foreach (var mod in mods)

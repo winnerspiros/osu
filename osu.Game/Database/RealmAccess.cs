@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -838,6 +839,7 @@ namespace osu.Game.Database
                 applyMigrationsForVersion(migration, i);
         }
 
+        [UnconditionalSuppressMessage("ILLink", "IL2026", Justification = "Dynamic binding in realm migrations is intentional and safe for non-trimmed targets.")]
         private void applyMigrationsForVersion(Migration migration, ulong targetVersion)
         {
             Logger.Log($"Running realm migration to version {targetVersion}...");

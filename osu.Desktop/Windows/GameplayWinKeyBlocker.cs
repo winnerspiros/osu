@@ -36,10 +36,12 @@ namespace osu.Desktop.Windows
         {
             bool shouldDisable = isActive.Value && disableWinKey.Value && localUserPlaying.Value == LocalUserPlayingState.Playing;
 
+#pragma warning disable IL3000
             if (shouldDisable)
                 host.InputThread.Scheduler.Add(WindowsKey.Disable);
             else
                 host.InputThread.Scheduler.Add(WindowsKey.Enable);
+#pragma warning restore IL3000
         }
     }
 }

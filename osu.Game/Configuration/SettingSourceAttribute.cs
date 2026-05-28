@@ -81,7 +81,7 @@ namespace osu.Game.Configuration
             Description = description ?? string.Empty;
         }
 
-        public SettingSourceAttribute(Type declaringType, string label, string description, int orderPosition)
+        public SettingSourceAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type declaringType, string label, string description, int orderPosition)
             : this(declaringType, label, description)
         {
             OrderPosition = orderPosition;
