@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -76,6 +77,9 @@ namespace osu.Game.Screens.Select
 
         [Resolved]
         private OsuGameBase game { get; set; } = null!;
+
+        [Resolved]
+        private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
 
         private IBindable<Language> currentLanguage = null!;
 
@@ -174,6 +178,7 @@ namespace osu.Game.Screens.Select
             currentLanguage.BindValueChanged(_ => ScheduleAfterChildren(updateDisplay));
 
             Ruleset.BindValueChanged(_ => updateDisplay());
+            beatmap.BindValueChanged(_ => updateDisplay());
             Mods.BindValueChanged(m =>
             {
                 modSettingChangeTracker?.Dispose();
@@ -243,7 +248,7 @@ namespace osu.Game.Screens.Select
                 modDisplay.FadeIn(duration, easing);
             }
 
-            var scoreMultiplierCalculator = Ruleset.Value?.CreateInstance().CreateScoreMultiplierCalculator(new ScoreMultiplierContext());
+            var scoreMultiplierCalculator = Ruleset.Value?.CreateInstance().CreateScoreMultiplierCalculator(new ScoreMultiplierContext(beatmap.Value.BeatmapInfo.Difficulty));
             double multiplier = scoreMultiplierCalculator?.CalculateFor(Mods.Value) ?? 1;
             multiplierText.Text = ModUtils.FormatScoreMultiplier(multiplier);
 

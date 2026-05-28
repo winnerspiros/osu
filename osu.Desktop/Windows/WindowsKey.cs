@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 // ReSharper disable IdentifierTypo
@@ -47,6 +48,7 @@ namespace osu.Desktop.Windows
             return callNextHookEx(0, nCode, wParam, ref lParam);
         }
 
+        [RequiresAssemblyFiles("Uses Marshal.GetHINSTANCE which requires the assembly to be loaded from disk.")]
         internal static void Disable()
         {
             if (keyHook != IntPtr.Zero || isBlocked)

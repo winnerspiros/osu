@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -42,9 +43,10 @@ namespace osu.Game.Configuration
         /// <remarks>
         /// Must be a type deriving <see cref="SettingsItem{T}"/> with a public parameterless constructor.
         /// </remarks>
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         public Type? SettingControlType { get; set; }
 
-        public SettingSourceAttribute(Type declaringType, string label, string? description = null)
+        public SettingSourceAttribute([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type declaringType, string label, string? description = null)
         {
             Label = getLocalisableStringFromMember(label) ?? string.Empty;
             Description = getLocalisableStringFromMember(description) ?? string.Empty;
@@ -109,6 +111,7 @@ namespace osu.Game.Configuration
 
     public static partial class SettingSourceExtensions
     {
+        [RequiresUnreferencedCode("SettingSourceAttribute uses reflection to instantiate settings controls and may not be compatible with trimming.")]
         public static IEnumerable<Drawable> CreateSettingsControls(this object obj)
         {
             foreach (var (attr, property) in obj.GetOrderedSettingsSourceProperties())
@@ -222,6 +225,7 @@ namespace osu.Game.Configuration
         /// Can be used for serialization and equality comparison purposes.
         /// </summary>
         /// <param name="setting">A <see cref="SettingSourceAttribute"/> bindable.</param>
+        [RequiresUnreferencedCode("Uses BindableValueAccessor which relies on reflection and may not be compatible with trimming.")]
         public static object GetUnderlyingSettingValue(this object setting)
         {
             switch (setting)
@@ -250,6 +254,7 @@ namespace osu.Game.Configuration
             }
         }
 
+        [RequiresUnreferencedCode("SettingSourceAttribute uses reflection to retrieve properties and may not be compatible with trimming.")]
         public static IEnumerable<(SettingSourceAttribute, PropertyInfo)> GetSettingsSourceProperties(this object obj)
         {
             var type = obj.GetType();
@@ -260,7 +265,7 @@ namespace osu.Game.Configuration
             return properties;
         }
 
-        private static IEnumerable<(SettingSourceAttribute, PropertyInfo)> getSettingsSourceProperties(Type type)
+        private static IEnumerable<(SettingSourceAttribute, PropertyInfo)> getSettingsSourceProperties([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
         {
             foreach (var property in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
             {
@@ -273,6 +278,7 @@ namespace osu.Game.Configuration
             }
         }
 
+        [RequiresUnreferencedCode("SettingSourceAttribute uses reflection to retrieve properties and may not be compatible with trimming.")]
         public static ICollection<(SettingSourceAttribute, PropertyInfo)> GetOrderedSettingsSourceProperties(this object obj)
             => obj.GetSettingsSourceProperties()
                   .OrderBy(attr => attr.Item1)

@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
@@ -26,7 +25,7 @@ namespace osu.Desktop.MacOS
         {
             base.LoadComplete();
 
-            string assemblyPath = RuntimeInfo.EntryAssembly.Location;
+            string assemblyPath = AppContext.BaseDirectory;
 
             bool inRootApp = assemblyPath.StartsWith("/Applications/", StringComparison.Ordinal);
             bool inUserApp = assemblyPath.StartsWith(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Applications/"), StringComparison.Ordinal);

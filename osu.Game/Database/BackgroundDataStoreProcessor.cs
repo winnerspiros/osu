@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -77,6 +78,7 @@ namespace osu.Game.Database
 
         protected virtual int TimeToSleepDuringGameplay => 30000;
 
+        [RequiresUnreferencedCode("Calls processScoresWithMissingStatistics which uses Newtonsoft.Json reflection.")]
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -345,6 +347,7 @@ namespace osu.Game.Database
             completeNotification(notification, processedCount, beatmapIds.Count, failedCount);
         }
 
+        [RequiresUnreferencedCode("Newtonsoft.Json relies on reflection over types that may be removed when trimming.")]
         private void processScoresWithMissingStatistics()
         {
             HashSet<Guid> scoreIds = new HashSet<Guid>();
