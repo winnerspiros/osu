@@ -79,7 +79,8 @@ namespace osu.Game.Database
         protected virtual int TimeToSleepDuringGameplay => 30000;
 
         [RequiresUnreferencedCode("Calls processScoresWithMissingStatistics which uses Newtonsoft.Json reflection.")]
-        protected override void LoadComplete()        {
+        protected override void LoadComplete()
+        {
             base.LoadComplete();
 
             localMetadataSource = new LocalCachedBeatmapMetadataSource(storage);
